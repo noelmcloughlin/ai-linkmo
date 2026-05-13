@@ -1,0 +1,62 @@
+/* Compact and vertically centered svelte-select using CSS custom properties */
+:global(.svelte-select) {
+  --line-height: 24px;
+  --selected-item-padding: 0 0px;
+  --item-padding: 0 0px;
+  --input-height: 30px;
+}
+.prepend {
+  height: 30px;
+  min-height: 30px;
+  max-height: 30px;
+}
+.svelte-select {
+  height: 30px !important;
+  min-height: 30px !important;
+  max-height: 30px !important;
+}
+
+#search-field.search-field-custom {
+  background: linear-gradient(135deg, #e0e7ef 60%, #f1f5fa 100%) !important;
+  color: #222 !important;
+  border: 1px solid #fff !important;
+  box-shadow: 0 1px 6px 0 #2563eb22;
+  font-weight: 600;
+  transition:
+    background 0.2s,
+    border 0.2s,
+    box-shadow 0.2s;
+}
+#search-field.search.field-custom:focus {
+  background: linear-gradient(135deg, #e0e7ef 60%, #f1f5fa 100%) !important;
+  border: 1px solid #fff !important;
+  color: #222 !important;
+  box-shadow: 0 2px 12px 0 #2563eb22;
+}
+/* Responsive right aside: let height be content-based, allow scroll only if needed */
+.responsive-right-aside {
+  height: auto;
+  max-height: none;
+  overflow-y: visible !important;
+  overflow-x: visible !important;
+  padding-bottom: 30px !important;
+}
+
+/* Match font and color of value to placeholder for count input */
+.count-input-style::placeholder {
+  color: #a3a3a3;
+  font-style: italic;
+  opacity: 1;
+}
+.count-input-style {
+  color: #222;
+  font-style: italic;
+  border-radius: 9999px !important;
+  background: transparent !important;
+  box-shadow: 0 1px 4px 0 #a3a3a322;
+  backdrop-filter: blur(8px);
+}
+.right-aside-bg {
+  background: transparent;
+  backdrop-filter: blur(8px);
+}

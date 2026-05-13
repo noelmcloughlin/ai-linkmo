@@ -1,0 +1,1614 @@
+openapi: 3.0.0
+info:
+  title: AI-LinkMO User Demo, Open API
+  version: 1.2.1
+paths:
+  /risk:
+    get:
+      summary: Get risk
+      operationId: handlers.risks
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Import your own data into the Ai Atlas Nexus knowledge graph
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: isPartOf
+          schema:
+            type: string
+          required: false
+          description: Filter by partof (some entity)
+        - in: query
+          name: hasPart
+          schema:
+            type: string
+          required: false
+          description: Filter by part
+        - in: query
+          name: detectsRiskConcept
+          schema:
+            type: string
+          required: false
+          description: Filter by concept that detects a risk
+        - in: query
+          name: descriptor
+          schema:
+            type: string
+          required: false
+          description: Filter by descriptor
+        - in: query
+          name: isDetectedBy
+          schema:
+            type: string
+          required: false
+          description: Filter by detection concepts
+        - in: query
+          name: risk_type
+          schema:
+            type: string
+          required: false
+          description: Specify type of selected scope
+        - in: query
+          name: implementedByAdapter
+          schema:
+            type: string
+          required: false
+          description: Filter by adapter that implements the risk
+        - in: query
+          name: phase
+          schema:
+            type: string
+            enum: ["training-tuning", "inference"]
+          required: false
+          description: Filter by risk phase.
+        - in: query
+          name: related
+          schema:
+            type: boolean
+          required: false
+          description: Fetch related items for the given scope ID
+        - in: query
+          name: related_ids
+          schema:
+            type: boolean
+          required: false
+          description: Fetch IDs of related items for the given scope ID
+      responses:
+        "200":
+          description: Risk response
+          content:
+            application/json:
+              schema:
+                type: object
+  /action:
+    get:
+      summary: Get action
+      operationId: handlers.actions
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Import your own data into the Ai Atlas Nexus knowledge graph
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: type
+          schema:
+            type: string
+          required: false
+          description: Specify type of selected scope
+        - in: query
+          name: hasAiActorTask
+          schema:
+            type: string
+          required: false
+          description: Filter by AI Actor Task
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: related
+          schema:
+            type: boolean
+          required: false
+          description: Fetch related items for the given scope ID
+        - in: query
+          name: related_ids
+          schema:
+            type: boolean
+          required: false
+          description: Fetch IDs of related items for the given scope ID
+        - in: query
+          name: hasRelatedRisk
+          schema:
+            type: string
+          required: false
+          description: Specify a risk ID
+      responses:
+        "200":
+          description: Action response
+          content:
+            application/json:
+              schema:
+                type: object
+  /control:
+    get:
+      summary: Get control
+      operationId: handlers.controls
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Import your own data into the Ai Atlas Nexus knowledge graph
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: hasAiActorTask
+          schema:
+            type: string
+          required: false
+          description: Filter by AI Actor Task
+        - in: query
+          name: detectsRiskConcept
+          schema:
+            type: string
+          required: false
+          description: Filter by concept that detects a risk
+        - in: query
+          name: isDetectedBy
+          schema:
+            type: string
+          required: false
+          description: Filter by detection concepts
+        - in: query
+          name: type
+          schema:
+            type: string
+          required: false
+          description: Specify type of selected scope
+        - in: query
+          name: related
+          schema:
+            type: boolean
+          required: false
+          description: Fetch related items for the given scope ID
+        - in: query
+          name: related_ids
+          schema:
+            type: boolean
+          required: false
+          description: Fetch IDs of related items for the given scope ID
+        - in: query
+          name: hasRelatedRisk
+          schema:
+            type: string
+          required: false
+          description: Specify a risk ID
+      responses:
+        "200":
+          description: Control response
+          content:
+            application/json:
+              schema:
+                type: object
+  /incident:
+    get:
+      summary: Get incident
+      operationId: handlers.incidents
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Import your own data into the Ai Atlas Nexus knowledge graph
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: refersToRisk
+          schema:
+            type: string
+          required: false
+          description: Filter by refers to risk
+        - in: query
+          name: hasStatus
+          schema:
+            type: string
+          required: false
+          description: Filter by status
+        - in: query
+          name: hasSeverity
+          schema:
+            type: string
+          required: false
+          description: Filter by severity
+        - in: query
+          name: hasLikelihood
+          schema:
+            type: string
+          required: false
+          description: Filter by likelihood
+        - in: query
+          name: hasImpactOn
+          schema:
+            type: string
+          required: false
+          description: Filter by impact-on
+        - in: query
+          name: hasImpact
+          schema:
+            type: string
+          required: false
+          description: Filter by impact
+        - in: query
+          name: hasConsequence
+          schema:
+            type: string
+          required: false
+          description: Filter by consequence
+        - in: query
+          name: hasVariant
+          schema:
+            type: string
+          required: false
+          description: Filter by variant
+        - in: query
+          name: isDetectedBy
+          schema:
+            type: string
+          required: false
+          description: Filter by detection concepts
+        - in: query
+          name: related
+          schema:
+            type: boolean
+          required: false
+          description: Fetch related items for the given scope ID
+        - in: query
+          name: related_ids
+          schema:
+            type: boolean
+          required: false
+          description: Fetch IDs of related items for the given scope ID
+        - in: query
+          name: hasRelatedRisk
+          schema:
+            type: string
+          required: false
+          description: Specify a risk ID
+      responses:
+        "200":
+          description: Incident response
+          content:
+            application/json:
+              schema:
+                type: object
+  /benchmarkcard:
+    get:
+      summary: Get benchmarkcard
+      operationId: handlers.benchmarkcards
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: hasLicense
+          schema:
+            type: string
+          required: false
+          description: Filter by license
+        - in: query
+          name: belongsToDomain
+          schema:
+            type: string
+          required: false
+          description: Filter by domain value
+        - in: query
+          name: describesAiEval
+          schema:
+            type: string
+          required: false
+          description: Filter by evaluation (AiEval) ID
+        - in: query
+          name: hasRelatedRisk
+          schema:
+            type: string
+          required: false
+          description: Specify a risk ID
+        - in: query
+          name: related
+          schema:
+            type: boolean
+          required: false
+          description: Fetch related items for the given scope ID
+        - in: query
+          name: related_ids
+          schema:
+            type: boolean
+          required: false
+          description: Fetch IDs of related items for the given scope ID
+      responses:
+        "200":
+          description: Benchmarkcard response
+          content:
+            application/json:
+              schema:
+                type: object
+  /evaluation:
+    get:
+      summary: Get evaluation
+      operationId: handlers.evaluations
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: hasDataset
+          schema:
+            type: string
+          required: false
+          description: Filter by dataset
+        - in: query
+          name: hasTasks
+          schema:
+            type: string
+          required: false
+          description: Filter by Task
+        - in: query
+          name: hasLicense
+          schema:
+            type: string
+          required: false
+          description: Filter by license
+        - in: query
+          name: benchmarkmetadata
+          schema:
+            type: string
+          required: false
+          description: Filter by benchmark metadata
+        - in: query
+          name: unitxcard
+          schema:
+            type: string
+          required: false
+          description: Filter by Unitx Card
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: hasRelatedRisk
+          schema:
+            type: string
+          required: false
+          description: Specify a risk ID
+        - in: query
+          name: related
+          schema:
+            type: boolean
+          required: false
+          description: Fetch related items for the given scope ID
+        - in: query
+          name: related_ids
+          schema:
+            type: boolean
+          required: false
+          description: Fetch IDs of related items for the given scope ID
+      responses:
+        "200":
+          description: Evaluation response
+          content:
+            application/json:
+              schema:
+                type: object
+  /document:
+    get:
+      summary: Get document
+      operationId: handlers.documents
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: hasLicense
+          schema:
+            type: string
+          required: false
+          description: Filter by license
+      responses:
+        "200":
+          description: Document response
+          content:
+            application/json:
+              schema:
+                type: object
+  /dataset:
+    get:
+      summary: Get dataset
+      operationId: handlers.datasets
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: provider
+          schema:
+            type: string
+          required: false
+          description: Filter by provider
+        - in: query
+          name: hasLicense
+          schema:
+            type: string
+          required: false
+          description: Filter by license
+      responses:
+        "200":
+          description: Dataset response
+          content:
+            application/json:
+              schema:
+                type: object
+  /adapter:
+    get:
+      summary: Get adapter
+      operationId: handlers.adapters
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: hasAdapterType
+          schema:
+            type: string
+          required: false
+          description: Specify type of selected scope
+        - in: query
+          name: hasLicense
+          schema:
+            type: string
+          required: false
+          description: Filter by license
+        - in: query
+          name: hasEvaluation
+          schema:
+            type: string
+          required: false
+          description: Specify an evaluation ID to filter items
+        - in: query
+          name: isDefinedByVocabulary
+          schema:
+            type: string
+          required: false
+          description: Filter by vocabulary
+        - in: query
+          name: isProvidedBy
+          schema:
+            type: string
+          required: false
+          description: Filter by provider
+        - in: query
+          name: adaptsModel
+          schema:
+            type: string
+          required: false
+          description: Filter by AI Model ID
+        - in: query
+          name: implementsCapability
+          schema:
+            type: string
+          required: false
+          description: Filter by implements capability
+        - in: query
+          name: performsTask
+          schema:
+            type: string
+          required: false
+          description: Filter by performs task
+        - in: query
+          name: requiredByTask
+          schema:
+            type: string
+          required: false
+          description: Filter by required by task
+        - in: query
+          name: hasRelatedRisk
+          schema:
+            type: string
+          required: false
+          description: Specify a risk ID
+        - in: query
+          name: related
+          schema:
+            type: boolean
+          required: false
+          description: Fetch related items for the given scope ID
+        - in: query
+          name: related_ids
+          schema:
+            type: boolean
+          required: false
+          description: Fetch IDs of related items for the given scope ID
+      responses:
+        "200":
+          description: Adapter response
+          content:
+            application/json:
+              schema:
+                type: object
+  /stakeholder:
+    get:
+      summary: Get stakeholder
+      operationId: handlers.stakeholders
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: isPartOf
+          schema:
+            type: string
+          required: false
+          description: Filter by partof (some entity)
+      responses:
+        "200":
+          description: Stakeholder response
+          content:
+            application/json:
+              schema:
+                type: object
+  /intrinsic:
+    get:
+      summary: Get intrinsic
+      operationId: handlers.intrinsics
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: isDefinedByVocabulary
+          schema:
+            type: string
+          required: false
+          description: Filter by vocabulary
+        - in: query
+          name: hasTerm
+          schema:
+            type: string
+          required: false
+          description: Filter by term in the scope
+        - in: query
+          name: hasAdapter
+          schema:
+            type: string
+          required: false
+          description: Filter by adapter
+        - in: query
+          name: requiredByTask
+          schema:
+            type: string
+          required: false
+          description: Filter by required by task
+        - in: query
+          name: capability
+          schema:
+            type: string
+          required: false
+          description: Filter by capability
+        - in: query
+          name: requiresCapability
+          schema:
+            type: string
+          required: false
+          description: Filter by requires capability
+        - in: query
+          name: hasRelatedRisk
+          schema:
+            type: string
+          required: false
+          description: Specify a risk ID
+        - in: query
+          name: related
+          schema:
+            type: boolean
+          required: false
+          description: Fetch related items for the given scope ID
+        - in: query
+          name: related_ids
+          schema:
+            type: boolean
+          required: false
+          description: Fetch IDs of related items for the given scope ID
+      responses:
+        "200":
+          description: Intrinsic response
+          content:
+            application/json:
+              schema:
+                type: object
+  /questionpolicy:
+    get:
+      summary: Get questionpolicy
+      operationId: handlers.questionpolicies
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasRule
+          schema:
+            type: string
+          required: false
+          description: Filter by rule
+        - in: query
+          name: hasRelatedRisk
+          schema:
+            type: string
+          required: false
+          description: Specify a risk ID
+      responses:
+        "200":
+          description: Questionpolicy response
+          content:
+            application/json:
+              schema:
+                type: object
+  /principle:
+    get:
+      summary: Get principle
+      operationId: handlers.principles
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: isDefinedByVocabulary
+          schema:
+            type: string
+          required: false
+          description: Filter by vocabulary
+        - in: query
+          name: isPartOf
+          schema:
+            type: string
+          required: false
+          description: Filter by partof (some entity)
+        - in: query
+          name: hasTasks
+          schema:
+            type: string
+          required: false
+          description: Filter by Task
+        - in: query
+          name: requiresCapability
+          schema:
+            type: string
+          required: false
+          description: Filter by requires capability
+      responses:
+        "200":
+          description: Principle response
+          content:
+            application/json:
+              schema:
+                type: object
+  /recommendation:
+    get:
+      summary: Get Control Activity Recommendations
+      operationId: handlers.recommendations
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasControlApplication
+          schema:
+            type: string
+            enum: [CORE, SUPPLEMENTAL]
+          required: false
+          description: Filter by AIUC1 application category.
+        - in: query
+          name: hasEvidenceCategory
+          schema:
+            type: string
+            enum:
+              [
+                TECHNICAL_IMPLEMENTATION,
+                LEGAL_POLICIES,
+                OPERATIONAL_PRACTICES,
+                THIRD_PARTY_EVALS,
+              ]
+          required: false
+          description: Filter by AIUC1 evidence category.
+        - in: query
+          name: hasTypicalLocation
+          schema:
+            type: string
+          required: false
+          description: Filter by typical location of activity.
+        - in: query
+          name: capability
+          schema:
+            type: string
+          required: false
+          description: Filter by capability.
+        - in: query
+          name: hasRequirement
+          schema:
+            type: string
+          required: false
+          description: Filter by AIUC1 requirement.
+        - in: query
+          name: hasRequirementType
+          schema:
+            type: string
+            enum: [DETECTIVE, PREVENTATIVE]
+          required: false
+          description: Filter by AIUC1 requirement type.
+        - in: query
+          name: hasRule
+          schema:
+            type: string
+          required: false
+          description: Filter by rule.
+      responses:
+        "200":
+          description: Control Activity Recommendation response
+          content:
+            application/json:
+              schema:
+                type: object
+  /obligation:
+    get:
+      summary: Get Control Activity Obligations
+      operationId: handlers.obligations
+      description: |
+        A control activity (rule) describing an obligation for performing an activity.
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy.
+        - in: query
+          name: hasControlApplication
+          schema:
+            type: string
+            enum: [CORE, SUPPLEMENTAL]
+          required: false
+          description: Filter by AIUC1 application category.
+        - in: query
+          name: hasEvidenceCategory
+          schema:
+            type: string
+            enum:
+              [
+                TECHNICAL_IMPLEMENTATION,
+                LEGAL_POLICIES,
+                OPERATIONAL_PRACTICES,
+                THIRD_PARTY_EVALS,
+              ]
+          required: false
+          description: Filter by AIUC1 evidence category.
+        - in: query
+          name: hasTypicalLocation
+          schema:
+            type: string
+          required: false
+          description: Filter by typical location of activity.
+        - in: query
+          name: capability
+          schema:
+            type: string
+          required: false
+          description: Filter by capability.
+        - in: query
+          name: hasRequirement
+          schema:
+            type: string
+          required: false
+          description: Filter by AIUC1 requirement.
+        - in: query
+          name: hasRequirementType
+          schema:
+            type: string
+            enum: [DETECTIVE, PREVENTATIVE]
+          required: false
+          description: Filter by AIUC1 requirement type.
+        - in: query
+          name: hasRule
+          schema:
+            type: string
+          required: false
+          description: Filter by rule.
+      responses:
+        "200":
+          description: Control Activity Obligation response
+          content:
+            application/json:
+              schema:
+                type: object
+  /vocabulary:
+    get:
+      summary: Get vocabulary
+      operationId: handlers.vocabularies
+      parameters:
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: hasLicense
+          schema:
+            type: string
+          required: false
+          description: Filter by license
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+      responses:
+        "200":
+          description: Vocabulary response
+          content:
+            application/json:
+              schema:
+                type: object
+  /model:
+    get:
+      summary: Get ai model
+      operationId: handlers.models
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: hasLicense
+          schema:
+            type: string
+          required: false
+          description: Filter by license
+        - in: query
+          name: isProvidedBy
+          schema:
+            type: string
+          required: false
+          description: Filter by provider
+        - in: query
+          name: isPartOf
+          schema:
+            type: string
+          required: false
+          description: Filter by partof (some entity)
+        - in: query
+          name: performsTask
+          schema:
+            type: string
+          required: false
+          description: Filter by Task
+        - in: query
+          name: hasEvaluation
+          schema:
+            type: string
+          required: false
+          description: Specify an evaluation ID to filter items
+        - in: query
+          name: hasInputModality
+          schema:
+            type: string
+          required: false
+          description: Filter by input modality
+        - in: query
+          name: hasOutputModality
+          schema:
+            type: string
+          required: false
+          description: Filter by output modality
+        - in: query
+          name: hasRiskControl
+          schema:
+            type: string
+          required: false
+          description: Specify a control ID to filter items
+      responses:
+        "200":
+          description: AiModel response
+          content:
+            application/json:
+              schema:
+                type: object
+  /task:
+    get:
+      summary: Get ai tasks
+      operationId: handlers.tasks
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: isDefinedByVocabulary
+          schema:
+            type: string
+          required: false
+          description: Filter by vocabulary
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: isPartOf
+          schema:
+            type: string
+          required: false
+          description: Filter by partof (some entity)
+        - in: query
+          name: hasTasks
+          schema:
+            type: string
+          required: false
+          description: Filter by Task
+        - in: query
+          name: implementedByAdapter
+          schema:
+            type: string
+          required: false
+          description: Filter by adapter
+        - in: query
+          name: requiresCapability
+          schema:
+            type: string
+          required: false
+          description: Filter by requires capability
+      responses:
+        "200":
+          description: AiTask response
+          content:
+            application/json:
+              schema:
+                type: object
+  /taxonomy:
+    get:
+      summary: Get taxonomy
+      operationId: handlers.taxonomies
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: hasLicense
+          schema:
+            type: string
+          required: false
+          description: Filter by license
+      responses:
+        "200":
+          description: Taxonomy response
+          content:
+            application/json:
+              schema:
+                type: object
+  /organization:
+    get:
+      summary: Get organizations
+      operationId: handlers.organizations
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: grants_license
+          schema:
+            type: string
+          required: false
+          description: Filter by license
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+      responses:
+        "200":
+          description: Organizations response
+          content:
+            application/json:
+              schema:
+                type: object
+  /group:
+    get:
+      summary: Get groups
+      operationId: handlers.groups
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasDocumentation
+          schema:
+            type: string
+          required: false
+          description: Specify a document ID for the selected scope
+        - in: query
+          name: type
+          schema:
+            type: string
+          required: false
+          description: Specify type of selected scope
+        - in: query
+          name: belongsToDomain
+          schema:
+            type: string
+          required: false
+          description: Filter by domain value
+        - in: query
+          name: hasPart
+          schema:
+            type: string
+          required: false
+          description: Filter by part
+      responses:
+        "200":
+          description: Groups response
+          content:
+            application/json:
+              schema:
+                type: object
+  /graph:
+    get:
+      summary: Get graph
+      operationId: handlers.graph
+      parameters:
+        - in: query
+          name: export
+          schema:
+            type: boolean
+          required: false
+          description: Export the graph or data for the selected scope
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+      responses:
+        "200":
+          description: Graph response
+          content:
+            application/json:
+              schema:
+                type: object
+  /crosswalk:
+    get:
+      summary: Get crosswalk
+      operationId: handlers.crosswalk
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: isDefinedByTaxonomy2
+          schema:
+            type: string
+          required: false
+          description: Second taxonomy ID to compare in the crosswalk scope
+        - in: query
+          name: export
+          schema:
+            type: boolean
+          required: false
+          description: Export the graph or data for the selected scope
+      responses:
+        "200":
+          description: Crosswalk response
+          content:
+            application/json:
+              schema:
+                type: object
+  /inference:
+    get:
+      summary: Get inference
+      operationId: handlers.inference
+      parameters:
+        - in: query
+          name: engine
+          schema:
+            type: string
+          required: false
+          description: Specify the inference engine
+        - in: query
+          name: parameters
+          schema:
+            type: string
+          required: false
+          description: Specify the model inference parameters
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: usecase
+          schema:
+            type: string
+          required: false
+          description: Specify the use case for the inference scope
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+      responses:
+        "200":
+          description: Inference response
+          content:
+            application/json:
+              schema:
+                type: object
+  /schemaview:
+    get:
+      summary: Get schemaview
+      operationId: handlers.schemaview
+      parameters:
+        - in: query
+          name: introspect
+          schema:
+            type: boolean
+          required: false
+          description: Enable introspection for the schemaview scope
+      responses:
+        "200":
+          description: Schemaview response
+          content:
+            application/json:
+              schema:
+                type: object
+  /byo:
+    get:
+      summary: Get Bring your own data file
+      operationId: handlers.byo
+      parameters:
+        - in: query
+          name: filename
+          schema:
+            type: string
+          required: true
+          description: Filename for BYO data operations
+      responses:
+        "200":
+          description: File found and returned
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+    put:
+      summary: Upload Bring your own data file
+      operationId: handlers.byo_put
+      parameters:
+        - in: query
+          name: filename
+          schema:
+            type: string
+          required: true
+          description: Filename for BYO data operations
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  detail:
+                    type: string
+  /ares:
+    post:
+      summary: Run ARES evaluation
+      operationId: handlers.ares
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                risks:
+                  type: array
+                  items:
+                    type: object
+                    description: Risk object
+                inference_engine:
+                  type: string
+                  description: Inference engine identifier
+                target:
+                  type: object
+                  description: Target dictionary
+      responses:
+        "200":
+          description: ARES evaluation completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    description: Evaluation result

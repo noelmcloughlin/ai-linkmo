@@ -1,0 +1,65 @@
+/* Middle.svelte Styles */
+
+.main-content-container {
+  overflow: visible;
+  box-sizing: border-box;
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.main-flex-container {
+  width: 100vw;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.aside-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  overflow: hidden;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  transition: opacity 0.2s;
+}
+
+.aside-container.left {
+  width: clamp(280px, 20vw, 320px);
+  min-height: 120px;
+  max-height: 80vh;
+  height: auto;
+}
+
+.aside-container.right {
+  width: clamp(280px, 32vw, 360px);
+}
+
+.aside-container.hidden {
+  width: 0;
+  min-width: 0;
+  visibility: hidden;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.aside-container.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.results-container {
+  flex: 1;
+  min-width: 200px;
+  max-width: 1400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+  position: sticky;
+  top: 6.25rem;
+  z-index: 10;
+  background: inherit;
+  padding: 2rem;
+  margin: 0 auto;
+}

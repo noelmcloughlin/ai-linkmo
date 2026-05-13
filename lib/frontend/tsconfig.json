@@ -1,0 +1,41 @@
+{
+	"extends": "@tsconfig/svelte/tsconfig.json",
+	"compilerOptions": {
+		"target": "ESNext",
+		"module": "ESNext",
+		"rewriteRelativeImportExtensions": true,
+		"allowJs": true,
+		"checkJs": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"moduleResolution": "bundler",
+		"paths": {
+			"$lib/*": ["./src/lib/*"],
+			"$components/*": ["./src/lib/components/*"],
+			"$states/*": ["./src/lib/states/*"],
+			"$types/*": ["./src/lib/types/*"],
+			"$utils/*": ["./src/lib/utils/*"],
+		},
+		"types": ["svelte", "node"],
+		"typeRoots": ["./node_modules/@types", "./src/types"]
+	},
+	"include": [
+		"src/**/*ts",
+		"src/**/*.svelte",
+		"src/lib/types/global.d.ts"
+	],
+	"exclude": [
+		"node_modules",
+		"static",
+		"src/lib/components/ui/constants.ts",
+		"dist",
+		"build"
+	]
+	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
+	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
+	//
+	// To make changes to top-level options such as include and exclude, we recommend extending
+	// the generated config; see https://svelte.dev/docs/kit/configuration#typescript
+}
