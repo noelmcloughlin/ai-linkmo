@@ -1,0 +1,56 @@
+entries:
+  - id: acme-risky-behaviour
+    name: A very risky AI behaviour
+    description: An LLM-based system is often very risky
+    isDefinedByTaxonomy: acme-ai-taxonomy
+    type: Risk
+    tag: test2
+    risk_type: non-technical
+    dateModified: '2026-03-15'
+  - id: ai-and-coffee
+    name: A very risky coffee behaviour using AI Models
+    description: Spilling coffee on LLM Models is bad idea.
+    isDefinedByTaxonomy: acme-ai-taxonomy
+    type: Risk
+    risk_type: non-technical
+    broad_mappings:
+      - wikidata:Q8486
+      - wikidata:Q6097
+      - wikidata:Q115714392
+  - id: jssss
+    isDefinedByTaxonomy: acme-ai-taxonomy
+    type: Risk
+    dateCreated: '2026-03-13'
+    dateModified: '2026-03-13'
+taxonomies:
+  - id: acme-ai-taxonomy
+    name: ACME Corp AI Taxonomy
+    description: Understand risk dimensions covered by AI Risk Curation Guardians.
+    type: RiskTaxonomy
+    dateCreated: '2025-12-16'
+    dateModified: '2026-02-19'
+    version: '27'
+    broad_mappings:
+      - acme-ai-dso-taxonomy
+actions:
+  - id: acme-action-coffee-001
+    name: Establish ACME AI system access controls
+    description: Implement comprehensive access management for Coffee and AI models.
+    isDefinedByTaxonomy: acme-ai-taxonomy
+    dateCreated: '2025-12-16'
+    dateModified: '2026-01-13'
+    hasRelatedRisk:
+      - ai-and-coffee
+evaluations:
+  - id: my-evaluation-of-coffee
+    name: Coffee and AI evaluation
+    description: Examine coffee risks and controls
+documents:
+  - id: my-acme-document
+    name: ACME AI document
+    description: LLM controls and balances
+organizations:
+  - id: microsoft-corp
+    name: Microsoft Corporation
+    description: American multinational technology corporation
+    url: https://microsoft.com

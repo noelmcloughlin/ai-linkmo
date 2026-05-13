@@ -1,0 +1,50 @@
+[project]
+name = "acme-ai-atlas-nexus-demo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ninja",
+    # "ai-atlas-nexus[vllm]>=1.2.1",
+    "ai-atlas-nexus>=1.2.1",
+    "flask",
+    "colorama>=0.4.6",
+    "cymple>=0.12.0",
+    "fastapi>=0.124.2",
+    "uvicorn>=0.38.0",
+    "ldap3>=2.9.1",
+    "aiofiles>=25.1.0",
+    "autopep8>=2.3.2",
+    "rich>=14.3.3",
+    "requests>=2.32.0,<2.33.0",
+    "urllib3>=1.26.0,<2.0.0",
+    "charset-normalizer>=2.0.0,<3.4.0",
+    "chardet>=4.0.0,<6.0.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-timeout>=2.2.0",
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["lib/test"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "-p", "no:typeguard",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

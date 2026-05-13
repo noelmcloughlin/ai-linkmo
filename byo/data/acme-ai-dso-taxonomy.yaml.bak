@@ -1,0 +1,28 @@
+entries:
+  - id: acme-code-completion-understand-suggestions
+    name: Understand Suggestions
+    description: >-
+      Always review and understand the suggestions made by AI Code completion
+      tools before accepting them. Ensure that the suggested code aligns with
+      your project requirements and coding standards.
+    isDefinedByTaxonomy: acme-ai-dso-taxonomy
+    type: Risk
+    url: >-
+      https://example.com/Copilo-safe-usage-guidelines
+    related_mappings:
+      - atlas-over-or-under-reliance
+    concern: >-
+      Be aware of hallucinations, GenAI may make things up when it doesn't have
+      enough context.
+    dateCreated: '2025-12-16'
+    risk_type: output
+taxonomies:
+  - id: acme-ai-dso-taxonomy
+    name: ACME Corp DevSecOps Taxonomy
+    description: >-
+      Understand risk dimensions covered by ACME Corp DevSecOps Curation
+      Guardians.
+    type: RiskTaxonomy
+    dateCreated: '2025-12-16'
+    dateModified: '2026-03-12'
+    version: '3'

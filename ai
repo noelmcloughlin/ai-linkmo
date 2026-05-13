@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# This script executes lib/cli.py script using `uv run`.
+# Usage: ./ai [arguments]
+
+if [ ! -d ".venv" ]
+then
+    echo
+    echo "No directory named ./venv found in current directory (see SETUP.md)!"
+    echo "You can build library as follows (check README.md)"
+    echo
+    echo '    scl enable gcc-toolset-12 bash'
+    echo '    uv cache clean'
+    echo '    MAX_JOBS=4 TORCH_CUDA_ARCH_LIST="8.6" uv sync'
+    exit 1
+fi
+
+## logo
+if [ ! -f "lib/frontend/static/mylogo.png" ]; then
+    cp byo/images/mylogo.png lib/frontend/static/mylogo.png 2>/dev/null || true
+fi
+
+# Check if arguments are provided
+if [ "$#" -eq 0 ]; then
+    # Default behavior: show help
+    exec uv run -m lib.cli.cli --help
+    exit 0
+fi
+
+# Execute the lib.cli module with the provided arguments
+# CLI defaults to --mode api, but users can override with --mode local
+exec uv run -m lib.cli.cli "$@"
