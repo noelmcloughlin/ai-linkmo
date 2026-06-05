@@ -5,7 +5,7 @@ import { asides, cardState, notify } from "$states/index";
 import { mutateAndSaveRecord, showNotify, devWarn } from "$utils/index";
 
 export function logInvalidEntry(key: string, value: unknown) {
-  devWarn("Skipping invalid entry instanceof RecordDisplay:", key, value);
+  devWarn("Skipping invalid entry in RecordDisplay:", key, value);
 }
 
 export function isValidRecord(record: unknown): record is NexusRecord {
@@ -33,13 +33,15 @@ export function handleFormAction(endpointName: string, action: "add" | "edit") {
       record: detail.record,
     });
     if (result) {
-      showNotify(result.typeof, result.message);
+      showNotify(result.type, result.message);
     }
     resetCardAndAsides();
   };
 }
 
-export function handleDisplaycardEditButton(e: CustomEvent<{ record: NexusRecord }>) {
+export function handleDisplaycardEditButton(
+  e: CustomEvent<{ record: NexusRecord }>,
+) {
   cardState.type = "edit";
   asides.hideAll();
   cardState.setEditRecord(e.detail.record);
@@ -62,6 +64,6 @@ export async function handleFormDelete(
     endpointName: endpointName,
     record: recordToDelete,
   });
-  notify.add({ typeof: result.typeof, message: result.message });
+  notify.add({ type: result.type, message: result.message });
   resetCardAndAsides();
 }

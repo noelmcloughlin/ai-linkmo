@@ -27,6 +27,12 @@ class Asides {
   }
 
   restore() {
+    if (!this.prevLeftOpen && !this.prevRightOpen) {
+      this.leftOpen = true;
+      this.rightOpen = true;
+      return;
+    }
+
     this.leftOpen = this.prevLeftOpen;
     this.rightOpen = this.prevRightOpen;
   }

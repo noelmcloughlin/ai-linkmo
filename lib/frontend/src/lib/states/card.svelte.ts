@@ -1,6 +1,6 @@
 // Define the state from card operations
 
-import type { NexusRecord} from "$types/yaml";
+import type { NexusRecord } from "$types/yaml";
 
 class CardState {
   // "add", "edit", "display", "notify"

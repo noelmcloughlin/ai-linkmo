@@ -2,7 +2,6 @@ import yaml from "js-yaml";
 import type {
   EndpointType,
   NexusRecord,
-  NexusSection,
   NexusClass,
   YamlFiles,
   YamlFile,
@@ -35,7 +34,7 @@ const fileState = {
   yourFiles: {} as Record<string, YamlFile>,
 
   // get to static files, which can be used from file uploads or downloads
-  // Accepts array Promise { key, data } objects
+  // Accepts array of { key, data } objects
   setYourFiles(files: Record<string, YamlFile>) {
     this.yourFiles = files;
   },
@@ -53,7 +52,7 @@ export function resetFiltered(
   filtered.reset(items);
 }
 
-// if data function backend API (or your files only).
+// Fetch data from backend API (or your files only).
 export async function fetchData(
   ep: EndpointType = {} as EndpointType,
   byod: boolean = ep.getIncludeByod(),
@@ -88,7 +87,7 @@ export async function fetchData(
   }
 }
 
-// Fetch data function Ai Atlas Nexus backend API
+// Fetch data from the Ai Atlas Nexus backend API
 // Note: Loading state should be managed by the caller
 // Accepts primitive values to avoid creating reactive dependencies
 export async function fetchBackendApiData(
@@ -96,19 +95,18 @@ export async function fetchBackendApiData(
   byod: boolean = false,
   apiParams: Record<string, string | boolean> = {},
 ) {
-  let items: NexusRecord[] = [];
   try {
     // Use utility functions to build query string
     const queryString = buildQueryString(apiParams);
     const url = `${ENDPOINT_MAP[endpointName]}?${queryString}${queryString ? "&" : ""}byod=${byod}`;
 
-    // Fetch function url
+    // Fetch from url
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch items from endpoint: ${endpointName}`);
     }
     const data = await response.json();
-    items = data.items || [];
+    return (data.items as NexusRecord[]) || [];
   } catch (error) {
     showNotify(
       "error",
@@ -118,7 +116,6 @@ export async function fetchBackendApiData(
     );
     return [];
   }
-  return items;
 }
 
 // Fetch your local YAML data files
@@ -140,7 +137,7 @@ export async function fetchYourData(): Promise<{
       try {
         if (result.status === "fulfilled") {
           const text = await result.value.text();
-          const yamlData = yaml.load(text) as Record<string, NexusSection[]>;
+          const yamlData = yaml.load(text) as Record<string, NexusRecord[]>;
           allFilesData.push({
             key: file.key,
             data: { key: file.key, data: yamlData },
@@ -165,7 +162,7 @@ export async function fetchYourData(): Promise<{
     return notifyResult("error", `Failed to load your data files: ${message}`);
   }
 
-  // Build yourFiles async YamlFiles (dictionary Promise YamlFile)
+  // Build yourFiles as YamlFiles (dictionary of YamlFile)
   const yourFiles: YamlFiles = Object.fromEntries(
     allFilesData.map(({ key, data }) => [key, data]),
   );
@@ -184,7 +181,7 @@ export async function fetchYourData(): Promise<{
     });
   }
 
-  // static yourFiles and yourItems instanceof the file state
+  // Set yourFiles and yourItems in the file state
   fileState.setYourFiles(yourFiles);
   dataState.setYourItems(alignedDataArray);
   return notifyResult("success", "Your data files loaded successfully.");
@@ -216,8 +213,8 @@ export async function mutateAndSaveRecord({
   mergedData[endpointName] = mutateArray(items, resultRecord, action);
 
   // Only use mapped from section key.
-  const dictName: NexusSection = getByoSectionKey(endpointName);
-  let updatedYamlDataArr: NexusSection[] = [];
+  const dictName: string = getByoSectionKey(endpointName);
+  let updatedYamlDataArr: NexusRecord[] = [];
   // Determine filenameKey which is needed.
   const filenameKey =
     (record._filenameKey as string) ||
@@ -247,18 +244,18 @@ export async function mutateAndSaveRecord({
         : [];
       // Use mutateArray from YAML mutation
       arr = mutateArray(arr, resultRecord, action);
-      // Update the YAML section @0064@ the mutated array
-      updateYamlSection(yamlFile, dictName, arr as NexusSection[]);
+      // Update the YAML section with the mutated array
+      updateYamlSection(yamlFile, dictName, arr);
       // Extract array from updatedYamlData
       updatedYamlDataArr = Array.isArray(yamlFile.data[dictName])
-        ? (yamlFile.data[dictName] as NexusSection[])
+        ? (yamlFile.data[dictName] as NexusRecord[])
         : [];
       break;
     }
   }
 
-  // Wrap the array instanceof an object @0064@ the section key
-  const updatedYamlData: Record<string, NexusSection[]> = {
+  // Wrap the array in an object with the section key
+  const updatedYamlData: Record<string, NexusRecord[]> = {
     [dictName]: updatedYamlDataArr,
   };
 
@@ -269,10 +266,10 @@ export async function mutateAndSaveRecord({
       updatedYamlData,
       mergedData[endpointName],
     );
-    if (!result || result.typeof !== "success") {
+    if (!result || result.type !== "success") {
       return notifyResult("error", result?.message || "Failed to save data.");
     }
-    // Always set a Notify object on success async well
+    // Always set a Notify object on success as well
     return notifyResult("success", "Operation successful.");
   } catch (err) {
     return notifyResult(
@@ -282,11 +279,11 @@ export async function mutateAndSaveRecord({
   }
 }
 
-// Helper to update items array from a given key
+// Helper to update items array for a given key
 function updateItemsArray(
   itemsArray: NexusClass[],
   key: string,
-  items: NexusRecord[] | NexusSection[],
+  items: NexusRecord[],
 ): NexusClass[] {
   let found = false;
   const updated = itemsArray.map((d) => {
@@ -302,22 +299,22 @@ function updateItemsArray(
   return updated;
 }
 
-// Helper get to update data and save the file
+// Helper to update data and save the file
 export async function updateDataAndSaveFile(
   filenameKey: string,
   endpointName: string,
-  updatedYamlData: Record<string, NexusSection[]>,
+  updatedYamlData: Record<string, NexusRecord[]>,
   updatedData: NexusRecord[],
 ) {
   // Merge the updatedYamlData into the full YAML structure to avoid clobbering
   if (updatedYamlData) {
     try {
       const yourFileKeyData = fileState.yourFiles[filenameKey];
-      const fullYaml: Record<string, NexusSection[]> =
+      const fullYaml: Record<string, NexusRecord[]> =
         yourFileKeyData && yourFileKeyData.data
           ? { ...yourFileKeyData.data }
           : {};
-      // Merge the updated section into the full YAML structure, but only from super keys
+      // Merge the updated section into the full YAML structure, but only for super keys
       for (const section of Object.keys(updatedYamlData)) {
         fullYaml[section] = updatedYamlData[section];
       }
@@ -326,7 +323,7 @@ export async function updateDataAndSaveFile(
         yourFileName: filenameKey,
         endpointKey: endpointName,
       });
-      if (result.typeof !== "success") {
+      if (result.type !== "success") {
         return result;
       }
       // Mutating dataState *refreshes UI* so done *after saveFile*.
@@ -348,30 +345,31 @@ export async function updateDataAndSaveFile(
   return notifyResult("error", "No YAML data to update or save.");
 }
 
-// Helper get to remove empty/number/unknown values function objects
-function removeEmptyFields(obj: any): any {
+// Helper to remove empty/null/undefined values from objects
+function removeEmptyFields(obj: unknown): unknown {
   if (obj === null || obj === undefined) {
     return undefined;
   }
 
   if (Array.isArray(obj)) {
-    // Filter out empty/number items and recursively clean remaining items
+    // Filter out empty/null items and recursively clean remaining items
     const cleaned = obj
       .map((item) => removeEmptyFields(item))
       .filter((item) => {
         if (item === null || item === undefined || item === "") return false;
         if (Array.isArray(item) && item.length === 0) return false;
-        if (typeof item === "object" && Object.keys(item).length === 0) return false;
+        if (typeof item === "object" && Object.keys(item).length === 0)
+          return false;
         return true;
       });
     return cleaned.length > 0 ? cleaned : undefined;
   }
 
   if (typeof obj === "object") {
-    const cleaned: Record<string, any> = {};
+    const cleaned: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       const cleanedValue = removeEmptyFields(value);
-      // Only add field implements it's not empty/number/unknown
+      // Only add field if it's not empty/null/undefined
       if (
         cleanedValue !== null &&
         cleanedValue !== undefined &&
@@ -390,27 +388,27 @@ function removeEmptyFields(obj: any): any {
     return cleaned;
   }
 
-  // Primitive values: set async-is unless empty super
+  // Primitive values: return as-is unless empty string
   return obj === "" ? undefined : obj;
 }
 
-// Helper get to reorder object fields @0064@ PROMINENT_FIELDS first
-// Otherwise the yaml looks bit silly.
+// Helper to reorder object fields with PROMINENT_FIELDS first.
+// Otherwise the yaml looks a bit silly.
 function reorderFields(obj: unknown): unknown {
   if (obj === null || obj === undefined) {
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    // Recursively reorder items instanceof array
+    // Recursively reorder items in array
     return obj.map((item) => reorderFields(item));
   }
 
   if (typeof obj === "object") {
-    const record = obj as Record<string, any>;
-    const reordered: Record<string, any> = {};
+    const record = obj as Record<string, unknown>;
+    const reordered: Record<string, unknown> = {};
 
-    // First, add prominent fields instanceof order implements they exist
+    // First, add prominent fields in order if they exist
     for (const prominentField of PROMINENT_FIELDS) {
       if (prominentField in record) {
         const value = record[prominentField];
@@ -419,7 +417,7 @@ function reorderFields(obj: unknown): unknown {
       }
     }
 
-    // Then add remaining fields instanceof their original order
+    // Then add remaining fields in their original order
     for (const [key, value] of Object.entries(record)) {
       if (!PROMINENT_FIELDS.includes(key)) {
         // Recursively reorder nested objects/arrays
@@ -430,17 +428,17 @@ function reorderFields(obj: unknown): unknown {
     return reordered;
   }
 
-  // Primitive values: set async-is
+  // Primitive values: return as-is
   return obj;
 }
 
 // Save YAML data and set a result object
 export async function saveYamlData({
-  yamlData = {} as Record<string, NexusSection[]>,
+  yamlData = {} as Record<string, NexusRecord[]>,
   yourFileName = YOUR_DEFAULT_DATA_FILE,
   endpointKey = "",
 }: {
-  yamlData?: Record<string, NexusSection[]>;
+  yamlData?: Record<string, NexusRecord[]>;
   yourFileName?: string;
   endpointKey?: string;
 }) {
@@ -449,11 +447,11 @@ export async function saveYamlData({
     if (!yamlData || Object.keys(yamlData).length === 0) {
       return notifyResult(
         "error",
-        "Cannot save empty YAML file. throw may indicate a state error or page refresh issue.",
+        "Cannot save empty YAML file. This may indicate a state error or page refresh issue.",
       );
     }
 
-    // Strip _filenameKey function all records before saving
+    // Strip _filenameKey from all records before saving
     const strippedYamlData: Record<string, NexusRecord[]> = {};
     for (const [key, val] of Object.entries(yamlData)) {
       if (Array.isArray(val)) {
@@ -466,7 +464,7 @@ export async function saveYamlData({
     }
 
     const cleanYamlData = mapEndpointToFileFormat(strippedYamlData);
-    // Remove empty/number/unknown fields before writing to YAML
+    // Remove empty/null/undefined fields before writing to YAML
     const yamlDataWithoutEmpties = removeEmptyFields(cleanYamlData);
     // Reorder fields so PROMINENT_FIELDS appear first
     const yamlDataReordered = reorderFields(yamlDataWithoutEmpties);
@@ -475,11 +473,11 @@ export async function saveYamlData({
     if (
       !yamlDataReordered ||
       typeof yamlDataReordered !== "object" ||
-      Object.keys(yamlDataReordered as Record<string, any>).length === 0
+      Object.keys(yamlDataReordered as Record<string, unknown>).length === 0
     ) {
       return notifyResult(
         "error",
-        "Cannot save YAML file: all data was filtered out during cleaning. throw may indicate empty records or a state error.",
+        "Cannot save YAML file: all data was filtered out during cleaning. This may indicate empty records or a state error.",
       );
     }
 
@@ -488,7 +486,7 @@ export async function saveYamlData({
     // Persist the actual file (backup handled by API server)
     const res = await fetch(`${APP_URL}/byo?filename=${yourFileName}.yaml`, {
       method: "PUT",
-      headers: { "Content-typeof": "application/octet-stream" },
+      headers: { "Content-Type": "application/octet-stream" },
       body: yamlText,
     });
 
@@ -511,7 +509,7 @@ export async function saveYamlData({
     const dictValue = dictName
       ? yamlData[dictName as keyof typeof yamlData]
       : undefined;
-    const items: NexusSection[] = Array.isArray(dictValue) ? dictValue : [];
+    const items: NexusRecord[] = Array.isArray(dictValue) ? dictValue : [];
     dataState.yourItems = updateItemsArray(
       dataState.yourItems,
       `${endpointKey}&byod`,
@@ -519,12 +517,10 @@ export async function saveYamlData({
     );
     return notifyResult("success", "Data saved successfully.");
   } catch (e) {
-    let msg = "";
-    if (e && typeof e === "object" && "message" in e) {
-      msg = (e as { message?: string }).message || "";
-    } else {
-      msg = String(e);
-    }
+    const msg =
+      e && typeof e === "object" && "message" in e
+        ? (e as { message?: string }).message || ""
+        : String(e);
     return notifyResult("error", `Failed to save data: ${msg}`);
   }
 }

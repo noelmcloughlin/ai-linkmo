@@ -18,16 +18,20 @@ class SchemaState {
   };
 
   fieldDescriptions: EndpointFieldDescriptions = $state({});
-  endpoints: { [key: string]: InstanceType<typeof SchemaState.SchemaFields> } = $state({});
+  endpoints: { [key: string]: InstanceType<typeof SchemaState.SchemaFields> } =
+    $state({});
 
-  addEndpoint(ep: string, schema: InstanceType<typeof SchemaState.SchemaFields>) {
+  addEndpoint(
+    ep: string,
+    schema: InstanceType<typeof SchemaState.SchemaFields>,
+  ) {
     if (!this.endpoints[ep]) {
       this.endpoints[ep] = schema;
     }
   }
 
   setDescriptions(descriptions: EndpointFieldDescriptions = {}) {
-  this.fieldDescriptions = { ...this.fieldDescriptions, ...descriptions };
-}
+    this.fieldDescriptions = { ...this.fieldDescriptions, ...descriptions };
+  }
 }
 export const schemaState = new SchemaState();

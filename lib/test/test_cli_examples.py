@@ -202,9 +202,15 @@ def test_cli_api_mode(api_server, cli_command, cmd_args, min_count, max_count, b
             pytest.fail(f"Expected valid JSON output, got: {output[:200]}")
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("cmd_args,min_count,max_count,byod_required", CLI_TEST_CASES)
 def test_cli_local_mode(cli_command, cmd_args, min_count, max_count, byod_required):
-    """Test CLI commands in local mode against expected counts from README."""
+    """Test CLI commands in local mode against expected counts from README.
+
+    Marked ``slow`` because each parametrisation spawns a fresh Python
+    interpreter and loads the full ontology in-process - the full sweep
+    takes ~25 minutes. Run with ``pytest -m "not slow"`` to skip.
+    """
     if byod_required:
         pytest.skip("Skipping BYOD test in standard test suite")
     

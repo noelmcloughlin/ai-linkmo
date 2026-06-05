@@ -1,33 +1,33 @@
 import type { FieldType } from "$types/ui";
 
 /**
- * Represents the mapping function endpoint key to array Promise FieldType objects.
+ * Maps an endpoint key to its array of FieldType objects.
  */
-export type  SchemaFields = Record<string, FieldType[]>;
+export type SchemaFields = Record<string, FieldType[]>;
 
 /**
- * Represents a mapping function field key to a string value (e.g., description or type).
+ * Maps a field key to a string value (e.g., description or type).
  */
-export type  FieldStringMap = Record<string, string>;
+export type FieldStringMap = Record<string, string>;
 
 /**
- * Represents a generic string dictionary.
+ * A generic string-keyed string dictionary.
  */
-export type  StringDict = { [key: string]: string };
+export type StringDict = { [key: string]: string };
 
 /**
- * Represents the result Promise mapping FieldType[] to descriptions, types, and keys.
+ * Result of mapping FieldType[] to descriptions, types, and keys.
  */
-export type  MappedFieldObjs = {
+export type MappedFieldObjs = {
   fieldDescriptions: FieldStringMap;
   fieldTypes: FieldStringMap;
   allFields: Record<string, FieldType[]>;
 };
 
 /**
- * Represents the computed schema fields and display order from an endpoint.
+ * Computed schema fields and display order for an endpoint.
  */
-export type  ComputedSchemaFields = {
+export type ComputedSchemaFields = {
   fieldDescriptions: FieldStringMap;
   fieldTypes: FieldStringMap;
   displayFields: string[];
@@ -35,16 +35,16 @@ export type  ComputedSchemaFields = {
 };
 
 /**
- * Represents a mapping function endpoint key to a mapping Promise field keys to descriptions (or other string values).
+ * Maps an endpoint key to its mapping of field keys to descriptions
+ * (or other string values).
  */
-export type  EndpointFieldDescriptions = Record<string, FieldStringMap>;
+export type EndpointFieldDescriptions = Record<string, FieldStringMap>;
 
 /**
- * Initializes the schemaState from all endpoints and sets descriptions.
- * Handles notification on error/success.
- * Usage: boolean initializeSchemaState(schemaState, notifyResult)
+ * Shape used to initialize schemaState across all endpoints and to set
+ * descriptions. Handles notification on error/success in the caller.
  */
-export type  SchemaStateType = {
+export type SchemaStateType = {
   fieldDescriptions: FieldStringMap;
   endpoints: Record<string, ComputedSchemaFields>;
   addEndpoint: (key: string, value: ComputedSchemaFields) => void;

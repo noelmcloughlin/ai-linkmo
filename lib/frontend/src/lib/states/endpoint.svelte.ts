@@ -1,6 +1,6 @@
-import {  DEFAULT_ENDPOINT, ENDPOINTS } from "$lib/constants";
-import {  notify } from "$states/notify.svelte";
-import {  filters } from "$states/filters.svelte";
+import { DEFAULT_ENDPOINT, ENDPOINTS } from "$lib/constants";
+import { notify } from "$states/notify.svelte";
+import { filters } from "$states/filters.svelte";
 
 class Endpoint {
   current = $state(DEFAULT_ENDPOINT);
@@ -73,7 +73,7 @@ class Endpoint {
       return ""; // ENDPOINTS is not an array or current is falsy
     }
     const match = ENDPOINTS.find((e) => e && e.key === this.current);
-    let label = "";
+    let label: string;
     if (match && match.label) {
       label = match.label;
     } else if (typeof this.current === "string" && this.current.length > 0) {

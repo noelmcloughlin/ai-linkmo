@@ -311,3 +311,41 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+def test_handlers_match_openapi():
+    """Pytest wrapper that fails the suite when handlers drift from OpenAPI.
+
+    This re-uses the standalone validator above without spawning a subprocess
+    by loading the spec, walking each handler, and asserting the per-handler
+    error list stays empty. Warnings are tolerated (they're informational).
+    """
+    spec_path = (
+        Path(__file__).resolve().parent.parent / "api" / "openapi.yaml"
+    )
+    assert spec_path.is_file(), f"OpenAPI spec missing at {spec_path}"
+    openapi_spec = load_openapi_spec(spec_path)
+    endpoint_params = extract_endpoint_parameters(openapi_spec)
+
+    failures: list[str] = []
+    for operation_id, endpoint_info in sorted(endpoint_params.items()):
+        parts = operation_id.split('.')
+        handler_name = parts[1] if len(parts) == 2 else operation_id
+        handler_params, handler_info = get_handler_signature(handler_name)
+        if not handler_params:
+            # Missing handler is treated as a warning here; the CLI already
+            # surfaces these to operators via the standalone script.
+            continue
+        errors = validate_handler_parameters(
+            operation_id,
+            endpoint_info['parameters'],
+            handler_params,
+            handler_info,
+        )
+        for entry in errors:
+            if '❌' in entry:
+                failures.append(f"{operation_id}: {entry.strip()}")
+
+    assert not failures, (
+        "Handlers drifted from OpenAPI spec:\n  " + "\n  ".join(failures)
+    )

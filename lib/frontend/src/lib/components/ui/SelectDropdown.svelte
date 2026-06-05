@@ -99,7 +99,7 @@
     dispatch('select', selectedValue || '');
   };
 
-  // Custom filte function for creatable support
+  // Custom filter for creatable support
   function customItemFilter(
     label: string,
     filterText: string,

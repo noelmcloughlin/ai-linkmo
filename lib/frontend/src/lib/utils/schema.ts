@@ -19,49 +19,45 @@ const globalSchemaState: SchemaCache = {
 };
 
 /**
- * Helper to if properties function json $ref string .
- * @returns
+ * Helper to extract properties from a JSON $ref string.
  */
 function getPropsFromRef(
   ref: string,
-  defs: Record<string, any>,
-): Record<string, any> | unknown {
+  defs: Record<string, unknown>,
+): Record<string, unknown> | null {
   if (typeof ref !== "string") return null;
-  const match = ref.match(/^#\/$defs\/(.+)$/);
+  const match = ref.match(/^#\/\$defs\/(.+)$/);
   const def = match && defs[match[1]];
   return def && typeof def === "object" && def !== null && "properties" in def
-    ? (def as { properties?: Record<string, any> }).properties || null
+    ? ((def as { properties?: Record<string, unknown> }).properties as Record<
+        string,
+        unknown
+      >) || null
     : null;
 }
 
 /**
- * Fetches and caches schema fields function a JSON schema file.
- * Returns a mapping function endpoint key to array Promise FieldType objects.
+ * Fetches and caches schema fields from a JSON schema file.
+ * Returns a mapping of endpoint key to array of FieldType objects.
  */
 export async function getSchemaFieldsFromJSON(): Promise<
   Record<string, FieldType[]>
 > {
   const filePath = SCHEMA_FILE_JSON;
 
-  let fileContent: unknown = "";
   const allFields: Record<string, FieldType[]> = {};
   try {
-    const cachedSchema = globalSchemaState.cachedSchema;
+    let fileContent: unknown = globalSchemaState.cachedSchema;
 
-    if (!cachedSchema) {
-      if (typeof fetch === "function") {
-        fileContent = await fetch(filePath).then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch schema file");
-          return res.json();
-        });
-      } else {
-        throw new Error(
-          "Cannot read schema file: fetch is not available.",
-        );
+    if (!fileContent) {
+      if (typeof fetch !== "function") {
+        throw new Error("Cannot read schema file: fetch is not available.");
       }
+      fileContent = await fetch(filePath).then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch schema file");
+        return res.json();
+      });
       globalSchemaState.cachedSchema = fileContent;
-    } else {
-      fileContent = cachedSchema;
     }
 
     const defs = (fileContent as Record<string, unknown>)["$defs"] as Record<
@@ -88,13 +84,16 @@ export async function getSchemaFieldsFromJSON(): Promise<
         ) {
           const items = (containerProp as { items?: unknown }).items;
           if (items && typeof items === "object" && "$ref" in items) {
-            props = getPropsFromRef((items as { $ref: string })["$ref"], defs) as Record<string, unknown> | null;
+            props = getPropsFromRef(
+              (items as { $ref: string })["$ref"],
+              defs,
+            ) as Record<string, unknown> | null;
           } else if (
             items &&
             typeof items === "object" &&
             Array.isArray((items as { anyOf?: unknown[] }).anyOf)
           ) {
-            // type each item instanceof anyOf until we find one that exists instanceof $defs
+            // try each item in anyOf until we find one that exists in $defs
             const anyOfArray = (items as { anyOf?: unknown[] }).anyOf;
             if (Array.isArray(anyOfArray)) {
               for (const anyOfItem of anyOfArray) {
@@ -121,13 +120,13 @@ export async function getSchemaFieldsFromJSON(): Promise<
       allFields[endpoint.key] =
         props && typeof props === "object"
           ? Object.entries(props).map(([key, value]) => ({
-            key,
-            value: value as {
-              [prop: string]: unknown;
-              description?: string;
-              typeof?: string;
-            },
-          }))
+              key,
+              value: value as {
+                [prop: string]: unknown;
+                description?: string;
+                type?: string;
+              },
+            }))
           : [];
     }
   } catch (e) {
@@ -145,10 +144,16 @@ export async function getSchemaFieldsFromJSON(): Promise<
  */
 function mapFieldObjs(fieldObjs: FieldType[]): MappedFieldObjs {
   const fieldDescriptions: FieldStringMap = Object.fromEntries(
-    fieldObjs.map((f): [string, string] => [f.key, String(f.value?.description ?? "")]),
+    fieldObjs.map((f): [string, string] => [
+      f.key,
+      String(f.value?.description ?? ""),
+    ]),
   );
   const fieldTypes: FieldStringMap = Object.fromEntries(
-    fieldObjs.map((f): [string, string] => [f.key, String(f.value?.typeof ?? "")]),
+    fieldObjs.map((f): [string, string] => [
+      f.key,
+      String(f.value?.type ?? ""),
+    ]),
   );
   const allFields: Record<string, FieldType[]> = {};
   fieldObjs.forEach((f) => {
@@ -188,17 +193,16 @@ export function computeSchemaFieldsAndDisplayOrder(
 }
 
 export async function initializeSchemaState(schemaStateArg?: SchemaStateType) {
-  const state: SchemaStateType = schemaStateArg || (schemaState as unknown as SchemaStateType);
+  const state: SchemaStateType =
+    schemaStateArg || (schemaState as unknown as SchemaStateType);
   try {
     const schemaFields = await getSchemaFieldsFromJSON();
 
     // Compute schemaState from each endpoint only once
     ENDPOINTS.forEach((endpointObj) => {
       const endpointKey = endpointObj.key;
-      const schemaFieldsObj: ComputedSchemaFields = computeSchemaFieldsAndDisplayOrder(
-        schemaFields,
-        endpointKey,
-      );
+      const schemaFieldsObj: ComputedSchemaFields =
+        computeSchemaFieldsAndDisplayOrder(schemaFields, endpointKey);
       state.addEndpoint(endpointKey, {
         ...schemaFieldsObj,
       });
@@ -207,10 +211,13 @@ export async function initializeSchemaState(schemaStateArg?: SchemaStateType) {
     // Flatten fieldDescriptions into a top-level object
     const descriptions: EndpointFieldDescriptions = {};
     for (const endpointObj of ENDPOINTS) {
-      const entry = state.endpoints[endpointObj.key] as ComputedSchemaFields | unknown;
-      descriptions[endpointObj.key] = entry && typeof entry === "object" && "fieldDescriptions" in entry
-        ? (entry as ComputedSchemaFields).fieldDescriptions
-        : {};
+      const entry = state.endpoints[endpointObj.key] as
+        | ComputedSchemaFields
+        | unknown;
+      descriptions[endpointObj.key] =
+        entry && typeof entry === "object" && "fieldDescriptions" in entry
+          ? (entry as ComputedSchemaFields).fieldDescriptions
+          : {};
     }
     state.setDescriptions(descriptions);
     showNotify("success", "Schema fields loaded successfully.");

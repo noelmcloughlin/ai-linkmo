@@ -1,6 +1,6 @@
 # AI-LinkMO: AI Linked Data Model Operate
 
-${\color{green}A\ Reference\ Implementation\ of\ Operational\ AI\ Governance\ built\ on\ Open-Data}$
+${\color{green}A\ Reference\ Implementation\ of\ Operational\ AI\ Governance}$
 
 AI-LinkMO demonstrates operational AI governance using open data and four DevSecOps-ready patterns:
 
@@ -235,10 +235,10 @@ And so on ..
 AI Atlas Nexus promotes a community-driven approach to curating and cataloguing resources. You can "bring
 your own Data" by adding schema-compliant yaml files to [./byo/data](./byo/data) directory. See [upstream readme](https://github.com/IBM/ai-atlas-nexus/blob/main/src/ai_atlas_nexus/ai_risk_ontology/util/README.md).
 
-This repository includes [Risk](./byo/data/acme-ai-taxonomy.yaml) and [DevSecOps](./byo/data/acme-ai-dso-taxonomy.yaml) examples. Validate the LinkML Schema as follows:
-
+This repository includes [FINOS](./byo/data/finos-aigf.yaml) and related examples (ffiec, eu ai, iso42001, nist_sp_800_53, owasp_llm_t10, owasp_ml_t10, sr_11_7). Validate contributed LinkML Schemas as follows:
+s
 ```bash
-SDIR=".venv/lib/python3.11/site-packages/ai_atlas_nexus/ai_risk_ontology/"
+SDIR=".venv/lib/python3.14/site-packages/ai_atlas_nexus/ai_risk_ontology/"   # python version may vary
 uv run linkml validate byo/data/*.yaml  -s ${SDIR}/ai-risk-ontology.yaml 
 ```
 

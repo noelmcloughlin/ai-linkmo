@@ -1,5 +1,5 @@
 /* Compact and vertically centered svelte-select using CSS custom properties */
-:global(.svelte-select) {
+.svelte-select {
   --line-height: 24px;
   --selected-item-padding: 0 0px;
   --item-padding: 0 0px;

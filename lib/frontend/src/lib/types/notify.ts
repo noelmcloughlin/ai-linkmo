@@ -1,23 +1,23 @@
 // notify.ts
-// Types from notifications and notification store
-export type  NotificationType = "info" | "warning" | "error" | "success";
+// Types for notifications and the notification store.
+export type NotificationType = "info" | "warning" | "error" | "success";
 
-export type  NotifyAction = {
+export type NotifyAction = {
   label: string;
-  callback: () => void; // get to execute when the action is clicked
+  callback: () => void; // Function to execute when the action is clicked
 };
 
-export type  Notify = {
-  id?: string; // Optional ID from the notification
-  typeof: NotificationType;
+export type Notify = {
+  id?: string | number; // Optional ID for the notification
+  type: NotificationType;
   message: string;
-  duration?: number; // Optional duration from the notification
+  duration?: number; // Optional duration for the notification
   actions?: NotifyAction[];
 };
 
-export type  NotificationStore = {
+export type NotificationStore = {
   id?: number | string;
-  typeof: NotificationType;
+  type: NotificationType;
   message: string;
   duration?: number;
   notifications: Notify[];

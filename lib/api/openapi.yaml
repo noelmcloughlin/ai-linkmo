@@ -1,7 +1,46 @@
 openapi: 3.0.0
 info:
   title: AI-LinkMO User Demo, Open API
-  version: 1.2.1
+  version: 0.1.0
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        API key authentication. This scheme is declared so write endpoints
+        (PUT /byo/{filename}) can reference it; the demo server does NOT
+        yet enforce it. Operators deploying outside localhost should add a
+        reverse-proxy layer that validates the header.
+  responses:
+    BadRequest:
+      description: Invalid request (validation failure, malformed body, traversal attempt, etc.)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+    PayloadTooLarge:
+      description: Request body exceeds the server-side cap.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+    InternalError:
+      description: Unhandled server error.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
 paths:
   /risk:
     get:
@@ -428,6 +467,12 @@ paths:
     get:
       summary: Get evaluation
       operationId: handlers.evaluations
+      description: |
+        List or filter AiEval entities.
+
+        Note: `hasTasks` is currently a documented no-op when combined with
+        `related=true` or `related_ids=true` (the upstream
+        `get_related_evaluations` helper does not honour task filters).
       parameters:
         - in: query
           name: byod
@@ -766,6 +811,12 @@ paths:
           required: false
           description: Filter by adapter
         - in: query
+          name: implementedByAdapter
+          schema:
+            type: string
+          required: false
+          description: Filter by implementing adapter
+        - in: query
           name: requiredByTask
           schema:
             type: string
@@ -898,6 +949,12 @@ paths:
           required: false
           description: Filter by Task
         - in: query
+          name: implementedByAdapter
+          schema:
+            type: string
+          required: false
+          description: Filter by implementing adapter
+        - in: query
           name: requiresCapability
           schema:
             type: string
@@ -987,6 +1044,66 @@ paths:
       responses:
         "200":
           description: Control Activity Recommendation response
+          content:
+            application/json:
+              schema:
+                type: object
+  /requirement:
+    get:
+      summary: Get requirements
+      operationId: handlers.requirements
+      parameters:
+        - in: query
+          name: byod
+          schema:
+            type: boolean
+          required: false
+          description: Bring your own AiAtlasNexus data
+        - in: query
+          name: id
+          schema:
+            type: string
+          required: false
+          description: Unique identifier for the resource
+        - in: query
+          name: hasApplication
+          schema:
+            type: string
+          required: false
+          description: Application category, Optional or Mandatory
+        - in: query
+          name: hasRule
+          schema:
+            type: string
+          required: false
+          description: Applicability or inclusion of a rule within specified context.
+        - in: query
+          name: appliesToCapability
+          schema:
+            type: string
+          required: false
+          description: Evidence only applies to AI systems with this capability
+        - in: query
+          name: isDefinedByTaxonomy
+          schema:
+            type: string
+          required: false
+          description: Filter by taxonomy
+        - in: query
+          name: hasRequirementType
+          schema:
+            type: string
+          required: false
+          description: Requirement type of whether this is preventive, detective, etc
+        - in: query
+          name: type
+          schema:
+            type: string
+          required: false
+          description: Specify type of selected scope
+      responses:
+        "200":
+          description: Rules response
           content:
             application/json:
               schema:
@@ -1456,7 +1573,7 @@ paths:
           schema:
             type: string
           required: false
-          description: Specify the model inference parameters
+          description: 'Inference engine parameters as a JSON object string, e.g. {"max_tokens": 1000, "temperature": 0.7}'
         - in: query
           name: byod
           schema:
@@ -1537,6 +1654,8 @@ paths:
     put:
       summary: Upload Bring your own data file
       operationId: handlers.byo_put
+      security:
+        - ApiKeyAuth: []
       parameters:
         - in: query
           name: filename
@@ -1562,23 +1681,11 @@ paths:
                   detail:
                     type: string
         "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
+          $ref: "#/components/responses/BadRequest"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
         "500":
-          description: Internal server error
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  detail:
-                    type: string
+          $ref: "#/components/responses/InternalError"
   /ares:
     post:
       summary: Run ARES evaluation

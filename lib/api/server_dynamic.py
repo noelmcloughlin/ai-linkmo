@@ -8,15 +8,29 @@ Usage:
     register_endpoints_from_openapi(app)
 """
 
-from fastapi import FastAPI, Query, Body, Request, HTTPException
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
-from fastapi.encoders import jsonable_encoder
-from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional, Dict, Any, Callable
-import yaml
 import inspect
+import logging
 from pathlib import Path
+from typing import Any, Dict, Optional
+
+import yaml
+from fastapi import Body, FastAPI, HTTPException, Query, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import FileResponse, JSONResponse
+
 from lib.api import handlers
+
+logger = logging.getLogger(__name__)
+
+
+def _wrap_handler_error(exc: Exception, handler_name: str) -> HTTPException:
+    """Convert an arbitrary handler exception into a sanitized HTTPException.
+
+    The full traceback is logged server-side; clients only see a generic
+    message to avoid leaking implementation details.
+    """
+    logger.exception("Unhandled exception in handler '%s'", handler_name)
+    return HTTPException(status_code=500, detail="Internal server error.")
 
 
 def load_openapi_spec() -> Dict[str, Any]:
@@ -42,25 +56,28 @@ def python_type_from_openapi(param_schema: Dict) -> type:
     return type_map.get(schema_type, str)
 
 
-def create_get_endpoint(app: FastAPI, path: str, spec: Dict) -> None:
+def create_get_endpoint(app: FastAPI, path: str, spec: Dict) -> bool:
     """Dynamically create a GET endpoint from OpenAPI spec.
-    
+
     Args:
         app: FastAPI application instance
         path: Endpoint path (e.g., '/risk')
         spec: OpenAPI operation specification
+
+    Returns:
+        True if an endpoint was registered, False otherwise.
     """
     operation_id = spec.get('operationId', '')
     if not operation_id.startswith('handlers.'):
-        return
-    
+        return False
+
     handler_name = operation_id.replace('handlers.', '')
-    
+
     # Check if handler exists
     if not hasattr(handlers, handler_name):
-        print(f"⚠️  Warning: Handler '{handler_name}' not found, skipping {path}")
-        return
-    
+        logger.warning("Handler '%s' not found, skipping GET %s", handler_name, path)
+        return False
+
     handler_func = getattr(handlers, handler_name)
     parameters = spec.get('parameters', [])
     
@@ -71,26 +88,29 @@ def create_get_endpoint(app: FastAPI, path: str, spec: Dict) -> None:
     for param in parameters:
         if param.get('in') != 'query':
             continue
-        
+
         name = param['name']
         schema = param.get('schema', {})
         param_type = python_type_from_openapi(schema)
         required = param.get('required', False)
         description = param.get('description', '')
         default_value = schema.get('default')
-        
-        # Create parameter with Query() for FastAPI
+
+        # Required params must NOT be wrapped in ``Optional`` - that flips the
+        # generated docs to ``nullable: true`` and lies about the contract.
         if required:
+            annotation = param_type
             default = Query(..., description=description)
         else:
+            annotation = Optional[param_type]
             default = Query(default_value, description=description)
-        
-        param_annotations[name] = Optional[param_type]
+
+        param_annotations[name] = annotation
         func_params.append(
             inspect.Parameter(
                 name,
                 inspect.Parameter.KEYWORD_ONLY,
-                annotation=Optional[param_type],
+                annotation=annotation,
                 default=default
             )
         )
@@ -107,90 +127,101 @@ def create_get_endpoint(app: FastAPI, path: str, spec: Dict) -> None:
         except HTTPException:
             raise
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-    
+            raise _wrap_handler_error(e, handler_name)
+
     # Set proper signature for FastAPI
     endpoint_func.__signature__ = inspect.Signature(parameters=func_params)
     endpoint_func.__name__ = f"get_{handler_name}"
     endpoint_func.__doc__ = spec.get('summary', f"Get {handler_name}")
-    
+
     # Register with FastAPI
     app.get(path)(endpoint_func)
-    print(f"✅ Registered GET {path} -> handlers.{handler_name}")
+    logger.info("Registered GET %s -> handlers.%s", path, handler_name)
+    return True
 
 
-def create_post_endpoint(app: FastAPI, path: str, spec: Dict) -> None:
+def create_post_endpoint(app: FastAPI, path: str, spec: Dict) -> bool:
     """Dynamically create a POST endpoint from OpenAPI spec.
-    
+
     Args:
         app: FastAPI application instance
         path: Endpoint path (e.g., '/ares')
         spec: OpenAPI operation specification
+
+    Returns:
+        True if an endpoint was registered, False otherwise.
     """
     operation_id = spec.get('operationId', '')
     if not operation_id.startswith('handlers.'):
-        return
-    
+        return False
+
     handler_name = operation_id.replace('handlers.', '')
-    
+
     if not hasattr(handlers, handler_name):
-        print(f"⚠️  Warning: Handler '{handler_name}' not found, skipping POST {path}")
-        return
-    
+        logger.warning("Handler '%s' not found, skipping POST %s", handler_name, path)
+        return False
+
     handler_func = getattr(handlers, handler_name)
     request_body = spec.get('requestBody', {})
-    
-    if request_body:
-        # Handle JSON request body
-        content_schema = request_body.get('content', {}).get('application/json', {}).get('schema', {})
-        properties = content_schema.get('properties', {})
-        
-        # Build function parameters from request body schema
-        func_params = []
-        for prop_name, prop_schema in properties.items():
-            param_type = python_type_from_openapi(prop_schema)
-            description = prop_schema.get('description', '')
-            
-            func_params.append(
-                inspect.Parameter(
-                    prop_name,
-                    inspect.Parameter.KEYWORD_ONLY,
-                    annotation=param_type,
-                    default=Body(..., description=description)
-                )
+
+    if not request_body:
+        return False
+
+    # Handle JSON request body
+    content_schema = request_body.get('content', {}).get('application/json', {}).get('schema', {})
+    properties = content_schema.get('properties', {})
+
+    # Build function parameters from request body schema
+    func_params = []
+    for prop_name, prop_schema in properties.items():
+        param_type = python_type_from_openapi(prop_schema)
+        description = prop_schema.get('description', '')
+
+        func_params.append(
+            inspect.Parameter(
+                prop_name,
+                inspect.Parameter.KEYWORD_ONLY,
+                annotation=param_type,
+                default=Body(..., description=description)
             )
-        
-        # Create endpoint function
-        def endpoint_func(**kwargs):
-            """Dynamically generated POST endpoint."""
-            try:
-                result = handler_func(**kwargs)
-                return JSONResponse(content=jsonable_encoder(result))
-            except HTTPException:
-                raise
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=str(e))
-        
-        endpoint_func.__signature__ = inspect.Signature(parameters=func_params)
-        endpoint_func.__name__ = f"post_{handler_name}"
-        endpoint_func.__doc__ = spec.get('summary', f"Post {handler_name}")
-        
-        app.post(path)(endpoint_func)
-        print(f"✅ Registered POST {path} -> handlers.{handler_name}")
+        )
+
+    # Create endpoint function
+    def endpoint_func(**kwargs):
+        """Dynamically generated POST endpoint."""
+        try:
+            result = handler_func(**kwargs)
+            return JSONResponse(content=jsonable_encoder(result))
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise _wrap_handler_error(e, handler_name)
+
+    endpoint_func.__signature__ = inspect.Signature(parameters=func_params)
+    endpoint_func.__name__ = f"post_{handler_name}"
+    endpoint_func.__doc__ = spec.get('summary', f"Post {handler_name}")
+
+    app.post(path)(endpoint_func)
+    logger.info("Registered POST %s -> handlers.%s", path, handler_name)
+    return True
 
 
-def create_put_endpoint(app: FastAPI, path: str, spec: Dict) -> None:
-    """Dynamically create a PUT endpoint from OpenAPI spec."""
+def create_put_endpoint(app: FastAPI, path: str, spec: Dict) -> bool:
+    """Dynamically create a PUT endpoint from OpenAPI spec.
+
+    Returns:
+        True if an endpoint was registered, False otherwise.
+    """
     operation_id = spec.get('operationId', '')
     if not operation_id.startswith('handlers.'):
-        return
-    
+        return False
+
     handler_name = operation_id.replace('handlers.', '')
-    
+
     if not hasattr(handlers, handler_name):
-        print(f"⚠️  Warning: Handler '{handler_name}' not found, skipping PUT {path}")
-        return
-    
+        logger.warning("Handler '%s' not found, skipping PUT %s", handler_name, path)
+        return False
+
     handler_func = getattr(handlers, handler_name)
     parameters = spec.get('parameters', [])
     
@@ -212,13 +243,17 @@ def create_put_endpoint(app: FastAPI, path: str, spec: Dict) -> None:
                 )
             )
     
-    # Add request body parameter
+    # Add request body parameter. We must NOT supply a default value here
+    # because FastAPI only auto-injects ``Request`` when the parameter is
+    # positional or kw-only with no default. The previous ``default=None``
+    # made FastAPI pass ``None`` instead of the live request object and any
+    # handler that called ``await request.stream()`` would crash with
+    # AttributeError.
     query_params.append(
         inspect.Parameter(
             'request',
             inspect.Parameter.KEYWORD_ONLY,
             annotation=Request,
-            default=None
         )
     )
     
@@ -234,80 +269,49 @@ def create_put_endpoint(app: FastAPI, path: str, spec: Dict) -> None:
         except HTTPException:
             raise
         except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-    
+            raise _wrap_handler_error(e, handler_name)
+
     endpoint_func.__signature__ = inspect.Signature(parameters=query_params)
     endpoint_func.__name__ = f"put_{handler_name}"
     endpoint_func.__doc__ = spec.get('summary', f"Put {handler_name}")
-    
+
     app.put(path)(endpoint_func)
-    print(f"✅ Registered PUT {path} -> handlers.{handler_name}")
+    logger.info("Registered PUT %s -> handlers.%s", path, handler_name)
+    return True
 
 
 def register_endpoints_from_openapi(app: FastAPI, verbose: bool = True) -> int:
     """Register all endpoints dynamically from OpenAPI specification.
-    
+
     This function reads the OpenAPI spec and generates FastAPI endpoints automatically.
-    
+
     Args:
         app: FastAPI application instance
-        verbose: Print registration messages
-        
+        verbose: Log a summary line after registration finishes.
+
     Returns:
-        Number of endpoints registered
+        Number of endpoints actually registered (skipped handlers are not counted).
     """
     spec = load_openapi_spec()
     paths = spec.get('paths', {})
-    
+
     registered_count = 0
-    
+
     for path, methods in paths.items():
         for method, method_spec in methods.items():
             method_lower = method.lower()
-            
+
             if method_lower == 'get':
-                create_get_endpoint(app, path, method_spec)
-                registered_count += 1
+                if create_get_endpoint(app, path, method_spec):
+                    registered_count += 1
             elif method_lower == 'post':
-                create_post_endpoint(app, path, method_spec)
-                registered_count += 1
+                if create_post_endpoint(app, path, method_spec):
+                    registered_count += 1
             elif method_lower == 'put':
-                create_put_endpoint(app, path, method_spec)
-                registered_count += 1
-            # and so on.
-    
+                if create_put_endpoint(app, path, method_spec):
+                    registered_count += 1
+
     if verbose:
-        print(f"\n🎉 Registered {registered_count} endpoints from OpenAPI spec")
-    
+        logger.info("Registered %d endpoints from OpenAPI spec", registered_count)
+
     return registered_count
-
-
-# Usage
-if __name__ == "__main__":
-    app = FastAPI(
-        title="AI-LinkMO API Demo",
-        description="REST API for AI-LinkMO Demo operations (Dynamic Generation)"
-    )
-    
-    # Add CORS middleware
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=False,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    
-    # Root redirect
-    @app.get("/", include_in_schema=False)
-    def redirect_root():
-        return RedirectResponse(url="/docs")
-    
-    # Health check
-    @app.get("/health", include_in_schema=False)
-    def health():
-        return {"status": "ok"}
-    
-    # Dynamically register all endpoints from OpenAPI spec
-    print("\n🚀 Generating endpoints from OpenAPI specification...")
-    register_endpoints_from_openapi(app, verbose=True)

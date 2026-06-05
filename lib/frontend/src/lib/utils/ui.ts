@@ -8,14 +8,14 @@ export function setElementWidths(elements: HTMLElement[], width: number) {
 }
 
 export function handleResponsiveUI() {
-    // static widths from header, main, and footer
-    const elements = [
-      document.querySelector("header"),
-      document.querySelector("main"),
-      document.querySelector("footer"),
-    ];
-    setElementWidths(
-      elements.filter((el): el is HTMLElement => el !== null),
-      uiState.windowWidth,
-    );
-  }
+  // static widths from header, main, and footer
+  const elements = [
+    document.querySelector("header"),
+    document.querySelector("main"),
+    document.querySelector("footer"),
+  ];
+  setElementWidths(
+    elements.filter((el): el is HTMLElement => el !== null),
+    uiState.windowWidth,
+  );
+}

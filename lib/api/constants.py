@@ -40,7 +40,7 @@ ARES_PARAMS: Set[str] = {'risks', 'inference_engine', 'target'}
 
 # Parameters to exclude from API/handler calls (internal CLI use only)
 # These parameters control CLI behavior and output formatting, not backend queries
-EXCLUDED_PARAMS = {
+EXCLUDED_PARAMS: Set[str] = {
     'endpoint',          # Internal routing metadata
     'mode',              # CLI mode selection (api vs local)
     'endpoint_map',      # Internal routing dictionary
@@ -50,4 +50,5 @@ EXCLUDED_PARAMS = {
     'count',             # CLI display flag: show only count
     'verbose',           # CLI display flag: verbose output
     'pretty',            # CLI display flag: pretty-print JSON
+    'timeout',           # CLI HTTP timeout override
 }

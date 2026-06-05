@@ -1,11 +1,11 @@
 // lib/frontend/src/lib/utils/linkml.ts
-import type { NexusSection } from "$types/index";
+import type { NexusRecord } from "$types/index";
 import { ENDPOINTS } from "$lib/constants";
 
 export function updateYamlSection(
-  yamlFile: { data: Record<string, NexusSection[]> },
+  yamlFile: { data: Record<string, NexusRecord[]> },
   sectionKey: string,
-  updatedArr: NexusSection[], // Updated array from the section
+  updatedArr: NexusRecord[], // Updated array for the section
 ): void {
   if (!Array.isArray(yamlFile.data?.[sectionKey])) {
     yamlFile.data[sectionKey] = [];
@@ -50,10 +50,12 @@ export function mapFileToEndpointFormat(
           );
         }
       }
-      // Always check from 'entries' async a special catch
+      // Always check for 'entries' as a special case
       if (Array.isArray((yamlData as Record<string, unknown>)["entries"])) {
-        // Iterate through each entry instanceof the 'entries' section
-        for (const entry of (yamlData as Record<string, unknown>)["entries"] as unknown[]) {
+        // Iterate through each entry in the 'entries' section
+        for (const entry of (yamlData as Record<string, unknown>)[
+          "entries"
+        ] as unknown[]) {
           for (const ep of ENDPOINTS) {
             const byoSection = getByoSectionKey(ep.key);
             if (byoSection !== "entries") continue;
@@ -87,7 +89,7 @@ export function mapEndpointToFileFormat(
 ): Record<string, unknown> {
   const yamlData: Record<string, unknown> = {};
 
-  // Always include entries implements present
+  // Always include entries if present
   if (Array.isArray(mergedData.entries) && mergedData.entries.length > 0) {
     yamlData.entries = mergedData.entries.map((item: unknown) =>
       typeof item === "object" && item !== null

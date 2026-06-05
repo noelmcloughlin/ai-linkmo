@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { DEFAULT_AVATAR } from "$lib/constants";
-  import { onMount } from "svelte";
+  import { DEFAULT_AVATAR } from '$lib/constants';
+  import { onMount } from 'svelte';
 
   // Props: Runes
   const { personas, user, onSelectPersona, onLogout } = $props();
@@ -20,20 +20,28 @@
 
   onMount(() => {
     const handleOutsideClick = (event: MouseEvent) => {
-      handleClick(event, ".persona-menu-container", () => {
+      handleClick(event, '.persona-menu-container', () => {
         showPersonaMenu = false;
       });
-    }
-
-    document.addEventListener("click", handleOutsideClick);
-    return () => {
-      document.removeEventListener("click", handleOutsideClick);
     };
-  })
+
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showPersonaMenu) {
+        showPersonaMenu = false;
+      }
+    };
+
+    document.addEventListener('click', handleOutsideClick);
+    document.addEventListener('keydown', handleKeydown);
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeydown);
+    };
+  });
 
   function handlePersonaClick(persona: { name: string; avatar?: string }) {
     onSelectPersona(persona);
-    showPersonaMenu = false;   // Close menu after selection
+    showPersonaMenu = false; // Close menu after selection
   }
 
   function handleLogoutClick() {
@@ -52,20 +60,21 @@
     <img
       src={user.avatar || DEFAULT_AVATAR}
       alt="avatar"
-      class="rounded-full w-8 h-8 border border-blue-200 shadow"
+      class="h-8 w-8 rounded-full border border-blue-200 shadow"
     />
-    <span class="text-white font-semibold text-base">{user.name}</span>
+    <span class="text-base font-semibold text-white">{user.name}</span>
     <svg
-      class="w-4 h-4 text-white ml-1"
+      class="ml-1 h-4 w-4 text-white"
       fill="none"
       stroke="currentColor"
       stroke-width="2"
       viewBox="0 0 24 24"
+      aria-hidden="true"
     >
       <path d="M19 9l-7 7-7-7" />
     </svg>
   </button>
- 
+
   {#if user && showPersonaMenu}
     <div class="persona-menu">
       <div class="persona-menu-wrapper">
@@ -74,16 +83,17 @@
             <img
               src={p.avatar || DEFAULT_AVATAR}
               alt={p.name}
-              class="rounded-full w-6 h-6 border border-blue-200"
+              class="h-6 w-6 rounded-full border border-blue-200"
             />
             <span class="text-base">{p.name}</span>
             {#if p.name === user.name}
               <svg
-                class="w-4 h-4 text-green-500 ml-auto"
+                class="ml-auto h-4 w-4 text-green-500"
                 fill="none"
                 stroke="currentColor"
                 stroke-width="2"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path d="M5 13l4 4L19 7" />
               </svg>
@@ -93,11 +103,12 @@
         <div class="persona-divider"></div>
         <button class="persona-logout" onclick={handleLogoutClick}>
           <svg
-            class="w-4 h-4"
+            class="h-4 w-4"
             fill="none"
             stroke="currentColor"
             stroke-width="2"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path d="M17 16l4-4m0 0l-4-4m4 4H7" />
             <path d="M3 12a9 9 0 1 1 18 0 9 9 0 0 1-18 0z" />
@@ -108,12 +119,12 @@
     </div>
   {/if}
 </div>
- 
+
 <style>
   .persona-menu-container {
     position: relative;
   }
- 
+
   .persona-toggle {
     display: flex;
     align-items: center;
@@ -122,7 +133,7 @@
     border: none;
     cursor: pointer;
   }
- 
+
   .persona-menu {
     position: absolute;
     top: 100%;
@@ -136,7 +147,7 @@
     box-sizing: border-box;
     overflow: hidden;
   }
- 
+
   .persona-menu-wrapper {
     display: flex;
     flex-direction: column;
@@ -145,7 +156,7 @@
     box-sizing: border-box;
     align-items: stretch;
   }
- 
+
   .persona-item {
     display: flex;
     align-items: center;
@@ -161,19 +172,19 @@
     justify-content: flex-start;
     flex-shrink: 0;
   }
- 
+
   .persona-item:hover {
     background: #f0f0f0;
     width: 100%;
   }
- 
+
   .persona-divider {
     width: 100%;
     height: 1px;
     background-color: #e5e7eb;
     margin: 0.25rem 0;
   }
- 
+
   .persona-logout {
     display: flex;
     align-items: center;
@@ -191,7 +202,7 @@
     justify-content: flex-start;
     flex-shrink: 0;
   }
- 
+
   .persona-logout:hover {
     background: #ffe5e5;
     width: 100%;

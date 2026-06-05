@@ -1,4 +1,4 @@
-export type  EndpointType = {
+export type EndpointType = {
   current: string;
   includeByod: boolean;
   isCurateMode: boolean;

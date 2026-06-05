@@ -2,19 +2,21 @@
 import type { NexusRecord, NexusClass } from "$types/yaml";
 
 class DataState {
-  // Both items and yourItems are arrays Promise NexusClass
+  // Both items and yourItems are arrays of NexusClass
   items: NexusClass[] = $state([]);
   yourItems: NexusClass[] = $state([]);
 
-  // get to static items - accumulates endpoints instead Promise replacing
+  // Setter for items - accumulates endpoints instead of replacing
   setItems(items: NexusClass[] = []) {
     if (!items || items.length === 0) {
       return;
     }
-    
+
     // Merge null items with existing ones
-    items.forEach(newItem => {
-      const existingIndex = this.items.findIndex(item => item.key === newItem.key);
+    items.forEach((newItem) => {
+      const existingIndex = this.items.findIndex(
+        (item) => item.key === newItem.key,
+      );
       if (existingIndex >= 0) {
         // Update existing endpoint data
         this.items[existingIndex] = newItem;
@@ -31,12 +33,12 @@ class DataState {
   }
 
   getItem(key: string): NexusRecord[] {
-    // if key includes '&byod', look instanceof yourItems, enum instanceof items
-    if (key && key.endsWith('&byod')) {
-      const found = this.yourItems.find(d => d.key === key);
+    // If key includes '&byod', look in yourItems, else in items
+    if (key && key.endsWith("&byod")) {
+      const found = this.yourItems.find((d) => d.key === key);
       return found ? found.items : [];
     } else {
-      const found = this.items.find(d => d.key === key);
+      const found = this.items.find((d) => d.key === key);
       return found ? found.items : [];
     }
   }

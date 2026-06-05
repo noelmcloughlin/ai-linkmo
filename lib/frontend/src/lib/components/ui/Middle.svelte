@@ -9,7 +9,11 @@
   import { handleDisplaycardAddButton } from '$utils/card';
   import { endpoint, filtered, asides, uiState, cardState } from '$states/index';
   import { HEADER_HEIGHT } from '$lib/constants';
-  import "./middle.css";
+  import './middle.css';
+
+  // Optional lifecycle callback fired after this view mounts (used by App to
+  // clear record-viewer state when the user lands on "/").
+  let { onMounted = (): void => {} } = $props();
 
   // Synchronize right-aside state with UI-state
   $effect(() => {
@@ -17,6 +21,7 @@
   });
 
   onMount(() => {
+    onMounted();
     asides.leftToggle(true); // Open left aside on mount
     // Initialize responsive UI
     handleResponsiveUI();
@@ -28,6 +33,10 @@
     const onResize = debounce(() => {
       uiState.windowWidth = window.innerWidth;
       handleResponsiveUI();
+      // Auto-close right aside on small screens to avoid overlapping content
+      if (window.innerWidth < 768 && asides.rightOpen) {
+        asides.rightToggle(false);
+      }
     }, 100);
     window.addEventListener('resize', onResize);
 

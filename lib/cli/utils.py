@@ -10,28 +10,36 @@ The ai_atlas_nexus library takes ~10.6s to import (includes PyTorch), so we only
 import it when actually needed (local mode). This makes API mode 6-15x faster.
 """
 
+from pathlib import Path
 from typing import Any, Callable, List, Tuple, Dict, Optional, TYPE_CHECKING
 import json
 import logging
 from fastapi import HTTPException
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
 
 # Lazy import for AIAtlasNexus - only imported when actually needed (local mode)
 # This speeds up API mode by ~10 seconds since it doesn't load ai_atlas_nexus library
 if TYPE_CHECKING:
     from ai_atlas_nexus import AIAtlasNexus
 
-BYOD_PATH = "./byo/data"
+# Absolute path to the bundled BYO data directory. Using an absolute path
+# avoids the silent "loads wrong data when CWD != repo root" trap of a
+# relative "./byo/data" path.
+BYOD_PATH = str((Path(__file__).resolve().parent.parent.parent / "byo" / "data"))
 
 # Module-level cache for AIAtlasNexus instances
 # Only two instances needed: byod=False (default) and byod=True (custom data)
 _ran_cache: Dict[bool, Any] = {}  # Type changed to Any to avoid import at module level
 
-# Cache for server module import check
-_has_server_module: bool = False
-_server_module_checked: bool = False
-
 # Initialize module-level logger
 logger = logging.getLogger(__name__)
+
+# Single stderr-bound Rich console reused by all error rendering. Writing to
+# stderr avoids corrupting JSON output that callers may pipe into ``jq`` or
+# similar tools.
+_ERR_CONSOLE: Console = Console(stderr=True)
 
 
 # ============================================================================
@@ -62,22 +70,20 @@ class EnhancedJSONEncoder(json.JSONEncoder):
 
 def display_error(title: str, message: str, style: str = "bold red") -> None:
     """Display formatted error message using Rich.
-    
+
+    Output is routed to stderr (via a module-level Console) so it never
+    corrupts JSON results that may be piped to other tools.
+
     Args:
         title: Error panel title
         message: Error message text
         style: Text style for message
     """
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.text import Text
-    
-    console = Console()
-    console.print(
+    _ERR_CONSOLE.print(
         Panel(
             Text(message, style=style),
             title=f"[b red]{title}",
-            border_style="red"
+            border_style="red",
         )
     )
 
@@ -131,17 +137,26 @@ _DETECTION_CACHE_SECONDS = 60  # Cache for 1 minute
 
 def detect_server_url(base_url: str, common_ports: List[int], force_refresh: bool = False) -> Optional[str]:
     """Detect which URL/port the API server is running on.
-    
-    If AI_ATLAS_API_URL is explicitly set in the environment, trust it directly
-    without probing /health (the caller already knows where the server is).
-    Otherwise, caches successful detection for 60 seconds to avoid repeated checks.
-    Tries the provided base_url first, then common alternative ports.
-    
+
+    Behaviour:
+
+    * When ``AI_ATLAS_API_URL`` is set (test suite, scripted runs, anyone
+      who explicitly configured a URL), trust it and skip the ``/health``
+      round-trip entirely. This removes the ``GET /health`` noise that
+      otherwise prefixes every single API call. If the URL turns out to
+      be dead the caller catches ``ConnectionError`` and invokes
+      :func:`invalidate_server_url_cache` to force a re-probe on the
+      next call.
+    * Otherwise, probe ``/health`` on ``base_url`` then the configured
+      common ports until something answers. Successful detections are
+      cached for :data:`_DETECTION_CACHE_SECONDS` so a burst of CLI
+      calls only pays the probe cost once.
+
     Args:
         base_url: Initial URL to try
         common_ports: List of common ports to try (e.g., [8000, 8080, 5000, 8888])
-        force_refresh: If True, bypass cache and re-detect
-        
+        force_refresh: If True, bypass cache, env shortcut, and re-detect
+
     Returns:
         Working server URL, or None if no server found
     """
@@ -154,8 +169,8 @@ def detect_server_url(base_url: str, common_ports: List[int], force_refresh: boo
 
     current_time = time.time()
 
-    # If the URL was explicitly configured via env var, trust it without probing.
-    # This avoids a /health round-trip on every subprocess invocation (e.g. in tests).
+    # Trust an explicit env override unless the caller asked for a forced
+    # re-detection (typically after a ConnectionError on the previous call).
     if not force_refresh and os.environ.get("AI_ATLAS_API_URL"):
         return base_url
 
@@ -178,7 +193,7 @@ def detect_server_url(base_url: str, common_ports: List[int], force_refresh: boo
         if alt_url not in seen:
             urls_to_try.append(alt_url)
             seen.add(alt_url)
-    
+
     # Try each URL with a quick health check
     for url in urls_to_try:
         try:
@@ -190,8 +205,20 @@ def detect_server_url(base_url: str, common_ports: List[int], force_refresh: boo
                 return url
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             continue
-    
+
     return None
+
+
+def invalidate_server_url_cache() -> None:
+    """Force the next :func:`detect_server_url` call to re-probe.
+
+    Useful after a request raises ``ConnectionError`` so a subsequent
+    invocation doesn't keep hitting the same dead URL until the TTL
+    expires.
+    """
+    global _detected_server_url, _last_detection_time
+    _detected_server_url = None
+    _last_detection_time = 0
 
 
 # ============================================================================
@@ -201,42 +228,39 @@ def detect_server_url(base_url: str, common_ports: List[int], force_refresh: boo
 def get_ran_instance(byod: bool = False) -> Any:  # Returns AIAtlasNexus
     """
     Get cached AIAtlasNexus instance - from FastAPI state or module cache.
-    
+
     Instances are stateless and safe to reuse across requests.
     Uses FastAPI lifespan-managed instances when available (server context),
     otherwise falls back to module-level cache (CLI context).
-    
+
     Lazy imports AIAtlasNexus only when actually needed for local mode.
-    
+
     Args:
         byod: If True, use custom data from BYOD_PATH, else use default data
-        
+
     Returns:
         Cached AIAtlasNexus instance
-        
+
     Raises:
         HTTPException: If instance creation fails
     """
-    global _has_server_module, _server_module_checked
-    
     # Check module cache first (faster, no imports needed)
     if byod in _ran_cache:
         return _ran_cache[byod]
-    
-    # Try FastAPI state (only check once per process)
-    if not _server_module_checked:
-        import sys
-        _has_server_module = 'lib.api.server' in sys.modules
-        _server_module_checked = True
-    
-    if _has_server_module:
+
+    # Try FastAPI state if the server module is currently loaded. Re-check
+    # ``sys.modules`` on every call so a server import that happens after
+    # the first CLI call is still detected (previous code cached the result
+    # exactly once per process and could miss it).
+    import sys
+    if 'lib.api.server' in sys.modules:
         try:
             from lib.api.server import ran_instances
             if byod in ran_instances:
                 return ran_instances[byod]
         except (ImportError, KeyError, AttributeError):
-            _has_server_module = False
-    
+            pass
+
     # Create new instance and cache it - lazy import here
     try:
         from ai_atlas_nexus import AIAtlasNexus
@@ -245,7 +269,7 @@ def get_ran_instance(byod: bool = False) -> Any:  # Returns AIAtlasNexus
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to initialize AIAtlasNexus: {e}")
-    
+
     return _ran_cache[byod]
 
 
@@ -274,7 +298,7 @@ def clear_ran_cache(byod: bool = True) -> None:
         pass
 
 
-def initialize_ran(byod: bool = False, taxonomy: str = None) -> Any:  # Returns AIAtlasNexus
+def initialize_ran(byod: bool = False, taxonomy: Optional[str] = None) -> Any:  # Returns AIAtlasNexus
     """
     Initialize AIAtlasNexus instance with optional taxonomy validation.
     
@@ -296,13 +320,17 @@ def validate_taxonomy(ran, taxonomy):
     Validate taxonomy ID. Raises HTTPException if invalid.
     Returns taxonomy details if valid.
     """
-    if taxonomy:
-        taxonomy = ran.get_taxonomy_by_id(taxonomy)
-        if taxonomy:
-            return taxonomy
-        raise HTTPException(
-            status_code=400, detail=f"Invalid taxonomy ID: {taxonomy}")
-    return None
+    if not taxonomy:
+        return None
+    resolved = ran.get_taxonomy_by_id(taxonomy)
+    if resolved:
+        return resolved
+    # Preserve the originally requested ID in the error so the user can see
+    # what they typed (previous implementation reassigned ``taxonomy`` to
+    # the lookup result and always reported "None").
+    raise HTTPException(
+        status_code=400, detail=f"Invalid taxonomy ID: {taxonomy}"
+    )
 
 
 def validate_and_serialize_entities(
@@ -579,6 +607,13 @@ def generic_entity_handler(
             "count": len(serialized),
             "validation_errors": errors
         }
-    except Exception as e:
+    except HTTPException:
+        raise
+    except Exception:
+        # Log the full traceback server-side; clients only see a generic
+        # message so internals (file paths, library frames) don't leak.
+        logger.exception("generic_entity_handler failed for %s", entity_name)
         raise HTTPException(
-            status_code=500, detail=f"Failed to fetch {entity_name}: {e}")
+            status_code=500,
+            detail=f"Failed to fetch {entity_name}.",
+        )
