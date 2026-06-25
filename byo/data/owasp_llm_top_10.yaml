@@ -12,7 +12,7 @@ taxonomies:
     version: '2025'
     hasDocumentation:
       - owasp-llm-top-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
 
 documents:
@@ -23,7 +23,7 @@ documents:
       LLM Applications risk list.
     author: OWASP
     url: https://genai.owasp.org/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
 
 entries:
@@ -35,7 +35,7 @@ entries:
     hasDocumentation:
       - owasp-llm-top-10
     url: https://genai.owasp.org/llmrisk/llm01-prompt-injection/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-llm-top-10-2025-llm02-2025
     name: LLM02:2025 Sensitive Information Disclosure
@@ -46,7 +46,7 @@ entries:
     hasDocumentation:
       - owasp-llm-top-10
     url: https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-llm-top-10-2025-llm03-2025
     name: LLM03:2025 Supply Chain
@@ -56,7 +56,7 @@ entries:
     hasDocumentation:
       - owasp-llm-top-10
     url: https://genai.owasp.org/llmrisk/llm032025-supply-chain/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-llm-top-10-2025-llm04-2025
     name: 'LLM04: Data and Model Poisoning'
@@ -67,7 +67,7 @@ entries:
     hasDocumentation:
       - owasp-llm-top-10
     url: https://genai.owasp.org/llmrisk/llm042025-data-and-model-poisoning/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-llm-top-10-2025-llm05-2025
     name: LLM05:2025 Improper Output Handling
@@ -78,7 +78,7 @@ entries:
     hasDocumentation:
       - owasp-llm-top-10
     url: https://genai.owasp.org/llmrisk/llm052025-improper-output-handling/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-llm-top-10-2025-llm06-2025
     name: LLM06:2025 Excessive Agency
@@ -88,7 +88,7 @@ entries:
     hasDocumentation:
       - owasp-llm-top-10
     url: https://genai.owasp.org/llmrisk/llm062025-excessive-agency/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-llm-top-10-2025-llm07-2025
     name: LLM07:2025 System Prompt Leakage
@@ -99,7 +99,7 @@ entries:
     hasDocumentation:
       - owasp-llm-top-10
     url: https://genai.owasp.org/llmrisk/llm072025-system-prompt-leakage/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-llm-top-10-2025-llm08-2025
     name: LLM08:2025 Vector and Embedding Weaknesses
@@ -110,7 +110,7 @@ entries:
     hasDocumentation:
       - owasp-llm-top-10
     url: https://genai.owasp.org/llmrisk/llm082025-vector-and-embedding-weaknesses/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-llm-top-10-2025-llm09-2025
     name: LLM09:2025 Misinformation
@@ -120,7 +120,7 @@ entries:
     hasDocumentation:
       - owasp-llm-top-10
     url: https://genai.owasp.org/llmrisk/llm092025-misinformation/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-llm-top-10-2025-llm10-2025
     name: LLM10:2025 Unbounded Consumption
@@ -130,4 +130,4 @@ entries:
     hasDocumentation:
       - owasp-llm-top-10
     url: https://genai.owasp.org/llmrisk/llm102025-unbounded-consumption/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'

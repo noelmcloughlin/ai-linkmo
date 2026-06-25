@@ -15,7 +15,7 @@ taxonomies:
     version: '1.0'
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
 
 documents:
@@ -26,7 +26,7 @@ documents:
       the NIST AI Risk Management Framework.
     author: NIST
     url: https://doi.org/10.6028/NIST.AI.600-1
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
 
 entries:
@@ -37,7 +37,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-2
     name: 2.2. Confabulation
@@ -46,7 +46,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-3
     name: 2.3. Dangerous, Violent, or Hateful Content
@@ -56,7 +56,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-4
     name: 2.4. Data Privacy
@@ -65,7 +65,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-5
     name: 2.5. Environmental Impacts
@@ -74,7 +74,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-6
     name: 2.6. Harmful Bias and Homogenization
@@ -83,7 +83,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-7
     name: 2.7. Human-AI Configuration
@@ -92,7 +92,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-8
     name: 2.8. Information Integrity
@@ -101,7 +101,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-9
     name: 2.9. Information Security
@@ -110,7 +110,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-10
     name: 2.10. Intellectual Property
@@ -119,7 +119,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-11
     name: 2.11. Obscene, Degrading, and/or Abusive Content
@@ -130,7 +130,7 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-ai-600-1-2-12
     name: 2.12. Value Chain and Component Integration
@@ -140,4 +140,4 @@ entries:
     isDefinedByTaxonomy: nist-ai-600-1
     hasDocumentation:
       - nist-ai-600-1-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'

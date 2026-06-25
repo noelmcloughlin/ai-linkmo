@@ -12,7 +12,7 @@ taxonomies:
     version: '2023'
     hasDocumentation:
       - owasp-ml-top-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
 
 documents:
@@ -22,7 +22,7 @@ documents:
       OWASP Machine Learning Security Top 10 project landing page.
     author: OWASP
     url: https://owasp.org/www-project-machine-learning-security-top-10/
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
 
 entries:
@@ -34,7 +34,7 @@ entries:
     hasDocumentation:
       - owasp-ml-top-10
     url: https://owasp.org/www-project-machine-learning-security-top-10/docs/ML01_2023-Input_Manipulation_Attack.html
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-ml-top-10-2023-ml02-2023
     name: ML02:2023 Data Poisoning Attack
@@ -44,7 +44,7 @@ entries:
     hasDocumentation:
       - owasp-ml-top-10
     url: https://owasp.org/www-project-machine-learning-security-top-10/docs/ML02_2023-Data_Poisoning_Attack.html
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-ml-top-10-2023-ml03-2023
     name: ML03:2023 Model Inversion Attack
@@ -54,7 +54,7 @@ entries:
     hasDocumentation:
       - owasp-ml-top-10
     url: https://owasp.org/www-project-machine-learning-security-top-10/docs/ML03_2023-Model_Inversion_Attack.html
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-ml-top-10-2023-ml04-2023
     name: ML04:2023 Membership Inference Attack
@@ -65,7 +65,7 @@ entries:
     hasDocumentation:
       - owasp-ml-top-10
     url: https://owasp.org/www-project-machine-learning-security-top-10/docs/ML04_2023-Membership_Inference_Attack.html
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-ml-top-10-2023-ml05-2023
     name: ML05:2023 Model Theft
@@ -75,7 +75,7 @@ entries:
     hasDocumentation:
       - owasp-ml-top-10
     url: https://owasp.org/www-project-machine-learning-security-top-10/docs/ML05_2023-Model_Theft.html
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-ml-top-10-2023-ml06-2023
     name: ML06:2023 ML Supply Chain Attacks
@@ -85,7 +85,7 @@ entries:
     hasDocumentation:
       - owasp-ml-top-10
     url: https://owasp.org/www-project-machine-learning-security-top-10/docs/ML06_2023-AI_Supply_Chain_Attacks.html
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-ml-top-10-2023-ml07-2023
     name: ML07:2023 Transfer Learning Attack
@@ -95,7 +95,7 @@ entries:
     hasDocumentation:
       - owasp-ml-top-10
     url: https://owasp.org/www-project-machine-learning-security-top-10/docs/ML07_2023-Transfer_Learning_Attack.html
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-ml-top-10-2023-ml08-2023
     name: ML08:2023 Model Skewing
@@ -105,7 +105,7 @@ entries:
     hasDocumentation:
       - owasp-ml-top-10
     url: https://owasp.org/www-project-machine-learning-security-top-10/docs/ML08_2023-Model_Skewing.html
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-ml-top-10-2023-ml09-2023
     name: ML09:2023 Output Integrity Attack
@@ -115,7 +115,7 @@ entries:
     hasDocumentation:
       - owasp-ml-top-10
     url: https://owasp.org/www-project-machine-learning-security-top-10/docs/ML09_2023-Output_Integrity_Attack.html
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: owasp-ml-top-10-2023-ml10-2023
     name: ML10:2023 Model Poisoning
@@ -125,4 +125,4 @@ entries:
     hasDocumentation:
       - owasp-ml-top-10
     url: https://owasp.org/www-project-machine-learning-security-top-10/docs/ML10_2023-Model_Poisoning.html
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'

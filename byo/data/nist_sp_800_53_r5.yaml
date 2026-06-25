@@ -11,7 +11,7 @@ taxonomies:
     version: '1'
     hasDocumentation:
       - nist-sp-800-53r5-doc
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
 
 documents:
@@ -21,7 +21,7 @@ documents:
       SP 800-53 Controls and SP 800-53B Control Baselines Resources for Implementers
     author: NIST
     url: https://csrc.nist.gov/projects/risk-management/sp800-53-controls
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: nist-sp-800-53r5-oscal-catalog
     name: >-
@@ -37,7 +37,7 @@ documents:
       from the published documents in machine-readable formats.
     author: NIST
     url: https://github.com/usnistgov/oscal-content/tree/release-1.4/nist.gov/SP800-53/rev5
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
 
 controls:
@@ -50,7 +50,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-2
     name: Account Management
@@ -61,7 +61,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-3
     name: Access Enforcement
@@ -72,7 +72,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-4
     name: Information Flow Enforcement
@@ -83,7 +83,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-5
     name: Separation of Duties
@@ -94,7 +94,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-6
     name: Least Privilege
@@ -105,7 +105,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-7
     name: Unsuccessful Logon Attempts
@@ -116,7 +116,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-8
     name: System Use Notification
@@ -127,7 +127,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-9
     name: Previous Logon Notification
@@ -138,7 +138,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-10
     name: Concurrent Session Control
@@ -149,7 +149,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-11
     name: Device Lock
@@ -160,7 +160,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-12
     name: Session Termination
@@ -171,7 +171,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-13
     name: Supervision and Review — Access Control
@@ -182,7 +182,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-13
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-14
     name: Permitted Actions Without Identification or Authentication
@@ -193,7 +193,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-14
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-15
     name: Automated Marking
@@ -204,7 +204,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-15
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-16
     name: Security and Privacy Attributes
@@ -215,7 +215,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-16
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-17
     name: Remote Access
@@ -226,7 +226,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-17
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-18
     name: Wireless Access
@@ -237,7 +237,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-18
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-19
     name: Access Control for Mobile Devices
@@ -248,7 +248,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-19
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-20
     name: Use of External Systems
@@ -259,7 +259,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-20
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-21
     name: Information Sharing
@@ -270,7 +270,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-21
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-22
     name: Publicly Accessible Content
@@ -281,7 +281,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-22
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-23
     name: Data Mining Protection
@@ -292,7 +292,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-23
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-24
     name: Access Control Decisions
@@ -303,7 +303,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-24
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ac-25
     name: Reference Monitor
@@ -314,7 +314,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AC-25
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: at-1
     name: Policy and Procedures
@@ -325,7 +325,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AT-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: at-2
     name: Literacy Training and Awareness
@@ -336,7 +336,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AT-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: at-3
     name: Role-based Training
@@ -347,7 +347,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AT-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: at-4
     name: Training Records
@@ -358,7 +358,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AT-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: at-5
     name: Contacts with Security Groups and Associations
@@ -369,7 +369,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AT-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: at-6
     name: Training Feedback
@@ -380,7 +380,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AT-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-1
     name: Policy and Procedures
@@ -391,7 +391,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-2
     name: Event Logging
@@ -402,7 +402,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-3
     name: Content of Audit Records
@@ -413,7 +413,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-4
     name: Audit Log Storage Capacity
@@ -424,7 +424,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-5
     name: Response to Audit Logging Process Failures
@@ -435,7 +435,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-6
     name: Audit Record Review, Analysis, and Reporting
@@ -446,7 +446,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-7
     name: Audit Record Reduction and Report Generation
@@ -457,7 +457,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-8
     name: Time Stamps
@@ -468,7 +468,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-9
     name: Protection of Audit Information
@@ -479,7 +479,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-10
     name: Non-repudiation
@@ -490,7 +490,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-11
     name: Audit Record Retention
@@ -501,7 +501,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-12
     name: Audit Record Generation
@@ -512,7 +512,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-13
     name: Monitoring for Information Disclosure
@@ -523,7 +523,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-13
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-14
     name: Session Audit
@@ -534,7 +534,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-14
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-15
     name: Alternate Audit Logging Capability
@@ -545,7 +545,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-15
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: au-16
     name: Cross-organizational Audit Logging
@@ -556,7 +556,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=AU-16
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ca-1
     name: Policy and Procedures
@@ -567,7 +567,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CA-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ca-2
     name: Control Assessments
@@ -578,7 +578,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CA-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ca-3
     name: Information Exchange
@@ -589,7 +589,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CA-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ca-4
     name: Security Certification
@@ -600,7 +600,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CA-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ca-5
     name: Plan of Action and Milestones
@@ -611,7 +611,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CA-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ca-6
     name: Authorization
@@ -622,7 +622,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CA-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ca-7
     name: Authorization
@@ -633,7 +633,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CA-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ca-8
     name: Penetration Testing
@@ -644,7 +644,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CA-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ca-9
     name: Internal System Connections
@@ -655,7 +655,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CA-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-1
     name: Policy and Procedures
@@ -666,7 +666,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-2
     name: Baseline Configuration
@@ -677,7 +677,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-3
     name: Configuration Change Control
@@ -688,7 +688,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-4
     name: Impact Analyses
@@ -699,7 +699,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-5
     name: Access Restrictions for Change
@@ -710,7 +710,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-6
     name: Configuration Settings
@@ -721,7 +721,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-7
     name: Least Functionality
@@ -732,7 +732,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-8
     name: System Component Inventory
@@ -743,7 +743,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-9
     name: Configuration Management Plan
@@ -754,7 +754,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-10
     name: Software Usage Restrictions
@@ -765,7 +765,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-11
     name: User-installed Software
@@ -776,7 +776,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-12
     name: Information Location
@@ -787,7 +787,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-13
     name: Data Action Mapping
@@ -798,7 +798,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-13
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cm-14
     name: Signed Components
@@ -809,7 +809,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CM-14
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-1
     name: Policy and Procedures
@@ -820,7 +820,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-2
     name: Contingency Plan
@@ -831,7 +831,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-3
     name: Contingency Training
@@ -842,7 +842,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-4
     name: Contingency Plan Testing
@@ -853,7 +853,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-5
     name: Contingency Plan Update
@@ -864,7 +864,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-6
     name: Alternate Storage Site
@@ -875,7 +875,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-7
     name: Alternate Processing Site
@@ -886,7 +886,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-8
     name: Telecommunications Services
@@ -897,7 +897,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-9
     name: System Backup
@@ -908,7 +908,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-10
     name: System Recovery and Reconstitution
@@ -919,7 +919,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-11
     name: Alternate Communications Protocols
@@ -930,7 +930,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-12
     name: Safe Mode
@@ -941,7 +941,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: cp-13
     name: Alternative Security Mechanisms
@@ -952,7 +952,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=CP-13
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-1
     name: Policy and Procedures
@@ -963,7 +963,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-2
     name: Identification and Authentication (organizational Users)
@@ -974,7 +974,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-3
     name: Device Identification and Authentication
@@ -985,7 +985,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-4
     name: Identifier Management
@@ -996,7 +996,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-5
     name: Authenticator Management
@@ -1007,7 +1007,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-6
     name: Authentication Feedback
@@ -1018,7 +1018,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-7
     name: Cryptographic Module Authentication
@@ -1029,7 +1029,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-8
     name: Identification and Authentication (non-organizational Users)
@@ -1040,7 +1040,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-9
     name: Service Identification and Authentication
@@ -1051,7 +1051,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-10
     name: Adaptive Authentication
@@ -1062,7 +1062,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-11
     name: Re-authentication
@@ -1073,7 +1073,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ia-12
     name: Identity Proofing
@@ -1084,7 +1084,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IA-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ir-1
     name: Policy and Procedures
@@ -1095,7 +1095,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IR-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ir-2
     name: Incident Response Training
@@ -1106,7 +1106,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IR-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ir-3
     name: Incident Response Testing
@@ -1117,7 +1117,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IR-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ir-4
     name: Incident Handling
@@ -1128,7 +1128,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IR-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ir-5
     name: Incident Monitoring
@@ -1139,7 +1139,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IR-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ir-6
     name: Incident Reporting
@@ -1150,7 +1150,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IR-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ir-7
     name: Incident Response Assistance
@@ -1161,7 +1161,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IR-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ir-8
     name: Incident Response Plan
@@ -1172,7 +1172,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IR-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ir-9
     name: Information Spillage Response
@@ -1183,7 +1183,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=IR-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ma-1
     name: Policy and Procedures
@@ -1194,7 +1194,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MA-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ma-2
     name: Controlled Maintenance
@@ -1205,7 +1205,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MA-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ma-3
     name: Maintenance Tools
@@ -1216,7 +1216,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MA-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ma-4
     name: Nonlocal Maintenance
@@ -1227,7 +1227,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MA-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ma-5
     name: Maintenance Personnel
@@ -1238,7 +1238,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MA-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ma-6
     name: Timely Maintenance
@@ -1249,7 +1249,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MA-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ma-7
     name: Field Maintenance
@@ -1260,7 +1260,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MA-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: mp-1
     name: Policy and Procedures
@@ -1271,7 +1271,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MP-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: mp-2
     name: Media Access
@@ -1282,7 +1282,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MP-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: mp-3
     name: Media Marking
@@ -1293,7 +1293,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MP-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: mp-4
     name: Media Storage
@@ -1304,7 +1304,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MP-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: mp-5
     name: Media Transport
@@ -1315,7 +1315,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MP-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: mp-6
     name: Media Sanitization
@@ -1326,7 +1326,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MP-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: mp-7
     name: Media Use
@@ -1337,7 +1337,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MP-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: mp-8
     name: Media Downgrading
@@ -1348,7 +1348,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=MP-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-1
     name: Policy and Procedures
@@ -1359,7 +1359,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-2
     name: Physical Access Authorizations
@@ -1370,7 +1370,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-3
     name: Physical Access Control
@@ -1381,7 +1381,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-4
     name: Access Control for Transmission
@@ -1392,7 +1392,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-5
     name: Access Control for Output Devices
@@ -1403,7 +1403,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-6
     name: Monitoring Physical Access
@@ -1414,7 +1414,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-7
     name: Visitor Control
@@ -1425,7 +1425,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-8
     name: Visitor Access Records
@@ -1436,7 +1436,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-9
     name: Power Equipment and Cabling
@@ -1447,7 +1447,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-10
     name: Emergency Shutoff
@@ -1458,7 +1458,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-11
     name: Emergency Power
@@ -1469,7 +1469,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-12
     name: Emergency Lighting
@@ -1480,7 +1480,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-13
     name: Fire Protection
@@ -1491,7 +1491,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-13
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-14
     name: Environmental Controls
@@ -1502,7 +1502,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-14
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-15
     name: Water Damage Protection
@@ -1513,7 +1513,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-15
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-16
     name: Delivery and Removal
@@ -1524,7 +1524,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-16
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-17
     name: Alternate Work Site
@@ -1535,7 +1535,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-17
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-18
     name: Location of System Components
@@ -1546,7 +1546,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-18
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-19
     name: Information Leakage
@@ -1557,7 +1557,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-19
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-20
     name: Asset Monitoring and Tracking
@@ -1568,7 +1568,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-20
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-21
     name: Electromagnetic Pulse Protection
@@ -1579,7 +1579,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-21
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-22
     name: Component Marking
@@ -1590,7 +1590,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-22
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pe-23
     name: Facility Location
@@ -1601,7 +1601,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PE-23
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-1
     name: Policy and Procedures
@@ -1612,7 +1612,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-2
     name: System Security and Privacy Plans
@@ -1623,7 +1623,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-3
     name: System Security Plan Update
@@ -1634,7 +1634,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-4
     name: Rules of Behavior
@@ -1645,7 +1645,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-5
     name: Privacy Impact Assessment
@@ -1656,7 +1656,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-6
     name: Security-related Activity Planning
@@ -1667,7 +1667,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-7
     name: Concept of Operations
@@ -1678,7 +1678,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-8
     name: Security and Privacy Architectures
@@ -1689,7 +1689,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-9
     name: Central Management
@@ -1700,7 +1700,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-10
     name: Baseline Selection
@@ -1711,7 +1711,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pl-11
     name: Baseline Tailoring
@@ -1722,7 +1722,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PL-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-1
     name: Information Security Program Plan
@@ -1733,7 +1733,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-2
     name: Information Security Program Leadership Role
@@ -1744,7 +1744,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-3
     name: Information Security and Privacy Resources
@@ -1755,7 +1755,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-4
     name: Plan of Action and Milestones Process
@@ -1766,7 +1766,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-5
     name: System Inventory
@@ -1777,7 +1777,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-6
     name: Measures of Performance
@@ -1788,7 +1788,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-7
     name: Enterprise Architecture
@@ -1799,7 +1799,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-8
     name: Critical Infrastructure Plan
@@ -1810,7 +1810,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-9
     name: Risk Management Strategy
@@ -1821,7 +1821,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-10
     name: Authorization Process
@@ -1832,7 +1832,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-11
     name: Mission and Business Process Definition
@@ -1843,7 +1843,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-12
     name: Insider Threat Program
@@ -1854,7 +1854,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-13
     name: Security and Privacy Workforce
@@ -1865,7 +1865,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-13
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-14
     name: Testing, Training, and Monitoring
@@ -1876,7 +1876,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-14
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-15
     name: Security and Privacy Groups and Associations
@@ -1887,7 +1887,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-15
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-16
     name: Threat Awareness Program
@@ -1898,7 +1898,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-16
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-17
     name: Protecting Controlled Unclassified Information on External Systems
@@ -1909,7 +1909,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-17
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-18
     name: Privacy Program Plan
@@ -1920,7 +1920,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-18
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-19
     name: Privacy Program Leadership Role
@@ -1931,7 +1931,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-19
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-20
     name: Dissemination of Privacy Program Information
@@ -1942,7 +1942,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-20
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-21
     name: Accounting of Disclosures
@@ -1953,7 +1953,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-21
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-22
     name: Personally Identifiable Information Quality Management
@@ -1964,7 +1964,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-22
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-23
     name: Data Governance Body
@@ -1975,7 +1975,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-23
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-24
     name: Data Integrity Board
@@ -1986,7 +1986,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-24
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-25
     name: >-
@@ -1999,7 +1999,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-25
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-26
     name: Complaint Management
@@ -2010,7 +2010,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-26
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-27
     name: Privacy Reporting
@@ -2021,7 +2021,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-27
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-28
     name: Risk Framing
@@ -2032,7 +2032,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-28
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-29
     name: Risk Management Program Leadership Roles
@@ -2043,7 +2043,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-29
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-30
     name: Supply Chain Risk Management Strategy
@@ -2054,7 +2054,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-30
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-31
     name: Continuous Monitoring Strategy
@@ -2065,7 +2065,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-31
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pm-32
     name: Purposing
@@ -2076,7 +2076,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PM-32
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ps-1
     name: Policy and Procedures
@@ -2087,7 +2087,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PS-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ps-2
     name: Position Risk Designation
@@ -2098,7 +2098,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PS-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ps-3
     name: Personnel Screening
@@ -2109,7 +2109,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PS-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ps-4
     name: Personnel Termination
@@ -2120,7 +2120,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PS-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ps-5
     name: Personnel Transfer
@@ -2131,7 +2131,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PS-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ps-6
     name: Access Agreements
@@ -2142,7 +2142,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PS-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ps-7
     name: External Personnel Security
@@ -2153,7 +2153,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PS-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ps-8
     name: Personnel Sanctions
@@ -2164,7 +2164,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PS-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ps-9
     name: Position Descriptions
@@ -2175,7 +2175,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PS-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pt-1
     name: Policy and Procedures
@@ -2186,7 +2186,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PT-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pt-2
     name: Authority to Process Personally Identifiable Information
@@ -2197,7 +2197,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PT-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pt-3
     name: Personally Identifiable Information Processing Purposes
@@ -2208,7 +2208,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PT-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pt-4
     name: Consent
@@ -2219,7 +2219,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PT-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pt-5
     name: Privacy Notice
@@ -2230,7 +2230,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PT-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pt-6
     name: System of Records Notice
@@ -2241,7 +2241,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PT-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pt-7
     name: Specific Categories of Personally Identifiable Information
@@ -2252,7 +2252,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PT-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: pt-8
     name: Computer Matching Requirements
@@ -2263,7 +2263,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=PT-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ra-1
     name: Policy and Procedures
@@ -2274,7 +2274,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=RA-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ra-2
     name: Security Categorization
@@ -2285,7 +2285,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=RA-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ra-3
     name: Risk Assessment
@@ -2296,7 +2296,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=RA-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ra-4
     name: Risk Assessment Update
@@ -2307,7 +2307,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=RA-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ra-5
     name: Vulnerability Monitoring and Scanning
@@ -2318,7 +2318,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=RA-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ra-6
     name: Technical Surveillance Countermeasures Survey
@@ -2329,7 +2329,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=RA-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ra-7
     name: Risk Response
@@ -2340,7 +2340,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=RA-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ra-8
     name: Privacy Impact Assessments
@@ -2351,7 +2351,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=RA-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ra-9
     name: Criticality Analysis
@@ -2362,7 +2362,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=RA-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: ra-10
     name: Threat Hunting
@@ -2373,7 +2373,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=RA-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-1
     name: Policy and Procedures
@@ -2384,7 +2384,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-2
     name: Allocation of Resources
@@ -2395,7 +2395,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-3
     name: System Development Life Cycle
@@ -2406,7 +2406,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-4
     name: Acquisition Process
@@ -2417,7 +2417,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-5
     name: System Documentation
@@ -2428,7 +2428,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-6
     name: Software Usage Restrictions
@@ -2439,7 +2439,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-7
     name: User-installed Software
@@ -2450,7 +2450,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-8
     name: Security and Privacy Engineering Principles
@@ -2461,7 +2461,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-9
     name: External System Services
@@ -2472,7 +2472,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-10
     name: Developer Configuration Management
@@ -2483,7 +2483,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-11
     name: Developer Testing and Evaluation
@@ -2494,7 +2494,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-12
     name: Supply Chain Protection
@@ -2505,7 +2505,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-13
     name: Trustworthiness
@@ -2516,7 +2516,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-13
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-14
     name: Criticality Analysis
@@ -2527,7 +2527,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-14
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-15
     name: Development Process, Standards, and Tools
@@ -2538,7 +2538,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-15
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-16
     name: Developer-provided Training
@@ -2549,7 +2549,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-16
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-17
     name: Developer Security and Privacy Architecture and Design
@@ -2560,7 +2560,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-17
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-18
     name: Tamper Resistance and Detection
@@ -2571,7 +2571,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-18
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-19
     name: Component Authenticity
@@ -2582,7 +2582,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-19
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-20
     name: Customized Development of Critical Components
@@ -2593,7 +2593,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-20
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-21
     name: Developer Screening
@@ -2604,7 +2604,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-21
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-22
     name: Unsupported System Components
@@ -2615,7 +2615,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-22
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sa-23
     name: Specialization
@@ -2626,7 +2626,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SA-23
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-1
     name: Policy and Procedures
@@ -2637,7 +2637,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-2
     name: Separation of System and User Functionality
@@ -2648,7 +2648,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-3
     name: Security Function Isolation
@@ -2659,7 +2659,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-4
     name: Information in Shared System Resources
@@ -2670,7 +2670,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-5
     name: Denial-of-service Protection
@@ -2681,7 +2681,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-6
     name: Resource Availability
@@ -2692,7 +2692,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-7
     name: Boundary Protection
@@ -2703,7 +2703,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-8
     name: Transmission Confidentiality and Integrity
@@ -2714,7 +2714,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-9
     name: Transmission Confidentiality
@@ -2725,7 +2725,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-10
     name: Network Disconnect
@@ -2736,7 +2736,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-11
     name: Trusted Path
@@ -2747,7 +2747,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-12
     name: Cryptographic Key Establishment and Management
@@ -2758,7 +2758,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-13
     name: Cryptographic Protection
@@ -2769,7 +2769,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-13
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-14
     name: Public Access Protections
@@ -2780,7 +2780,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-14
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-15
     name: Collaborative Computing Devices and Applications
@@ -2791,7 +2791,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-15
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-16
     name: Transmission of Security and Privacy Attributes
@@ -2802,7 +2802,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-16
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-17
     name: Public Key Infrastructure Certificates
@@ -2813,7 +2813,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-17
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-18
     name: Mobile Code
@@ -2824,7 +2824,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-18
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-19
     name: Voice Over Internet Protocol
@@ -2835,7 +2835,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-19
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-20
     name: Secure Name/address Resolution Service (authoritative Source)
@@ -2846,7 +2846,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-20
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-21
     name: Secure Name/address Resolution Service (recursive or Caching
@@ -2858,7 +2858,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-21
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-22
     name: Architecture and Provisioning for Name/address Resolution Service
@@ -2869,7 +2869,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-22
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-23
     name: Session Authenticity
@@ -2880,7 +2880,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-23
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-24
     name: Fail in Known State
@@ -2891,7 +2891,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-24
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-25
     name: Thin Nodes
@@ -2902,7 +2902,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-25
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-26
     name: Decoys
@@ -2913,7 +2913,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-26
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-27
     name: Platform-independent Applications
@@ -2924,7 +2924,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-27
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-28
     name: Protection of Information at Rest
@@ -2935,7 +2935,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-28
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-29
     name: Heterogeneity
@@ -2946,7 +2946,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-29
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-30
     name: Concealment and Misdirection
@@ -2957,7 +2957,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-30
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-31
     name: Covert Channel Analysis
@@ -2968,7 +2968,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-31
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-32
     name: System Partitioning
@@ -2979,7 +2979,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-32
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-33
     name: Transmission Preparation Integrity
@@ -2990,7 +2990,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-33
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-34
     name: Non-modifiable Executable Programs
@@ -3001,7 +3001,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-34
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-35
     name: External Malicious Code Identification
@@ -3012,7 +3012,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-35
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-36
     name: Distributed Processing and Storage
@@ -3023,7 +3023,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-36
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-37
     name: Out-of-band Channels
@@ -3034,7 +3034,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-37
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-38
     name: Operations Security
@@ -3045,7 +3045,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-38
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-39
     name: Process Isolation
@@ -3056,7 +3056,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-39
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-40
     name: Wireless Link Protection
@@ -3067,7 +3067,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-40
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-41
     name: Port and I/o Device Access
@@ -3078,7 +3078,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-41
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-42
     name: Sensor Capability and Data
@@ -3089,7 +3089,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-42
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-43
     name: Usage Restrictions
@@ -3100,7 +3100,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-43
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-44
     name: Detonation Chambers
@@ -3111,7 +3111,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-44
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-45
     name: System Time Synchronization
@@ -3122,7 +3122,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-45
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-46
     name: Cross Domain Policy Enforcement
@@ -3133,7 +3133,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-46
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-47
     name: Alternate Communications Paths
@@ -3144,7 +3144,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-47
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-48
     name: Sensor Relocation
@@ -3155,7 +3155,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-48
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-49
     name: Hardware-enforced Separation and Policy Enforcement
@@ -3166,7 +3166,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-49
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-50
     name: Software-enforced Separation and Policy Enforcement
@@ -3177,7 +3177,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-50
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sc-51
     name: Hardware-based Protection
@@ -3188,7 +3188,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SC-51
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-1
     name: Policy and Procedures
@@ -3199,7 +3199,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-2
     name: Flaw Remediation
@@ -3210,7 +3210,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-3
     name: Malicious Code Protection
@@ -3221,7 +3221,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-4
     name: System Monitoring
@@ -3232,7 +3232,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-5
     name: Security Alerts, Advisories, and Directives
@@ -3243,7 +3243,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-6
     name: Security and Privacy Function Verification
@@ -3254,7 +3254,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-7
     name: Software, Firmware, and Information Integrity
@@ -3265,7 +3265,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-8
     name: Spam Protection
@@ -3276,7 +3276,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-9
     name: Information Input Restrictions
@@ -3287,7 +3287,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-10
     name: Information Input Validation
@@ -3298,7 +3298,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-11
     name: Error Handling
@@ -3309,7 +3309,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-12
     name: Information Management and Retention
@@ -3320,7 +3320,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-13
     name: Predictable Failure Prevention
@@ -3331,7 +3331,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-13
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-14
     name: Non-persistence
@@ -3342,7 +3342,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-14
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-15
     name: Information Output Filtering
@@ -3353,7 +3353,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-15
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-16
     name: Memory Protection
@@ -3364,7 +3364,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-16
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-17
     name: Fail-safe Procedures
@@ -3375,7 +3375,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-17
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-18
     name: Personally Identifiable Information Quality Operations
@@ -3386,7 +3386,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-18
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-19
     name: De-identification
@@ -3397,7 +3397,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-19
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-20
     name: Tainting
@@ -3408,7 +3408,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-20
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-21
     name: Information Refresh
@@ -3419,7 +3419,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-21
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-22
     name: Information Diversity
@@ -3430,7 +3430,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-22
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: si-23
     name: Information Fragmentation
@@ -3441,7 +3441,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SI-23
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-1
     name: Policy and Procedures
@@ -3452,7 +3452,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-01
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-2
     name: Supply Chain Risk Management Plan
@@ -3463,7 +3463,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-02
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-3
     name: Supply Chain Controls and Processes
@@ -3474,7 +3474,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-03
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-4
     name: Provenance
@@ -3485,7 +3485,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-04
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-5
     name: Acquisition Strategies, Tools, and Methods
@@ -3496,7 +3496,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-05
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-6
     name: Supplier Assessments and Reviews
@@ -3507,7 +3507,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-06
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-7
     name: Supply Chain Operations Security
@@ -3518,7 +3518,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-07
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-8
     name: Notification Agreements
@@ -3529,7 +3529,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-08
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-9
     name: Tamper Resistance and Detection
@@ -3540,7 +3540,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-09
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-10
     name: Inspection of Systems or Components
@@ -3551,7 +3551,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-10
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-11
     name: Component Authenticity
@@ -3562,7 +3562,7 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-11
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'
 
   - id: sr-12
     name: Component Disposal
@@ -3573,4 +3573,4 @@ controls:
       - nist-sp-800-53r5-doc
       - nist-sp-800-53r5-oscal-catalog
     url: https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_2_0/home?element=SR-12
-    dateCreated: '2026-06-05'
+    dateCreated: '2026-06-25'

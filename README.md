@@ -47,6 +47,7 @@ The offline CLI is ready. Use FastAPI for blazing CLI performance.
 Start FastAPI server ([details](lib/api/README.md)):
 
 ```bash
+uv sync
 uv run uvicorn lib.api.server:app --reload
 ```
 

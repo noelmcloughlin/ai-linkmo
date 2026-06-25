@@ -1,41 +1,6 @@
-# OSFF London 2026 - Presentation Outline
+# Four Access Patterns
 
-**Session:** From Open Data to Operations: Building AI Governance Infrastructure  
-**Duration:** 30 minutes (20 min presentation + 7 min Q&A)  
-**Format:** Live demo with slides
-
----
-
-## Slide Structure
-
-### Opening (3 minutes)
-
-#### Slide 1: Title
-
-- From Open Data to Operations: Building AI Governance Infrastructure
-- Your name, organization
-- OSFF London 2026
-
-#### Slide 2: The Problem - Business Context
-
-- Financial institutions have aggressive AI value targets
-- Governance requirements create bottlenecks
-- Without operational infrastructure → manual, expensive, doesn't scale
-- The gap: frameworks exist, but how do you BUILD infrastructure?
-
-#### Slide 3: What Exists Today
-
-- Open governance data: FINOS AI Governance Framework, NIST AI RMF, Trustworthy AI taxonomies
-- Expert-curated risks, mitigations, mappings
-- Challenge: How to operationalize this across hundreds of AI systems?
-
----
-
-### Solution Overview (5 minutes)
-
-#### Slide 4: Reference Implementation - Four Access Patterns
-
-Diagram showing:
+Diagram:
 
 ```ascii
 ┌────────────────────────────────────┐
@@ -61,27 +26,9 @@ Diagram showing:
 └────────────────────────────────────┘
 ```
 
-#### Slide 5: LinkMO Architecture
+## Demo
 
-- Linked Data Model Operate
-- Influenced by LinkML patterns from highly-regulated bioscience communities
-- Cross-sector collaboration: Financial services supports health research technology
-- CSR benefit: Contributing to communities advancing human medicine
-- DevSecOps-ready, extensible patterns
-
----
-
-### Live Demo (10 minutes)
-
-#### Slide 6: Demo Environment Setup
-
-- Local deployment (no internet required)
-- All four access patterns operational
-- Real governance data from FINOS AIGF
-
-#### Demo Flow
-
-**1. CLI - Automation Pattern** (2 min)
+**1. CLI - Automation Pattern**
 
 Show these commands:
 
@@ -144,21 +91,21 @@ GitHub Actions example with model matrix:
 - Exit codes for pipeline integration
 - Same pattern as security scanners (Snyk, Veracode)
 
-**2. REST API - Integration Pattern** (2 min)
+**2. REST API - Integration Pattern**
 
 - FastAPI documentation at /docs
 - Query endpoints
 - Show JSON responses
 - Integration with GRC tools
 
-**3. Web UI - Exploration Pattern** (3 min)
+**3. Web UI - Exploration Pattern**
 
 - Browse risk categories
 - Explore risk details and mitigations
 - Filter and search capabilities
 - User-friendly for non-technical stakeholders
 
-**4. Graph DB - Analysis Pattern** (3 min)
+**4. Graph DB - Analysis Pattern**
 
 - Relationship visualization
 - Risk → Control → Model connections
@@ -167,23 +114,8 @@ GitHub Actions example with model matrix:
 
 ---
 
-### Key Benefits (4 minutes)
 
-#### Slide 7: Business Impact
-
-- **Scale without scaling costs:** Apply governance across hundreds of AI systems
-- **Reduce friction:** Bridge delivery teams and control functions
-- **Stay ahead:** Consume open standards as they emerge ("Start Left" of regulations)
-- **Compliance confidence:** Automated evidence generation, audit trails
-
-#### Slide 8: Architecture Benefits
-
-- **Extensible:** Bring Your Own Data—combine public + confidential governance
-- **Proven patterns:** Inspired by LinkML from highly-regulated bioscience communities
-- **DevSecOps-ready:** CLI with exit codes, API endpoints, automated gates
-- **Open source:** Deploy today, adapt to your context
-
-#### Slide 8b: DevSecOps Integration - In Action
+## DevSecOps Integration - Example
 
 Complete GitHub Actions workflow:
 
@@ -284,14 +216,8 @@ Real-world usage:
 - **Continuous monitoring:** Scheduled scans
 - **Audit trail:** Automated evidence generation
 
-#### Slide 9: Cross-Sector Collaboration & CSR
 
-- Adopting LinkML from biomedical research communities
-- Financial services benefits from health research technology
-- Contributing back to communities serving human welfare
-- CSR through technology choices: mutual benefit
-
-#### Slide 9b: Operations in Action - Real Command Examples
+## Operations in Action - Real Command Examples
 
 **Governance Team - Morning Risk Review:**
 
@@ -390,97 +316,3 @@ RISK_COUNT=$(./ai risk --isDefinedByTaxonomy nist-ai-rmf --count)
 if [ $RISK_COUNT -gt 50 ]; then exit 1; fi
 # Returns exit code 1 if risk count exceeds threshold
 ```
-
----
-
-### Takeaways (3 minutes)
-
-#### Slide 10: What You Get
-
-- Complete open-source reference architecture
-- Working code: CLI, API, Web UI, Graph DB
-- Architecture patterns and design decisions
-- Deployment documentation
-- Extensibility for your institutional needs
-
-#### Slide 11: Call to Action
-
-- GitHub repository: [URL]
-- Deploy and adapt immediately
-- Contribute governance data back to community
-- "Start Left" approach: consume standards as they emerge
-- Join the collaboration
-
-#### Slide 12: Key Takeaways
-
-1. Open governance data exists (FINOS AIGF) → Reference implementation shows HOW to build infrastructure
-2. Four access patterns enable automation, integration, exploration, and analysis
-3. DevSecOps-ready architecture from regulated industries
-4. Cross-sector collaboration: financial services + bioscience communities
-5. Working code available today—not theory, not future plans
-
----
-
-### Q&A (7 minutes)
-
-#### Slide 13: Questions?
-
-- Your contact info
-- GitHub repository link
-- LinkedIn/professional contact
-
----
-
-## Key Talking Points to Memorize
-
-### Opening Hook
-
-"Open governance data exists—FINOS AIGF, NIST AI RMF, Trustworthy AI taxonomies. The question is: how do you actually BUILD operational infrastructure that makes this work across hundreds of AI systems?"
-
-### Core Message
-
-"This is a reference implementation showing how to operationalize governance frameworks. Not theory—working code with four access patterns you can deploy today."
-
-### DevSecOps Angle
-
-"CLI with exit codes, API endpoints, automated gates—the same pattern you use for security scanners, now applied to AI governance. Look at this GitHub Actions workflow: before your model deploys to production, it automatically checks the risk profile. If risk count exceeds your threshold, the pipeline fails—just like Snyk or Veracode. Governance becomes part of your CI/CD, not a separate manual process. The governance team runs morning reports, DevOps gates deployments, compliance generates audit reports—all from the same CLI and API."
-
-### CSR Angle
-
-"LinkMO adopts patterns from LinkML—a data modeling standard from biomedical research communities working to improve human medicine. By using LinkML-compatible architecture, financial services benefits from proven technology while supporting communities with a social mission."
-
-### Closing
-
-"Everything is open source. Deploy it, adapt it, contribute back. Let's build this together."
-
----
-
-## Demo Preparation Checklist
-
-### Before Presentation
-
-- [ ] Virtual environment activated
-- [ ] All services running (API, UI, Graph DB)
-- [ ] Terminal with clean prompt ready
-- [ ] Browser tabs open: FastAPI docs, Web UI, Neo4J
-- [ ] Sample queries tested
-- [ ] Backup slides/video ready if demo fails
-
-### Technical Setup
-
-- [ ] Port 8000: API server
-- [ ] Port 5173: Web UI
-- [ ] Port 7474: Neo4J browser
-- [ ] Terminal font size readable from distance
-- [ ] High contrast theme for visibility
-
-### Content Verification
-
-- [ ] Latest governance data loaded
-- [ ] Example queries produce expected results
-- [ ] Graph visualizations render correctly
-- [ ] All four access patterns functional
-- [ ] DevSecOps CLI examples tested and working
-- [ ] GitHub Actions workflow slide visible and readable
-- [ ] Exit code demonstrations work (--count commands)
-- [ ] All persona-based commands (governance, DevOps, compliance) ready to show
