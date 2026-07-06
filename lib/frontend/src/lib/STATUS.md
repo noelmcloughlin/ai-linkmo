@@ -60,7 +60,6 @@
 - lib/frontend/src/lib/utils/ui.ts
 - lib/frontend/src/main.js
 
-
 ## Files deleted
 
 - lib/frontend/.svelte-kit/
@@ -88,4 +87,3 @@
 - lib/frontend/src/lib/vitest-examples/Welcome.svelte.spec.ts -> lib/frontend/tests/examples/Welcome.svelte.spec.ts
 - lib/frontend/src/lib/vitest-examples/greet.spec.ts -> lib/frontend/tests/examples/greet.spec.ts
 - lib/frontend/src/lib/vitest-examples/greet.ts -> lib/frontend/tests/examples/greet.ts
-

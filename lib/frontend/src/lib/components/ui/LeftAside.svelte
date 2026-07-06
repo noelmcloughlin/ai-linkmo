@@ -7,17 +7,7 @@
   import { fetchData, resetFiltered } from '$utils/index';
   import { devWarn } from '$utils/misc';
   import type { NexusRecord, DropdownOptionType } from '$types/index';
-  import {
-    BYO_ICON_TEXT,
-    ENDPOINTS,
-    ENDPOINT_GROUPS,
-    MAX_CACHE_SIZE,
-    ASIDE_TOP_OFFSET_LEFT,
-    ASIDE_HEIGHT,
-    ASIDE_WIDTH_LEFT,
-    FOOTER_HEIGHT,
-    ASIDE_TRANSITION_DURATION
-  } from '$lib/constants';
+  import { BYO_ICON_TEXT, ENDPOINTS, ENDPOINT_GROUPS, MAX_CACHE_SIZE } from '$lib/constants';
 
   // Cache to store fetched data for endpoints (with size limit)
   let dataCache = new SvelteMap<string, NexusRecord[]>();
@@ -45,23 +35,30 @@
     void filters.hasRelatedRisk;
     void filters.hasRelatedAction;
     void filters.isRelatedMode;
+    // Bumped when curated data is saved; forces a refetch past the cache
+    const dataVersion = dataState.version;
 
     // Check loading state (without tracking to avoid unnecessary re-renders)
     if (untrack(() => endpoint.isLoading)) {
       return; // Skip if already loading
     }
 
-    // force re-fetch if includeByod changes.
-    if (prevIncludeByod !== endpoint.includeByod) {
-      dataCache.clear();
-      prevIncludeByod = endpoint.includeByod;
-    }
+    // Cache bookkeeping reads/writes are untracked: the cache is an
+    // implementation detail and mutating it must not re-trigger this effect.
+    untrack(() => {
+      // force re-fetch if includeByod changes.
+      if (prevIncludeByod !== endpoint.includeByod) {
+        dataCache.clear();
+        prevIncludeByod = endpoint.includeByod;
+      }
 
-    // Implement cache size limit
-    if (dataCache.size > MAX_CACHE_SIZE) {
-      const firstKey = dataCache.keys().next().value;
-      if (firstKey) dataCache.delete(firstKey);
-    }
+      // Implement cache size limit
+      while (dataCache.size > MAX_CACHE_SIZE) {
+        const firstKey = dataCache.keys().next().value;
+        if (!firstKey) break;
+        dataCache.delete(firstKey);
+      }
+    });
 
     // Snapshot values ONCE to avoid re-reading state and triggering multiple fetches
     const currentEndpoint = endpoint.current;
@@ -88,11 +85,12 @@
     }
 
     // Build cache and fetch keys (paramId is client-side only,
-    // hasRelatedRisk/Action trigger backend fetches).
-    const cacheKey = `${currentEndpoint}|${hasRelatedRisk}|${hasRelatedAction}|${isRelatedMode}`;
-    const fetchKey = `${currentEndpoint}|${includeByod}|${isCurateMode}|${hasRelatedRisk}|${hasRelatedAction}|${isRelatedMode}`;
+    // hasRelatedRisk/Action trigger backend fetches). dataVersion invalidates
+    // entries cached before the latest curated-data save.
+    const cacheKey = `${currentEndpoint}|${hasRelatedRisk}|${hasRelatedAction}|${isRelatedMode}|v${dataVersion}`;
+    const fetchKey = `${currentEndpoint}|${includeByod}|${isCurateMode}|${hasRelatedRisk}|${hasRelatedAction}|${isRelatedMode}|v${dataVersion}`;
 
-    if (ongoingFetches.has(fetchKey)) {
+    if (untrack(() => ongoingFetches.has(fetchKey))) {
       return; // Skip if a fetch is already in progress for this key
     }
 
@@ -107,7 +105,7 @@
     } else {
       // In non-curate mode, check cache first
       if (!isRelatedMode) {
-        const cachedData = dataCache.get(cacheKey);
+        const cachedData = untrack(() => dataCache.get(cacheKey));
         if (cachedData !== undefined) {
           // Load from cache into dataState for current endpoint
           // even if empty, to prevent unnecessary fetches.
@@ -217,7 +215,7 @@
 <aside
   id="left-aside-content-container"
   class="fixed left-0 z-30 flex flex-col items-center rounded-2xl border-r border-white bg-linear-to-br from-green-800/90 via-green-700/90 to-green-500/80 px-4 py-6 shadow-2xl backdrop-blur-lg"
-  style="top: {ASIDE_TOP_OFFSET_LEFT}; height: {ASIDE_HEIGHT}; width: {ASIDE_WIDTH_LEFT}; transition: left {ASIDE_TRANSITION_DURATION}; margin-bottom:{FOOTER_HEIGHT}; overflow-y: auto; box-sizing: border-box;"
+  style="top: var(--aside-top-left); height: var(--aside-height); width: var(--aside-width-left); transition: left var(--aside-transition-duration); margin-bottom: var(--footer-height); overflow-y: auto; box-sizing: border-box;"
   aria-label="Navigation sidebar"
 >
   <nav class="mb-2 flex w-full flex-col" style="gap:0.5rem;" aria-label="Main navigation">
@@ -389,26 +387,13 @@
     transform: rotate(-180deg);
   }
 
-  /* Button height constraints for different screen sizes */
-  @media (max-height: 700px), (max-width: 900px) {
-    :global(#left-aside-content-container nav button) {
-      min-height: 30px;
-      max-height: 42px;
-    }
+  /* Nav button heights scale with the fluid root font-size (app.css);
+     rem units here track it automatically on small and high-res screens. */
+  :global(#left-aside-content-container nav button) {
+    min-height: 2.125rem;
+    max-height: 3rem;
   }
-  @media (max-height: 500px), (max-width: 600px) {
-    :global(#left-aside-content-container nav button) {
-      min-height: 34px;
-      max-height: 44px;
-    }
-  }
-  /* High DPI large screens */
-  @media (min-width: 2000px) and (min-resolution: 2dppx) {
-    :global(#left-aside-content-container nav button) {
-      min-height: 54px;
-      max-height: 80px;
-    }
-  }
+
   /* Mobile responsive */
   @media (max-width: 768px) {
     :global(#left-aside-content-container) {

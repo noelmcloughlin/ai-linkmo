@@ -48,6 +48,9 @@ const API_PROXY_REGEX = `^/(${API_ENDPOINTS.join("|")})(\\?.*)?$`;
 
 export default defineConfig({
   plugins: [tailwindcss(), svelte()],
+  // Static assets live in static/ (Vite's default is public/, which doesn't
+  // exist here). Without this, `vite build` ships no schema/logo/robots.txt.
+  publicDir: "static",
   resolve: {
     alias: {
       $lib: fileURLToPath(new URL("./src/lib", import.meta.url)),

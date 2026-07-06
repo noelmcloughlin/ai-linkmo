@@ -5,6 +5,9 @@ import type {
   Notify,
 } from "$types/notify";
 
+// Monotonic counter so ids stay unique even within the same millisecond
+let nextNotificationSeq = 0;
+
 class NotifyStore implements NotificationStore {
   id?: number | string = $state("");
   type: NotificationType = $state("info");
@@ -17,7 +20,10 @@ class NotifyStore implements NotificationStore {
   }
 
   add(notification: Notify) {
-    this.id = notification.id || Date.now(); // Generate a unique ID if not provided
+    // Every notification needs its own id, otherwise dismiss() cannot find it
+    notification.id =
+      notification.id ?? `n-${Date.now()}-${nextNotificationSeq++}`;
+    this.id = notification.id;
     this.notifications.push(notification);
     this.type = notification.type;
     this.message = notification.message;
@@ -41,37 +47,16 @@ class NotifyStore implements NotificationStore {
 export const notifyStore = new NotifyStore();
 
 export const notify = {
-  subscribe: notifyStore.notifications,
   add: (notification: Notify) => notifyStore.add(notification),
   dismiss: (id: number | string) => notifyStore.dismiss(id),
   getAll: () => notifyStore.getAll(),
   resetAll: () => notifyStore.resetAll(),
   info: (message: string) =>
-    notifyStore.add({
-      id: Date.now(),
-      type: "info",
-      message,
-      duration: 3000,
-    }),
+    notifyStore.add({ type: "info", message, duration: 3000 }),
   error: (message: string) =>
-    notifyStore.add({
-      id: Date.now(),
-      type: "error",
-      message,
-      duration: 3000,
-    }),
+    notifyStore.add({ type: "error", message, duration: 3000 }),
   warning: (message: string) =>
-    notifyStore.add({
-      id: Date.now(),
-      type: "warning",
-      message,
-      duration: 3000,
-    }),
+    notifyStore.add({ type: "warning", message, duration: 3000 }),
   success: (message: string) =>
-    notifyStore.add({
-      id: Date.now(),
-      type: "success",
-      message,
-      duration: 3000,
-    }),
+    notifyStore.add({ type: "success", message, duration: 3000 }),
 };

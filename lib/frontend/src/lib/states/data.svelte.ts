@@ -6,6 +6,14 @@ class DataState {
   items: NexusClass[] = $state([]);
   yourItems: NexusClass[] = $state([]);
 
+  // Bumped whenever curated (byod) data is saved, so consumers caching
+  // merged backend+byod responses (e.g. LeftAside) know to refetch.
+  version = $state(0);
+
+  bumpVersion() {
+    this.version += 1;
+  }
+
   // Setter for items - accumulates endpoints instead of replacing
   setItems(items: NexusClass[] = []) {
     if (!items || items.length === 0) {

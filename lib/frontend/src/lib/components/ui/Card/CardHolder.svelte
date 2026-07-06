@@ -29,18 +29,15 @@
 <div
   class={`mx-auto mb-8 w-full rounded-3xl bg-linear-to-br from-[#43b02a] via-blue-100 to-blue-400 p-[2.5px] px-2 sm:px-4 ${uiState.cardWidthClass}`}
 >
+  <!-- Glassmorphism background + inner glow on the container itself -->
   <div
-    class="shadow-3xl hover:scale[1.018] group relative mx-auto flex w-full items-start justify-center overflow-hidden rounded-[calc(1.5rem-2.5px)] border-2 border-transparent bg-white/70 backdrop-blur-lg transition-transform duration-200 hover:shadow-green-200/80"
+    class="group relative mx-auto flex w-full items-start justify-center overflow-hidden rounded-[calc(1.5rem-2.5px)] border-2 border-transparent bg-linear-to-br from-white/90 via-green-50/60 to-green-100/70 shadow-[0_0_32px_8px_#bbf7d0_inset] backdrop-blur-lg transition-shadow duration-200 hover:shadow-green-200/80"
   >
     <!-- Vertical Accent bar -->
     <div
       class="absolute top-0 left-0 h-full w-2 rounded-l-3xl bg-linear-to-b from-[#43b02a] via-green-200 to-green-100"
     ></div>
-    <!-- Glassmorphism background layer with inner glow -->
-    <div
-      class="absolute inset-0 z-0 bg-linear-to-br from-white/90 via-green-50/60 to-green-100/70 shadow-[0_0_32px_8px_#bbf7d0_inset] backdrop-blur-2xl"
-    ></div>
-    <div class="relative z-10 flex w-full flex-col gap-4 px-6 py-6 sm:px-8 sm:py-8 md:px-10">
+    <div class="flex w-full flex-col gap-4 px-6 py-6 sm:px-8 sm:py-8 md:px-10">
       {#if endpoint.isLoading}
         <NotifyCard type="info" message="Loading data..." />
       {:else if cardState.type === 'add' || cardState.type === 'edit'}

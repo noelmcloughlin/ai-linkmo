@@ -1,14 +1,7 @@
 <script lang="ts">
   import { tick } from 'svelte';
   import '$components/ui/rightaside.css';
-  import {
-    UI_WANTED_FILTERS,
-    ENDPOINTS,
-    ASIDE_TOP_OFFSET_RIGHT,
-    ASIDE_HEIGHT,
-    ASIDE_WIDTH_RIGHT,
-    FOOTER_HEIGHT
-  } from '$lib/constants';
+  import { UI_WANTED_FILTERS, ENDPOINTS } from '$lib/constants';
   import { DROPDOWN_FIELDS } from '$states/index';
   import SelectDropdown from '$components/ui/SelectDropdown.svelte';
   import RelatedCheckbox from '$components/ui/Button/RelatedCheckbox.svelte';
@@ -185,7 +178,7 @@
   itemscope
   itemtype="https://schema.org/WebPageElement"
   class="responsive-right-aside fixed right-0 z-40 mt-0 box-border flex h-auto max-w-full flex-col gap-1 overflow-y-auto rounded-2xl bg-transparent py-2 pr-6 pb-[30px] pl-8 font-sans text-lg shadow-2xl backdrop-blur-lg transition-[right] duration-200"
-  style="top: {ASIDE_TOP_OFFSET_RIGHT}; min-height: {ASIDE_HEIGHT}; max-height: {ASIDE_HEIGHT}; width: {ASIDE_WIDTH_RIGHT}; margin-bottom: {FOOTER_HEIGHT};"
+  style="top: var(--aside-top-right); min-height: var(--aside-height); max-height: var(--aside-height); width: var(--aside-width-right); margin-bottom: var(--footer-height);"
 >
   <!-- Search bar -->
   <div

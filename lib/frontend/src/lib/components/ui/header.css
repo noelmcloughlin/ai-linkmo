@@ -1,7 +1,8 @@
 /* Header.svelte Styles */
 
 .header-container {
-  width: 100vw;
+  /* 100% (not 100vw) so the scrollbar never causes horizontal overflow */
+  width: 100%;
   z-index: 50;
   margin: 0;
   position: fixed;
@@ -16,7 +17,8 @@
   justify-content: space-between;
   position: relative;
   width: 100%;
-  padding: 0.75rem 2rem;
+  /* Fluid horizontal padding: 0.75rem on phones up to 2rem on desktop */
+  padding: 0.75rem clamp(0.75rem, 2vw, 2rem);
   border-bottom: 1px solid #bfdbfe;
 }
 
@@ -25,12 +27,9 @@
   align-items: center;
   justify-content: flex-start;
   gap: 0.75rem;
-  min-width: 140px;
-  max-width: 620px;
-  width: 100%;
+  min-width: 0;
   height: 40px;
-  flex-shrink: 0;
-  flex-grow: 0;
+  flex: 0 1 auto;
   margin-right: 1rem;
 }
 
@@ -42,11 +41,13 @@
 }
 
 .header-title {
-  font-size: 1.5rem;
+  /* Scales between ~1.15rem and 1.5rem with viewport */
+  font-size: clamp(1.15rem, 1rem + 0.6vw, 1.5rem);
   font-weight: bold;
   letter-spacing: -0.025em;
   color: #047857;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
 }
 
 .header-center {
@@ -57,15 +58,19 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
+  max-width: 45%;
 }
 
 .header-center-text {
-  font-size: 1.125rem;
+  font-size: clamp(0.9rem, 0.8rem + 0.35vw, 1.125rem);
   font-weight: bold;
   color: #1f2937;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .header-badge {
@@ -102,7 +107,7 @@
   vertical-align: middle;
   letter-spacing: 0.05em;
   font-feature-settings: normal;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-variation-settings: normal;
   font-weight: 700;
 }
@@ -110,13 +115,9 @@
 .header-user-section {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  min-width: 200px;
-  max-width: 280px;
-  width: 100%;
-  flex-basis: 280px;
-  flex-shrink: 0;
-  flex-grow: 0;
+  justify-content: flex-end;
+  min-width: 0;
+  flex: 0 0 auto;
   margin-left: 1rem;
 }
 
@@ -144,4 +145,26 @@
   align-items: center;
   gap: 0.5rem;
   margin-left: 0.75rem;
+}
+
+/* Small screens: give the center section priority over decorations.
+   Absolute centering collides with the right-side buttons, so the center
+   joins the flex flow and shares space with logo/user sections instead. */
+@media (max-width: 640px) {
+  .header-title {
+    display: none;
+  }
+  .header-logo-section {
+    margin-right: 0.5rem;
+  }
+  .header-user-section {
+    margin-left: 0.5rem;
+  }
+  .header-center {
+    position: static;
+    transform: none;
+    max-width: none;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 }

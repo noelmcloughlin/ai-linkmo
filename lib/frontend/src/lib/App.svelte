@@ -6,7 +6,6 @@
   import Footer from '$components/ui/Footer.svelte';
   import RecordViewer from '$components/ui/Record/RecordViewer.svelte';
   import { filters } from '$states/index';
-  import { HEADER_HEIGHT } from '$lib/constants';
 
   let isRecordViewer = $state(false);
   let recordViewerTitle = $state('');
@@ -27,7 +26,7 @@
     <Header isRelatedMode={filters.isRelatedMode} {isRecordViewer} {recordViewerTitle} />
 
     <!-- Main content area with routing -->
-    <div style="margin-top: calc({HEADER_HEIGHT} - 1.5rem);">
+    <div style="margin-top: calc(var(--header-height) - 1.5rem);">
       <Route path="/">
         <Middle
           onMounted={() => {

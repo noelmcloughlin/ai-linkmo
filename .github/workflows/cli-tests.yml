@@ -1,0 +1,54 @@
+name: CLI Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ai"
+      - "lib/api/**"
+      - "lib/cli/**"
+      - "lib/test/**"
+      - "byo/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/cli-tests.yml"
+  pull_request:
+    paths:
+      - "ai"
+      - "lib/api/**"
+      - "lib/cli/**"
+      - "lib/test/**"
+      - "byo/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/cli-tests.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: cli-tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync --extra test
+
+      # Excludes tests marked "slow": local-mode CLI runs (each spawns a
+      # fresh interpreter and loads the full ontology, ~25 min) and the
+      # consistency/help/invalid-scope checks. API-mode CLI examples plus
+      # the API/security/handler test modules still run, backed by the
+      # session-scoped `api_server` fixture in lib/test/conftest.py.
+      - name: Run test suite (API mode, not slow)
+        run: uv run pytest lib/test -v -m "not slow" --tb=short
