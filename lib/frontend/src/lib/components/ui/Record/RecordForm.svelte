@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import Button from '$components/ui/Button/Button.svelte';
   import SelectDropdown from '$components/ui/SelectDropdown.svelte';
   import '$components/ui/Card/shared-input.css';
@@ -32,50 +33,48 @@
     onDelete = null // Optional for edit-mode
   } = $props();
 
-  // Local copy for editing, avoids reactivity issues with props
-  // svelte-ignore non_reactive_update, state_referenced_locally
-  let localRecord = record ? { ...record } : {};
+  // Local reactive copy for editing, avoids mutating the record prop
+  let localRecord = $state<NexusRecord>({} as NexusRecord);
 
+  // Re-seed the local copy whenever the incoming record/mode/schema changes.
+  // The seeded copy is written inside untrack so the effect only re-runs on
+  // prop changes, not on its own writes.
   $effect(() => {
-    if (record) {
-      localRecord = { ...record };
-    }
+    const displayFields: string[] = fieldSchema.displayFields || [];
+    const seeded: NexusRecord = record ? { ...record } : ({} as NexusRecord);
 
     // Initialize _filenameKey for new records if not set
-    if (mode === 'add' && !localRecord._filenameKey) {
-      localRecord._filenameKey = YOUR_DEFAULT_DATA_FILE;
+    if (mode === 'add' && !seeded._filenameKey) {
+      seeded._filenameKey = YOUR_DEFAULT_DATA_FILE;
     }
 
     // Auto-populate 'type' field from ENDPOINTS if fieldSchema.type is defined
-    // and localRecord.type is not already set
-    if (fieldSchema.displayFields?.includes('type') && !localRecord.type) {
+    // and the record's type is not already set
+    if (displayFields.includes('type') && !seeded.type) {
       const endpointConfig = ENDPOINTS.find((e) => e.key === endpoint.current);
       if (endpointConfig?.type) {
-        localRecord.type = endpointConfig.type;
+        seeded.type = endpointConfig.type;
       }
     }
 
     // Auto-populate 'isDefinedByTaxonomy' field from _filenameKey if it exists in schema
-    if (fieldSchema.displayFields?.includes('isDefinedByTaxonomy') && localRecord._filenameKey) {
-      localRecord.isDefinedByTaxonomy = localRecord._filenameKey;
+    if (displayFields.includes('isDefinedByTaxonomy') && seeded._filenameKey) {
+      seeded.isDefinedByTaxonomy = seeded._filenameKey;
     }
 
     // Auto-populate 'dateCreated' for new records if available in schema
-    if (
-      mode === 'add' &&
-      fieldSchema.displayFields?.includes('dateCreated') &&
-      !localRecord.dateCreated
-    ) {
-      localRecord.dateCreated = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    if (mode === 'add' && displayFields.includes('dateCreated') && !seeded.dateCreated) {
+      seeded.dateCreated = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     }
 
     // Auto-populate 'dateModified' for add/edit mode if available in schema
-    if (
-      (mode === 'add' || mode === 'edit') &&
-      fieldSchema.displayFields?.includes('dateModified')
-    ) {
-      localRecord.dateModified = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    if ((mode === 'add' || mode === 'edit') && displayFields.includes('dateModified')) {
+      seeded.dateModified = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     }
+
+    untrack(() => {
+      localRecord = seeded;
+    });
   });
 
   // Mapping fields that depend on the current endpoint selection.
@@ -209,187 +208,176 @@
   }
 </script>
 
-<div
-  class="relative mx-auto mb-8 w-full max-w-[90vw] overflow-hidden rounded-2xl border border-gray-200 bg-white/95 shadow-xl"
->
-  <div class="absolute top-0 left-0 h-full w-2 rounded-l-2xl bg-[#43b02a]"></div>
-  <div class="relative z-10 flex flex-col gap-4 px-8 py-6">
-    <div class="mb-2 text-center text-base font-medium text-green-700">
-      {mode === 'add' ? 'Add New Record' : 'Edit Record'}
-    </div>
-    <div class="mt-4 flex w-full flex-row gap-3">
-      <Button
-        type="submit"
-        variant="success"
-        size="sm"
-        className="flex-1 min-w-[100px]"
-        on:click={save}
-      >
-        Save
-      </Button>
-      <Button
-        type="button"
-        variant="edit"
-        size="sm"
-        className="flex-1 min-w-[100px]"
-        on:click={() => onCancel()}
-      >
-        Cancel
-      </Button>
-      {#if mode === 'edit' && typeof onDelete === 'function'}
-        <Button
-          type="button"
-          variant="curate"
-          size="sm"
-          className="flex-1 min-w-[100px]"
-          on:click={onDelete}
-        >
-          Delete
-        </Button>
-      {/if}
-    </div>
+<!-- Content-only: CardHolder provides the card shell (background, border,
+     accent, padding), so no nested card wrapper is rendered here. -->
+<div class="text-center text-base font-medium text-green-700">
+  {mode === 'add' ? 'Add New Record' : 'Edit Record'}
+</div>
+<div class="flex w-full flex-row gap-3">
+  <Button type="submit" variant="success" size="sm" className="flex-1 min-w-[100px]" on:click={save}>
+    Save
+  </Button>
+  <Button
+    type="button"
+    variant="edit"
+    size="sm"
+    className="flex-1 min-w-[100px]"
+    on:click={() => onCancel()}
+  >
+    Cancel
+  </Button>
+  {#if mode === 'edit' && typeof onDelete === 'function'}
+    <Button
+      type="button"
+      variant="curate"
+      size="sm"
+      className="flex-1 min-w-[100px]"
+      on:click={onDelete}
+    >
+      Delete
+    </Button>
+  {/if}
+</div>
 
-    <form onsubmit={save} class="flex flex-col gap-4">
-      <div class="grid w-full grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-1">
-        {#if fieldSchema.includesTaxonomyField}
-          <div class={FIELD_CONTAINER_CLASS}>
-            <div class={FIELD_LABEL_WRAPPER_CLASS}>
-              <span class={FIELD_ICON_CLASS}>
-                <svg
-                  class="h-5 w-5"
-                  fill="none"
-                  stroke="#176a2a"
-                  stroke-width="2.2"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <circle cx="12" cy="16" r="1" />
-                </svg>
-              </span>
-              <span class={FIELD_LABEL_TEXT_CLASS}>
-                Taxonomy file <span class={REQUIRED_INDICATOR_CLASS} title="Required">*</span>
-              </span>
-            </div>
+<form onsubmit={save} class="flex flex-col gap-4">
+  <div class="grid w-full grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-1">
+    {#if fieldSchema.includesTaxonomyField}
+      <div class={FIELD_CONTAINER_CLASS}>
+        <div class={FIELD_LABEL_WRAPPER_CLASS}>
+          <span class={FIELD_ICON_CLASS}>
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="#176a2a"
+              stroke-width="2.2"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <circle cx="12" cy="16" r="1" />
+            </svg>
+          </span>
+          <span class={FIELD_LABEL_TEXT_CLASS}>
+            Taxonomy file <span class={REQUIRED_INDICATOR_CLASS} title="Required">*</span>
+          </span>
+        </div>
 
-            {#if YOUR_FILES.length > 1}
-              <select
-                class="{FIELD_INPUT_CLASS} {mode === 'edit'
-                  ? 'cursor-not-allowed bg-gray-100'
-                  : ''}"
-                value={localRecord._filenameKey}
-                disabled={mode === 'edit'}
-                required
-                style="width:100%; min-width:0;"
-                onchange={(e) => handleInput('_filenameKey', e.currentTarget.value)}
-              >
-                <option value="" disabled>Select taxonomy...</option>
-                {#each YOUR_FILES as tax (tax.key)}
-                  <option value={tax.key}>{tax.key}</option>
-                {/each}
-              </select>
-            {:else}
-              <input class={FIELD_INPUT_CLASS} type="text" value={YOUR_FILES[0]?.key} readonly />
-            {/if}
-          </div>
-        {/if}
-
-        {#if Array.isArray(fieldSchema.displayFields)}
-          {#each fieldSchema.displayFields.filter((k: string) => k !== 'dateCreated' && k !== 'dateModified' && k !== 'isDefinedByTaxonomy') as key (key)}
-            <div class={FIELD_CONTAINER_CLASS}>
-              <div class={FIELD_LABEL_WRAPPER_CLASS}>
-                <span class={FIELD_ICON_CLASS}>
-                  <svg
-                    class="h-5 w-5"
-                    fill="none"
-                    stroke="#176a2a"
-                    stroke-width="2.2"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <circle cx="12" cy="16" r="1" />
-                  </svg>
-                </span>
-                <span class={FIELD_LABEL_TEXT_CLASS}>
-                  {key}
-                  {#if fieldSchema.fieldTypes && fieldSchema.fieldTypes[key] && !fieldSchema.fieldTypes[key].includes('null')}
-                    <span class={REQUIRED_INDICATOR_CLASS} title="Required">*</span>
-                  {/if}
-                  {#if fieldSchema.fieldTypes && fieldSchema.fieldTypes[key]}
-                    {#if !fieldSchema.fieldTypes[key].includes('null')}
-                      <span class={FIELD_TYPE_REQUIRED_CLASS}
-                        >(type: {fieldSchema.fieldTypes[key]})</span
-                      >
-                    {:else}
-                      <span class={FIELD_TYPE_OPTIONAL_CLASS}
-                        >(type: {fieldSchema.fieldTypes[key]})</span
-                      >
-                    {/if}
-                  {/if}
-                </span>
-              </div>
-
-              {#if key === 'type'}
-                <input
-                  class="{FIELD_INPUT_CLASS} cursor-not-allowed bg-gray-100"
-                  type="text"
-                  value={localRecord[key]}
-                  readonly
-                  disabled
-                  placeholder="Auto-populated from endpoint selection"
-                  style="width:100%; min-width:0;"
-                />
-              {:else if isArrayField(key) && getOptionsForField(key).length > 0}
-                <SelectDropdown
-                  id={`field-${key}`}
-                  {key}
-                  multiple={true}
-                  options={getOptionsForField(key)}
-                  value={localRecord[key] as string}
-                  placeholder={`Select ${key}...`}
-                  clearable={true}
-                  on:select={(e: CustomEvent) => handleArraySelect(key, e)}
-                />
-              {:else if TEXTAREA_FIELDS.includes(key)}
-                <textarea
-                  class="{FIELD_INPUT_CLASS} min-h-[100px] resize-y"
-                  value={localRecord[key] as string}
-                  oninput={(e) => handleInput(key, e.currentTarget.value)}
-                  required={key === 'id'}
-                  placeholder={fieldSchema.fieldDescriptions[key]
-                    ? fieldSchema.fieldDescriptions[key]
-                    : key == 'description'
-                      ? 'Enter description...'
-                      : `Enter ${key}...`}
-                  style="width:100%; min-width:0;"
-                ></textarea>
-              {:else}
-                <input
-                  class={FIELD_INPUT_CLASS}
-                  type="text"
-                  value={localRecord[key] as string}
-                  oninput={(e) => handleInput(key, e.currentTarget.value)}
-                  required={key === 'id'}
-                  placeholder={fieldSchema.fieldDescriptions[key]
-                    ? fieldSchema.fieldDescriptions[key]
-                    : key === 'description'
-                      ? 'Enter description...'
-                      : `Enter ${key}...`}
-                  style="width:100%; min-width:0;"
-                />
-              {/if}
-              {#if fieldSchema.fieldDescriptions && fieldSchema.fieldDescriptions[key]}
-                <span class={FIELD_DESCRIPTION_CLASS}>
-                  {fieldSchema.fieldDescriptions[key]}
-                </span>
-              {/if}
-            </div>
-          {/each}
+        {#if YOUR_FILES.length > 1}
+          <select
+            class="{FIELD_INPUT_CLASS} {mode === 'edit'
+              ? 'cursor-not-allowed bg-gray-100'
+              : ''}"
+            value={localRecord._filenameKey}
+            disabled={mode === 'edit'}
+            required
+            style="width:100%; min-width:0;"
+            onchange={(e) => handleInput('_filenameKey', e.currentTarget.value)}
+          >
+            <option value="" disabled>Select taxonomy...</option>
+            {#each YOUR_FILES as tax (tax.key)}
+              <option value={tax.key}>{tax.key}</option>
+            {/each}
+          </select>
+        {:else}
+          <input class={FIELD_INPUT_CLASS} type="text" value={YOUR_FILES[0]?.key} readonly />
         {/if}
       </div>
-    </form>
+    {/if}
+
+    {#if Array.isArray(fieldSchema.displayFields)}
+      {#each fieldSchema.displayFields.filter((k: string) => k !== 'dateCreated' && k !== 'dateModified' && k !== 'isDefinedByTaxonomy') as key (key)}
+        <div class={FIELD_CONTAINER_CLASS}>
+          <div class={FIELD_LABEL_WRAPPER_CLASS}>
+            <span class={FIELD_ICON_CLASS}>
+              <svg
+                class="h-5 w-5"
+                fill="none"
+                stroke="#176a2a"
+                stroke-width="2.2"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <circle cx="12" cy="16" r="1" />
+              </svg>
+            </span>
+            <span class={FIELD_LABEL_TEXT_CLASS}>
+              {key}
+              {#if fieldSchema.fieldTypes && fieldSchema.fieldTypes[key] && !fieldSchema.fieldTypes[key].includes('null')}
+                <span class={REQUIRED_INDICATOR_CLASS} title="Required">*</span>
+              {/if}
+              {#if fieldSchema.fieldTypes && fieldSchema.fieldTypes[key]}
+                {#if !fieldSchema.fieldTypes[key].includes('null')}
+                  <span class={FIELD_TYPE_REQUIRED_CLASS}
+                    >(type: {fieldSchema.fieldTypes[key]})</span
+                  >
+                {:else}
+                  <span class={FIELD_TYPE_OPTIONAL_CLASS}
+                    >(type: {fieldSchema.fieldTypes[key]})</span
+                  >
+                {/if}
+              {/if}
+            </span>
+          </div>
+
+          {#if key === 'type'}
+            <input
+              class="{FIELD_INPUT_CLASS} cursor-not-allowed bg-gray-100"
+              type="text"
+              value={localRecord[key]}
+              readonly
+              disabled
+              placeholder="Auto-populated from endpoint selection"
+              style="width:100%; min-width:0;"
+            />
+          {:else if isArrayField(key) && getOptionsForField(key).length > 0}
+            <SelectDropdown
+              id={`field-${key}`}
+              {key}
+              multiple={true}
+              options={getOptionsForField(key)}
+              value={localRecord[key] as string}
+              placeholder={`Select ${key}...`}
+              clearable={true}
+              on:select={(e: CustomEvent) => handleArraySelect(key, e)}
+            />
+          {:else if TEXTAREA_FIELDS.includes(key)}
+            <textarea
+              class="{FIELD_INPUT_CLASS} min-h-[100px] resize-y"
+              value={localRecord[key] as string}
+              oninput={(e) => handleInput(key, e.currentTarget.value)}
+              required={key === 'id'}
+              placeholder={fieldSchema.fieldDescriptions[key]
+                ? fieldSchema.fieldDescriptions[key]
+                : key == 'description'
+                  ? 'Enter description...'
+                  : `Enter ${key}...`}
+              style="width:100%; min-width:0;"
+            ></textarea>
+          {:else}
+            <input
+              class={FIELD_INPUT_CLASS}
+              type="text"
+              value={localRecord[key] as string}
+              oninput={(e) => handleInput(key, e.currentTarget.value)}
+              required={key === 'id'}
+              placeholder={fieldSchema.fieldDescriptions[key]
+                ? fieldSchema.fieldDescriptions[key]
+                : key === 'description'
+                  ? 'Enter description...'
+                  : `Enter ${key}...`}
+              style="width:100%; min-width:0;"
+            />
+          {/if}
+          {#if fieldSchema.fieldDescriptions && fieldSchema.fieldDescriptions[key]}
+            <span class={FIELD_DESCRIPTION_CLASS}>
+              {fieldSchema.fieldDescriptions[key]}
+            </span>
+          {/if}
+        </div>
+      {/each}
+    {/if}
   </div>
-</div>
+</form>

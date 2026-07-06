@@ -5,9 +5,10 @@
   import { notify } from '$states/notify.svelte';
   import { uiState } from '$states/ui.svelte';
   import { initializeSchemaState } from '$utils/schema';
-  import { devLog, devError } from '$utils/misc';
+  import { devLog, devError, isSafeHttpUrl } from '$utils/misc';
   import { NotifyCard } from '$components/ui/Card/index';
   import type { NexusRecord, ComputedSchemaFields } from '$types/index';
+  import { ENDPOINTS } from '$lib/constants';
 
   // Props
   let {
@@ -27,6 +28,12 @@
   async function fetchRecord() {
     if (!endpointKey || !recordId) {
       error = 'Missing endpoint key or record ID.';
+      isLoading = false;
+      return;
+    }
+
+    if (!ENDPOINTS.some((e) => e.key === endpointKey)) {
+      error = `Unknown endpoint: ${endpointKey}`;
       isLoading = false;
       return;
     }
@@ -78,17 +85,15 @@
   }
 
   onMount(async () => {
-    // Set endpoint to match URL
-    endpoint.current = endpointKey;
+    // Set endpoint to match URL (setCurrent validates against ENDPOINTS)
+    endpoint.setCurrent(endpointKey);
 
     // Initialize schema state if not already loaded
     if (!schemaState.endpoints[endpointKey]) {
       await initializeSchemaState();
     }
+    // Flipping this triggers the $effect below, which performs the fetch.
     schemaLoaded = true;
-
-    // Fetch the record data
-    await fetchRecord();
   });
 
   // Refetch when params change
@@ -119,19 +124,16 @@
       <div
         class={`mx-auto mb-8 w-full rounded-3xl bg-linear-to-br from-[#43b02a] via-blue-100 to-blue-400 p-[2.5px] px-2 sm:px-4 ${uiState.cardWidthClass}`}
       >
+        <!-- Glassmorphism background + inner glow on the container itself -->
         <div
-          class="shadow-3xl hover:scale[1.018] group relative mx-auto flex w-full items-start justify-center overflow-hidden rounded-[calc(1.5rem-2.5px)] border-2 border-transparent bg-white/70 backdrop-blur-lg transition-transform duration-200 hover:shadow-green-200/80"
+          class="group relative mx-auto flex w-full items-start justify-center overflow-hidden rounded-[calc(1.5rem-2.5px)] border-2 border-transparent bg-linear-to-br from-white/90 via-green-50/60 to-green-100/70 shadow-[0_0_32px_8px_#bbf7d0_inset] backdrop-blur-lg transition-shadow duration-200 hover:shadow-green-200/80"
         >
           <!-- Vertical Accent bar -->
           <div
             class="absolute top-0 left-0 h-full w-2 rounded-l-3xl bg-linear-to-b from-[#43b02a] via-green-200 to-green-100"
           ></div>
-          <!-- Glassmorphism background layer with inner glow -->
-          <div
-            class="absolute inset-0 z-0 bg-linear-to-br from-white/90 via-green-50/60 to-green-100/70 shadow-[0_0_32px_8px_#bbf7d0_inset] backdrop-blur-2xl"
-          ></div>
 
-          <div class="relative z-10 flex w-full flex-col gap-4 px-6 py-6 sm:px-8 sm:py-8 md:px-10">
+          <div class="flex w-full flex-col gap-4 px-6 py-6 sm:px-8 sm:py-8 md:px-10">
             <!-- Fields Grid - same layout as RecordForm -->
             <div class="grid w-full grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-1">
               {#if fieldSchema?.displayFields && Array.isArray(fieldSchema.displayFields) && fieldSchema.displayFields.length > 0}
@@ -203,7 +205,7 @@
                         <div
                           class="wrap-break-words w-full rounded-lg border border-gray-100 bg-white/90 px-4 py-2 text-left text-lg text-gray-900 shadow"
                         >
-                          {#if key === 'url' && typeof record[key] === 'string'}
+                          {#if key === 'url' && isSafeHttpUrl(record[key])}
                             <a
                               href={record[key]}
                               target="_blank"
@@ -287,7 +289,7 @@
                         <div
                           class="wrap-break-words w-full rounded-lg border border-gray-100 bg-white/90 px-4 py-2 text-left text-lg text-gray-700 shadow"
                         >
-                          {#if key === 'url' && typeof value === 'string'}
+                          {#if key === 'url' && isSafeHttpUrl(value)}
                             <a
                               href={value}
                               target="_blank"

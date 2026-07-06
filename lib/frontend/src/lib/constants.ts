@@ -1,8 +1,9 @@
 // Identity customiztion (BYO identity)
 export const BYO_ICON_TEXT: string = "ACME";
 export const APP_NAME: string = "AI-LinkMO";
-export const APP_LOGO_PATH: string = "/static/ai_atlas_nexus_vector.svg";
-export const BYO_LOGO_PATH: string = "/static/mylogo.svg";
+// Files in static/ (Vite publicDir) are served from the site root.
+export const APP_LOGO_PATH: string = "/ai_atlas_nexus_vector.svg";
+export const BYO_LOGO_PATH: string = "/mylogo.png";
 export const ACME_LOGO_URL: string =
   "https://upload.wikimedia.org/wikipedia/commons/9/91/Acme_Markets_lolo_1.svg";
 export const FINOS_LOGO_URL: string =
@@ -10,7 +11,7 @@ export const FINOS_LOGO_URL: string =
 
 // Footer
 export const GITHUB_REPO_URL: string =
-  "https://github.com/IBM/ai-atlas-nexus-user-demo.git";
+  "https://github.com/noelmcloughlin/ai-linkmo.git";
 export const AI_ATLAS_NEXUS_URL: string =
   "https://ibm.github.io/ai-atlas-nexus";
 export const AI_ONTOLOGY_URL: string =
@@ -20,15 +21,8 @@ export const VITE_URL: string = "https://vite.dev";
 export const LINKML_URL: string = "https://linkml.io";
 export const FINOS_URL: string = "https://finos.org";
 
-// UI Dimensions
-export const HEADER_HEIGHT: string = "6.25rem";
-export const ASIDE_TOP_OFFSET_LEFT: string = `calc(${HEADER_HEIGHT} + 1.25rem)`;
-export const ASIDE_TOP_OFFSET_RIGHT: string = "7.25rem";
-export const ASIDE_HEIGHT: string = "80vh";
-export const ASIDE_WIDTH_LEFT: string = `clamp(260px, 18vw, 300px)`;
-export const ASIDE_WIDTH_RIGHT: string = `clamp(300px, 32vw, 360px)`;
-export const FOOTER_HEIGHT: string = "56px";
-export const ASIDE_TRANSITION_DURATION: string = "0.2s";
+// UI dimensions live as CSS custom properties in app.css (:root):
+// --header-height, --footer-height, --aside-*. Reference them with var().
 
 // Timing and animation
 export const NOTIFICATION_DEFAULT_DURATION: number = 5000; // in milliseconds
@@ -46,7 +40,7 @@ export const NOTIFICATION_COLORS = {
 } as const;
 
 // Generate using linkml gen-jsonschema.
-export const SCHEMA_FILE_JSON: string = "/static/schema/ai-risk-ontology.json";
+export const SCHEMA_FILE_JSON: string = "/schema/ai-risk-ontology.json";
 
 // Default base URL for the application
 export const APP_URL: string = ""; // use Vite's proxy for development

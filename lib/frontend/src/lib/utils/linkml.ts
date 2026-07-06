@@ -1,17 +1,5 @@
 // lib/frontend/src/lib/utils/linkml.ts
-import type { NexusRecord } from "$types/index";
 import { ENDPOINTS } from "$lib/constants";
-
-export function updateYamlSection(
-  yamlFile: { data: Record<string, NexusRecord[]> },
-  sectionKey: string,
-  updatedArr: NexusRecord[], // Updated array for the section
-): void {
-  if (!Array.isArray(yamlFile.data?.[sectionKey])) {
-    yamlFile.data[sectionKey] = [];
-  }
-  yamlFile.data[sectionKey] = updatedArr;
-}
 
 // Mapping: Nexus yaml file section → webapp endpoint format section key
 export function getByoSectionKey(endpointKey: string): string {

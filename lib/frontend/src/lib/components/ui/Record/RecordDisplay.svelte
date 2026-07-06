@@ -1,5 +1,6 @@
 <script lang="ts">
   import { logInvalidEntry, isValidRecord } from '$utils/card';
+  import { isSafeHttpUrl } from '$utils/misc';
 
   let { fieldSchema, record, showSchemaTips } = $props();
 
@@ -49,7 +50,7 @@
           </div>
         {:else}
           <span class={FIELD_VALUE_CLASS}>
-            {#if key === 'url' && fieldSchema?.fieldTypes?.[key]?.includes('string') && typeof record[key] === 'string'}
+            {#if key === 'url' && fieldSchema?.fieldTypes?.[key]?.includes('string') && isSafeHttpUrl(record[key])}
               <a
                 href={record[key]}
                 target="_blank"
@@ -109,7 +110,7 @@
         </div>
       {:else}
         <span class={FIELD_VALUE_CLASS}>
-          {#if key === 'url' && fieldSchema?.fieldTypes?.[key]?.includes('string') && typeof value === 'string'}
+          {#if key === 'url' && fieldSchema?.fieldTypes?.[key]?.includes('string') && isSafeHttpUrl(value)}
             <a
               href={value}
               target="_blank"

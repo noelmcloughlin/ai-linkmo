@@ -36,15 +36,5 @@ class UiState {
     // Fallback in case no match
     return "max-w-screen-2xl";
   }
-
-  getCardWidthClass(width: number = this.windowWidth): string {
-    for (const { maxWidth, const: widthClass } of responsiveConfig) {
-      if (width < maxWidth) {
-        return widthClass;
-      }
-    }
-    // Fallback in case no match
-    return "max-w-screen-2xl";
-  }
 }
 export const uiState = new UiState();

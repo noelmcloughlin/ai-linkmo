@@ -722,10 +722,12 @@ class FilterState {
             (v, i, arr): v is string => v !== null && arr.indexOf(v) === i,
           );
 
+    // Case-insensitive, matching how filterItem() compares values
     const filterVal = this.getParam(param);
     if (filterVal && typeof filterVal === "string" && filterVal.length > 0) {
+      const filterLower = filterVal.toLowerCase();
       options = options.filter(
-        (v) => typeof v === "string" && v.includes(filterVal),
+        (v) => typeof v === "string" && v.toLowerCase().includes(filterLower),
       );
     }
     return options;

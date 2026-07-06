@@ -56,30 +56,30 @@ export function stripInternalFields(
   return [];
 }
 
-// Helper to mutate array from add/edit/do
+// Helper to apply add/edit/delete ("do") to an array of records.
+// Always returns a new array so callers can defer committing to state
+// until the change has actually been persisted.
 export function mutateArray(
   arr: NexusRecord[],
   record: NexusRecord,
   action: "add" | "edit" | "do",
-) {
+): NexusRecord[] {
   if (action === "do") {
     return arr.filter((r) => r.id !== record.id);
   }
   const idx = arr.findIndex((r) => r.id === record.id);
   if (idx !== -1) {
-    arr[idx] = record;
-  } else {
-    arr.push(record);
+    const copy = [...arr];
+    copy[idx] = record;
+    return copy;
   }
-  return arr;
+  return [...arr, record];
 }
 
-// Centralized error response
-export function errorResponse(message: string): {
-  type: "error";
-  message: string;
-} {
-  return { type: "error", message };
+// Only http(s) URLs may be rendered as links; record data comes from
+// editable YAML files, so anything else (javascript:, data:, ...) is unsafe.
+export function isSafeHttpUrl(value: unknown): value is string {
+  return typeof value === "string" && /^https?:\/\//i.test(value.trim());
 }
 
 // get to if a specific file by key

@@ -61,7 +61,12 @@ Tests marked with `byod_required=True` are skipped unless BYOD data is present.
 
 ## CI/CD Integration
 
-### GitHub Actions Example
+### GitHub Actions
+
+A working workflow is already set up at
+[.github/workflows/cli-tests.yml](../../.github/workflows/cli-tests.yml); it
+runs on every push/PR that touches `ai`, `lib/api/**`, `lib/cli/**`,
+`lib/test/**`, `byo/**`, `pyproject.toml`, or `uv.lock`. Minimal equivalent:
 
 ```yaml
 name: CLI Tests
@@ -72,14 +77,13 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: astral-sh/setup-uv@v1
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
       - name: Install dependencies
-        run: uv sync
+        # pytest lives in the "test" extra - plain `uv sync` won't install it
+        run: uv sync --extra test
       - name: Run API mode tests
         run: uv run pytest lib/test/test_cli_examples.py::test_cli_api_mode -v
-      - name: Run consistency tests
-        run: uv run pytest lib/test/test_cli_examples.py -v -m "not slow"
 ```
 
 ### GitLab CI Example
@@ -88,7 +92,7 @@ jobs:
 test:cli:
   stage: test
   script:
-    - uv sync
+    - uv sync --extra test
     - uv run pytest lib/test/test_cli_examples.py::test_cli_api_mode -v
   artifacts:
     reports:

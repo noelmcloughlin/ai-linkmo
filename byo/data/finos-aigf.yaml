@@ -41,8 +41,6 @@ documents:
     isCategorizedAs:
       - data-classification-customer-pii-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: FTC
     url: https://www.ftc.gov/business-guidance/privacy-security/gramm-leach-bliley-act
@@ -53,8 +51,6 @@ documents:
     isCategorizedAs:
       - data-classification-customer-pii-data
       - jurisdiction-eu
-    hasJurisdiction:
-      - EU
     description: 'Jurisdiction: European Union (EU).'
     author: GDPR-INFO
     url: https://gdpr-info.eu/art-4-gdpr/
@@ -65,8 +61,6 @@ documents:
     isCategorizedAs:
       - data-classification-customer-pii-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: OAG
     url: https://oag.ca.gov/privacy/ccpa
@@ -77,8 +71,6 @@ documents:
     isCategorizedAs:
       - data-classification-customer-pii-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -89,8 +81,6 @@ documents:
     isCategorizedAs:
       - data-classification-sensitive-financial-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: FTC
     url: https://www.ftc.gov/business-guidance/privacy-security/gramm-leach-bliley-act
@@ -101,8 +91,6 @@ documents:
     isCategorizedAs:
       - data-classification-sensitive-financial-data
       - jurisdiction-eu
-    hasJurisdiction:
-      - EU
     description: 'Jurisdiction: European Union (EU).'
     author: EUR-LEX
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32015L2366
@@ -113,8 +101,6 @@ documents:
     isCategorizedAs:
       - data-classification-sensitive-financial-data
       - jurisdiction-eu
-    hasJurisdiction:
-      - EU
     description: 'Jurisdiction: European Union (EU).'
     author: GDPR-INFO
     url: https://gdpr-info.eu/art-5-gdpr/
@@ -125,8 +111,6 @@ documents:
     isCategorizedAs:
       - data-classification-sensitive-financial-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: OAG
     url: https://oag.ca.gov/privacy/ccpa
@@ -137,8 +121,6 @@ documents:
     isCategorizedAs:
       - data-classification-sensitive-financial-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -149,8 +131,6 @@ documents:
     isCategorizedAs:
       - data-classification-sensitive-financial-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -161,8 +141,6 @@ documents:
     isCategorizedAs:
       - data-classification-sensitive-financial-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: CSRC
     url: https://csrc.nist.gov/publications/detail/sp/800-60/vol-1-rev-1/final
@@ -173,8 +151,6 @@ documents:
     isCategorizedAs:
       - data-classification-internal-proprietary-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: SEC
     url: https://www.sec.gov/spotlight/sarbanes-oxley.htm
@@ -185,8 +161,6 @@ documents:
     isCategorizedAs:
       - data-classification-internal-proprietary-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -197,8 +171,6 @@ documents:
     isCategorizedAs:
       - data-classification-internal-proprietary-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -209,8 +181,6 @@ documents:
     isCategorizedAs:
       - data-classification-internal-proprietary-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -234,8 +204,6 @@ documents:
     isCategorizedAs:
       - data-classification-phi-other-personal-data
       - jurisdiction-eu
-    hasJurisdiction:
-      - EU
     description: 'Jurisdiction: European Union (EU).'
     author: GDPR-INFO
     url: https://gdpr-info.eu/art-9-gdpr/
@@ -246,8 +214,6 @@ documents:
     isCategorizedAs:
       - data-classification-phi-other-personal-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: OAG
     url: https://oag.ca.gov/privacy/ccpa
@@ -258,8 +224,6 @@ documents:
     isCategorizedAs:
       - data-classification-phi-other-personal-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: CSRC
     url: https://csrc.nist.gov/publications/detail/sp/800-60/vol-1-rev-1/final
@@ -270,8 +234,6 @@ documents:
     isCategorizedAs:
       - data-classification-phi-other-personal-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: HHS
     url: https://www.hhs.gov/hipaa/for-professionals/privacy/index.html
@@ -304,8 +266,6 @@ documents:
     isCategorizedAs:
       - data-classification-public-financial-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -316,8 +276,6 @@ documents:
     isCategorizedAs:
       - data-classification-confidential-financial-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: FTC
     url: https://www.ftc.gov/business-guidance/privacy-security/gramm-leach-bliley-act
@@ -328,8 +286,6 @@ documents:
     isCategorizedAs:
       - data-classification-confidential-financial-data
       - jurisdiction-eu
-    hasJurisdiction:
-      - EU
     description: 'Jurisdiction: European Union (EU).'
     author: GDPR-INFO
     url: https://gdpr-info.eu/art-5-gdpr/
@@ -340,8 +296,6 @@ documents:
     isCategorizedAs:
       - data-classification-confidential-financial-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: OAG
     url: https://oag.ca.gov/privacy/ccpa
@@ -352,8 +306,6 @@ documents:
     isCategorizedAs:
       - data-classification-confidential-financial-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -364,8 +316,6 @@ documents:
     isCategorizedAs:
       - data-classification-confidential-financial-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -376,8 +326,6 @@ documents:
     isCategorizedAs:
       - data-classification-restricted-financial-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: PCISECURITYSTANDARDS
     url: https://www.pcisecuritystandards.org/document_library/
@@ -388,8 +336,6 @@ documents:
     isCategorizedAs:
       - data-classification-restricted-financial-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: FTC
     url: https://www.ftc.gov/business-guidance/privacy-security/gramm-leach-bliley-act
@@ -400,8 +346,6 @@ documents:
     isCategorizedAs:
       - data-classification-restricted-financial-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -412,8 +356,6 @@ documents:
     isCategorizedAs:
       - data-classification-restricted-financial-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: CSRC
     url: https://csrc.nist.gov/publications/detail/sp/800-60/vol-1-rev-1/final
@@ -424,8 +366,6 @@ documents:
     isCategorizedAs:
       - data-classification-mnpi-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: SEC
     url: https://www.sec.gov/fast-answers/answersinsiderhtm.html
@@ -436,8 +376,6 @@ documents:
     isCategorizedAs:
       - data-classification-mnpi-data
       - jurisdiction-eu
-    hasJurisdiction:
-      - EU
     description: 'Jurisdiction: European Union (EU).'
     author: EUR-LEX
     url: https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32014R0598
@@ -448,8 +386,6 @@ documents:
     isCategorizedAs:
       - data-classification-risk-aggregation-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -460,8 +396,6 @@ documents:
     isCategorizedAs:
       - data-classification-risk-aggregation-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -472,8 +406,6 @@ documents:
     isCategorizedAs:
       - data-classification-risk-aggregation-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -484,8 +416,6 @@ documents:
     isCategorizedAs:
       - data-classification-risk-aggregation-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -496,8 +426,6 @@ documents:
     isCategorizedAs:
       - data-classification-risk-aggregation-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: FEDERALRESERVE
     url: https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm
@@ -508,8 +436,6 @@ documents:
     isCategorizedAs:
       - data-classification-critical-financial-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: PCISECURITYSTANDARDS
     url: https://www.pcisecuritystandards.org/document_library/
@@ -520,8 +446,6 @@ documents:
     isCategorizedAs:
       - data-classification-critical-financial-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: FTC
     url: https://www.ftc.gov/business-guidance/privacy-security/gramm-leach-bliley-act
@@ -532,8 +456,6 @@ documents:
     isCategorizedAs:
       - data-classification-critical-financial-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: BIS
     url: https://www.bis.org/publ/bcbs239.htm
@@ -544,8 +466,6 @@ documents:
     isCategorizedAs:
       - data-classification-critical-financial-data
       - jurisdiction-us
-    hasJurisdiction:
-      - US
     description: 'Jurisdiction: United States (US).'
     author: CSRC
     url: https://csrc.nist.gov/publications/detail/sp/800-60/vol-1-rev-1/final
@@ -556,8 +476,6 @@ documents:
     isCategorizedAs:
       - data-classification-payment-authentication-data
       - jurisdiction-international
-    hasJurisdiction:
-      - International
     description: 'Jurisdiction: International (International).'
     author: PCISECURITYSTANDARDS
     url: https://www.pcisecuritystandards.org/document_library/
@@ -565,7 +483,7 @@ documents:
 
 
 taxonomies:
-  - id: finos-ai-governance-framework-v2
+  - id: finos-aigf
     name: FINOS AI Governance Framework v2
     type: RiskTaxonomy
     description: >-
@@ -640,39 +558,39 @@ vocabularies:
 
 
 groups:
-  - id: finos-ai-governance-framework-v2-rc
+  - id: finos-aigf-rc
     name: Regulatory & Compliance
     type: RiskGroup
     description: FINOS Regulatory & Compliance risk grouping.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     dateCreated: '2026-06-25'
 
-  - id: finos-ai-governance-framework-v2-sec
+  - id: finos-aigf-sec
     name: Security
     type: RiskGroup
     description: FINOS Security risk grouping.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     dateCreated: '2026-06-25'
 
-  - id: finos-ai-governance-framework-v2-op
+  - id: finos-aigf-op
     name: Operational
     type: RiskGroup
     description: FINOS Operational risk grouping.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     dateCreated: '2026-06-25'
 
-  - id: finos-ai-governance-framework-v2-control-prev
+  - id: finos-aigf-control-prev
     name: Preventive controls
     type: RiskControlGroup
     description: FINOS Preventive mitigation grouping.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     dateCreated: '2026-06-25'
 
-  - id: finos-ai-governance-framework-v2-control-det
+  - id: finos-aigf-control-det
     name: Detective controls
     type: RiskControlGroup
     description: FINOS Detective mitigation grouping.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     dateCreated: '2026-06-25'
 
   - id: finos-ai-use-cases-v1-domain-customer-and-relationship-management
@@ -1027,8 +945,8 @@ entries:
       algorithms, and confidential business information, particularly with free
       or poorly-governed LLM services.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-rc
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-rc
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://ithandbook.ffiec.gov/
@@ -1067,8 +985,8 @@ entries:
       lacking. To mitigate these risks, robust enterprise-grade security measures
       must be applied consistently across all parts of the LLM pipeline.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-sec
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-sec
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://platform.openai.com/docs/guides/embeddings
@@ -1104,8 +1022,8 @@ entries:
       facts, hallucinations remain a persistent and unresolved challenge in LLM
       applications.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://arxiv.org/abs/2305.14292
@@ -1141,8 +1059,8 @@ entries:
       patterns. Such variability can undermine testing, reliability, and trust when
       no version control or change notification mechanisms are in place.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://www.arxiv.org/abs/2408.14595
@@ -1178,8 +1096,8 @@ entries:
       system performance across runs, posing significant challenges for reliable
       deployment and quality assurance.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://arxiv.org/abs/2308.02828
@@ -1212,8 +1130,8 @@ entries:
       disrupt operations, limit failover options, and undermine the reliability
       of LLM-based applications.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://www.prompt.security/blog/denial-of-wallet-on-genai-apps-ddow
@@ -1249,8 +1167,8 @@ entries:
       consumers of these models are exposed to upstream compromises that can undermine
       system integrity and safety.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-sec
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-sec
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://arxiv.org/abs/2008.00312
@@ -1286,8 +1204,8 @@ entries:
       or third-party data, with impacts that may remain hidden until a major failure
       occurs.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-sec
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-sec
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://arxiv.org/abs/1708.06733
@@ -1324,8 +1242,8 @@ entries:
       damage, or unsafe automated actions, especially in systems without strong
       safeguards or human oversight.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-sec
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-sec
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-2023-v1_1.pdf
@@ -1360,8 +1278,8 @@ entries:
       acute in financial services where confident-sounding but incorrect responses
       can lead to regulatory violations or customer harm.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://aws.amazon.com/machine-learning/responsible-ai/
@@ -1397,8 +1315,8 @@ entries:
       violating fair lending laws and causing significant regulatory and reputational
       damage.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://en.wikipedia.org/wiki/Disparate_impact
@@ -1432,8 +1350,8 @@ entries:
       errors and biases can go undetected, increasing the risk of inappropriate
       use, regulatory scrutiny, and undiagnosed failures.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://techxplore.com/news/2024-07-large-language-dont-people.html
@@ -1462,8 +1380,8 @@ entries:
       (such as treating AI as a human expert) can result in operational errors and
       regulatory breaches.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -1496,8 +1414,8 @@ entries:
       efforts are essential to ensure models remain accurate, relevant, and aligned
       with current conditions.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -1529,8 +1447,8 @@ entries:
       robust oversight, as each AI-driven decision reflects directly on their brand
       and conduct.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://www.morganlewis.com/pubs/2023/09/financial-regulators-intensify-scrutiny-of-ai-related-reputational-risks
@@ -1566,8 +1484,8 @@ entries:
       and risk management, with non-compliance carrying potential fines or legal
       consequences.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-rc
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-rc
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://www.fca.org.uk/publication/research/research-note-on-ai-and-ml-in-financial-services.pdf
@@ -1607,8 +1525,8 @@ entries:
       data into public AI tools, potentially leaking trade secrets or violating
       licensing terms.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-rc
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-rc
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -1637,8 +1555,8 @@ entries:
       tool chains, or circumvent approval workflows designed to maintain segregation
       of duties and regulatory compliance.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-sec
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-sec
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://genai.owasp.org/llmrisk/llm06-excessive-agency/
@@ -1666,8 +1584,8 @@ entries:
       transactions, data exposure, or system compromise through carefully crafted
       tool chain attacks.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-sec
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-sec
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://genai.owasp.org/llmrisk/llm01-prompt-injection/
@@ -1691,8 +1609,8 @@ entries:
       vector allows adversaries to influence agent behavior at scale through corrupted
       external services that agents rely upon for specialized data and capabilities.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-sec
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-sec
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://spec.modelcontextprotocol.io/
@@ -1715,8 +1633,8 @@ entries:
       extended periods, making detection challenging and amplifying the impact of
       initial attacks.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-sec
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-sec
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://arstechnica.com/security/2024/09/false-memories-planted-in-chatgpt-give-hacker-persistent-exfiltration-channel/
@@ -1738,8 +1656,8 @@ entries:
       business processes and requiring comprehensive incident response across multiple
       agent systems.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-op
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-op
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://www.nist.gov/cyberframework
@@ -1762,8 +1680,8 @@ entries:
       credential harvesting operations that can compromise entire infrastructure
       and enable widespread lateral movement.
     type: Risk
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
-    isPartOf: finos-ai-governance-framework-v2-sec
+    isDefinedByTaxonomy: finos-aigf
+    isPartOf: finos-aigf-sec
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://genai.owasp.org/llmrisk/llm01-prompt-injection/
@@ -1793,8 +1711,10 @@ entries:
       - AIR-OP-004
       - AIR-OP-017
       - AIR-OP-019
-    hasStakeholder:
-      - stakeholder-risk-analyst
+    # hasStakeholder is single-valued in the schema; additional human
+    # end-users are captured with the multivalued hasAIUser slot.
+    hasStakeholder: stakeholder-risk-analyst
+    hasAIUser:
       - stakeholder-loan-officer
     isAppliedWithinDomain:
       - domain-risk-management-and-compliance
@@ -1827,9 +1747,12 @@ entries:
       - AIR-OP-014
       - AIR-OP-017
       - AIR-OP-019
-    hasStakeholder:
-      - stakeholder-wealth-advisor
+    # hasStakeholder is single-valued in the schema; the co-advising user
+    # goes in hasAIUser and the affected client in hasAISubject.
+    hasStakeholder: stakeholder-wealth-advisor
+    hasAIUser:
       - stakeholder-financial-planner
+    hasAISubject:
       - stakeholder-retail-wealth-client
     isAppliedWithinDomain:
       - domain-trading-and-investment
@@ -1935,7 +1858,7 @@ entries:
       Account numbers and financial history; Credit application data and income
       declarations; Long-term relationship and preference profiles.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-high
     dateCreated: '2026-06-25'
@@ -1974,7 +1897,7 @@ entries:
       and payment history; Account balances and investment holdings; Credit scores
       (input and model-generated); Investment Policy Statements and portfolio constraints.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-high
     dateCreated: '2026-06-25'
@@ -1998,7 +1921,7 @@ entries:
       lending policies; Stress test assumptions and scenario data; Internal performance
       and financial reporting.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-medium
     dateCreated: '2026-06-25'
@@ -2024,7 +1947,7 @@ entries:
       Personal life events affecting risk profiles (disability, chronic illness);
       Racial or ethnic origin data arising in credit or insurance contexts.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-critical
     dateCreated: '2026-06-25'
@@ -2045,7 +1968,7 @@ entries:
       reports; Public market prices and exchange rates; Regulatory filings and public
       disclosures.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-low
     dateCreated: '2026-06-25'
@@ -2061,7 +1984,7 @@ entries:
       internal ratings; Proprietary trading strategies and model outputs; Internal
       audit findings and compliance reports.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-high
     dateCreated: '2026-06-25'
@@ -2079,7 +2002,7 @@ entries:
       Credentials and access tokens for financial systems; Proprietary trading algorithms
       and model IP; Encryption keys and cryptographic material.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-critical
     dateCreated: '2026-06-25'
@@ -2096,7 +2019,7 @@ entries:
       forecasts; M&A activity and strategic initiatives; Significant contract wins
       or losses; Regulatory investigations or legal proceedings.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-high
     dateCreated: '2026-06-25'
@@ -2114,7 +2037,7 @@ entries:
       risk metrics; Liquidity gaps and funding profiles; Stress test outputs and
       capital adequacy data.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-high
     dateCreated: '2026-06-25'
@@ -2131,7 +2054,7 @@ entries:
       (PAN) and cardholder data; Banking credentials and access tokens; Proprietary
       trading algorithms and model IP; Encryption keys and cryptographic material.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-critical
     dateCreated: '2026-06-25'
@@ -2148,7 +2071,7 @@ entries:
       data or chip equivalent; CVV2/CVC2/CID card verification values; PIN blocks
       and encrypted PINs; Full card credentials used in authorisation.
     type: Term
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
       - sensitivity-critical
     dateCreated: '2026-06-25'
@@ -2487,9 +2410,9 @@ actions:
       organizational knowledge when this data is processed by AI models, converted
       into embeddings for vector databases, or used in Retrieval Augmented Generation
       (RAG) systems.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2520,9 +2443,9 @@ actions:
       at multiple points: between the AI model and its users, between different
       application components, and between the model and its various data sources
       (e.g., Retrieval Augmented Generation (RAG) databases).
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2555,9 +2478,9 @@ actions:
       purpose before being deployed into any live operational environment. This
       testing focuses on the user's viewpoint and verifies the system's overall
       operational readiness, including its alignment with risk and compliance standards.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2591,9 +2514,9 @@ actions:
       a financial institution are fundamentally dependent on the quality and appropriate
       handling of the data it uses. This control establishes the necessity for robust
       processes to:
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2641,9 +2564,9 @@ actions:
       data providers, partners, and even in defining terms for end-users. These
       agreements must be thoroughly understood and actively managed to ensure adherence
       to all stipulated requirements.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2683,9 +2606,9 @@ actions:
       and inequities in service delivery. This control addresses the critical need
       to ensure Quality of Service (QoS) and implement robust Distributed Denial
       of Service (DDoS) prevention measures for AI systems.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2719,9 +2642,9 @@ actions:
       model updates. This practice helps prevent unexpected disruptions, performance
       degradation, or the introduction of new vulnerabilities that might arise from
       unvetted changes in newer model versions.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2758,9 +2681,9 @@ actions:
       to model training, validation, deployment, and operation. This control ensures
       that access to sensitive information is strictly managed based on defined
       roles and responsibilities.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2800,9 +2723,9 @@ actions:
       compromised. While considered a standard security practice across IT, its
       diligent application to all components of AI systems, including newer technologies
       like vector databases, is critical.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2831,9 +2754,9 @@ actions:
       As AI, particularly Generative AI and agentic systems, becomes more integrated
       into critical workflows, it introduces novel risks that traditional security
       measures may not adequately address.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2866,9 +2789,9 @@ actions:
       management, contextual access restrictions, and comprehensive authorization
       enforcement to prevent agents from exceeding their intended operational scope
       and causing unauthorized actions or regulatory violations.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2892,9 +2815,9 @@ actions:
       cannot be manipulated into selecting inappropriate tools, injecting malicious
       parameters into API calls, or executing dangerous tool combinations that could
       result in unauthorized actions or system compromise.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2918,9 +2841,9 @@ actions:
       This preventive control ensures that MCP servers providing specialized capabilities
       to agentic AI systems maintain appropriate security standards and cannot be
       used as vectors for systematic compromise of agent decision-making.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2945,9 +2868,9 @@ actions:
       This preventive control ensures that compromise or malfunction of one agent
       cannot systematically affect other agents, protecting the integrity of complex
       multi-agent workflows in financial services.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -2974,9 +2897,9 @@ actions:
       architectures specifically designed to protect against agent-mediated credential
       harvesting while maintaining operational functionality for legitimate agent
       operations.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-prev
+      - finos-aigf-control-prev
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -3430,31 +3353,31 @@ stakeholders:
   - id: stakeholder-risk-analyst
     name: Risk analyst
     description: 'Stakeholder role: Risk analyst.'
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     dateCreated: '2026-06-25'
 
   - id: stakeholder-loan-officer
     name: loan officer
     description: 'Stakeholder role: loan officer.'
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     dateCreated: '2026-06-25'
 
   - id: stakeholder-wealth-advisor
     name: Wealth advisor
     description: 'Stakeholder role: Wealth advisor.'
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     dateCreated: '2026-06-25'
 
   - id: stakeholder-financial-planner
     name: financial planner
     description: 'Stakeholder role: financial planner.'
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     dateCreated: '2026-06-25'
 
   - id: stakeholder-retail-wealth-client
     name: retail wealth client
     description: 'Stakeholder role: retail wealth client.'
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     dateCreated: '2026-06-25'
 
 
@@ -3474,9 +3397,9 @@ controls:
       AI models.
        Model Intellectual Property: The AI models themselves (weights, architecture)
       which represent significant intellectual property.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-det
+      - finos-aigf-control-det
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -3513,9 +3436,9 @@ controls:
       and outcomes. This control is essential for maintaining operational awareness,
       detecting anomalies, ensuring performance standards, and supporting incident
       response for AI-driven applications and services within a financial institution.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-det
+      - finos-aigf-control-det
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -3556,9 +3479,9 @@ controls:
       these cost structures by attempting to exhaust an organization's AI service
       budgets through excessive resource consumption, potentially leading to service
       suspension, degraded performance, or unexpected financial impact.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-det
+      - finos-aigf-control-det
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -3599,9 +3522,9 @@ controls:
       failures or adverse impacts, which can trigger incident response processes.
        Informing Governance: Providing qualitative and quantitative data to AI governance
       bodies and ethics committees.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-det
+      - finos-aigf-control-det
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -3640,9 +3563,9 @@ controls:
       Generation (RAG) systems that produce informational content to provide verifiable
       citations, references, or traceable links back to the original source data
       or knowledge used to formulate their outputs.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-det
+      - finos-aigf-control-det
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -3676,9 +3599,9 @@ controls:
       LLM") is employed to automatically assess the quality, safety, accuracy, adherence
       to guidelines, or other specific characteristics of outputs generated by another
       (primary) AI system, typically also an LLM.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-det
+      - finos-aigf-control-det
     hasDocumentation:
       - finos-ai-governance-framework-site
     url: https://arxiv.org/abs/2305.13281
@@ -3717,9 +3640,9 @@ controls:
       with that source data must be understood, preserved, and effectively enforced
       when the AI system subsequently uses or presents information derived from
       that data.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-det
+      - finos-aigf-control-det
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:
@@ -3755,9 +3678,9 @@ controls:
       This detective control ensures that all agent actions, reasoning processes,
       and decision factors are captured in sufficient detail to meet regulatory
       requirements and enable effective forensic analysis when incidents occur.
-    isDefinedByTaxonomy: finos-ai-governance-framework-v2
+    isDefinedByTaxonomy: finos-aigf
     isCategorizedAs:
-      - finos-ai-governance-framework-v2-control-det
+      - finos-aigf-control-det
     hasDocumentation:
       - finos-ai-governance-framework-site
     related_mappings:

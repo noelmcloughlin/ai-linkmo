@@ -13,7 +13,6 @@ import {
   normalizeRecord,
   getByoSectionKey,
   mutateArray,
-  updateYamlSection,
   stripInternalFields,
   validateRecordId,
   showNotify,
@@ -131,26 +130,34 @@ export async function fetchYourData(): Promise<{
       ),
     );
 
+    // Load what we can: one broken/missing file must not block the rest.
     for (let i = 0; i < responses.length; i++) {
       const result = responses[i];
       const file = YOUR_FILES[i];
       try {
-        if (result.status === "fulfilled") {
-          const text = await result.value.text();
-          const yamlData = yaml.load(text) as Record<string, NexusRecord[]>;
-          allFilesData.push({
-            key: file.key,
-            data: { key: file.key, data: yamlData },
-          });
-        } else {
-          throw new Error(
-            `Failed to load data file from ${file.key}: ${result.reason}`,
-          );
+        if (result.status !== "fulfilled") {
+          throw new Error(String(result.reason));
         }
+        if (!result.value.ok) {
+          throw new Error(`HTTP ${result.value.status}`);
+        }
+        const text = await result.value.text();
+        const yamlData = yaml.load(text);
+        // A 404 page or plain-text error parses as a string; reject it.
+        if (!yamlData || typeof yamlData !== "object") {
+          throw new Error("file is not a YAML mapping");
+        }
+        allFilesData.push({
+          key: file.key,
+          data: {
+            key: file.key,
+            data: yamlData as Record<string, NexusRecord[]>,
+          },
+        });
       } catch (err) {
-        return notifyResult(
-          "error",
-          err instanceof Error ? err.message : String(err),
+        showNotify(
+          "warning",
+          `Skipping data file '${file.key}': ${err instanceof Error ? err.message : String(err)}`,
         );
       }
     }
@@ -160,6 +167,10 @@ export async function fetchYourData(): Promise<{
         ? (error as { message: string }).message
         : String(error);
     return notifyResult("error", `Failed to load your data files: ${message}`);
+  }
+
+  if (allFilesData.length === 0) {
+    return notifyResult("error", "Failed to load any of your data files.");
   }
 
   // Build yourFiles as YamlFiles (dictionary of YamlFile)
@@ -214,45 +225,29 @@ export async function mutateAndSaveRecord({
 
   // Only use mapped from section key.
   const dictName: string = getByoSectionKey(endpointName);
-  let updatedYamlDataArr: NexusRecord[] = [];
   // Determine filenameKey which is needed.
   const filenameKey =
     (record._filenameKey as string) ||
     (record?.isDefinedByTaxonomy as string) ||
     YOUR_DEFAULT_DATA_FILE;
 
-  // Mutate YAML file
+  // Compute the updated YAML section without mutating the loaded file;
+  // the in-memory file is only committed after a successful save.
   const files = fileState.yourFiles || {};
-  for (const yamlFile of Object.values(files)) {
-    if (!yamlFile || typeof yamlFile !== "object") {
-      devWarn("yamlFile is not an object:", yamlFile);
-      continue;
-    }
-    if (yamlFile.key === filenameKey) {
-      // Ensure data object exists
-      if (!yamlFile.data || typeof yamlFile.data !== "object") {
-        yamlFile.data = {};
-      }
-
-      // Initialize dictName if it doesn't exist
-      if (!yamlFile.data[dictName]) {
-        yamlFile.data[dictName] = [];
-      }
-
-      let arr: NexusRecord[] = Array.isArray(yamlFile.data[dictName])
-        ? (yamlFile.data[dictName] as NexusRecord[])
-        : [];
-      // Use mutateArray from YAML mutation
-      arr = mutateArray(arr, resultRecord, action);
-      // Update the YAML section with the mutated array
-      updateYamlSection(yamlFile, dictName, arr);
-      // Extract array from updatedYamlData
-      updatedYamlDataArr = Array.isArray(yamlFile.data[dictName])
-        ? (yamlFile.data[dictName] as NexusRecord[])
-        : [];
-      break;
-    }
+  const yamlFile = Object.values(files).find(
+    (f) => f && typeof f === "object" && f.key === filenameKey,
+  );
+  if (!yamlFile) {
+    devWarn("No loaded data file matches:", filenameKey);
+    return notifyResult(
+      "error",
+      `Cannot save record: no loaded data file matches '${filenameKey}'.`,
+    );
   }
+  const existingArr: NexusRecord[] = Array.isArray(yamlFile.data?.[dictName])
+    ? (yamlFile.data[dictName] as NexusRecord[])
+    : [];
+  const updatedYamlDataArr = mutateArray(existingArr, resultRecord, action);
 
   // Wrap the array in an object with the section key
   const updatedYamlData: Record<string, NexusRecord[]> = {
@@ -321,7 +316,6 @@ export async function updateDataAndSaveFile(
       const result = await saveYamlData({
         yamlData: fullYaml,
         yourFileName: filenameKey,
-        endpointKey: endpointName,
       });
       if (result.type !== "success") {
         return result;
@@ -333,6 +327,8 @@ export async function updateDataAndSaveFile(
         updatedData,
       );
       if (yourFileKeyData) yourFileKeyData.data = fullYaml;
+      // Invalidate cached (non-curate) data that may include byod records
+      dataState.bumpVersion();
     } catch (error) {
       return notifyResult(
         "error",
@@ -436,11 +432,9 @@ function reorderFields(obj: unknown): unknown {
 export async function saveYamlData({
   yamlData = {} as Record<string, NexusRecord[]>,
   yourFileName = YOUR_DEFAULT_DATA_FILE,
-  endpointKey = "",
 }: {
   yamlData?: Record<string, NexusRecord[]>;
   yourFileName?: string;
-  endpointKey?: string;
 }) {
   try {
     // Prevent saving empty files - indicates a logical error or state confusion
@@ -498,23 +492,10 @@ export async function saveYamlData({
       );
     }
 
-    // Update in-memory state from the endpoint after save
-    if (fileState.yourFiles[yourFileName]) {
-      fileState.yourFiles[yourFileName].data = yamlData;
-    }
-    // Update yourItems
-    const dictName = Object.keys(yamlData).find((k) =>
-      Array.isArray(yamlData[k as keyof typeof yamlData]),
-    );
-    const dictValue = dictName
-      ? yamlData[dictName as keyof typeof yamlData]
-      : undefined;
-    const items: NexusRecord[] = Array.isArray(dictValue) ? dictValue : [];
-    dataState.yourItems = updateItemsArray(
-      dataState.yourItems,
-      `${endpointKey}&byod`,
-      items,
-    );
+    // In-memory state (fileState + dataState.yourItems) is updated by the
+    // caller (updateDataAndSaveFile) after this returns success, using the
+    // endpoint-scoped items; doing it here with raw file sections risked
+    // storing the wrong section under the endpoint key.
     return notifyResult("success", "Data saved successfully.");
   } catch (e) {
     const msg =

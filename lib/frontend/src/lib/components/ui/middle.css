@@ -1,16 +1,11 @@
 /* Middle.svelte Styles */
 
-.main-content-container {
-  overflow: visible;
-  box-sizing: border-box;
-  padding-top: 0;
-  margin-top: 0;
-}
-
 .main-flex-container {
-  width: 100vw;
+  /* 100% (not 100vw) so the scrollbar never causes horizontal overflow */
+  width: 100%;
   overflow: visible;
   box-sizing: border-box;
+  position: relative;
 }
 
 .aside-container {
@@ -20,18 +15,18 @@
   overflow: hidden;
   box-sizing: border-box;
   flex-shrink: 0;
-  transition: opacity 0.2s;
+  transition: opacity var(--aside-transition-duration);
 }
 
 .aside-container.left {
-  width: clamp(280px, 20vw, 320px);
+  width: var(--aside-width-left);
   min-height: 120px;
-  max-height: 80vh;
+  max-height: var(--aside-height);
   height: auto;
 }
 
 .aside-container.right {
-  width: clamp(280px, 32vw, 360px);
+  width: var(--aside-width-right);
 }
 
 .aside-container.hidden {
@@ -47,6 +42,19 @@
   opacity: 1;
 }
 
+/* Small screens: the aside panels are fixed-position overlays, so their
+   in-flow spacers must not reserve width (they'd force horizontal scroll). */
+@media (max-width: 768px) {
+  .aside-container.left,
+  .aside-container.right {
+    width: 0;
+    min-width: 0;
+  }
+  .results-container {
+    min-width: 0;
+  }
+}
+
 .results-container {
   flex: 1;
   min-width: 200px;
@@ -57,9 +65,10 @@
   justify-content: flex-start;
   overflow: hidden;
   position: sticky;
-  top: 6.25rem;
+  top: var(--header-height);
   z-index: 10;
   background: inherit;
-  padding: 2rem;
+  /* Fluid gutter: tightens on small screens instead of eating card width */
+  padding: clamp(0.75rem, 2vw, 2rem);
   margin: 0 auto;
 }

@@ -233,11 +233,9 @@ And so on ..
 
 ### ${\color{green}Bring\ Your\ Own\ Data}$
 
-AI Atlas Nexus promotes a community-driven approach to curating and cataloguing resources. You can "bring
-your own Data" by adding schema-compliant yaml files to [./byo/data](./byo/data) directory. See [upstream readme](https://github.com/IBM/ai-atlas-nexus/blob/main/src/ai_atlas_nexus/ai_risk_ontology/util/README.md).
+Bring your own Data by adding schema-compliant yaml files to [./byo/data](./byo/data) directory. See [upstream readme](https://github.com/IBM/ai-atlas-nexus/blob/main/src/ai_atlas_nexus/ai_risk_ontology/util/README.md).
 
 This repository includes [FINOS](./byo/data/finos-aigf.yaml) and related examples (ffiec, eu ai, iso42001, nist_sp_800_53, owasp_llm_t10, owasp_ml_t10, sr_11_7). Validate contributed LinkML Schemas as follows:
-s
 ```bash
 SDIR=".venv/lib/python3.14/site-packages/ai_atlas_nexus/ai_risk_ontology/"   # python version may vary
 uv run linkml validate byo/data/*.yaml  -s ${SDIR}/ai-risk-ontology.yaml 
@@ -249,6 +247,11 @@ Convert schema and instance data into Cypher representation to populate a Graph 
 
 ```bash
 ./ai graph cyper --export --byod
+```
+
+![graph cyper export](./byo/images/graph-cyper-export.png)
+
+```bash
 podman login dockerhub.registry.example.com
 podman pull dockerhub.registry.example.com/neo4j
 podman run --name ran_neo4j --rm --volume $(pwd)/graph/cypher:/examples --publish=7474:7474 --publish=7687:7687 --env NEO4J_AUTH=neo4j/demodemo  dockerhub.registry.example.com/neo4j:latest
@@ -276,6 +279,9 @@ Crosswalk documents are intended to provide a mapping of concepts and terms betw
 ```bash
 ./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 acme-risk-taxonomy --export [ --byod ]
 ```
+
+![Crosswalk command](./byo/images/crosswalk.png)
+
 
 ## ${\color{green}CLI/API\ TESTING}$
 

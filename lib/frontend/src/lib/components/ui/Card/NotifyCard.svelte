@@ -53,7 +53,7 @@
   >
     <div
       class="notification-card"
-      style="border: 2px solid {borderColor}; background: {backgroundColor}; padding: 24px; border-radius: 16px; min-height: 48px; margin: 16px 0; position: relative;"
+      style="border: 2px solid {borderColor}; background: {backgroundColor}; padding: 1.5rem; border-radius: 1rem; min-height: 3rem; margin: 1rem 0; position: relative;"
     >
       <button
         class="close-btn"

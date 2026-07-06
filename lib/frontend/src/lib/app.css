@@ -5,6 +5,22 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  /* Fluid root font-size: 14px floor on small screens, 16px at 1280w,
+     18px cap on large/high-res displays. Everything sized in rem
+     (Tailwind utilities included) scales with it automatically. */
+  font-size: clamp(0.875rem, 0.72rem + 0.35vw, 1.125rem);
+
+  /* Layout dimensions - single source of truth for header/footer/aside
+     geometry, referenced from component CSS and inline styles. */
+  --header-height: 6.25rem;
+  --footer-height: 3.5rem;
+  --aside-height: 80vh;
+  --aside-top-left: calc(var(--header-height) + 1.25rem);
+  --aside-top-right: 7.25rem;
+  --aside-width-left: clamp(240px, 18vw, 300px);
+  --aside-width-right: clamp(280px, 32vw, 360px);
+  --aside-transition-duration: 0.2s;
+
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
