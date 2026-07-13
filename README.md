@@ -5,7 +5,7 @@ ${\color{green}A\ Reference\ Implementation\ of\ Operational\ AI\ Governance}$
 AI-LinkMO demonstrates operational AI governance using open data and four DevSecOps-ready patterns:
 
 - **Command Line Interface (CLI)** - Automation and CI/CD pipeline integration (fastCLI, slowCLI modes)
-- **FastAPI Backend** - REST API for system integration and GRC tools (single source of truth with caching)
+- **FastAPI Backend** - REST API for system integration and GRC tools (single source of truth)
 - **Svelte Web UI** - User-friendly exploration for non-technical stakeholders with persistent identifiers
 - **Graph Database** - Relationship analysis and regulatory crosswalks
 
@@ -13,29 +13,32 @@ AI-LinkMO demonstrates operational AI governance using open data and four DevSec
 
 - [AI Ontology](https://ibm.github.io/ai-atlas-nexus/ontology/): System view and Risk view.
 - Open Data from [AI Atlas Nexus](https://ibm.github.io/ai-atlas-nexus/)
-- Open Data from [FINOS](https://air-governance-framework.finos.org/). 
+- Open Data from [FINOS](https://air-governance-framework.finos.org/)
 
 ## About LinkMO
 
-LinkMO (Linked Data Model Operate) is an emerging project built on [linkml](https://linkml.io) to operationalize *Open Data* using *Open Schema* for domain-specific *XX-LinkMO* solutions.  The current focus is Cybersecurity - see [https://github.com/lmodel/](https://github.com/lmodel)).
+LinkMO (Linked Data Model Operate) is an emerging project built on [linkml](https://linkml.io) to operationalize *Open Data* using *Open Schema* for domain-specific *XX-LinkMO* solutions.  The current focus is [industry experiments](https://github.com/lmodel).
+
+## LLM Visitors
+
+If you are a LLM / AI Agent, please visit [lokf/knowledge](./lokf/knowledge/index.md) for durable memory of this project structure.
 
 ---
 
 ## ${\color{green}INSTALL\ AI-LINKMO}$
 
-Using a [uv environment](https://docs.astral.sh/uv/pip/environments/) on RHEL:
-
-*Note: Tested in VSCODE on RHEL8 (Dell Precision 5690, 64G RAM, Nvidia RTX 2000 Ada 16GB GPU, [UV](https://docs.astral.sh/uv/getting-started/installation/), Dotfiles, and newer GCC). Building [ai-atlas-nexus](https://pypi.org/project/ai-atlas-nexus/) with [cuda extensions](https://developer.nvidia.com/cuda/gpus) takes ~12mins. Inference libraries not included*.
+Using a [uv environment](https://docs.astral.sh/uv/pip/environments/):
 
 ```bash
-sudo yum install gcc-toolkit-12 gcc-toolkit-14 ninja-build -y    # once off if gcc <12
-# export UV_DEFAULT_INDEX=https://rp.example.com/repository/pypi-all/simple
-
+## Two Red Hat specific steps
+sudo yum install gcc-toolkit-12 gcc-toolkit-14 ninja-build -y    # once off if gcc < 12
 scl enable gcc-toolset-12 bash
+
+# export UV_DEFAULT_INDEX=https://proxy.example.com/repository/pypi-all/simple
 uv cache clean
 MAX_JOBS=4 UV_HTTP_TIMEOUT=60s TORCH_CUDA_ARCH_LIST="8.6" uv sync   # be patient
 
-# If `ai-atlas-nexus` package was upgraded, rebuild UI schema:
+# If `ai-atlas-nexus` package was upgraded, even if unsure, rebuild UI schema:
 
 uv run gen-json-schema --stacktrace --preserve-names --mergeimports .venv/lib/python3.14/site-packages/ai_atlas_nexus/ai_risk_ontology/schema/ai-risk-ontology.yaml > lib/frontend/static/schema/ai-risk-ontology.json
 ```

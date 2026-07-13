@@ -9,7 +9,7 @@ timestamp: "2026-07-13"
 
 # Knowledge sources
 
-Bootstrap discovery ran 2026-07-13. Steady-state refresh runs re-verify these sources instead of re-discovering; update this map whenever the repository's knowledge geography changes.
+Bootstrap discovery ran 2026-07-13; first steady-state refresh also ran 2026-07-13. Steady-state refresh runs re-verify these sources instead of re-discovering; update this map whenever the repository's knowledge geography changes.
 
 | Source | Yields | Re-check by |
 |--------|--------|-------------|
@@ -29,4 +29,4 @@ Bootstrap discovery ran 2026-07-13. Steady-state refresh runs re-verify these so
 | `https://air-governance-framework.finos.org/` | `references/finos-aigf`, `org/finos` | external authority - cite on change |
 | `.github/workflows/` (cli-tests, ui-tests) | test facts inside service concepts | re-list workflow files |
 
-Not knowledge sources (consciously excluded): `lib/test/` internals, `byo/images/`, `scripts/tests.sh`, `.claude/`, and the `lokf/` sidecar itself.
+Not knowledge sources (consciously excluded): `lib/test/` internals, `byo/images/`, `scripts/tests.sh`, `.claude/`, and the `lokf/` sidecar itself. Also excluded: README §LLM Inferencing and the `/ares` endpoint (real, code-backed in `handlers.py`/`cli.py`, but already covered generically by the dynamic OpenAPI-driven architecture in `services/cli` and `services/fastapi-backend` - no per-endpoint concepts are minted) and README §ARES Evaluation, §ADOPT?, §Curate your own Open Data, §Building Python Applications, §Research (narrative/aspirational content or guidance that re-points to already-captured references, not new facts).
