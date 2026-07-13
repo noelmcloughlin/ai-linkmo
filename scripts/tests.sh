@@ -71,7 +71,7 @@ case "$MODE" in
     *)
         echo -e "${RED}Unknown mode: $MODE${NC}"
         echo ""
-        echo "Usage: ./tests.sh [mode]"
+        echo "Usage: ./scripts/tests.sh [mode]"
         echo ""
         echo "Modes:"
         echo "  fast        - Run fast tests only (API mode, ~2 min) [default]"

@@ -297,7 +297,7 @@ Comprehensive unit tests are available for all CLI commands documented in this R
 uv run python lib/test/check_tests.py
 
 # Run fast tests (API mode only, ~2 min)
-,/tests.sh fast
+,/scripts/tests.sh fast
 ```
 
 See [lib/test/README.md](lib/test/README.md) for detailed testing documentation.

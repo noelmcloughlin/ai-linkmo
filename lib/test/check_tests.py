@@ -147,8 +147,8 @@ def main():
     if all_passed:
         print("✓ All checks passed! Test infrastructure is ready.")
         print("\nRun tests with:")
-        print("  ,/tests.sh fast       # Quick API mode tests")
-        print("  ,/tests.sh full       # Full test suite")
+        print("  ./scripts/tests.sh fast       # Quick API mode tests")
+        print("  ./scripts/tests.sh full       # Full test suite")
         return 0
     else:
         print("✗ Some checks failed. Review errors above.")
