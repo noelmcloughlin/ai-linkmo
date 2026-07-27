@@ -1,5 +1,17 @@
 # Change Log
 
+## 2026-07-27
+* **Steady-state refresh**: re-verified all 31 concepts against their recorded
+  provenance (source-map paths, CLI/API OpenAPI wiring, frontend Svelte 5 +
+  proxy config, graph export tooling, all 9 `byo/data/*.yaml` headers and
+  `url:` fields, index completeness) and projected the bundle to RDF
+  (278 triples, 31 subjects, no dangling internal relation targets). One
+  drift fixed: the sidecar was renamed `lokf/` -> `.lokf/` since the last run,
+  so `playbooks/knowledge-sources.md` now names the `.lokf/` sidecar in its
+  exclusion list (and makes `lib/frontend/STATUS.md` and the
+  `knowledge-*.yaml` automation workflows conscious exclusions); the root
+  README's LLM-visitors pointer to the bundle was repaired to `.lokf/`.
+
 ## 2026-07-13
 * **Steady-state refresh**: re-verified all 31 concepts against their recorded
   `resource`/`derivedFrom` provenance (manifest identity, CLI/API OpenAPI

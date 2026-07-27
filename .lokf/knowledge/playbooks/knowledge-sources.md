@@ -4,7 +4,7 @@ id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/playbooks/knowledge-so
 title: Knowledge sources map
 description: The librarian's scrape map - every repository location and external URL this bundle derives concepts from, and how to re-verify each on a refresh run.
 resource: https://github.com/noelmcloughlin/ai-linkmo
-timestamp: "2026-07-13"
+timestamp: "2026-07-27"
 ---
 
 # Knowledge sources
@@ -29,4 +29,4 @@ Bootstrap discovery ran 2026-07-13; first steady-state refresh also ran 2026-07-
 | `https://air-governance-framework.finos.org/` | `references/finos-aigf`, `org/finos` | external authority - cite on change |
 | `.github/workflows/` (cli-tests, ui-tests) | test facts inside service concepts | re-list workflow files |
 
-Not knowledge sources (consciously excluded): `lib/test/` internals, `byo/images/`, `scripts/tests.sh`, `.claude/`, and the `lokf/` sidecar itself. Also excluded: README §LLM Inferencing and the `/ares` endpoint (real, code-backed in `handlers.py`/`cli.py`, but already covered generically by the dynamic OpenAPI-driven architecture in `services/cli` and `services/fastapi-backend` - no per-endpoint concepts are minted) and README §ARES Evaluation, §ADOPT?, §Curate your own Open Data, §Building Python Applications, §Research (narrative/aspirational content or guidance that re-points to already-captured references, not new facts).
+Not knowledge sources (consciously excluded): `lib/test/` internals, `byo/images/`, `scripts/tests.sh`, `.claude/`, `lib/frontend/STATUS.md` (transient dev notes), and the `.lokf/` sidecar itself including its automation workflows (`.github/workflows/knowledge-*.yaml`). Also excluded: README §LLM Inferencing and the `/ares` endpoint (real, code-backed in `handlers.py`/`cli.py`, but already covered generically by the dynamic OpenAPI-driven architecture in `services/cli` and `services/fastapi-backend` - no per-endpoint concepts are minted) and README §ARES Evaluation, §ADOPT?, §Curate your own Open Data, §Building Python Applications, §Research (narrative/aspirational content or guidance that re-points to already-captured references, not new facts).

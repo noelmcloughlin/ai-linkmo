@@ -1,27 +1,29 @@
 ---
 name: lokf-scaffolding
-description: 'Scaffold a new `lokf/` knowledge sidecar into the repository this skill sits inside. Use when: bootstrapping/initializing a LOKF knowledge bundle for a project that does not have one yet; creating the lokf/ directory with pyproject.toml, justfile, README.md, a knowledge/ bundle skeleton, (optionally) queries.http, and the scheduled librarian wrapper script `lokf/scripts/knowledge-librarian.sh`; setting up machine-readable, SPARQL-queryable knowledge for a repo; asked to "add a lokf sidecar" or "scaffold lokf". Produces generic templates with <PROJ_NAME>/<PROJ_DESC> placeholders and dummy services; the agent MUST then populate them from the actual host project. Run once to bootstrap, or to repair a missing/broken scaffolding file (tooling or the index.md header) - not for authoring or maintaining concepts, which is the lokf-librarian skill''s job.'
+description: 'Scaffold a new `.lokf/` knowledge sidecar into the repository this skill sits inside. Use when: bootstrapping/initializing a LOKF knowledge bundle for a project that does not have one yet; creating the .lokf/ directory with pyproject.toml, justfile, README.md, a knowledge/ bundle skeleton, (optionally) queries.http, and the scheduled librarian wrapper script `.lokf/scripts/knowledge-librarian.sh`; setting up machine-readable, SPARQL-queryable knowledge for a repo; asked to "add a lokf sidecar" or "scaffold lokf". Produces generic templates with <PROJ_NAME>/<PROJ_DESC> placeholders and dummy services; the agent MUST then populate them from the actual host project. Run once to bootstrap, or to repair a missing/broken scaffolding file (tooling or the index.md header) - not for authoring or maintaining concepts, which is the lokf-librarian skill''s job.'
 ---
 
 # LOKF Scaffolding
 
-Create a fresh **`lokf/` sidecar** - a machine-readable, SPARQL-queryable [LOKF](https://lokf.nolan-nichols.com/) knowledge bundle - inside whatever repository this skill is invoked from. This skill lays down the directory, tooling, docs, and a small **dummy** bundle skeleton, then hands off to the **lokf-librarian** skill to fill it with real knowledge.
+Create a fresh **`.lokf/` sidecar** - a machine-readable, SPARQL-queryable [LOKF](https://lokf.nolan-nichols.com/) knowledge bundle - inside whatever repository this skill is invoked from. This skill lays down the directory, tooling, docs, and a small **dummy** bundle skeleton, then hands off to the **lokf-librarian** skill to fill it with real knowledge.
+
+**Why this matters:** plain OKF is *prose + structure*; most hand-rolled OKF sidecars bolt on repo-local *tools*; LOKF is *prose + structure + **meaning** + tools* - the semantic layer is what makes the tooling standard and portable (generated from the LOKF LinkML schema, queryable by any RDF/SPARQL tool), which is why this scaffold ships the generated `lokf` toolkit rather than bespoke scripts.
 
 ## Scope - how this differs from lokf-librarian
 
 This is a **one-shot bootstrap** skill; it should **not** overlap with the day-to-day **lokf-librarian** skill:
 
-- **lokf-scaffolding (this skill)** - run **once** to create `lokf/`, or to **repair** a missing/broken *scaffolding* file (`pyproject.toml`, `justfile`, `README.md`, `queries.http`, `.gitignore`, the `index.md` semantic header, or a Step 5 automation file). It owns the directory layout and tooling, and produces a minimal, schema-valid skeleton with **dummy** concepts. It never authors real concepts.
+- **lokf-scaffolding (this skill)** - run **once** to create `.lokf/`, or to **repair** a missing/broken *scaffolding* file (`pyproject.toml`, `justfile`, `README.md`, `queries.http`, `.gitignore`, the `index.md` semantic header, or a Step 5 automation file). It never authors real concepts - only the dummy skeleton.
 - **lokf-librarian** - run **often** to scrape the repo and create/maintain/audit the actual concept files and their typed relations.
 
-> Guardrails: if `lokf/` already exists and is healthy, don't run this skill - use
+> Guardrails: if `.lokf/` already exists and is healthy, don't run this skill - use
 > **lokf-librarian**. When repairing, only (re)write the scaffolding file that is
 > missing or broken; **never overwrite existing concept files** - that is
 > lokf-librarian's domain.
 
 ## Portability - reusing this skill in another repo
 
-This skill is repo-agnostic; run it in any repository, including an empty one. Two assumptions to satisfy when reusing it elsewhere:
+This skill is repo-agnostic; run it in any repository, including an empty one. Assumptions to satisfy when reusing it elsewhere:
 
 - **It pairs with the lokf-librarian skill.** The scaffolded wrapper script resolves
   `lokf-librarian/SKILL.md` from the repo's skill directory - it checks `.claude/skills/`
@@ -39,7 +41,7 @@ This skill is repo-agnostic; run it in any repository, including an empty one. T
     the "commit" instructions and rely on the platform's own versioning/backup, and
     review changes by whatever mechanism the host offers instead of PRs.
   - *Not GitHub* (other forges, or no forge): Step 5's workflow files are GitHub
-    Actions-specific - skip them and schedule `lokf/scripts/knowledge-librarian.sh`
+    Actions-specific - skip them and schedule `.lokf/scripts/knowledge-librarian.sh`
     (plus `lokf validate` as the gate) with the platform's equivalent: another CI's
     pipeline, cron, or a systemd timer. The wrapper needs only `bash` and the skill file.
   - *Not Linux/POSIX*: run the `justfile` recipes and wrapper from a POSIX shell
@@ -70,7 +72,7 @@ fallback for `<BASE_IRI>` - and flag every guessed value for review in the Step 
 ## Step 1 - Create the directory skeleton
 
 ```
-lokf/
+.lokf/
 |-- .gitignore                # keeps .venv/ and build artifacts out of git
 |-- pyproject.toml            # declares the `lokf` toolkit dependency
 |-- justfile                  # convenience recipes
@@ -88,7 +90,7 @@ lokf/
 
 ## Step 2 - Write the files (substitute every placeholder from Step 0)
 
-### `lokf/pyproject.toml`
+### `.lokf/pyproject.toml`
 
 ```toml
 # LOKF sidecar for <PROJ_NAME>.
@@ -117,7 +119,7 @@ package = false
 #   lokf = { git = "https://github.com/nicholsn/lokf.git", rev = "<tag-or-sha>" }
 ```
 
-### `lokf/.gitignore`
+### `.lokf/.gitignore`
 
 ```gitignore
 # Python sidecar artifacts (do not commit)
@@ -127,7 +129,7 @@ __pycache__/
 lokf-tables/
 ```
 
-### `lokf/justfile`
+### `.lokf/justfile`
 
 ```just
 # LOKF knowledge-bundle recipes for <PROJ_NAME>.
@@ -158,7 +160,7 @@ lokf-serve:
     uv run lokf serve {{ bundle }}
 ```
 
-### `lokf/knowledge/index.md` (bundle root - carries the semantic header)
+### `.lokf/knowledge/index.md` (bundle root - carries the semantic header)
 
 ```markdown
 ---
@@ -185,7 +187,7 @@ A [LOKF](https://lokf.nolan-nichols.com) knowledge base for <PROJ_NAME>. Every M
 * [Example Service B](services/example-service-b.md) - placeholder; replace with a real service.
 ```
 
-### `lokf/knowledge/services/index.md`
+### `.lokf/knowledge/services/index.md`
 
 ```markdown
 # Services
@@ -194,7 +196,7 @@ A [LOKF](https://lokf.nolan-nichols.com) knowledge base for <PROJ_NAME>. Every M
 * [Example Service B](example-service-b.md) - placeholder; replace with a real service.
 ```
 
-### `lokf/knowledge/services/example-service-a.md` (DUMMY - replace)
+### `.lokf/knowledge/services/example-service-a.md` (DUMMY - replace)
 
 ```markdown
 ---
@@ -211,7 +213,7 @@ endpoint: https://<PROJ_SLUG>.example/api/example-a
 typed relations (e.g. `dependsOn`, `about`, `references`).
 ```
 
-### `lokf/knowledge/services/example-service-b.md` (DUMMY - replace)
+### `.lokf/knowledge/services/example-service-b.md` (DUMMY - replace)
 
 ```markdown
 ---
@@ -229,7 +231,7 @@ dependsOn:
 **Example Service B** is a dummy concept that depends on Example Service A, to show a typed relation. Replace it with a real service.
 ```
 
-### `lokf/knowledge/log.md`
+### `.lokf/knowledge/log.md`
 
 ```markdown
 # Change Log
@@ -239,13 +241,13 @@ dependsOn:
   services. Real concepts to follow.
 ```
 
-### `lokf/README.md`
+### `.lokf/README.md`
 
 The template is shown inside a **five-backtick** fence so its own triple-backtick
 code blocks survive; write the file itself with normal triple-backtick blocks.
 
 `````markdown
-# `lokf/` - <PROJ_NAME>'s machine-readable knowledge base
+# `.lokf/` - <PROJ_NAME>'s machine-readable knowledge base
 
 A small **sidecar** that captures <PROJ_NAME>'s own knowledge - its services, metrics, policies, playbooks, and glossary - as plain Markdown files that are **also a queryable knowledge graph**. It does not touch the app build; it's independent tooling you can run on its own.
 
@@ -259,7 +261,7 @@ You write normal Markdown; you get a validated, queryable graph for free.
 ## What's in here
 
 ```
-lokf/
+.lokf/
 |-- knowledge/            # the bundle - one Markdown file per concept
 |   |-- index.md          # bundle metadata + table of contents (reserved)
 |   |-- log.md            # change history (reserved)
@@ -276,7 +278,7 @@ lokf/
 ## Use it
 
 ```bash
-cd lokf
+cd .lokf
 just lokf-install    # one-time: install the toolkit (uv sync)
 just lokf-validate   # check every concept against the LOKF schema
 just lokf-serve      # local SPARQL endpoint + interactive graph explorer
@@ -286,7 +288,7 @@ just lokf-convert    # print the whole bundle as RDF (Turtle)
 Without `just`:
 
 ```bash
-cd lokf
+cd .lokf
 uv sync
 uv run lokf validate knowledge
 uv run lokf serve knowledge
@@ -307,7 +309,7 @@ uv run lokf convert knowledge --format ttl
 - OKF spec: <https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md>
 `````
 
-### `lokf/queries.http` (optional - include unless the user opts out)
+### `.lokf/queries.http` (optional - include unless the user opts out)
 
 ```http
 ### LOKF SPARQL queries for the <PROJ_NAME> knowledge bundle.
@@ -357,7 +359,7 @@ Before finishing, confirm the scaffold is clean - but do **not** author real con
    don't grep for a bare `<`:
 
    ```bash
-   grep -rn -e '<PROJ_' -e '<BASE_IRI>' -e '<OWNER_' -e '<TODAY' lokf/
+   grep -rn -e '<PROJ_' -e '<BASE_IRI>' -e '<OWNER_' -e '<TODAY' .lokf/
    ```
 
    Zero hits means the scaffold is fully resolved.
@@ -368,14 +370,15 @@ Before finishing, confirm the scaffold is clean - but do **not** author real con
 Confirm the scaffold itself is schema-valid before handing off:
 
 ```bash
-cd lokf
+cd .lokf
 just lokf-install     # uv sync
 just lokf-validate    # -> the skeleton passes the LOKF schema
 ```
 
 If `uv` is not installed (or the `lokf` package cannot be fetched), **skip this
-step rather than failing**: note the skipped validation in `knowledge/log.md` and
-in your handoff message, so it runs in CI (Step 5) or once the tooling is available.
+step rather than failing**: note the skipped validation in your handoff message,
+so it runs in CI (Step 5) or once the tooling is available. Do not record it in
+`knowledge/log.md` - the log tracks knowledge changes, not administrative events.
 
 Fix any structural/schema findings, then commit the scaffold. Routine validation
 and auditing thereafter belong to lokf-librarian; Step 5 scaffolds the CI gate and
@@ -395,7 +398,7 @@ them with your usual update tooling.
 
 ### `.github/workflows/knowledge-validate.yaml` - the validation gate
 
-Runs `lokf validate` on every `lokf/**` PR and weekly.
+Runs `lokf validate` on every `.lokf/**` PR and weekly.
 
 ```yaml
 name: Knowledge Bundle Validation
@@ -405,7 +408,7 @@ name: Knowledge Bundle Validation
 on:
   pull_request:
     paths:
-      - "lokf/**"
+      - ".lokf/**"
       - ".github/workflows/knowledge-validate.yaml"
   schedule:
     - cron: "0 6 * * 1" # Mondays at 06:00 UTC
@@ -433,23 +436,21 @@ jobs:
 
       - name: Install the lokf sidecar
         run: uv sync
-        working-directory: lokf
+        working-directory: .lokf
 
       - name: Validate the knowledge bundle
         run: uv run lokf validate knowledge
-        working-directory: lokf
+        working-directory: .lokf
 ```
 
 ### `.github/workflows/knowledge-librarian.yaml` - the scheduled loop
 
-Runs the librarian agent weekly, then opens a review PR with whatever changed. It
-never pushes to the default branch and never auto-merges; no changes -> no PR; and
-it is inert until the `KNOWLEDGE_LIBRARIAN_CMD` repo variable is set.
+Runs the librarian agent weekly, then opens a review PR with whatever changed.
 
 ```yaml
 name: Knowledge Librarian
 
-# Scheduled LLM "librarian" that keeps the lokf/ bundle in step with the repo (the
+# Scheduled LLM "librarian" that keeps the .lokf/ bundle in step with the repo (the
 # Karpathy rule): run the agent, validate, and open a review PR with whatever
 # changed. It NEVER pushes to the default branch and NEVER auto-merges; no changes
 # -> no PR; and it is inert until KNOWLEDGE_LIBRARIAN_CMD is set.
@@ -485,10 +486,10 @@ jobs:
         id: install-lokf
         continue-on-error: true
         run: uv sync
-        working-directory: lokf
+        working-directory: .lokf
 
       # Wire this up: point the KNOWLEDGE_LIBRARIAN_CMD repo variable at your agent
-      # command (e.g. `bash lokf/scripts/knowledge-librarian.sh`). Unset = safe no-op.
+      # command (e.g. `bash .lokf/scripts/knowledge-librarian.sh`). Unset = safe no-op.
       # The scaffolded wrapper also reads AGENT_CLI; pass it through here (switch to
       # `secrets.AGENT_CLI` if the command embeds a token).
       - name: Run the librarian agent
@@ -508,15 +509,15 @@ jobs:
         if: steps.install-lokf.outcome == 'success'
         continue-on-error: true
         run: uv run lokf validate knowledge
-        working-directory: lokf
+        working-directory: .lokf
 
       - name: Detect changes
         id: diff
         run: |
           set -euo pipefail
-          # Scope to the bundle so tool artifacts (e.g. a fresh lokf/uv.lock from
+          # Scope to the bundle so tool artifacts (e.g. a fresh .lokf/uv.lock from
           # `uv sync`) never trigger a PR by themselves.
-          if [ -n "$(git status --porcelain -- lokf/knowledge)" ]; then
+          if [ -n "$(git status --porcelain -- .lokf/knowledge)" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -531,7 +532,7 @@ jobs:
           git config user.name  "knowledge-librarian[bot]"
           git config user.email "knowledge-librarian[bot]@users.noreply.github.com"
           git checkout -b "$branch"
-          git add -- lokf/knowledge
+          git add -- .lokf/knowledge
           git commit -m "chore(lokf): scheduled librarian refresh of the knowledge bundle" \
                      -m "Automated Karpathy-rule pass. Review required - do not auto-merge."
           git push --set-upstream origin "$branch"
@@ -558,7 +559,7 @@ jobs:
               '## Scheduled knowledge-librarian refresh',
               '',
               'Automated Karpathy-rule pass: the librarian agent re-scraped the repo',
-              'and reconciled the `lokf/` bundle. A human maintainer must review and',
+              'and reconciled the `.lokf/` bundle. A human maintainer must review and',
               'approve - this PR must not be auto-merged.',
               '',
               `- LOKF validation (\`lokf validate\`): ${check(LOKF_OUTCOME)}`,
@@ -579,7 +580,7 @@ jobs:
             console.log(`Opened PR #${pr.number}: ${pr.html_url}`);
 ```
 
-### `lokf/scripts/knowledge-librarian.sh` - the agent wrapper
+### `.lokf/scripts/knowledge-librarian.sh` - the agent wrapper
 
 Create it (then `chmod +x`). It is generic - no placeholders - but expects the
 **lokf-librarian** skill in the repo's skill directory (it looks in `.claude/skills/`
@@ -593,14 +594,14 @@ then `.github/skills/`), so ensure that skill is present too.
 # `.github/workflows/knowledge-librarian.yaml` invokes whatever the
 # `KNOWLEDGE_LIBRARIAN_CMD` repository variable points at. Set that variable to:
 #
-#     bash lokf/scripts/knowledge-librarian.sh
+#     bash .lokf/scripts/knowledge-librarian.sh
 #
 # ...and set `AGENT_CLI` (repo variable or secret) to the command that runs your
 # coding agent non-interactively - e.g. the GitHub Copilot CLI or an internal
 # agent runner that accepts a prompt on `-p`/stdin.
 #
 # CONTRACT (the workflow relies on this):
-#   - This script only READS the repo and WRITES files under lokf/knowledge/
+#   - This script only READS the repo and WRITES files under .lokf/knowledge/
 #     (the workflow diffs and commits that path only; tooling files are
 #     lokf-scaffolding's domain).
 #   - It MUST NOT git commit, push, or open PRs - the workflow owns that.
@@ -632,13 +633,13 @@ knowledge-librarian: AGENT_CLI is not set.
 
 Set AGENT_CLI to your non-interactive agent command (e.g. a Copilot CLI or
 internal runner). This wrapper hands it a prompt built from the lokf-librarian
-skill; the agent is expected to edit files under lokf/knowledge/ only.
+skill; the agent is expected to edit files under .lokf/knowledge/ only.
 EOF
   exit 2
 fi
 
 # Build the prompt. The agent should follow the skill verbatim, edit only the
-# lokf/knowledge/ bundle, and make no VCS operations.
+# .lokf/knowledge/ bundle, and make no VCS operations.
 prompt="$(cat <<EOF
 You are the repository knowledge librarian. Follow this skill file verbatim:
   - $skill
@@ -647,24 +648,23 @@ Task (Karpathy rule - continuous small corrections, not a rewrite):
   1. Follow the skill's Scrape & build procedure: bootstrap discovery if the
      bundle has no real concepts yet, otherwise the steady-state refresh of the
      sources recorded in the bundle (concept provenance and
-     lokf/knowledge/playbooks/knowledge-sources.md).
-  2. Reconcile the lokf/ knowledge bundle with the repository: add missing
-     concepts, correct stale facts, refresh timestamps, wire typed relations,
-     and prepend dated entries to lokf/knowledge/log.md.
-  3. Only edit files under lokf/knowledge/. Do NOT run git, open PRs, or touch
+     .lokf/knowledge/playbooks/knowledge-sources.md).
+  2. Reconcile the .lokf/ knowledge bundle with the repository: add missing
+     concepts, correct stale facts (updating each changed concept's timestamp),
+     wire typed relations, and prepend dated entries to
+     .lokf/knowledge/log.md - but only when the bundle content actually
+     changed. If nothing changed, leave the bundle (including log.md)
+     untouched; do not log administrative no-op runs.
+  3. Only edit files under .lokf/knowledge/. Do NOT run git, open PRs, or touch
      any other path. Cite sources for any claim whose authority is outside the
      repository.
 EOF
 )"
 
-echo "knowledge-librarian: refreshing the lokf/ bundle via AGENT_CLI"
+echo "knowledge-librarian: refreshing the .lokf/ bundle via AGENT_CLI"
 # shellcheck disable=SC2086
 $AGENT_CLI -p "$prompt"
 ```
-
-The script is **inert until wired up**: set the `KNOWLEDGE_LIBRARIAN_CMD` repo
-variable to `bash lokf/scripts/knowledge-librarian.sh` and `AGENT_CLI` to your agent
-command. Until then the workflow's agent step is a safe no-op.
 
 ## Step 6 - Hand off to lokf-librarian
 

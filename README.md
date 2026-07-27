@@ -15,13 +15,9 @@ AI-LinkMO demonstrates operational AI governance using open data and four DevSec
 - Open Data from [AI Atlas Nexus](https://ibm.github.io/ai-atlas-nexus/)
 - Open Data from [FINOS](https://air-governance-framework.finos.org/)
 
-## About LinkMO
-
-LinkMO (Linked Data Model Operate) is an emerging project built on [linkml](https://linkml.io) to operationalize *Open Data* using *Open Schema* for domain-specific *XX-LinkMO* solutions.  The current focus is [industry experiments](https://github.com/lmodel).
-
 ## LLM Visitors
 
-If you are a LLM / AI Agent, please visit [lokf/knowledge](./lokf/knowledge/index.md) for durable memory of this project structure.
+If you are a LLM / AI Agent, please visit [.lokf/knowledge](./.lokf/knowledge/index.md) for durable memory of this project structure.
 
 ---
 
