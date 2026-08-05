@@ -4,7 +4,7 @@ id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/playbooks/bring-your-o
 title: Bring your own data (BYOD)
 description: How to add institutional governance data - schema-compliant YAML dropped into byo/data/ is picked up by the CLI, API, web UI and graph export.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/README.md
-timestamp: "2026-07-13"
+timestamp: "2026-07-13T00:00:00Z"
 references:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
 ---

@@ -4,7 +4,7 @@ id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/playbooks/knowledge-so
 title: Knowledge sources map
 description: The librarian's scrape map - every repository location and external URL this bundle derives concepts from, and how to re-verify each on a refresh run.
 resource: https://github.com/noelmcloughlin/ai-linkmo
-timestamp: "2026-07-27"
+timestamp: "2026-07-27T00:00:00Z"
 ---
 
 # Knowledge sources

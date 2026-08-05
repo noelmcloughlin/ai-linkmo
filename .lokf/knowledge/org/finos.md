@@ -4,7 +4,7 @@ id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
 title: FINOS
 description: The Fintech Open Source Foundation - publisher of the AI Governance Framework and the curated framework datasets this repository ships as BYOD files.
 resource: https://w3id.org/finos
-timestamp: "2026-07-13"
+timestamp: "2026-07-13T00:00:00Z"
 ---
 
 # FINOS

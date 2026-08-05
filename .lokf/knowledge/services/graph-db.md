@@ -8,7 +8,7 @@ tags:
   - graph
   - neo4j
   - cypher
-timestamp: "2026-07-13"
+timestamp: "2026-07-13T00:00:00Z"
 dependsOn:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/knowledge-graph-export
 ---

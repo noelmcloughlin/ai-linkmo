@@ -4,7 +4,7 @@ id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ont
 title: AI Risk Ontology (ai-atlas-nexus)
 description: IBM's AI Risk Ontology from the ai-atlas-nexus project - the LinkML schema (System view and Risk view) that all AI-LinkMO data, endpoints and CLI parameters align to.
 resource: https://ibm.github.io/ai-atlas-nexus/ontology/
-timestamp: "2026-07-13"
+timestamp: "2026-07-13T00:00:00Z"
 source:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/ibm
 ---

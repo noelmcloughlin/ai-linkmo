@@ -11,14 +11,9 @@ version = "0.1.0"
 description = "LOKF knowledge-bundle tooling for AI-LinkMO."
 requires-python = ">=3.11"
 dependencies = [
+    "linkml>=1.11.1",
     "lokf",
 ]
 
 [tool.uv]
 package = false
-
-# `lokf validate` is a recent toolkit addition; as of 2026-07-13 neither the
-# PyPI release (0.2.0) nor git main ships it yet. When a version does, pinning
-# a git ref is the most portable option:
-#   [tool.uv.sources]
-#   lokf = { git = "https://github.com/nicholsn/lokf.git", rev = "<tag-or-sha>" }

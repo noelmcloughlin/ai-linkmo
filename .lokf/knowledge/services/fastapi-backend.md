@@ -10,7 +10,7 @@ tags:
   - api
   - rest
   - integration
-timestamp: "2026-07-13"
+timestamp: "2026-07-13T00:00:00Z"
 references:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
 dependsOn:

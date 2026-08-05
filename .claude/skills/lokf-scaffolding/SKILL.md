@@ -106,7 +106,8 @@ version = "0.1.0"
 description = "LOKF knowledge-bundle tooling for <PROJ_NAME>."
 requires-python = ">=3.11"
 dependencies = [
-    "lokf",
+    "linkml>=1.11.1",
+    "lokf>=0.3.0",
 ]
 
 [tool.uv]

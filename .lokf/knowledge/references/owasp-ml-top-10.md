@@ -4,7 +4,7 @@ id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/owasp-ml-to
 title: OWASP ML Security Top 10
 description: The OWASP Machine Learning Security Top 10 risks.
 resource: https://owasp.org/www-project-machine-learning-security-top-10/
-timestamp: "2026-07-13"
+timestamp: "2026-07-13T00:00:00Z"
 ---
 
 # OWASP ML Security Top 10

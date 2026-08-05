@@ -7,7 +7,7 @@ resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/byo/data/owasp_m
 tags:
   - byod
   - ai-governance
-timestamp: "2026-07-13"
+timestamp: "2026-07-13T00:00:00Z"
 derivedFrom:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/owasp-ml-top-10
 source:

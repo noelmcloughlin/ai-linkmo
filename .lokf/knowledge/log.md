@@ -1,5 +1,18 @@
 # Change Log
 
+## 2026-08-05
+* **Schema migration (lokf toolkit upgrade)**: upgraded the lokf toolkit, which ships `lokf validate` (was
+  previously unavailable). Running `lokf validate knowledge` against the upgraded schema (now backed by
+  `linkml-validate`) revealed three breaking changes from the old `convert`-only validation:
+  1. `timestamp` — changed from date-only (`YYYY-MM-DD`) to ISO 8601 datetime with timezone
+     (`YYYY-MM-DDTHH:MM:SSZ`). Fixed across all 31 concepts.
+  2. `distribution` — changed from a plain list of URL strings to a list of `Distribution` objects
+     (`access_url`, `name`, `media_type`). Fixed in `datasets/knowledge-graph-export` and
+     `datasets/nist-ai-rmf-crosswalks`.
+  3. `fields` — changed from a plain list of strings to a list of `Field` objects (`name`). Fixed in
+     `datasets/nist-ai-rmf-crosswalks`.
+  Result: `OK — 31 concepts in knowledge validate against KnowledgeBundle.`
+
 ## 2026-07-27
 * **Steady-state refresh**: re-verified all 31 concepts against their recorded
   provenance (source-map paths, CLI/API OpenAPI wiring, frontend Svelte 5 +

@@ -4,7 +4,7 @@ id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/ibm
 title: IBM
 description: Publisher of the ai-atlas-nexus project and its AI Risk Ontology, the LinkML schema and upstream dataset AI-LinkMO builds on.
 resource: https://ibm.github.io/ai-atlas-nexus/
-timestamp: "2026-07-13"
+timestamp: "2026-07-13T00:00:00Z"
 ---
 
 # IBM

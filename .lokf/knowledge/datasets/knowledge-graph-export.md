@@ -8,10 +8,14 @@ tags:
   - graph
   - cypher
   - export
-timestamp: "2026-07-13"
+timestamp: "2026-07-13T00:00:00Z"
 distribution:
-  - https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/ai-risk-ontology.yaml
-  - https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/cypher/ai-risk-ontology.cypher
+  - access_url: https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/ai-risk-ontology.yaml
+    name: ai-risk-ontology.yaml
+    media_type: application/yaml
+  - access_url: https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/cypher/ai-risk-ontology.cypher
+    name: ai-risk-ontology.cypher
+    media_type: application/x-cypher
 derivedFrom:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
 ---

@@ -7,23 +7,29 @@ resource: https://github.com/noelmcloughlin/ai-linkmo/tree/main/graph
 tags:
   - crosswalk
   - mappings
-timestamp: "2026-07-13"
+timestamp: "2026-07-13T00:00:00Z"
 distribution:
-  - https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/crosswalk_nist-ai-rmf_to_finos-aigf.csv
-  - https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/crosswalk_nist-ai-rmf_to_ibm-risk-atlas.csv
-  - https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/crosswalk_nist-ai-rmf_to_acme-risk-taxonomy.csv
+  - access_url: https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/crosswalk_nist-ai-rmf_to_finos-aigf.csv
+    name: crosswalk_nist-ai-rmf_to_finos-aigf.csv
+    media_type: text/csv
+  - access_url: https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/crosswalk_nist-ai-rmf_to_ibm-risk-atlas.csv
+    name: crosswalk_nist-ai-rmf_to_ibm-risk-atlas.csv
+    media_type: text/csv
+  - access_url: https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/crosswalk_nist-ai-rmf_to_acme-risk-taxonomy.csv
+    name: crosswalk_nist-ai-rmf_to_acme-risk-taxonomy.csv
+    media_type: text/csv
 fields:
-  - id
-  - name
-  - description
-  - hasRelatedAction
-  - isPartOf
-  - close_mappings
-  - exact_mappings
-  - broad_mappings
-  - narrow_mappings
-  - related_mappings
-  - expanded_risks
+  - name: id
+  - name: name
+  - name: description
+  - name: hasRelatedAction
+  - name: isPartOf
+  - name: close_mappings
+  - name: exact_mappings
+  - name: broad_mappings
+  - name: narrow_mappings
+  - name: related_mappings
+  - name: expanded_risks
 derivedFrom:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/nist-ai-rmf
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/finos-aigf
