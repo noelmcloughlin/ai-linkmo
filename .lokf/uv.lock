@@ -19,7 +19,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "linkml", specifier = ">=1.11.1" },
-    { name = "lokf" },
+    { name = "lokf", specifier = ">=0.3.0" },
 ]
 
 [[package]]

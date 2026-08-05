@@ -1,6 +1,19 @@
 # Change Log
 
 ## 2026-08-05
+* **Steady-state refresh**: re-verified all 31 concepts against their recorded provenance (all 9
+  `byo/data/*.yaml` files present, all graph files present, `openapi.yaml` unchanged at 28 paths, all 4
+  services stable). Swept for orphans: no new concepts warranted. Fixed one bug from the audit: the
+  bundle-root `index.md` declared `publisher.id =
+  .../org/noel-mcloughlin` with no backing concept and the wrong `type: Organization`. Created
+  `org/noel-mcloughlin.md` (`type: Person`, `resource: https://github.com/noelmcloughlin`,
+  `timestamp: 2026-08-05T00:00:00Z`); corrected publisher type to `Person`; updated `org/index.md` and
+  the root TOC. Bundle now has 32 concepts; `lokf validate` passes.
+  **Finding for review**: `base_iri: https://github.com/noelmcloughlin/ai-linkmo/knowledge/` violates
+  Rule 2 — GitHub owns that path space, so these identifiers can never be made to resolve. Proposed
+  migration target: `https://w3id.org/ai-linkmo/knowledge/` (requires a w3id.org redirect PR). Migration
+  touches every concept `id`, publisher `id`, and typed-relation target — needs human sign-off before
+  proceeding.
 * **Schema migration (lokf toolkit upgrade)**: upgraded the lokf toolkit, which ships `lokf validate` (was
   previously unavailable). Running `lokf validate knowledge` against the upgraded schema (now backed by
   `linkml-validate`) revealed three breaking changes from the old `convert`-only validation:

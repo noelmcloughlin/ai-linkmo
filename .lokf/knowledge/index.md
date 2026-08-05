@@ -7,7 +7,7 @@ title: AI-LinkMO Knowledge Bundle
 description: A reference implementation of operational AI governance, demonstrating four DevSecOps-ready access patterns (CLI, FastAPI, Svelte web UI, and graph database) over open AI-governance data.
 license: https://creativecommons.org/licenses/by/4.0/
 publisher:
-  type: Organization
+  type: Person
   id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/noel-mcloughlin
   name: Noel McLoughlin
 ---
@@ -47,4 +47,4 @@ The external authorities the data encodes ([index](references/index.md)): [AI Ri
 
 ## Organizations
 
-([index](org/index.md)): [FINOS](org/finos.md), [IBM](org/ibm.md)
+([index](org/index.md)): [Noel McLoughlin](org/noel-mcloughlin.md), [FINOS](org/finos.md), [IBM](org/ibm.md)
