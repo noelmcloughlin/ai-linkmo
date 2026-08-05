@@ -19,7 +19,7 @@ CLI_TEST_CASES = [
     (["taxonomy", "--hasDocumentation", "NIST.AI.600-1", "--count"], 1, 1, False),
     
     # Risks
-    (["risk", "--count"], 556, 556, False),
+    (["risk", "--count"], 620, 620, False),
     (["risk", "--byod", "--count"], 549, None, True),
     (["risk", "--isDefinedByTaxonomy", "nist-ai-rmf", "--count"], 12, 12, False),
     (["risk", "--isPartOf", "granite-guardian-harm-group", "--count"], 7, 7, False),
@@ -28,12 +28,12 @@ CLI_TEST_CASES = [
     (["risk", "--phase", "training-tuning", "--count"], 0, 0, False),
     
     # Risks related to Risk
-    (["risk", "atlas-toxic-output", "--related_ids", "--count"], 13, 13, False),
-    (["risk", "atlas-toxic-output", "--related", "--count"], 13, 13, False),
+    (["risk", "atlas-toxic-output", "--related_ids", "--count"], 14, 14, False),
+    (["risk", "atlas-toxic-output", "--related", "--count"], 14, 14, False),
     (["risk", "atlas-toxic-output", "--related", "--isDefinedByTaxonomy", "nist-ai-rmf", "--count"], 2, 2, False),
     
     # Risk Groups
-    (["group", "--count"], 153, 153, False),
+    (["group", "--count"], 180, 180, False),
     (["group", "--type", "CapabilityGroup", "--count"], 8, 8, False),
     (["group", "--isDefinedByTaxonomy", "ai-risk-taxonomy", "--count"], 59, 59, False),
     (["group", "ai-risk-taxonomy-deception"], 1, 1, False),
