@@ -1,13 +1,47 @@
 # AI-LinkMO: AI Linked Data Model Operate
 
-${\color{green}A\ Reference\ Implementation\ of\ Operational\ AI\ Governance}$
+**Regulation in → auditable, queryable AI governance out.**
 
-AI-LinkMO demonstrates operational AI governance using open data and four DevSecOps-ready patterns:
+AI-LinkMO is a reference implementation of *operational* AI governance. It takes open AI-risk data — the [IBM AI Atlas Nexus ontology](https://ibm.github.io/ai-atlas-nexus/ontology/), the [FINOS AI Governance Framework](https://air-governance-framework.finos.org/), NIST AI RMF, the EU AI Act, ISO/IEC 42001, OWASP Top 10s and more — and turns it from documents you *read* into linked data you can *query, integrate, and automate against*.
 
-- **Command Line Interface (CLI)** - Automation and CI/CD pipeline integration (fastCLI, slowCLI modes)
-- **FastAPI Backend** - REST API for system integration and GRC tools (single source of truth)
-- **Svelte Web UI** - User-friendly exploration for non-technical stakeholders with persistent identifiers
-- **Graph Database** - Relationship analysis and regulatory crosswalks
+## The Problem
+
+AI governance today mostly lives in PDFs and spreadsheets:
+
+- **Frameworks multiply.** NIST AI RMF, EU AI Act, ISO/IEC 42001, FINOS AIGF, OWASP LLM Top 10, SR 11-7... each with its own vocabulary for overlapping risks and controls.
+- **Mapping is manual.** Answering *"which of our controls satisfy both NIST and the EU AI Act?"* means analysts building crosswalk spreadsheets by hand — slow, error-prone, and stale the moment a framework updates.
+- **Governance and engineering don't share a language.** Compliance teams work in policy clauses; engineers work in pipelines and APIs. Nothing traces a regulatory obligation to a deployed control.
+
+## What AI-LinkMO Does
+
+AI-LinkMO closes that gap with **one linked data model** (a LinkML ontology of risks, controls, obligations, taxonomies, models, evaluations, incidents...) exposed through **four DevSecOps-ready access patterns** — so every stakeholder gets the same single source of truth in the form they can actually use:
+
+| Access Pattern | Who It Serves | What You Get |
+| :--- | :--- | :--- |
+| **Command Line Interface (CLI)** | Engineers, CI/CD pipelines | Automation-friendly queries and exports (fastCLI/slowCLI modes) |
+| **FastAPI Backend** | System integrators, GRC tools | REST API as the single source of truth, aligned to [OpenAPI](lib/api/openapi.yaml) |
+| **Svelte Web UI** | Risk, compliance & business stakeholders | Point-and-click exploration with persistent identifiers — no coding required |
+| **Graph Database (Neo4j)** | Analysts, data scientists | Relationship analysis and regulatory crosswalks as a queryable graph |
+
+Because CLI, API, frontend and schema are all generated from [the same ontology](https://ibm.github.io/ai-atlas-nexus/ontology/), a risk identifier means the same thing everywhere — that's what makes the traceability auditable.
+
+### What that looks like in practice
+
+- *"Show me every risk defined by NIST AI RMF"* → `./ai risk --isDefinedByTaxonomy nist-ai-rmf`
+- *"Which controls mitigate toxic output?"* → `./ai control --related --hasRelatedRisk atlas-toxic-output`
+- *"Map NIST risks to the FINOS framework"* → `./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod`
+- *"Add our internal AI policy taxonomy alongside the public ones"* → drop a schema-compliant YAML file into [./byo/data](./byo/data) ([Bring Your Own Data](#bring-your-own-data))
+
+### Key concepts, in plain English
+
+| Term | What It Means |
+| :--- | :--- |
+| **Taxonomy** | A framework's catalogue of risks/controls (e.g. NIST AI RMF, FINOS AIGF) |
+| **Risk** | A named, identified harm (e.g. `atlas-toxic-output`, `nist-confabulation`) |
+| **Control / Action** | Something you do or deploy to detect or mitigate a risk |
+| **Obligation** | A requirement a framework imposes, with evidence categories describing how you prove it |
+| **Crosswalk** | A machine-generated mapping of equivalent concepts *between* frameworks |
+| **BYOD** | Bring Your Own Data — your internal policies encoded in the same schema, queryable alongside the open data |
 
 ## About Trustworthy AI
 
@@ -21,7 +55,9 @@ If you are a LLM / AI Agent, please visit [.lokf/knowledge](./.lokf/knowledge/in
 
 ---
 
-## ${\color{green}INSTALL\ AI-LINKMO}$
+## Quick Start
+
+### Install
 
 Using a [uv environment](https://docs.astral.sh/uv/pip/environments/):
 
@@ -41,7 +77,7 @@ uv run gen-json-schema --stacktrace --preserve-names --mergeimports .venv/lib/py
 
 The offline CLI is ready. Use FastAPI for blazing CLI performance.
 
-## ${\color{green}FastAPI}$
+### Start the FastAPI Backend
 
 Start FastAPI server ([details](lib/api/README.md)):
 
@@ -54,7 +90,7 @@ Its aligned to [the Ontology](https://ibm.github.io/ai-atlas-nexus/ontology/).
 
 ![FastAPI startup](./byo/images/fastapi-startup.png)
 
-## ${\color{green}WebApp}$
+### Start the Web UI
 
 In 2nd terminal, start Web Application ([details](lib/frontend/README.md)):
 
@@ -76,7 +112,7 @@ Curation Mode:
 
 ![Sveltekit Frontend Curate Mode](./byo/images/frontend-byod-sv.png)
 
-## ${\color{green}Fast CLI}$
+### Try the CLI
 
 In 3rd terminal, try CLI ([details](lib/cli/README.md)):
 
@@ -88,6 +124,9 @@ In 3rd terminal, try CLI ([details](lib/cli/README.md)):
 ![AI CLI](./byo/images/ai-cli.png)
 
 The CLI is aligned to [the Ontology](https://ibm.github.io/ai-atlas-nexus/ontology/) and [OpenAPI](lib/api/openapi.yaml), for consistent CLI, API, Frontend and Schema.
+
+<details>
+<summary><strong>CLI examples — every entity type, one command away</strong> (click to expand)</summary>
 
 | Examples from [test_cli_examples](./lib/test/test_cli_examples.py) |
 | :------------------------------- |
@@ -230,22 +269,29 @@ The CLI is aligned to [the Ontology](https://ibm.github.io/ai-atlas-nexus/ontolo
 
 And so on ..
 
-### ${\color{green}Bring\ Your\ Own\ Data}$
+</details>
+
+## Working With the Data
+
+### Bring Your Own Data
+
+The open frameworks are the starting point — the real value comes when your **internal** policies, taxonomies and controls live in the same model, so one query spans public regulation and private practice.
 
 Bring your own Data by adding schema-compliant yaml files to [./byo/data](./byo/data) directory. See [upstream readme](https://github.com/IBM/ai-atlas-nexus/blob/main/src/ai_atlas_nexus/ai_risk_ontology/util/README.md).
 
 This repository includes [FINOS](./byo/data/finos-aigf.yaml) and related examples (ffiec, eu ai, iso42001, nist_sp_800_53, owasp_llm_t10, owasp_ml_t10, sr_11_7). Validate contributed LinkML Schemas as follows:
+
 ```bash
 SDIR=".venv/lib/python3.14/site-packages/ai_atlas_nexus/ai_risk_ontology/"   # python version may vary
 uv run linkml validate byo/data/*.yaml  -s ${SDIR}/ai-risk-ontology.yaml 
 ```
 
-### ${\color{green}Graph\ DB\ Visualization}$
+### Graph DB Visualization
 
-Convert schema and instance data into Cypher representation to populate a Graph Database:
+Governance data is naturally a graph — risks relate to controls, controls implement obligations, obligations trace to frameworks. Convert schema and instance data into Cypher representation to populate a Graph Database:
 
 ```bash
-./ai graph cyper --export --byod
+./ai graph cypher --export --byod
 ```
 
 ![graph cyper export](./byo/images/graph-cyper-export.png)
@@ -271,9 +317,9 @@ Open [Neo4J Browser](http://localhost:7474/browser/) (login neo4j/demodemo) and 
 
 ---
 
-### ${\color{green}Crosswalk\ (Mappings)}$
+### Crosswalk (Mappings)
 
-Crosswalk documents are intended to provide a mapping of concepts and terms between the different taxonomies, frameworks, standards and regulation documents. The `./ai` command produces a crosswalk between the risks in two taxonomies, finds related risks, and displays a subset of risk content in a pandas dataframe.
+Crosswalks are where the linked-data approach pays off for compliance teams: instead of hand-maintained mapping spreadsheets, mappings between the different taxonomies, frameworks, standards and regulation documents are computed from the data. The `./ai` command produces a crosswalk between the risks in two taxonomies, finds related risks, and displays a subset of risk content in a pandas dataframe.
 
 ```bash
 ./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod
@@ -281,8 +327,7 @@ Crosswalk documents are intended to provide a mapping of concepts and terms betw
 
 ![Crosswalk command](./byo/images/crosswalk.png)
 
-
-## ${\color{green}CLI/API\ TESTING}$
+## CLI/API Testing
 
 Comprehensive unit tests are available for all CLI commands documented in this README.
 
@@ -301,7 +346,7 @@ uv run python lib/test/check_tests.py
 
 See [lib/test/README.md](lib/test/README.md) for detailed testing documentation.
 
-## LLM INFERENCING
+## Advanced: LLM Inferencing
 
 Note: ${\color{orange}Requires\ LLM\ service!}$
 
@@ -325,15 +370,19 @@ podman run --device nvidia.com/gpu=all  -v ~/.cache/modelscope/hub/models:/root/
 ARES is an evaluation framework for Retrieval-Augmented Generation (RAG) systems.
 An [extension for ai-atlas-nexus](https://github.com/ibm/ai-atlas-nexus-extensions/tree/main/ran-ares-integration) is available but a PR is needed for install.
 
-## ADOPT?
+## Roadmap
+
+- **Automated policy-to-risk mapping.** [asago policy mapper](https://github.com/asago-ai/asago-policy-mapper) (part of [asago.ai](https://asago.ai/), an open-source AI safety and governance orchestrator) closes the semantic gap from the other direction: it reads unstructured corporate policy documents and extracts standardized risk identifiers — from *"the model must not provide medical advice"* to `atlas-hallucination`, `nist-ms-2.5`. Integrating it upstream of AI-LinkMO would complete the loop: **policy document → extracted risks → linked model → crosswalks, controls and evidence** — traceability from policy clause to deployed control.
+
+## Adopt?
 
 Open Data / Open Source / Inner Source promotes a community driven approach to curating and cataloguing resources such as datasets, benchmarks and mitigations.
 
-### ${\color{green}Curate\ your\ own\ Open\ Data}$
+### Curate your own Open Data
 
 Before curating the Model, its recommended you familiarize yourself with the basics of [LinkML](https://linkml.io/linkml/intro/overview.html) and its metamodel components. Like many modeling frameworks, LinkML comes with a controlled vocabulary of terms that are used to describe the model. While the modeling language is robust and might seem overwhelming, understanding just a few basic components is helpful.
 
-### ${\color{green}Building\ Python\ Applications}$
+### Building Python Applications
 
 Refer to the [Python Reference](https://ibm.github.io/ai-atlas-nexus/reference/library_reference/).  The SchemaView class in the linkml-runtime provides a method for dynamically introspecting and manipulating schemas. This can be used to programatically explore or edit the AI Atlas Nexus. See [documentation](https://ibm.github.io/ai-atlas-nexus/examples/notebooks/schema_viewer/) and `schemaview()` function in `ai.py`.
 

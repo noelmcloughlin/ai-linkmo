@@ -4,7 +4,7 @@ id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/playbooks/knowledge-so
 title: Knowledge sources map
 description: The librarian's scrape map - every repository location and external URL this bundle derives concepts from, and how to re-verify each on a refresh run.
 resource: https://github.com/noelmcloughlin/ai-linkmo
-timestamp: "2026-07-27T00:00:00Z"
+timestamp: "2026-08-10T00:00:00Z"
 ---
 
 # Knowledge sources
@@ -23,10 +23,10 @@ Bootstrap discovery ran 2026-07-13; first steady-state refresh also ran 2026-07-
 | `byo/data` file headers + in-file `url:` fields | the 11 `references/` concepts and their canonical URLs | grep `url:` in each data file; URLs must match the Reference's `resource` |
 | `byo/olddata/` | mentioned in crosswalks concept only (inactive demo taxonomies) | consciously excluded - promote to a Dataset if reactivated |
 | `byo/notes/EXAMPLES.md` | four-access-patterns framing used in service descriptions | re-read on refresh |
-| README §Install / §FastAPI / §WebApp / §Fast CLI / §Testing | `playbooks/install-and-run` | walk the commands against the current README |
-| README §Bring Your Own Data + upstream ai-atlas-nexus util README | `playbooks/bring-your-own-data` | re-read the section; confirm the linkml validate incantation |
+| README §Quick Start (Install / Start the FastAPI Backend / Start the Web UI / Try the CLI) + §CLI/API Testing | `playbooks/install-and-run` | walk the commands against the current README |
+| README §Working With the Data → §Bring Your Own Data + upstream ai-atlas-nexus util README | `playbooks/bring-your-own-data` | re-read the section; confirm the linkml validate incantation |
 | `https://ibm.github.io/ai-atlas-nexus/` | `references/ai-risk-ontology`, `org/ibm` | external authority - cite on change |
 | `https://air-governance-framework.finos.org/` | `references/finos-aigf`, `org/finos` | external authority - cite on change |
 | `.github/workflows/` (cli-tests, ui-tests) | test facts inside service concepts | re-list workflow files |
 
-Not knowledge sources (consciously excluded): `lib/test/` internals, `byo/images/`, `scripts/tests.sh`, `.claude/`, `lib/frontend/STATUS.md` (transient dev notes), and the `.lokf/` sidecar itself including its automation workflows (`.github/workflows/knowledge-*.yaml`). Also excluded: README §LLM Inferencing and the `/ares` endpoint (real, code-backed in `handlers.py`/`cli.py`, but already covered generically by the dynamic OpenAPI-driven architecture in `services/cli` and `services/fastapi-backend` - no per-endpoint concepts are minted) and README §ARES Evaluation, §ADOPT?, §Curate your own Open Data, §Building Python Applications, §Research (narrative/aspirational content or guidance that re-points to already-captured references, not new facts).
+Not knowledge sources (consciously excluded): `lib/test/` internals, `byo/images/`, `scripts/tests.sh`, `.claude/`, `lib/frontend/STATUS.md` (transient dev notes), and the `.lokf/` sidecar itself including its automation workflows (`.github/workflows/knowledge-*.yaml`). Also excluded: README §LLM Inferencing and the `/ares` endpoint (real, code-backed in `handlers.py`/`cli.py`, but already covered generically by the dynamic OpenAPI-driven architecture in `services/cli` and `services/fastapi-backend` - no per-endpoint concepts are minted) and README §ARES Evaluation, §ADOPT?, §Curate your own Open Data, §Building Python Applications, §Research (narrative/aspirational content or guidance that re-points to already-captured references, not new facts). Also excluded (added 2026-08-10, business-framing rewrite): README §The Problem, §What AI-LinkMO Does (incl. its "What that looks like in practice" and glossary subsections), §About Trustworthy AI - restate/motivate facts already captured in `services/*` and `references/*` rather than introducing new ones - and §Roadmap, which names [asago-policy-mapper](https://github.com/asago-ai/asago-policy-mapper) as a possible future upstream integration; it is not code-backed in this repository (no dependency, no integration point exists yet), so no `references/` concept is minted for it. Promote it to a real `references/` or `services/` concept only once an actual integration lands.
