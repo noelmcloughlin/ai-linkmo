@@ -10,6 +10,7 @@ taxonomies:
       Management, Audit, Business Continuity Management, Development & Acquisition,
       Outsourcing, Retail Payment Systems, Information Security, Supervision of
       Technology Service Providers, Wholesale Payment Systems).
+    type: RiskControlGroupTaxonomy
     url: https://ithandbook.ffiec.gov/
     version: current
     hasDocumentation:
@@ -910,6 +911,8 @@ groups:
     description: >-
       FFIEC IT Examination Handbook booklet grouping: AIO: Architecture, Infrastructure,
       and Operations.
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-aio
     dateCreated: '2026-06-25'
@@ -918,6 +921,8 @@ groups:
     name: 'ARC: Archived Booklets'
     description: 'FFIEC IT Examination Handbook booklet grouping: ARC: Archived
       Booklets.'
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-arc
     dateCreated: '2026-06-25'
@@ -925,6 +930,8 @@ groups:
   - id: ffiec-it-group-aud
     name: 'AUD: Audit'
     description: 'FFIEC IT Examination Handbook booklet grouping: AUD: Audit.'
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-aud
     dateCreated: '2026-06-25'
@@ -933,6 +940,8 @@ groups:
     name: 'BCM: Business Continuity Management'
     description: >-
       FFIEC IT Examination Handbook booklet grouping: BCM: Business Continuity Management.
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-bcm
     dateCreated: '2026-06-25'
@@ -942,6 +951,8 @@ groups:
     description: >-
       FFIEC IT Examination Handbook booklet grouping: DAM: Development, Acquisition,
       and Maintenance.
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-dam
     dateCreated: '2026-06-25'
@@ -949,6 +960,8 @@ groups:
   - id: ffiec-it-group-mgt
     name: 'MGT: Management'
     description: 'FFIEC IT Examination Handbook booklet grouping: MGT: Management.'
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-mgt
     dateCreated: '2026-06-25'
@@ -958,6 +971,8 @@ groups:
     description: >-
       FFIEC IT Examination Handbook booklet grouping: OTS: Outsourcing Technology
       Services.
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-ots
     dateCreated: '2026-06-25'
@@ -966,6 +981,8 @@ groups:
     name: 'RPS: Retail Payment Systems'
     description: 'FFIEC IT Examination Handbook booklet grouping: RPS: Retail Payment
       Systems.'
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-rps
     dateCreated: '2026-06-25'
@@ -974,6 +991,8 @@ groups:
     name: 'SEC: Information Security'
     description: 'FFIEC IT Examination Handbook booklet grouping: SEC: Information
       Security.'
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-sec
     dateCreated: '2026-06-25'
@@ -983,6 +1002,8 @@ groups:
     description: >-
       FFIEC IT Examination Handbook booklet grouping: TSP: Supervision of Technology
       Service Providers.
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-tsp
     dateCreated: '2026-06-25'
@@ -991,6 +1012,8 @@ groups:
     name: 'WPS: Wholesale Payment Systems'
     description: >-
       FFIEC IT Examination Handbook booklet grouping: WPS: Wholesale Payment Systems.
+    type: RiskControlGroup
+    isDefinedByTaxonomy: ffiec-it-handbook
     hasDocumentation:
       - ffiec-itbook-wps
     dateCreated: '2026-06-25'

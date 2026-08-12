@@ -1711,9 +1711,10 @@ entries:
       - AIR-OP-004
       - AIR-OP-017
       - AIR-OP-019
-    # hasStakeholder is single-valued in the schema; additional human
-    # end-users are captured with the multivalued hasAIUser slot.
-    hasStakeholder: stakeholder-risk-analyst
+    # hasStakeholder names the accountable owner; human end-users are
+    # captured separately with hasAIUser.
+    hasStakeholder:
+      - stakeholder-risk-analyst
     hasAIUser:
       - stakeholder-loan-officer
     isAppliedWithinDomain:
@@ -1747,9 +1748,10 @@ entries:
       - AIR-OP-014
       - AIR-OP-017
       - AIR-OP-019
-    # hasStakeholder is single-valued in the schema; the co-advising user
+    # hasStakeholder names the accountable owner; the co-advising user
     # goes in hasAIUser and the affected client in hasAISubject.
-    hasStakeholder: stakeholder-wealth-advisor
+    hasStakeholder:
+      - stakeholder-wealth-advisor
     hasAIUser:
       - stakeholder-financial-planner
     hasAISubject:

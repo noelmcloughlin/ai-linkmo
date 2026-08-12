@@ -8,7 +8,7 @@ taxonomies:
       Regulation of the European Parliament and of the Council laying down harmonised
       rules on artificial intelligence (Artificial Intelligence Act). Indexed by
       article via the AI Act Explorer.
-    type: Taxonomy
+    type: RiskTaxonomy
     url: https://artificialintelligenceact.eu/
     version: '2024'
     hasDocumentation:
