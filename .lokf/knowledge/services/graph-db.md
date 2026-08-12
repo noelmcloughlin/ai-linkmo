@@ -1,5 +1,6 @@
 ---
 type: Service
+genre: reference
 id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/graph-db
 title: Neo4j Graph Database
 description: Graph-database access pattern - the exported knowledge graph is loaded into Neo4j via Cypher for relationship analysis and regulatory crosswalks.
@@ -8,7 +9,7 @@ tags:
   - graph
   - neo4j
   - cypher
-timestamp: "2026-07-13T00:00:00Z"
+timestamp: "2026-08-12T00:00:00Z"
 dependsOn:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/knowledge-graph-export
 ---

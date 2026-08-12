@@ -1,5 +1,6 @@
 ---
 type: Service
+genre: reference
 id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/web-ui
 title: Svelte Web UI
 description: Vite + Svelte 5 single-page application for exploring AI governance data through the FastAPI backend, aimed at non-technical stakeholders.
@@ -10,7 +11,7 @@ tags:
   - frontend
   - svelte
   - spa
-timestamp: "2026-07-13T00:00:00Z"
+timestamp: "2026-08-12T00:00:00Z"
 dependsOn:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/fastapi-backend
 ---

@@ -1,5 +1,6 @@
 ---
 type: Dataset
+genre: reference
 id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/owasp-ml-top-10
 title: OWASP ML Security Top 10 dataset
 description: OWASP Machine Learning Security Top 10 encoded as a risk taxonomy.
@@ -7,7 +8,7 @@ resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/byo/data/owasp_m
 tags:
   - byod
   - ai-governance
-timestamp: "2026-07-13T00:00:00Z"
+timestamp: "2026-08-12T00:00:00Z"
 derivedFrom:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/owasp-ml-top-10
 source:

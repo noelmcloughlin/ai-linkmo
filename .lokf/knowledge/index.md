@@ -45,6 +45,16 @@ The external authorities the data encodes ([index](references/index.md)): [AI Ri
 * [Install and run AI-LinkMO](playbooks/install-and-run.md)
 * [Bring your own data (BYOD)](playbooks/bring-your-own-data.md)
 
+## Glossary
+
+The domain vocabulary ([index](glossary/index.md)): [Taxonomy](glossary/taxonomy.md), [Risk](glossary/risk.md), [Control / Action](glossary/control-action.md), [Obligation](glossary/obligation.md), [Crosswalk](glossary/crosswalk.md), [Bring Your Own Data (BYOD)](glossary/byod.md)
+
+## Explanations
+
+([index](explanations/index.md))
+
+* [Why linked AI governance](explanations/why-linked-ai-governance.md) - the problem the repository answers, and why one shared ontology makes traceability auditable.
+
 ## Organizations
 
 ([index](org/index.md)): [Noel McLoughlin](org/noel-mcloughlin.md), [FINOS](org/finos.md), [IBM](org/ibm.md)

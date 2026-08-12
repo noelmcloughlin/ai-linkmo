@@ -1,10 +1,11 @@
 ---
 type: Reference
+genre: reference
 id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ffiec-it-handbook
 title: FFIEC IT Examination Handbook
 description: The Federal Financial Institutions Examination Council's Information Technology Examination Handbook.
 resource: https://ithandbook.ffiec.gov/
-timestamp: "2026-07-13T00:00:00Z"
+timestamp: "2026-08-12T00:00:00Z"
 ---
 
 # FFIEC IT Examination Handbook

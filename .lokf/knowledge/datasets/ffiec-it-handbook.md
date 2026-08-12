@@ -1,5 +1,6 @@
 ---
 type: Dataset
+genre: reference
 id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/ffiec-it-handbook
 title: FFIEC IT Handbook dataset
 description: FFIEC Information Technology Examination Handbook encoded as a taxonomy with group rows per booklet and documentation rows per section.
@@ -7,7 +8,7 @@ resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/byo/data/ffiec_i
 tags:
   - byod
   - ai-governance
-timestamp: "2026-07-13T00:00:00Z"
+timestamp: "2026-08-12T00:00:00Z"
 derivedFrom:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ffiec-it-handbook
 source:
