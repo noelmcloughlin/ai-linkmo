@@ -104,20 +104,14 @@ fallback for `<BASE_IRI>` - and flag every guessed value for review in the Step 
 name = "<PROJ_SLUG>-knowledge"
 version = "0.1.0"
 description = "LOKF knowledge-bundle tooling for <PROJ_NAME>."
-requires-python = ">=3.11"
+# Keep in sync with the `lokf` toolkit's own requires-python floor.
+requires-python = ">=3.10"
 dependencies = [
-    "linkml>=1.11.1",
-    "lokf[build]>=0.3.0",
+    "lokf[build]>=0.5.0",
 ]
 
 [tool.uv]
 package = false
-
-# `lokf validate` is a recent toolkit addition; if your `lokf` is not on a public
-# package index yet, pin it here instead of the plain `lokf` dependency above -
-# a git ref is the most portable option:
-#   [tool.uv.sources]
-#   lokf = { git = "https://github.com/nicholsn/lokf.git", rev = "<tag-or-sha>" }
 ```
 
 ### `.lokf/.gitignore`
@@ -165,8 +159,8 @@ lokf-serve:
 
 ```markdown
 ---
-lokf_version: "0.1"
-okf_version: "0.1"
+lokf_version: "0.2"
+okf_version: "0.2"
 base_iri: <BASE_IRI>
 context: https://w3id.org/lokf/context.jsonld
 title: <PROJ_NAME> Knowledge Bundle
@@ -651,8 +645,9 @@ Task (Karpathy rule - continuous small corrections, not a rewrite):
      sources recorded in the bundle (concept provenance and
      .lokf/knowledge/playbooks/knowledge-sources.md).
   2. Reconcile the .lokf/ knowledge bundle with the repository: add missing
-     concepts, correct stale facts (updating each changed concept's timestamp),
-     wire typed relations, and prepend dated entries to
+     concepts, correct stale facts (refreshing each changed concept's
+     `generated` provenance, which supersedes the v0.1 `timestamp`), wire
+     typed relations, and prepend dated entries to
      .lokf/knowledge/log.md - but only when the bundle content actually
      changed. If nothing changed, leave the bundle (including log.md)
      untouched; do not log administrative no-op runs.
