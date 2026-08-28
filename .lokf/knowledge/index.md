@@ -1,6 +1,6 @@
 ---
-lokf_version: "0.1"
-okf_version: "0.1"
+lokf_version: "0.2"
+okf_version: "0.2"
 base_iri: https://github.com/noelmcloughlin/ai-linkmo/knowledge/
 context: https://w3id.org/lokf/context.jsonld
 title: AI-LinkMO Knowledge Bundle

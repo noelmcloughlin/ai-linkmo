@@ -9,10 +9,10 @@
 name = "ai-linkmo-knowledge"
 version = "0.1.0"
 description = "LOKF knowledge-bundle tooling for AI-LinkMO."
-requires-python = ">=3.11"
+# Keep in sync with the `lokf` toolkit's own requires-python floor.
+requires-python = ">=3.10"
 dependencies = [
-    "linkml>=1.11.1",
-    "lokf>=0.4.0",
+    "lokf[build]>=0.6.0",
 ]
 
 [tool.uv]
