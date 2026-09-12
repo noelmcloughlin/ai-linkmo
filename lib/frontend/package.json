@@ -18,7 +18,7 @@
     "daisyui": "^5.5.19",
     "debounce": "^3.0.0",
     "js-yaml": "^4.1.1",
-    "svelte": "^5.55.5",
+    "svelte": "^5.57.0",
     "svelte-routing": "^2.13.0",
     "svelte-select": "^5.8.3",
     "tailwind-merge": "^3.6.0",
