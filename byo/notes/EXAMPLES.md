@@ -28,7 +28,7 @@ Diagram:
 
 ## Demo
 
-**1. CLI - Automation Pattern**
+### 1. CLI - Automation Pattern
 
 Show these commands:
 
@@ -91,21 +91,21 @@ GitHub Actions example with model matrix:
 - Exit codes for pipeline integration
 - Same pattern as security scanners (Snyk, Veracode)
 
-**2. REST API - Integration Pattern**
+### 2. REST API - Integration Pattern
 
 - FastAPI documentation at /docs
 - Query endpoints
 - Show JSON responses
 - Integration with GRC tools
 
-**3. Web UI - Exploration Pattern**
+### 3. Web UI - Exploration Pattern
 
 - Browse risk categories
 - Explore risk details and mitigations
 - Filter and search capabilities
 - User-friendly for non-technical stakeholders
 
-**4. Graph DB - Analysis Pattern**
+### 4. Graph DB - Analysis Pattern
 
 - Relationship visualization
 - Risk → Control → Model connections
@@ -113,7 +113,6 @@ GitHub Actions example with model matrix:
 - Evidence generation for audits
 
 ---
-
 
 ## DevSecOps Integration - Example
 
@@ -215,7 +214,6 @@ Real-world usage:
 - **Pre-deployment:** Gate before production
 - **Continuous monitoring:** Scheduled scans
 - **Audit trail:** Automated evidence generation
-
 
 ## Operations in Action - Real Command Examples
 

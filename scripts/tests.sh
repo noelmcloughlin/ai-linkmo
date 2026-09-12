@@ -20,7 +20,6 @@ if ! python -c "import pytest" 2>/dev/null; then
     echo ""
 fi
 
-TIMEOUT="2000"  # Default timeout for tests
 # Parse arguments
 MODE=${1:-"fast"}
 

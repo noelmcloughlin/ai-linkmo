@@ -56,7 +56,7 @@ uv run pytest lib/test/test_cli_examples.py::test_cli_api_mode[risk-count] -v
 
 ## Test Data
 
-Tests use the AI Atlas Nexus knowledge graph (open source data). 
+Tests use the AI Atlas Nexus knowledge graph (open source data).
 Tests marked with `byod_required=True` are skipped unless BYOD data is present.
 
 ## CI/CD Integration

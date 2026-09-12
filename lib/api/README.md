@@ -16,11 +16,10 @@ The Dynamic endpoint generator (`server_dynamic.py`), parses OpenAPI spec and
 generates FastAPI endpoint functions on the fly, maps parameters to handler
 functions, and validates request/responses.
 
-
 ```ascii
 ┌──────────────────────────────────────┐
 │         openapi.yaml                 │  ← Single Source of Truth
-│  - endpoints, paramters, handlers    │
+│  - endpoints, parameters, handlers    │
 └──────────────┬───────────────────────┘
                │ parsed by
 ┌──────────────▼───────────────────────┐
@@ -144,4 +143,3 @@ YAML.
   else `no-store`. Set the header explicitly on a response to opt out.
 - **Lifespan**: server now fails fast if the default `AIAtlasNexus`
   instance can't initialise (the BYOD instance is still optional).
-

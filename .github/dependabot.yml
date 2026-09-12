@@ -1,0 +1,50 @@
+version: 2
+updates:
+  # Keeps this repository's OWN workflows (.github/workflows/*.yml|*.yaml)
+  # current - it understands the `@<sha> # v1.2.3` pin convention used
+  # throughout and opens a PR bumping both when a pinned action releases.
+  # Every workflow here pins to a commit SHA, which is exactly the convention
+  # that goes stale silently: actionlint catches syntax drift, not staleness.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(actions)"
+
+  # The application's own Python dependency tree (pyproject.toml + uv.lock):
+  # the FastAPI/Flask services, the CLI, the ontology toolchain, and the test
+  # extra. These reach runtime, so a bump here can change behaviour rather than
+  # just the build - cli-tests.yml is the gate that has to stay green.
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # The .lokf/ sidecar's Python toolchain (the `lokf` package). Kept separate
+  # from the application tree above: it maintains this repo's knowledge bundle
+  # and has nothing to do with the app. A major bump here can require concept
+  # frontmatter changes, so these PRs want a human read, not a rubber stamp -
+  # see the lokf-librarian skill's own "check sidecar tooling versions" step.
+  - package-ecosystem: "uv"
+    directory: "/.lokf"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(lokf)"
+
+  # The Svelte frontend's toolchain and runtime dependencies. Dev dependencies
+  # are grouped so a routine week is one PR to review rather than a dozen;
+  # runtime ones (svelte, tailwind, the UI libraries) stay separate because
+  # they ship to the browser.
+  - package-ecosystem: "npm"
+    directory: "/lib/frontend"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(ui)"
+    groups:
+      dev-dependencies:
+        dependency-type: "development"

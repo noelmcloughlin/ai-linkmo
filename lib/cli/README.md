@@ -16,7 +16,7 @@ lib/cli/
 
 CLI parameter metadata is extracted (`extract_parameters_from_spec()`) from the OpenAPI specification for consistency across both API and CLI.
 
-The schema is converted to argparse format (`schema_to_argparse_config()`) perserving parameter names and descriptions, and the argparse configuration is dynamically created (`create_argument_parser()`).
+The schema is converted to argparse format (`schema_to_argparse_config()`) preserving parameter names and descriptions, and the argparse configuration is dynamically created (`create_argument_parser()`).
 
 Parameters added, removed, or modified in `lib/api/openapi.yaml` are automatically handled by the CLI.
 
@@ -109,4 +109,3 @@ New suites added in this iteration:
 - `lib/test/test_byo_put.py` - traversal / suffix / oversize / malformed-YAML on `PUT /byo`.
 - `lib/test/test_endpoints.py` - `/version`, `/ready`, `/classes`, `/inference`, `Cache-Control`.
 - `lib/test/test_validate_handlers.py` - pytest shim for the OpenAPI<->handler drift check.
-
