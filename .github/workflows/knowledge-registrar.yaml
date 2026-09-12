@@ -1,19 +1,24 @@
-name: Knowledge Bundle Validation
+name: Knowledge Registrar
 
-# Validate the LOKF knowledge bundle whenever it (or its tooling) changes, and on
-# a weekly schedule.
+# The registrar's job: keep the LOKF knowledge bundle's records well-formed and
+# provenanced - never judge whether their content is true, that's the curator's
+# job. Validates the bundle whenever it (or its tooling) changes, and on a
+# weekly schedule.
 on:
   pull_request:
     paths:
-      - "lokf/**"
-      - ".github/workflows/knowledge-validate.yaml"
+      - ".lokf/**"
+      - "knowledge_bundle/**" # the bundle's visible name, when it is the real folder
+      - ".github/workflows/knowledge-registrar.yaml"
   schedule:
     - cron: "0 6 * * 1" # Mondays at 06:00 UTC
   workflow_dispatch:
 
+permissions: {} # deny by default; the job below opts into read access only
+
 # Cancel superseded runs on the same ref to save runner time.
 concurrency:
-  group: knowledge-validate-${{ github.ref }}
+  group: knowledge-registrar-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,18 +28,25 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           python-version: "3.12"
 
       - name: Install the lokf sidecar
-        run: uv sync
-        working-directory: lokf
+        run: uv sync --locked
+        working-directory: .lokf
 
       - name: Validate the knowledge bundle
         run: uv run lokf validate knowledge
-        working-directory: lokf
+        working-directory: .lokf

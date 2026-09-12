@@ -12,6 +12,9 @@ on:
       - ".github/workflows/ui-tests.yml"
   workflow_dispatch:
 
+# Least-privilege default; see cli-tests.yml for the reasoning.
+permissions: {}
+
 concurrency:
   group: ui-tests-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -23,11 +26,26 @@ defaults:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      # Audit-mode egress monitor. This job runs npm lifecycle scripts (`npm ci`
+      # below runs esbuild's and Playwright's, which fetch platform binaries)
+      # and then a headless browser, so it has the widest dependency surface of
+      # any workflow here. Note the deliberate absence of `--ignore-scripts`:
+      # the Vite/Playwright toolchain needs those scripts to produce a working
+      # build, so the monitor - not script suppression - is the control.
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22"
           cache: "npm"

@@ -1,0 +1,13 @@
+exclude = [
+  # LOKF's published JSON-LD context; upstream's identifier, not this repo's,
+  # currently 404s. Drop once the w3id.org redirect is registered.
+  '^https://w3id\.org/lokf/context\.jsonld$',
+  # This bundle's own `base_iri` namespace. A LOKF concept `id` is an
+  # identifier that merely looks like a URL - a 404 on it is valid by design.
+  # This particular namespace is also pending migration to one the project
+  # controls (see the bundle's open question about base_iri authority).
+  '^https://github\.com/noelmcloughlin/ai-linkmo/knowledge/',
+  # Development-only addresses printed in setup instructions.
+  '^http://localhost',
+  '^http://127\.0\.0\.1',
+]

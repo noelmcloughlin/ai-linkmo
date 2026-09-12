@@ -24,6 +24,13 @@ on:
       - ".github/workflows/cli-tests.yml"
   workflow_dispatch:
 
+# Least-privilege default: every scope starts at none. The job below opts back
+# into only the read access it needs to check out code; no other job (present
+# or future) inherits more. `pull_request` (not `pull_request_target`) already
+# keeps a fork PR's GITHUB_TOKEN read-only and its run secret-free - this is
+# defense in depth, not what makes fork PRs safe here.
+permissions: {}
+
 concurrency:
   group: cli-tests-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -31,19 +38,38 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
+      # Monitors the runner's outbound network traffic for the rest of this job
+      # and flags anything unexpected - the main defense here against a
+      # compromised dependency phoning home, doubly relevant on a job that also
+      # builds arbitrary fork PR branches. Audit mode only: it observes and
+      # reports rather than blocking, since hand-maintaining an exact egress
+      # allowlist would be fragile against ordinary dependency churn. See
+      # https://github.com/step-security/harden-runner.
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           enable-cache: true
 
       - name: Set up Python
         run: uv python install
 
+      # --locked fails the run if uv.lock is out of step with pyproject.toml,
+      # rather than silently resolving something the lockfile never pinned - CI
+      # then tests the same dependency set a developer gets from `uv sync`.
       - name: Install dependencies
-        run: uv sync --extra test
+        run: uv sync --locked --extra test
 
       # Excludes tests marked "slow": local-mode CLI runs (each spawns a
       # fresh interpreter and loads the full ontology, ~25 min) and the
