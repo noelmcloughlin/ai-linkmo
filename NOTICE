@@ -1,0 +1,31 @@
+AI-LinkMO
+Copyright 2026 Noel McLoughlin
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This project demonstrates four access patterns over a linked AI-governance
+knowledge graph: a command-line interface, an HTTP API, a web UI, and direct
+graph queries.
+
+It encodes and cross-walks publicly published governance frameworks, each the
+work of its own authors and carrying its own terms:
+
+- NIST AI Risk Management Framework, NIST AI 600-1, and NIST SP 800-53 Rev. 5 (National Institute of Standards and Technology)
+- ISO/IEC 42001 (International Organization for Standardization)
+- EU AI Act (European Union)
+- FINOS AI Governance Framework (Fintech Open Source Foundation)
+- IBM AI Risk Atlas (IBM)
+- OWASP Top 10 for LLM Applications and OWASP Machine Learning Security Top 10 (OWASP Foundation)
+- SR 11-7 (Board of Governors of the Federal Reserve System)
+- FFIEC IT Handbook (Federal Financial Institutions Examination Council)
+
+The encodings under byo/ and graph/ are this project's interpretation of those
+frameworks, not official representations of them. Consult each framework's own
+publication for authoritative text.
+
+This product maintains its documentation as a Linked Open Knowledge Format
+(LOKF) bundle under .lokf/: https://lokf.nolan-nichols.com/specification/
+
+LOKF is a semantic profile of the Open Knowledge Format (OKF) specification by
+Google Cloud Platform:
+https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md

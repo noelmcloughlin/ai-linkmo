@@ -3,6 +3,9 @@ name = "ai-linkmo"
 version = "0.1.0"
 description = "Demonstrate four access patterns for AI Governance"
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Noel McLoughlin" }]
 requires-python = ">=3.11"
 dependencies = [
     "ninja",
