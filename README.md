@@ -1,323 +1,180 @@
 # AI-LinkMO: AI Linked Data Model Operate
 
+> "Search out, to no one favour show; with heart that justice loves\
+> Consult, then act; this is the rule that right approves."\
+> — Thiruvalluvar, *Tirukkural* 541, *The Right Sceptre* (tr. G.U. Pope, 1886)
+
 **Regulation in → auditable, queryable AI governance out.**
 
-AI-LinkMO is a reference implementation of *operational* AI governance. It takes open AI-risk data — the [IBM AI Atlas Nexus ontology](https://ibm.github.io/ai-atlas-nexus/ontology/), the [FINOS AI Governance Framework](https://air-governance-framework.finos.org/), NIST AI RMF, the EU AI Act, ISO/IEC 42001, OWASP Top 10s and more — and turns it from documents you *read* into linked data you can *query, integrate, and automate against*.
+AI-LinkMO is a reference implementation of *operational* AI governance. It takes open AI-risk data - the [IBM AI Atlas Nexus ontology](https://ibm.github.io/ai-atlas-nexus/ontology/), the [FINOS AI Governance Framework](https://air-governance-framework.finos.org/), NIST AI RMF, the EU AI Act, ISO/IEC 42001, OWASP Top 10s and more (nine frameworks, each credited in [NOTICE](NOTICE)) - and turns it from documents you *read* into linked data you can *query, integrate, and automate against*. **One linked model, four ways in: a risk identifier means the same thing in a terminal, a pipeline, a browser, and a graph query.**
 
-## The Problem
+*Here to run it? Start at [Install](#install). Here to see what this adds to AI Atlas Nexus? Start at [Where this sits](#where-this-sits-an-execution-workshop-over-ai-atlas-nexus).*
+
+> **Two ways in.** This README is one; the other is a docent. Install [`lokf-docent`](https://github.com/noelmcloughlin/lokf-agent-skills) into whatever agent you already use - `npx skills add noelmcloughlin/lokf-agent-skills --skill lokf-docent --yes` - and ask it anything about this project - *Where does the EU AI Act encoding come from, and who checked it?*, say. It answers from `.lokf/knowledge/`, the checked part of what the project knows, says how far each answer has been trusted (still a draft, checked by automation only, or confirmed by a named person), opens the source for exact values, and records what it couldn't answer so the gap gets filled. One door for a person at a prompt, an agent reading this file, or a chatbot that can load a skill. **Agents:** if `.lokf/knowledge/index.md` exists, read it first - `llms.txt` says how to weigh it.
+
+## Why governance needs a catalogue
 
 AI governance today mostly lives in PDFs and spreadsheets:
 
 - **Frameworks multiply.** NIST AI RMF, EU AI Act, ISO/IEC 42001, FINOS AIGF, OWASP LLM Top 10, SR 11-7... each with its own vocabulary for overlapping risks and controls.
-- **Mapping is manual.** Answering *"which of our controls satisfy both NIST and the EU AI Act?"* means analysts building crosswalk spreadsheets by hand — slow, error-prone, and stale the moment a framework updates.
+- **Mapping is manual.** Answering *"which of our controls satisfy both NIST and the EU AI Act?"* means analysts building crosswalk spreadsheets by hand - slow, error-prone, and stale the moment a framework updates.
 - **Governance and engineering don't share a language.** Compliance teams work in policy clauses; engineers work in pipelines and APIs. Nothing traces a regulatory obligation to a deployed control.
 
-## What AI-LinkMO Does
+The knowledge already exists - it is in the frameworks. What is missing is the catalogue: one model in which a risk, a control, and the clause that requires it are each one record with one identifier, so that the question above is a query rather than a quarter's work, and the answer is the same whoever asks it and however they ask.
 
-AI-LinkMO closes that gap with **one linked data model** (a LinkML ontology of risks, controls, obligations, taxonomies, models, evaluations, incidents...) exposed through **four DevSecOps-ready access patterns** — so every stakeholder gets the same single source of truth in the form they can actually use:
+## One model, four ways in
 
-| Access Pattern | Who It Serves | What You Get |
+AI-LinkMO closes that gap with **one linked data model** (a LinkML ontology of risks, controls, obligations, taxonomies, models, evaluations, incidents...) exposed through **four DevSecOps-ready access patterns** - so every stakeholder gets the same single source of truth in the form they can actually use:
+
+| Access pattern | Who it serves | What you get |
 | :--- | :--- | :--- |
 | **Command Line Interface (CLI)** | Engineers, CI/CD pipelines | Automation-friendly queries and exports (fastCLI/slowCLI modes) |
 | **FastAPI Backend** | System integrators, GRC tools | REST API as the single source of truth, aligned to [OpenAPI](lib/api/openapi.yaml) |
-| **Svelte Web UI** | Risk, compliance & business stakeholders | Point-and-click exploration with persistent identifiers — no coding required |
+| **Svelte Web UI** | Risk, compliance & business stakeholders | Point-and-click exploration with persistent identifiers - no coding required |
 | **Graph Database (Neo4j)** | Analysts, data scientists | Relationship analysis and regulatory crosswalks as a queryable graph |
 
-Because CLI, API, frontend and schema are all generated from [the same ontology](https://ibm.github.io/ai-atlas-nexus/ontology/), a risk identifier means the same thing everywhere — that's what makes the traceability auditable.
+<p align="center">
+  <img src="byo/images/architecture.png" alt="Architecture: sources in, one linked model, four access patterns out" width="720" />
+</p>
 
-### What that looks like in practice
+Because CLI, API, frontend and schema are all generated from [the same ontology](https://ibm.github.io/ai-atlas-nexus/ontology/), a risk identifier means the same thing everywhere - that is what makes the traceability auditable. The couplet at the top is the shape of the work: *search out* the frameworks; show *no favour* among them, one ontology and one identifier for each thing; *consult* them against each other, which is what a crosswalk is; *then act*, from a terminal, a pipeline, a browser, or a graph query.
+
+## What it looks like
 
 - *"Show me every risk defined by NIST AI RMF"* → `./ai risk --isDefinedByTaxonomy nist-ai-rmf`
 - *"Which controls mitigate toxic output?"* → `./ai control --related --hasRelatedRisk atlas-toxic-output`
 - *"Map NIST risks to the FINOS framework"* → `./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod`
-- *"Add our internal AI policy taxonomy alongside the public ones"* → drop a schema-compliant YAML file into [./byo/data](./byo/data) ([Bring Your Own Data](#bring-your-own-data))
+- *"Add our internal AI policy taxonomy alongside the public ones"* → drop a schema-compliant YAML file into [./byo/data](./byo/data) ([Bring your own data](#bring-your-own-data))
+- *"Walk me through all four, with a real incident"* → [byo/notes/EXAMPLES.md](byo/notes/EXAMPLES.md), a scripted demo that traces a leaked-prompt incident to its risks and controls and ends in a CI gate
+
+Screenshots of each door - the API starting, the web UI and its record viewer, curate mode, the CLI, a crosswalk, and the graph in Neo4j - are in [byo/images/](byo/images/).
 
 ### Key concepts, in plain English
 
-| Term | What It Means |
+| Term | What it means |
 | :--- | :--- |
 | **Taxonomy** | A framework's catalogue of risks/controls (e.g. NIST AI RMF, FINOS AIGF) |
 | **Risk** | A named, identified harm (e.g. `atlas-toxic-output`, `nist-confabulation`) |
 | **Control / Action** | Something you do or deploy to detect or mitigate a risk |
 | **Obligation** | A requirement a framework imposes, with evidence categories describing how you prove it |
 | **Crosswalk** | A machine-generated mapping of equivalent concepts *between* frameworks |
-| **BYOD** | Bring Your Own Data — your internal policies encoded in the same schema, queryable alongside the open data |
+| **Incident** | A realised risk - something that actually happened (e.g. `ibm-risk-atlas-ri-fake-legal-cases`), linked back to the risks it demonstrates |
+| **Evaluation** | A benchmark or test that measures a risk or a capability (e.g. `ai_eval_PopQA`), linked to the datasets and tasks it uses |
+| **BYOD** | Bring Your Own Data - your internal policies encoded in the same schema, queryable alongside the open data |
 
-## About Trustworthy AI
+## Where this sits: an execution workshop over AI Atlas Nexus
 
-- [AI Ontology](https://ibm.github.io/ai-atlas-nexus/ontology/): System view and Risk view.
-- Open Data from [AI Atlas Nexus](https://ibm.github.io/ai-atlas-nexus/)
-- Open Data from [FINOS](https://air-governance-framework.finos.org/)
+AI-LinkMO's family is [IBM AI Atlas Nexus](https://ibm.github.io/ai-atlas-nexus/). Upstream provides the model and the data; this repository is a workshop that executes over them. It adds doors, encodings and checks, and no ontology of its own.
 
-## LLM Visitors
+### Upstream: AI Atlas Nexus
 
-If you are a LLM / AI Agent, please visit [.lokf/knowledge](./.lokf/knowledge/index.md) for durable memory of this project structure.
+- **The AI Risk Ontology**, a [LinkML](https://linkml.io/) schema of risks, controls, obligations, taxonomies, models, evaluations and incidents. Every CLI command, API route, UI form and graph label here is generated from it, which is why one identifier means the same thing at every door.
+- **The packaged risk data** - the IBM AI Risk Atlas, the public taxonomies packaged with it, and the relationships between them. The related-risk, related-control and related-incident lookups, and so the crosswalk, walk upstream's relationships through the `ai-atlas-nexus` library; the LLM inference path calls its risk identification.
+- **The toolchain**: the library that loads the ontology and the data, and LinkML's generators, which produce the JSON Schema the web UI ships.
 
----
+### What this repository adds
 
-## Quick Start
+| Added here | Where |
+| :--- | :--- |
+| Four doors onto one model: CLI, FastAPI, Svelte UI, Cypher export for Neo4j | `lib/cli/`, `lib/api/`, `lib/frontend/`, `graph/` |
+| Nine governance frameworks encoded in the ontology's own classes, as bring-your-own-data examples | `byo/data/` |
+| Crosswalks between two taxonomies, on screen and as files | `./ai crosswalk`, `graph/` |
+| A scripted walk through all four doors, ending in a CI gate | `byo/notes/EXAMPLES.md` |
+| Every CLI example run as a test, in API mode and in local mode | `lib/test/` |
+| Curate mode: a person adds, edits or deletes records in their own files through the UI | `PUT /byo` |
 
-### Install
+### What it does not add yet
 
-Using a [uv environment](https://docs.astral.sh/uv/pip/environments/):
+Provenance on the records. Each file under `byo/data/` says in a header comment which script produced it and from which input, and every row carries the same `dateCreated`, the day the generator ran. Nothing says who checked an encoding against the framework's own text, from which edition, or when it should be checked again, and the ontology has no field for it. For an auditor that is the first question; for all nine frameworks the answer today is *nobody has checked this yet*. Curate mode has the same gap: a person edits a record, but the persona is not an identity and the record keeps no trace of who. Whether provenance belongs in the ontology or elsewhere is the second roadmap bullet under [For the curious](#for-the-curious).
+
+The repository also keeps a small knowledge bundle about *itself* under `.lokf/` - documentation, not governance data, and no part of the product - described at the [end of this README](#about-this-repositorys-own-knowledge-bundle).
+
+## Install
+
+Python 3.11+ and [uv](https://docs.astral.sh/uv/); Node 22 for the web UI.
 
 ```bash
-## Two Red Hat specific steps
-sudo yum install gcc-toolkit-12 gcc-toolkit-14 ninja-build -y    # once off if gcc < 12
-scl enable gcc-toolset-12 bash
-
-# export UV_DEFAULT_INDEX=https://proxy.example.com/repository/pypi-all/simple
-uv cache clean
-MAX_JOBS=4 UV_HTTP_TIMEOUT=60s TORCH_CUDA_ARCH_LIST="8.6" uv sync   # be patient
-
-# If `ai-atlas-nexus` package was upgraded, even if unsure, rebuild UI schema:
-
-uv run gen-json-schema --stacktrace --preserve-names --mergeimports .venv/lib/python3.14/site-packages/ai_atlas_nexus/ai_risk_ontology/schema/ai-risk-ontology.yaml > lib/frontend/static/schema/ai-risk-ontology.json
+uv sync --extra test
+./ai --help
 ```
 
-The offline CLI is ready. Use FastAPI for blazing CLI performance.
+That is the offline CLI, ready to use. If `uv sync` needs to compile anything on your machine (an older `gcc`, a CUDA build, a corporate package index), or you have upgraded `ai-atlas-nexus` and need to regenerate the UI's schema, see [docs/install-notes.md](docs/install-notes.md).
 
-### Start the FastAPI Backend
+## Usage
 
-Start FastAPI server ([details](lib/api/README.md)):
+### Start the API
+
+Start the FastAPI server ([details](lib/api/README.md)):
 
 ```bash
-uv sync
 uv run uvicorn lib.api.server:app --reload
 ```
 
-Its aligned to [the Ontology](https://ibm.github.io/ai-atlas-nexus/ontology/).
+It listens on port 8000 and is aligned to [the ontology](https://ibm.github.io/ai-atlas-nexus/ontology/) and to [OpenAPI](lib/api/openapi.yaml). Its write endpoints are not authenticated, so keep it on localhost - see [Status and caveats](#status-and-caveats).
 
-![FastAPI startup](./byo/images/fastapi-startup.png)
+### Start the web UI
 
-### Start the Web UI
-
-In 2nd terminal, start Web Application ([details](lib/frontend/README.md)):
+In a second terminal ([details](lib/frontend/README.md)):
 
 ```bash
 cd lib/frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Frontend:
-
-![Sveltekit Frontend App](./byo/images/frontend-sv.png)
-
-Record Viewer:
-
-![Sveltekit RecordViewer App](./byo/images/record-viewer-sv.png)
-
-Curation Mode:
-
-![Sveltekit Frontend Curate Mode](./byo/images/frontend-byod-sv.png)
+The login in the top corner is a persona picker for the demo, not authentication. **Curate mode**, which lets you add, edit and delete records in your own data files, sits behind it.
 
 ### Try the CLI
 
-In 3rd terminal, try CLI ([details](lib/cli/README.md)):
+In a third terminal ([details](lib/cli/README.md)):
 
 ```bash
 ./ai -h
 ./ai risk -h
 ```
 
-![AI CLI](./byo/images/ai-cli.png)
+The CLI is aligned to the ontology and to OpenAPI, for consistent CLI, API, frontend and schema. Every entity type is one command away: [docs/cli-examples.md](docs/cli-examples.md) lists them all, and each one is also a test case in [lib/test/test_cli_examples.py](lib/test/test_cli_examples.py).
 
-The CLI is aligned to [the Ontology](https://ibm.github.io/ai-atlas-nexus/ontology/) and [OpenAPI](lib/api/openapi.yaml), for consistent CLI, API, Frontend and Schema.
+## Working with the data
 
-<details>
-<summary><strong>CLI examples — every entity type, one command away</strong> (click to expand)</summary>
+### Bring your own data
 
-| Examples from [test_cli_examples](./lib/test/test_cli_examples.py) |
-| :------------------------------- |
-| Taxonomies |
-| `./ai taxonomy --byod --count` |
-| `./ai taxonomy nist-ai-rmf --count` |
-| `./ai taxonomy --hasDocumentation NIST.AI.600-1 --count` |
-| Risks |
-| `./ai risk --byod --count` |
-| `./ai risk --isDefinedByTaxonomy nist-ai-rmf --count` |
-| `./ai risk ai-and-coffee --byod --count` |
-| `./ai risk --isPartOf granite-guardian-harm-group --count` |
-| `./ai risk --risk_type inference --count` |
-| `./ai risk --descriptor 'specific to generative AI' --count` |
-| `./ai risk --phase training-tuning --count` |
-| > Risks related to Risk |
-| `./ai risk atlas-toxic-output --related_ids --count` |
-| `./ai risk atlas-toxic-output --related --count` |
-| `./ai risk atlas-toxic-output --related --isDefinedByTaxonomy nist-ai-rmf --count` |
-| Risk Groups |
-| `./ai group --byod --count` |
-| `./ai group --type CapabilityGroup --count` |
-| `./ai group --isDefinedByTaxonomy ai-risk-taxonomy --count` |
-| `./ai group ai-risk-taxonomy-deception --byod --count` |
-| Obligations |
-| `./ai obligation --byod --count` |
-| `./ai obligation --isDefinedByTaxonomy aiuc1 --count` |
-| `./ai obligation --hasEvidenceCategory TECHNICAL_IMPLEMENTATION --count` |
-| `./ai obligation --hasTypicalLocation 'Engineering Practice' --count` |
-| `./ai obligation --hasTypicalLocation 'Engineering Tooling' --count` |
-| `./ai obligation aiuc1-ctrl-b002-1 --count` |
-| Recommendations |
-| `./ai recommendation --byod --count` |
-| `./ai recommendation --hasEvidenceCategory LEGAL_POLICIES --count` |
-| `./ai recommendation --hasEvidenceCategory OPERATIONAL_PRACTICES --count` |
-| `./ai recommendation --hasTypicalLocation 'Internal policies' --count` |
-| Principles |
-| `./ai principle --byod --count` |
-| `./ai principle --isDefinedByTaxonomy aiuc1 --count` |
-| `./ai principle --hasDocumentation AIUC-1-Jan-2026 --count` |
-| `./ai principle principle-un-do-no-harm --count` |
-| AI Models |
-| `./ai model --byod --count` |
-| `./ai model --isPartOf shieldgemma --count` |
-| `./ai model --hasRiskControl gg-groundedness-detection --count` |
-| `./ai model --isProvidedBy google --count` |
-| `./ai model --hasDocumentation granite-guardian-paper --count` |
-| `./ai model --hasLicense gemma-terms-of-use --count` |
-| `./ai model --performsTask code-generation --count` |
-| `./ai model --hasInputModality modality-text --count` |
-| `./ai model --hasOutputModality modality-text --count` |
-| AI Tasks |
-| `./ai task --byod --count` |
-| `./ai task table-question-answering --count` |
-| `./ai task --isDefinedByTaxonomy hf-ml-tasks --count` |
-| `./ai task --isPartOf hf-ml-tasks-group-multimodal --count` |
-| `./ai task --requiresCapability ibm-cap-contextual-understanding --count` |
-| Evaluations |
-| `./ai evaluation --byod --count` |
-| `./ai evaluation --hasDocumentation arxiv.org/2310.12941 --count` |
-| `./ai evaluation ai_eval_PopQA --count` |
-| `./ai evaluation --hasDataset truthfulqa/truthful_qa --count` |
-| `./ai evaluation --hasTasks text-generation --count` |
-| `./ai evaluation --hasLicense license-cc-by-4.0 --count` |
-| > Evaluations for Risks |
-| `./ai evaluation --hasRelatedRisk atlas-hallucination --count` |
-| `./ai evaluation --related --hasRelatedRisk mit-ai-causal-risk-timing-post-deployment --count` |
-| Datasets |
-| `./ai dataset --byod --count` |
-| `./ai dataset CybersecurityBenchmarks_datasets_frr --count` |
-| `./ai dataset --hasLicense license-apache-2.0 --count` |
-| `./ai dataset --hasDocumentation repo_nyu-mll_BBQ --count` |
-| `./ai dataset --provider bigcode --count` |
-| Adapters |
-| `./ai adapter --byod --count` |
-| `./ai adapter ibm-factuality-adapter-granite-3.2-5b-harm-correction --count` |
-| `./ai adapter --hasDocumentation granite-guardian-paper --count` |
-| `./ai adapter --hasAdapterType LORA --count` |
-| `./ai adapter --implementsCapability ibm-cap-contextual-understanding --count` |
-| `./ai adapter --adaptsModel granite-guardian-3.3-8b-instruct --count` |
-| `./ai adapter --hasLicense license-apache-2.0 --count` |
-| > Adapting to Risk |
-| `./ai adapter --hasRelatedRisk granite-relevance --count` |
-| `./ai adapter --hasRelatedRisk granite-relevance --related --count` |
-| LLMIntrinsics |
-| `./ai intrinsic --byod --count` |
-| `./ai intrinsic --hasDocumentation arxiv.org/2504.11704 --count` |
-| `./ai intrinsic ibm-factuality-intrinsic-jailbreak --count` |
-| `./ai intrinsic --hasAdapter ibm-factuality-adapter-granite-3.3-8b-instruct-lora-citation-generation --count` |
-| `./ai intrinsic --isDefinedByVocabulary ibm-factuality --count` |
-| > LLMIntrinsics for Risks |
-| `./ai intrinsic --hasRelatedRisk nist-confabulation --count` |
-| `./ai intrinsic --related --hasRelatedRisk granite-answer-relevance --count` |
-| Actions |
-| `./ai action --byod --count` |
-| `./ai action --isDefinedByTaxonomy nist-ai-rmf --count` |
-| `./ai action --byod --isDefinedByTaxonomy acme-ai-taxonomy --count` |
-| `./ai action acme-action-coffee-001 --byod --count` |
-| `./ai action --hasAiActorTask 'Human Factors' --count` |
-| > Actions for a Risk |
-| `./ai action --hasRelatedRisk nist-human-ai-configuration --count` |
-| `./ai action --related_ids --hasRelatedRisk atlas-toxic-output --count` |
-| Controls |
-| `./ai control --byod --count` |
-| `./ai control --isDefinedByTaxonomy shieldgemma-taxonomy --count` |
-| `./ai control gg-function-call-detection --count` |
-| > Controls for Risk |
-| `./ai control --detectsRiskConcept shieldgemma-dangerous-content --count` |
-| `./ai control --hasRelatedRisk shieldgemma-hate-speech --count` |
-| `./ai control --related --hasRelatedRisk atlas-toxic-output --count` |
-| Incidents |
-| `./ai incident --byod --count` |
-| `./ai incident --isDefinedByTaxonomy ibm-risk-atlas --count` |
-| `./ai incident ibm-risk-atlas-ri-fake-legal-cases --count` |
-| > Incidents for Risks |
-| `./ai incident --hasRelatedRisk atlas-dangerous-use --count` |
-| `./ai incident --refersToRisk atlas-evasion-attack --count` |
-| `./ai incident --hasRelatedRisk atlas-dangerous-use --related --count` |
-| Documents |
-| `./ai document --byod --count` |
-| `./ai document repo_stanford_air_bench_2024 --count` |
-| `./ai document --hasLicense license-cc-by-4.0 --count` |
-| BenchmarkMetaCards |
-| `./ai benchmarkcard --count` |
-| LLM Question Policies |
-| `./ai questionpolicy --byod --count` |
-| Stakeholders |
-| `./ai stakeholder --byod --count` |
-| `./ai stakeholder --isDefinedByTaxonomy csiro-responsible-ai-patterns --count` |
-| `./ai stakeholder csiro-stakeholder-ai-technology-producers --count` |
-| `./ai stakeholder --isPartOf csiro-stakeholder-group-organization-level --count` |
-| Organizations |
-| `./ai organization --byod --count` |
-| `./ai organization --grants_license license-cc-by-4.0 --count` |
-| |
-| Export cypher queries (Neo4J integration) |
-| `./ai graph cypher --export --byod --count` |
-| Export full Knowledge Graph |
-| `./ai graph --export --byod --count` |
+The open frameworks are the starting point - the real value comes when your **internal** policies, taxonomies and controls live in the same model, so one query spans public regulation and private practice.
 
-And so on ..
+Bring your own data by adding schema-compliant YAML files to the [./byo/data](./byo/data) directory. See the [upstream readme](https://github.com/IBM/ai-atlas-nexus/blob/main/src/ai_atlas_nexus/ai_risk_ontology/util/README.md).
 
-</details>
-
-## Working With the Data
-
-### Bring Your Own Data
-
-The open frameworks are the starting point — the real value comes when your **internal** policies, taxonomies and controls live in the same model, so one query spans public regulation and private practice.
-
-Bring your own Data by adding schema-compliant yaml files to [./byo/data](./byo/data) directory. See [upstream readme](https://github.com/IBM/ai-atlas-nexus/blob/main/src/ai_atlas_nexus/ai_risk_ontology/util/README.md).
-
-This repository includes [FINOS](./byo/data/finos-aigf.yaml) and related examples (ffiec, eu ai, iso42001, nist_sp_800_53, owasp_llm_t10, owasp_ml_t10, sr_11_7). Validate contributed LinkML Schemas as follows:
+This repository includes [FINOS](./byo/data/finos-aigf.yaml) and related examples (ffiec, eu ai, iso42001, nist_sp_800_53, owasp_llm_t10, owasp_ml_t10, sr_11_7). Validate contributed files against the schema as follows:
 
 ```bash
-SDIR=".venv/lib/python3.14/site-packages/ai_atlas_nexus/ai_risk_ontology/"   # python version may vary
-uv run linkml validate byo/data/*.yaml  -s ${SDIR}/ai-risk-ontology.yaml 
+SDIR="$(uv run python -c 'import ai_atlas_nexus, pathlib; print(pathlib.Path(ai_atlas_nexus.__file__).parent / "ai_risk_ontology" / "schema")')"
+uv run linkml validate byo/data/*.yaml -s "${SDIR}/ai-risk-ontology.yaml"
 ```
 
-### Graph DB Visualization
+### Graph database
 
-Governance data is naturally a graph — risks relate to controls, controls implement obligations, obligations trace to frameworks. Convert schema and instance data into Cypher representation to populate a Graph Database:
+Governance data is naturally a graph - risks relate to controls, controls implement obligations, obligations trace to frameworks. Convert schema and instance data into Cypher to populate a graph database:
 
 ```bash
 ./ai graph cypher --export --byod
 ```
 
-![graph cyper export](./byo/images/graph-cyper-export.png)
+The Cypher export is built from the packaged ontology data, so it shows the open frameworks; `--byod` does not add your uploads to it (see [Status and caveats](#status-and-caveats)).
 
 ```bash
-podman login dockerhub.registry.example.com
-podman pull dockerhub.registry.example.com/neo4j
-podman run --name ran_neo4j --rm --volume $(pwd)/graph/cypher:/examples --publish=7474:7474 --publish=7687:7687 --env NEO4J_AUTH=neo4j/demodemo  dockerhub.registry.example.com/neo4j:latest
+podman pull docker.io/library/neo4j
+podman run --name ran_neo4j --rm --volume $(pwd)/graph/cypher:/examples --publish=7474:7474 --publish=7687:7687 --env NEO4J_AUTH=neo4j/<choose-a-password> docker.io/library/neo4j:latest
 ```
 
-Import into Neo4J:
+Import into Neo4j:
 
 ```bash
-docker exec --interactive --tty ran_neo4j cypher-shell -u neo4j -p demodemo
+docker exec --interactive --tty ran_neo4j cypher-shell -u neo4j -p <your-password>
 :source /examples/ai-risk-ontology.cypher
 ```
 
-Open [Neo4J Browser](http://localhost:7474/browser/) (login neo4j/demodemo) and `CALL db.schema.visualization()`:
+Open the [Neo4j Browser](http://localhost:7474/browser/) (login `neo4j` / your password) and run `CALL db.schema.visualization()`.
 
----
-
-![Neo4J](./byo/images/neo4j.png)
-
----
-
-### Crosswalk (Mappings)
+### Crosswalk
 
 Crosswalks are where the linked-data approach pays off for compliance teams: instead of hand-maintained mapping spreadsheets, mappings between the different taxonomies, frameworks, standards and regulation documents are computed from the data. The `./ai` command produces a crosswalk between the risks in two taxonomies, finds related risks, and displays a subset of risk content in a pandas dataframe.
 
@@ -325,71 +182,86 @@ Crosswalks are where the linked-data approach pays off for compliance teams: ins
 ./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod
 ```
 
-![Crosswalk command](./byo/images/crosswalk.png)
+## For the curious
 
-## CLI/API Testing
+The sections above are everything you need to run it. What follows is for anyone who wants to go further.
 
-Comprehensive unit tests are available for all CLI commands documented in this README.
+- **Roadmap: automated policy-to-risk mapping.** [asago policy mapper](https://github.com/asago-ai/asago-policy-mapper) (part of [asago.ai](https://asago.ai/), an open-source AI safety and governance orchestrator) closes the semantic gap from the other direction: it reads unstructured corporate policy documents and extracts standardized risk identifiers - from *"the model must not provide medical advice"* to `atlas-hallucination`, `nist-ms-2.5`. Integrating it upstream of AI-LinkMO would complete the loop: **policy document → extracted risks → linked model → crosswalks, controls and evidence** - traceability from policy clause to deployed control.
+- **Roadmap: provenance on governance records.** The AI Risk Ontology says what a risk, a control or an obligation *is*; it does not yet say what a provenance record looks like - who encoded a record, from which edition of a framework, who confirmed it, when to look again - nor what an AI step actually did at run time. [finos/fluxnova-ai#40](https://github.com/finos/fluxnova-ai/issues/40) sketches the second kind: context records for agents, models, tools and datasets, and runtime records for model invocations, tool calls and evaluation results, aligned to W3C PROV. Whether the first kind lands in the ontology, in the [OKF specification](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) (v0.2 defines `generated`, `verified`, `status` and `stale_after`, but for documents, and an *attested computation* for a tool's receipted result), or in a project such as [asago.ai](https://asago.ai/), is something to investigate, not something this README decides.
+- **Curate your own open data.** Open Data / Open Source / Inner Source promotes a community-driven approach to curating and cataloguing datasets, benchmarks and mitigations. Before curating the model, familiarise yourself with the basics of [LinkML](https://linkml.io/linkml/intro/overview.html) and its metamodel: it comes with a controlled vocabulary of terms, and understanding a few basic components goes a long way.
+- **Build Python applications on it.** The [Python Reference](https://ibm.github.io/ai-atlas-nexus/reference/library_reference/) and the `SchemaView` class in the linkml-runtime let you introspect and manipulate the schema programmatically ([documentation](https://ibm.github.io/ai-atlas-nexus/examples/notebooks/schema_viewer/)); `./ai schemaview --introspect` is the CLI's window onto the same thing.
+- **Infer risk dimensions with an LLM, or evaluate with ARES.** Both need infrastructure you run yourself: [docs/llm-inferencing.md](docs/llm-inferencing.md).
+- **Research.** [Pathways to Open Data, Linux Foundation](https://www.linuxfoundation.org/hubfs/LF%20Research/WOIC_ChallengeSession2024_Report_032525.pdf).
 
-- **101 test cases** covering all CLI examples in both API and local modes
-- **Automated server management** for API mode tests
-- **Parametrized tests** for efficient coverage
-- **CI/CD ready** with GitHub Actions examples
+## Status and caveats
 
-```bash
-# Verify test setup
-uv run python lib/test/check_tests.py
+- **This is a demo.** The OpenAPI spec, the web UI, and the CLI are all going to be reworked; treat their shapes as illustrative, not as a contract.
+- **Write endpoints are unauthenticated.** `PUT /byo` and `export=true` on `/graph` and `/crosswalk` change files under `byo/data/` and `graph/`. The OpenAPI spec declares an `X-API-Key` scheme on the upload, but the server does not enforce it. Run on localhost, or behind a reverse proxy that authenticates. [SECURITY.md](SECURITY.md) says what is planned.
+- **The web UI's login is a persona picker**, not authentication, and the persona avatars are fetched from `ui-avatars.com`.
+- **`--byod` does not reach the Cypher export.** `graph/cypher/export.py` reads the packaged ontology only, so the Neo4j walkthrough shows the open data, not your uploads.
+- **Two encodings are thinner than their type suggests.** `byo/data/eu_ai_act.yaml` is a `RiskTaxonomy` with 308 requirement rows and no risks, so query it as `rule`, not `risk`; `ffiec_it_handbook.yaml` is a `RiskControlGroupTaxonomy` with groups and no controls. The generator named in every `byo/data` header lives outside this repository.
+- **No encoding has been checked by a named person against its framework's text.** The header says which script produced it and from what; every row's `dateCreated` is the day the generator ran. The ontology has no field for a reviewer, and there has been no reviewer ([What it does not add yet](#what-it-does-not-add-yet)).
+- **Nobody has confirmed a bundle concept yet.** All 39 are *Checked by automation only*; `lokf-curator` is how a person changes that, a few concepts at a sitting.
+- **The bundle's `base_iri` is a placeholder.** Every concept's `id` is built on `https://github.com/noelmcloughlin/ai-linkmo/knowledge/`, an address nothing will ever answer at; moving to a namespace the project controls has waited for a decision since 2026-08-05 and rewrites every `id`.
+- **`graph/` holds about 4 MB of regenerable output**, committed so the Neo4j walkthrough works without a long build; the export commands rewrite it in place.
+- **Slow paths.** `--mode local` loads the ontology in-process on every call; the full local-mode test sweep takes about 25 minutes. LLM inferencing needs a vLLM host you run; ARES needs an upstream pull request.
+- **No release yet.** `pyproject.toml` says 0.1.0; no tag exists.
 
-# Run fast tests (API mode only, ~2 min)
-,/scripts/tests.sh fast
+## Releases
+
+No release has been cut yet. `CHANGELOG.md`'s `## [Unreleased]` section is written as changes happen. Once the first tag exists, [`semantic-release.yml`](.github/workflows/semantic-release.yml) takes over: each merge to `main` computes the next version from Conventional Commits, promotes that section into a dated heading, bumps `pyproject.toml` and `uv.lock` to match, and publishes a GitHub Release from the same text - behind the `release` Environment, so a person approves each one.
+
+## Development
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the dev setup and the pre-PR checklist. Three toolchains live here: Python and uv at the root, Node in `lib/frontend/`, and a second, separate uv project in `.lokf/`.
+
+```text
+ai                      the CLI entry point (runs lib/cli through uv)
+lib/cli/                argparse generated from the OpenAPI spec; fastCLI (via the API) or slowCLI (offline)
+lib/api/                FastAPI backend; openapi.yaml is the source of truth for every route
+lib/frontend/           Svelte 5 web UI (Vite; proxies to the API on :8000)
+lib/test/               pytest suite; its API-mode CLI cases are this README's examples, checked
+graph/                  the exported ontology, crosswalk CSVs, and cypher/export.py for Neo4j
+byo/data/               nine governance frameworks encoded for the AI Risk Ontology
+byo/notes/EXAMPLES.md   a scripted walk through all four access patterns
+byo/images/             screenshots and the architecture diagram
+docs/                   longer material moved out of this README
+.lokf/                  the sidecar: this repository's own knowledge bundle (knowledge/) and its tooling
+llms.txt                tells an agent to read that bundle first
+.github/workflows/      tests, lint, the knowledge-bundle gates, releases
 ```
 
-See [lib/test/README.md](lib/test/README.md) for detailed testing documentation.
-
-## Advanced: LLM Inferencing
-
-Note: ${\color{orange}Requires\ LLM\ service!}$
-
-Leverages Large Language Models (LLMs) to infer risk dimensions. You need access to LLM model (i.e. ibm-granite/granite-3.1-8b-instruct) and inference engines (vLLM) is required. On hosts with [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#with-dnf-rhel-centos-fedora-amazon-linux), we can use the official [vLLM container](https://docs.vllm.ai/en/stable/deployment/docker/):
+The CLI examples in this README and in [docs/cli-examples.md](docs/cli-examples.md) are the test suite: 101 cases, each example run in API mode and in local mode, with the API server started for you.
 
 ```bash
-# example only
-podman login dockerhub.registry.example.com
-podman pull dockerhub.registry.example.com/vllm/vllm-openai
-
-VLLM_API_KEY="${VLLM_API_KEY:-xxxxxxxxxxxxxxxxxxxxxxxxxyyyyyyyy}"
-VLLM_HOST_IP="${VLLM_HOST_IP:-127.0.0.1}"
-VLLM_API_URL="${VLLM_HOST_IP}/v1"
-UV_TORCH_BACKEND=auto
-
-podman run --device nvidia.com/gpu=all  -v ~/.cache/modelscope/hub/models:/root/.cache/modelscope/hub/models  -e REQUESTS_CA_BUNDLE=/cert.pem --mount type=bind,source=/etc/pki/tls/cert.pem,target=/cert.pem  --env "VLLM_USE_MODELSCOPE=True" --env "TRANSFORMERS_OFFLINE=1" --env "TORCH_CUDA_ARCH_LIST=8.6" --env "PYTORCH_CUDA_ALLOC_CONF=garbage_collection_threshold:0.6,max_split_size_mb:64,expandable_segments:True" -p 8000:8000 --ipc=host  dockerhub.registry.example.com/vllm/vllm-openai   --model facebook/opt-125m --gpu_memory_utilization="0.8"
+uv run pytest lib/test -m "not slow"     # what CI runs: API mode, ~2 min
+uv run python lib/test/check_tests.py    # verify the test setup
+./scripts/tests.sh                       # narrower helper modes: fast, full, coverage, ...
 ```
 
-## ARES Evaluation
+The web UI has its own gates (`npm run check`, `npm run lint`, `npm test` in `lib/frontend/`), and the knowledge bundle its own (`cd .lokf && just lokf-validate`). [lib/test/README.md](lib/test/README.md) has the detail, and [CONTRIBUTING.md](CONTRIBUTING.md) says what CI runs.
 
-ARES is an evaluation framework for Retrieval-Augmented Generation (RAG) systems.
-An [extension for ai-atlas-nexus](https://github.com/ibm/ai-atlas-nexus-extensions/tree/main/ran-ares-integration) is available but a PR is needed for install.
+## Credits
 
-## Roadmap
+- [IBM AI Atlas Nexus](https://ibm.github.io/ai-atlas-nexus/) - the [AI Risk Ontology](https://ibm.github.io/ai-atlas-nexus/ontology/) and open risk data every access pattern here is generated from, and the `ai-atlas-nexus` package that loads them.
+- [FINOS AI Governance Framework](https://air-governance-framework.finos.org/) - the first framework encoded under `byo/data/`, and the model for the eight that followed; every framework's authors are listed in [NOTICE](NOTICE).
+- [Nolan Nichols](https://lokf.nolan-nichols.com/), creator of [LOKF](https://lokf.nolan-nichols.com/specification/) (Linked Open Knowledge Format) and its [toolkit](https://github.com/nicholsn/lokf).
+- The [LinkML Community](https://linkml.io/), creators of [LinkML](https://linkml.io/linkml/) - the schema language the AI Risk Ontology is written in, and LOKF too.
+- [lokf-agent-skills](https://github.com/noelmcloughlin/lokf-agent-skills) - the librarian that maintains this repository's own bundle, and the docent in the notice at the top.
+- Thiruvalluvar, whose *Tirukkural* has been read on the duties of those who govern for some two thousand years; the couplet at the top is in G.U. Pope's 1886 translation.
 
-- **Automated policy-to-risk mapping.** [asago policy mapper](https://github.com/asago-ai/asago-policy-mapper) (part of [asago.ai](https://asago.ai/), an open-source AI safety and governance orchestrator) closes the semantic gap from the other direction: it reads unstructured corporate policy documents and extracts standardized risk identifiers — from *"the model must not provide medical advice"* to `atlas-hallucination`, `nist-ms-2.5`. Integrating it upstream of AI-LinkMO would complete the loop: **policy document → extracted risks → linked model → crosswalks, controls and evidence** — traceability from policy clause to deployed control.
+## About this repository's own knowledge bundle
 
-## Adopt?
+This repository keeps a LOKF bundle of its own under `.lokf/knowledge/` - documentation about AI-LinkMO, kept the way AI-LinkMO keeps governance data: one identifier per concept and a source beside every claim. It is maintained by the [lokf-agent-skills](https://github.com/noelmcloughlin/lokf-agent-skills), which a scheduled [workflow](.github/workflows/knowledge-librarian.yaml) installs at run time (they are never committed - `.agents/`, `.claude/`, and `skills-lock.json` are git-ignored). None of this is part of the CLI, API, web UI or graph - you need no skill to use them. It is also what the docent answers from: install `lokf-docent` and ask about this project instead of reading the whole README - the notice at the top says how. If you want to contribute to that bundle, [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-optional---only-for-editing-this-repos-own-lokf-bundle) says which skills that takes.
 
-Open Data / Open Source / Inner Source promotes a community driven approach to curating and cataloguing resources such as datasets, benchmarks and mitigations.
+## Contributing
 
-### Curate your own Open Data
+[CONTRIBUTING.md](CONTRIBUTING.md) covers the dev setup and the pre-PR checklist; participation is covered by the [Code of Conduct](CODE_OF_CONDUCT.md), and [AI_COVENANT.md](AI_COVENANT.md) sets out how AI-assisted contributions are handled here.
 
-Before curating the Model, its recommended you familiarize yourself with the basics of [LinkML](https://linkml.io/linkml/intro/overview.html) and its metamodel components. Like many modeling frameworks, LinkML comes with a controlled vocabulary of terms that are used to describe the model. While the modeling language is robust and might seem overwhelming, understanding just a few basic components is helpful.
+## Security
 
-### Building Python Applications
+Please review the repository security policy at [SECURITY.md](SECURITY.md) before running the API outside localhost, enabling the BYOD upload path, or using the agent-driven knowledge workflow or GitHub automation in this repo.
 
-Refer to the [Python Reference](https://ibm.github.io/ai-atlas-nexus/reference/library_reference/).  The SchemaView class in the linkml-runtime provides a method for dynamically introspecting and manipulating schemas. This can be used to programatically explore or edit the AI Atlas Nexus. See [documentation](https://ibm.github.io/ai-atlas-nexus/examples/notebooks/schema_viewer/) and `schemaview()` function in `ai.py`.
+## License
 
-```bash
-./ai schemaview --introspect
-```
-
-## Research
-
-- [Pathways to Open Data, Linux Foundation](https://www.linuxfoundation.org/hubfs/LF%20Research/WOIC_ChallengeSession2024_Report_032525.pdf)
+Apache-2.0 - see [LICENSE](LICENSE) and [NOTICE](NOTICE). AI-assisted work here follows [AI_COVENANT.md](AI_COVENANT.md).
