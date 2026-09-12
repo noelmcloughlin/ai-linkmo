@@ -8,6 +8,9 @@ resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/README.md
 timestamp: "2026-08-12T00:00:00Z"
 references:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # Bring your own data

@@ -6,6 +6,9 @@ title: OWASP Top 10 for LLM Applications
 description: The OWASP Top 10 security risks for Large Language Model applications, published by the OWASP GenAI Security Project.
 resource: https://genai.owasp.org/
 timestamp: "2026-08-12T00:00:00Z"
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # OWASP Top 10 for LLM Applications

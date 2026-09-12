@@ -35,6 +35,9 @@ derivedFrom:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/nist-ai-rmf
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/finos-aigf
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # Overview

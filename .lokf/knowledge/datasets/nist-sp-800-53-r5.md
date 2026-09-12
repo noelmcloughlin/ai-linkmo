@@ -13,6 +13,9 @@ derivedFrom:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/nist-sp-800-53-r5
 source:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # Overview

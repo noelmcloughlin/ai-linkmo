@@ -8,6 +8,9 @@ resource: https://ibm.github.io/ai-atlas-nexus/ontology/
 timestamp: "2026-08-12T00:00:00Z"
 source:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/ibm
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # AI Risk Ontology (ai-atlas-nexus)

@@ -6,6 +6,9 @@ title: FFIEC IT Examination Handbook
 description: The Federal Financial Institutions Examination Council's Information Technology Examination Handbook.
 resource: https://ithandbook.ffiec.gov/
 timestamp: "2026-08-12T00:00:00Z"
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # FFIEC IT Examination Handbook

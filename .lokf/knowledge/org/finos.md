@@ -6,6 +6,9 @@ title: FINOS
 description: The Fintech Open Source Foundation - publisher of the AI Governance Framework and the curated framework datasets this repository ships as BYOD files.
 resource: https://w3id.org/finos
 timestamp: "2026-08-12T00:00:00Z"
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # FINOS

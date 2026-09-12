@@ -8,6 +8,9 @@ resource: https://doi.org/10.6028/NIST.AI.600-1
 timestamp: "2026-08-12T00:00:00Z"
 relatedTo:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/nist-ai-rmf
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # NIST AI 600-1 (Generative AI Profile)

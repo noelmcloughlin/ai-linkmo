@@ -12,7 +12,7 @@ description = "LOKF knowledge-bundle tooling for AI-LinkMO."
 # Keep in sync with the `lokf` toolkit's own requires-python floor.
 requires-python = ">=3.10"
 dependencies = [
-    "lokf[build]>=0.6.0",
+    "lokf[build]>=0.7.0",
 ]
 
 [tool.uv]

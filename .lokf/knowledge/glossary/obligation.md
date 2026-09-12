@@ -12,6 +12,9 @@ tags:
 timestamp: "2026-08-12T00:00:00Z"
 definedBy:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # Obligation

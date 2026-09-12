@@ -15,6 +15,9 @@ derivedFrom:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ffiec-it-handbook
 source:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # Overview

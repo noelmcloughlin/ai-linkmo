@@ -6,6 +6,9 @@ title: EU Artificial Intelligence Act
 description: Regulation (EU) 2024/1689 laying down harmonised rules on artificial intelligence, indexed by article via the AI Act Explorer.
 resource: https://artificialintelligenceact.eu/
 timestamp: "2026-08-12T00:00:00Z"
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # EU Artificial Intelligence Act

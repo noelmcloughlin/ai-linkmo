@@ -11,6 +11,9 @@ about:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/fastapi-backend
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/web-ui
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/graph-db
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # Install and run

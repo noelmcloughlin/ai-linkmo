@@ -16,6 +16,9 @@ references:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
 dependsOn:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/finos-aigf
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # Overview

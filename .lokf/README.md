@@ -1,4 +1,4 @@
-# `lokf/` - AI-LinkMO's machine-readable knowledge base
+# `.lokf/` - AI-LinkMO's machine-readable knowledge base
 
 A small **sidecar** that captures AI-LinkMO's own knowledge - its services, metrics, policies, playbooks, and glossary - as plain Markdown files that are **also a queryable knowledge graph**. It does not touch the app build; it's independent tooling you can run on its own.
 
@@ -11,8 +11,8 @@ You write normal Markdown; you get a validated, queryable graph for free.
 
 ## What's in here
 
-```
-lokf/
+```text
+.lokf/
 |-- knowledge/            # the bundle - one Markdown file per concept
 |   |-- index.md          # bundle metadata + table of contents (reserved)
 |   |-- log.md            # change history (reserved)

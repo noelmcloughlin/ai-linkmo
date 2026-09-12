@@ -16,6 +16,9 @@ about:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/graph-db
 references:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+verified:
+  - by: process:lokf-librarian
+    at: "2026-09-12T00:00:00Z"
 ---
 
 # Why linked AI governance
