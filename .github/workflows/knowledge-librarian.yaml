@@ -114,6 +114,7 @@ jobs:
       # "Install the lokf sidecar" step's `uv sync` can touch it, the same
       # tool-artifact exception "Detect changes" below already makes.
       - name: Enforce the agent's write scope
+        if: vars.KNOWLEDGE_LIBRARIAN_ENABLED == 'true'
         run: |
           set -euo pipefail
           out="$(git status --porcelain -- . ':!.lokf/knowledge' ':!knowledge_bundle' ':!.lokf/feedback.md' ':!.lokf/uv.lock')"
@@ -136,11 +137,11 @@ jobs:
           set -euo pipefail
           # Scope to the bundle so tool artifacts (e.g. a fresh .lokf/uv.lock from
           # `uv sync`) never trigger a PR by themselves. Both of the bundle's
-          # names are listed: in lokf-sidecar's visible layout knowledge_bundle/
-          # is the real folder and .lokf/knowledge a link onto it, and a git
-          # pathspec never traverses a symlink. This repository uses the hidden
-          # layout (.lokf/knowledge is the real folder), and a name that does not
-          # exist here is simply ignored by `git status`.
+          # names are listed: with lokf-sidecar's doorway link the second
+          # matches nothing, harmlessly, and it still covers a host rearranged
+          # by hand into a real knowledge_bundle/ with .lokf/knowledge a link
+          # onto it, since a git pathspec never traverses a symlink. A name
+          # that does not exist in this repository is simply ignored.
           if [ -n "$(git status --porcelain -- .lokf/knowledge knowledge_bundle)" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
@@ -175,9 +176,9 @@ jobs:
         run: |
           set -euo pipefail
           git add -A -- .lokf/knowledge
-          # The bundle's visible name, when it is a real folder (see "Detect
-          # changes"); `git add` refuses a pathspec that matches nothing, hence
-          # the guard.
+          # The bundle's second name, when a host has made it a real folder
+          # (see "Detect changes"); `git add` refuses a pathspec that matches
+          # nothing, hence the guard.
           [ -e knowledge_bundle ] && git add -A -- knowledge_bundle || true
           # Reader feedback (written by lokf-docent, consumed by the librarian,
           # which removes handled entries) - carry it so entries don't come back.

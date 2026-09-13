@@ -8,7 +8,7 @@ on:
   pull_request:
     paths:
       - ".lokf/**"
-      - "knowledge_bundle/**" # the bundle's visible name, when it is the real folder
+      - "knowledge_bundle/**" # the bundle's second name - a link by default, a real folder on a host rearranged by hand
       - ".github/workflows/knowledge-registrar.yaml"
   schedule:
     - cron: "0 6 * * 1" # Mondays at 06:00 UTC
@@ -50,3 +50,227 @@ jobs:
       - name: Validate the knowledge bundle
         run: uv run lokf validate knowledge
         working-directory: .lokf
+
+  provenance:
+    name: Check new human confirmations
+    # A `human:<id>` verification claims that a named person checked a concept
+    # against its source. Nothing in the bundle's own format proves one: any
+    # writer - an agent steered by another agent, a script, a careless merge -
+    # can type the string, and `lokf validate` sees a perfectly well-formed
+    # event. This job is where such a claim gets tied back to a person, using
+    # the only evidence the forge actually holds: who approved the pull
+    # request, and who signed the commits.
+    #
+    # Solo maintainers: GitHub will not let you approve your own pull request,
+    # so signing your commits is the path here - it is also the stronger claim,
+    # being cryptographic and checkable long after a review could be dismissed.
+    # Either key type works; pick one and do not mix them. With a GPG key
+    # (`gpg --full-generate-key`, then `gpg --armor --export <fingerprint>`
+    # pasted at github.com/settings/keys under GPG keys):
+    #
+    #   git config --global gpg.format openpgp
+    #   git config --global user.signingkey <fingerprint>
+    #   git config --global commit.gpgsign true
+    #
+    # With the SSH key you already push with, `gpg.format ssh` and
+    # `user.signingkey ~/.ssh/id_ed25519.pub` instead, then add that same key
+    # again on the same page as a *signing* key - GitHub keeps auth and
+    # signing keys in separate lists. A PGP block saved under a `.pub` name
+    # with `gpg.format ssh` fails with "could not load public key". Either
+    # way this check reads GitHub's own verdict, so a key GitHub does not
+    # hold leaves every commit Unverified, and the commit email must be a
+    # verified email on the account.
+    #
+    # If you genuinely cannot sign, see the `attestation` job below.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      verdict: ${{ steps.check.outputs.verdict }}
+      actors: ${{ steps.check.outputs.actors }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Every new human confirmation must come from that person
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # Optional, and off unless you set it: the name of an Environment
+          # whose required reviewers must approve an otherwise unbacked
+          # confirmation. See the `attestation` job.
+          ATTEST_ENV: ${{ vars.KNOWLEDGE_CURATION_ENVIRONMENT }}
+        run: |
+          set -euo pipefail
+
+          # One extraction, used both for the whole pull request and for
+          # individual commits. Anchored on `by:` so that a `human:<id>`
+          # mentioned in prose - a send-back note under `## Open questions`
+          # carries one by design - is not mistaken for a verification event.
+          # The `.?` tolerates a YAML quote before the actor.
+          actors_in() {
+            grep -E '^\+' \
+              | grep -E 'by:[[:space:]]*.?human:' \
+              | grep -oE 'human:[A-Za-z0-9][A-Za-z0-9._-]*' \
+              | sed 's/^human://' \
+              | sort -u
+          }
+
+          base="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"
+
+          mapfile -t actors < <(
+            git diff --unified=0 "$base" "$HEAD_SHA" -- .lokf/knowledge knowledge_bundle | actors_in
+          )
+
+          if [ "${#actors[@]}" -eq 0 ]; then
+            echo "No new human confirmations in this pull request."
+            echo "verdict=ok" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          approvers="$(
+            gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" --paginate \
+              --jq '.[] | select(.state == "APPROVED") | .user.login'
+          )"
+
+          # Signature status has to come from GitHub, not from `git log %G?`.
+          # A runner has no GPG keyring and no `gpg.ssh.allowedSignersFile`,
+          # so locally every signature here reads as unverifiable (`N`) no
+          # matter how good it is. GitHub checks each signature against the
+          # keys registered to an account - which is also what ties the
+          # signature to a person, rather than merely proving one exists.
+          commits="$(mktemp)"
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/commits" --paginate \
+            --jq '.[] | [.sha, (.commit.verification.verified | tostring), (.author.login // "-")] | @tsv' \
+            > "$commits"
+
+          mapfile -t bundle_shas < <(
+            git log --format='%H' "${base}..${HEAD_SHA}" -- .lokf/knowledge knowledge_bundle
+          )
+
+          unbacked=()
+          for actor in "${actors[@]}"; do
+            if printf '%s\n' "$approvers" | grep -qxF -- "$actor"; then
+              echo "ok: human:${actor} approved this pull request."
+              continue
+            fi
+
+            # No approval from them. The remaining evidence is their own
+            # signature on the commit that introduced the event - the only
+            # path open to a solo maintainer, since GitHub will not let
+            # anyone approve their own pull request.
+            introducing=()
+            for sha in "${bundle_shas[@]}"; do
+              if git show --unified=0 --format= "$sha" -- .lokf/knowledge knowledge_bundle \
+                   | actors_in | grep -qxF -- "$actor"; then
+                introducing+=("$sha")
+              fi
+            done
+
+            if [ "${#introducing[@]}" -eq 0 ]; then
+              echo "unbacked: human:${actor} is recorded, but no commit in this pull request introduces it."
+              unbacked+=("$actor")
+              continue
+            fi
+
+            backed=yes
+            for sha in "${introducing[@]}"; do
+              info="$(awk -v s="$sha" '$1 == s { print $2, $3 }' "$commits")"
+              verified="${info%% *}"
+              signer="${info##* }"
+              if [ "$verified" = "true" ] && [ "$signer" = "$actor" ]; then
+                continue
+              fi
+              backed=no
+              echo "unbacked: commit ${sha:0:8} records human:${actor} but GitHub reports it" \
+                   "verified=${verified:-unknown}, attributed to ${signer:-unknown}."
+            done
+
+            if [ "$backed" = yes ]; then
+              echo "ok: human:${actor} signed the commit recording their own confirmation."
+            else
+              unbacked+=("$actor")
+            fi
+          done
+
+          if [ "${#unbacked[@]}" -eq 0 ]; then
+            echo "verdict=ok" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "verdict=unbacked" >> "$GITHUB_OUTPUT"
+          echo "actors=${unbacked[*]}" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Confirmations nothing stands behind"
+            echo ""
+            echo "This pull request records these people as having checked a concept"
+            echo "against its source, but neither an approval nor a signature of theirs"
+            echo "backs them:"
+            echo ""
+            for actor in "${unbacked[@]}"; do
+              printf -- "- \`human:%s\`\n" "$actor"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ -n "$ATTEST_ENV" ]; then
+            echo ""
+            echo "Waiting on a reviewer of the '${ATTEST_ENV}' environment to attest to these."
+            exit 0
+          fi
+
+          echo ""
+          echo "A 'human:' verification says a named person checked that concept"
+          echo "against its source. Ask that person to approve this pull request,"
+          echo "or - if it is their own, which GitHub will not let them approve -"
+          echo "have them sign their commits (see this job's comments). If nobody"
+          echo "actually checked it, remove the event: an unchecked concept is"
+          echo "supposed to read as unchecked."
+          exit 1
+
+  attestation:
+    name: Attest to an unbacked confirmation
+    # The escape hatch for a repository that cannot sign commits and has
+    # nobody available to approve - typically a solo maintainer.
+    #
+    # It is deliberately NOT a switch that turns the check off. A permanent
+    # "provenance: off" setting gets flipped for one urgent afternoon and
+    # never flipped back, and the bundle then claims confirmations it cannot
+    # support. This asks instead for a fresh human action on every pull
+    # request that needs one: the run pauses, GitHub emails the environment's
+    # reviewers, and someone clicks Approve in a browser. Unlike a pull
+    # request review, an environment reviewer MAY be the person who opened
+    # the pull request, which is what makes this work for a lone maintainer.
+    # The click lands in the deployment log, so it stays auditable.
+    #
+    # To enable, both steps are required:
+    #   1. Settings -> Environments -> New environment (e.g. "knowledge-curation"),
+    #      tick "Required reviewers", and add yourself.
+    #   2. Settings -> Secrets and variables -> Actions -> Variables: set
+    #      KNOWLEDGE_CURATION_ENVIRONMENT to that environment's name.
+    #
+    # Step 1 is what does the work. An environment with no required reviewers
+    # approves itself instantly, so setting the variable while skipping the
+    # reviewers silently disables the whole gate.
+    needs: provenance
+    if: needs.provenance.outputs.verdict == 'unbacked'
+    runs-on: ubuntu-latest
+    permissions: {}
+    environment: ${{ vars.KNOWLEDGE_CURATION_ENVIRONMENT }}
+    steps:
+      - name: Record what was attested to
+        env:
+          ACTORS: ${{ needs.provenance.outputs.actors }}
+        run: |
+          set -euo pipefail
+          echo "Attested by a reviewer of this environment, for: $ACTORS"
+          echo "This records that a person vouched for these confirmations out of band."
+          echo "It is not evidence that the concepts were checked - only that someone"
+          echo "with access to this repository's settings said they were."
