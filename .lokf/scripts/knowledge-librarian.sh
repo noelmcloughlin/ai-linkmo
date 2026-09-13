@@ -113,9 +113,10 @@ fi
 # nothing forces it. Record paths already dirty outside the bundle (e.g. a
 # uv.lock the workflow refreshed) so the agent is held to account only for *new*
 # ones. Allowed: the bundle under either of its two names - .lokf/knowledge/,
-# and knowledge_bundle/ when that is the real folder and .lokf/knowledge the
-# link onto it (lokf-sidecar's visible layout; git pathspecs do not traverse a
-# symlink, so both must be named) - plus lokf-docent's .lokf/feedback.md.
+# and knowledge_bundle/, which is lokf-sidecar's doorway link by default (then
+# the pathspec matches nothing) but a real folder on a host rearranged by hand
+# with .lokf/knowledge a link onto it (git pathspecs do not traverse a symlink,
+# so both must be named) - plus lokf-docent's .lokf/feedback.md.
 outside_bundle() {
   git status --porcelain -- '.' \
     ':(exclude).lokf/knowledge' ':(exclude)knowledge_bundle' ':(exclude).lokf/feedback.md' \
