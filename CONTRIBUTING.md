@@ -60,6 +60,7 @@ npx skills add noelmcloughlin/lokf-agent-skills --skill lokf-curator --yes     #
 - **Lock files are part of the change.** `uv.lock` and `.lokf/uv.lock` are checked with `--locked` in CI, so a dependency edit that does not update its lock fails the run. Commit both.
 - **Two CI gates are easy to trip locally**: `lint-and-docs.yaml` (ShellCheck, `actionlint`, markdownlint against `.markdownlint-cli2.jsonc`, link-checking against `lychee.toml`, and codespell over every `*.md`) and, on any `.lokf/**` change, `knowledge-registrar.yaml`. If you touched a workflow or a shell script, expect ShellCheck and `actionlint` to have an opinion.
 - **Pinned action SHAs and dependencies are bumped by Dependabot** (`.github/dependabot.yml`), not by hand - don't float a pin to a tag to get a newer version. Every action in every workflow is pinned to a commit SHA with the version in a trailing comment; keep that convention when adding one.
+- **If your change alters behaviour** (not just wording), add an entry under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md). The release pipeline refuses to run on an empty one - it releases only what has already been written up.
 - Keep changes focused; describe what and why in the PR. The PR template's checklist is the short version of this section - fill it in rather than deleting it.
 
 ## Layout notes
@@ -79,6 +80,39 @@ AI assistance is welcome here - this repository's own `.lokf/` bundle is maintai
 ## Reporting bugs
 
 Open an issue with your OS, Python version, which access pattern you used, and steps to reproduce. The issue templates ask for exactly this.
+
+## Releasing (maintainers)
+
+The version number is not hand-picked. Write `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md) as you go and describe what changed, with a [Conventional Commits](https://www.conventionalcommits.org/) type on the commit. Open the PR as normal.
+
+**Only `feat:`, `fix:` and `security:` cut a release.** `docs:`, `chore:`, `refactor:`, `style:` and `test:` deliberately do not: a branch carrying only those merges cleanly, releases nothing, and leaves its `## [Unreleased]` entries to ship with the next release that does. Type the commit for what the change *is* - a user-visible behaviour change is a `feat:` even when most of the diff is prose. If a PR should release and its commits are typed too quietly, squash-merge it and give the squash commit the right type.
+
+### This project stays below 1.0.0
+
+AI-LinkMO is a demo, and its OpenAPI spec, web UI and CLI are all expected to change shape. Two things keep the version in `0.x`, and both are deliberate:
+
+- **The `v0.1.0` baseline tag.** semantic-release defaults a repository's *first* release to `1.0.0` when no tag exists. The baseline tag gives it somewhere to count from, so the first real release is `0.2.0`.
+- **A breaking change bumps the minor version, not the major one.** `.releaserc.json` maps `breaking: true` to `minor`, so a `BREAKING CHANGE:` footer takes `0.4.0` to `0.5.0` rather than to `1.0.0`.
+
+Reaching 1.0.0 is therefore a deliberate act: remove that rule from `.releaserc.json` in its own PR, when the interfaces are ones this project is prepared to keep. Until then, a breaking change is still worth marking - it shows up in the release notes and tells readers what moved.
+
+### What happens on merge
+
+[`semantic-release.yml`](.github/workflows/semantic-release.yml) does the rest:
+
+1. Computes the next version from the commits since the last tag. Nothing lands if none of them warrant one.
+2. Refuses to proceed if `## [Unreleased]` is empty (`.github/scripts/changelog-release.mjs check`).
+3. Retitles that section to `## [X.Y.Z] - YYYY-MM-DD` with a fresh empty one above it, and writes the version into `pyproject.toml` and `uv.lock` (`.github/scripts/bump-version.mjs` - there is no Python equivalent of `@semantic-release/npm`, and editing the lock's one version line in place keeps `uv` out of the release runner).
+4. Commits those three files, creates the `vX.Y.Z` tag, and publishes a GitHub Release whose notes are the promoted section.
+
+Every pull request into `main` also gets a `--dry-run` preview of all of this, so a broken commit message or a broken script is caught in review rather than after merge.
+
+Step 3 onward runs behind the `release` GitHub Environment - **configure required reviewers on it once, in this repository's Settings → Environments**, or every qualifying merge ships unattended.
+
+### What the repository settings mean for you
+
+- **Changes reach `main` by pull request, but the rule is not enforced by a ruleset.** A ruleset that requires pull requests rejects every direct push, and the release job's own push - the changelog promotion and tag in step 4 - cannot be exempted from it: a ruleset bypass list accepts roles, teams, GitHub Apps and Dependabot, and `github-actions[bot]` is none of those. So the pull-request discipline here is a convention, held to by the maintainer, not a gate. Open one anyway.
+- **"Require signed commits" as a branch rule is deliberately off**, and must stay off. A `git commit` made inside a runner is unsigned - GitHub only auto-signs commits made through the web UI or API, and `@semantic-release/git` uses the git CLI. Turning the rule on would reject step 4 and break every release. Signing your own commits locally is a different thing, nothing gates on it here, and it is still worth doing: [`lokf-agent-skills`](https://github.com/noelmcloughlin/lokf-agent-skills/blob/main/CONTRIBUTING.md#signing-your-commits) walks through GPG and SSH setup, and how to renew a GPG key before it expires.
 
 ## License
 

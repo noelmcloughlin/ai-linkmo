@@ -1,0 +1,118 @@
+name: Semantic release
+
+# Computes the next version for this repository from Conventional Commits on
+# `main`, promotes CHANGELOG.md's "## [Unreleased]" section into a dated
+# heading via .github/scripts/changelog-release.mjs, writes that version into
+# pyproject.toml and uv.lock via .github/scripts/bump-version.mjs, and
+# publishes a GitHub Release built from that same text. There is no package
+# published to an index here and nothing else creates a tag, so - like the
+# sibling msc-ai-galway-2026 repository, and unlike lokf-agent-skills -
+# semantic-release runs for real and creates the tag and release itself.
+#
+# This project stays below 1.0.0 deliberately: it is a demo, and its OpenAPI
+# spec, web UI and CLI are all expected to change shape. Two things keep it
+# there. The `v0.1.0` baseline tag stops semantic-release defaulting a
+# first-ever release to 1.0.0, and .releaserc.json maps a breaking change to
+# a minor bump rather than a major one, so 0.x continues until someone
+# removes that rule on purpose. See CONTRIBUTING.md, "Releasing".
+#
+# `plan` previews every pull request into main with `--dry-run` - which
+# writes nothing and needs no write scope - so a broken commit message or a
+# broken exec script is caught in review, not after merge. `release` runs
+# only on a push to main and sits behind the `release` GitHub Environment:
+# configure required reviewers on it in this repository's own
+# Settings > Environments (creating the environment here does not do that
+# for you) - the same gate the sibling LOKF repositories use for their own
+# release workflow - or every qualifying merge to main will cut a release
+# with no human step in between.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: semantic-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Install semantic-release (pinned, not a project dependency)
+        run: |
+          npm install --no-save --no-audit --no-fund --ignore-scripts \
+            semantic-release@25.0.9 \
+            @semantic-release/commit-analyzer@13.0.1 \
+            @semantic-release/exec@7.1.0 \
+            @semantic-release/git@11.0.1 \
+            @semantic-release/github@12.0.9
+
+      - name: Preview the next release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx --no-install semantic-release --dry-run
+
+  release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      # This job's own job is to push a commit and a tag to `main` and to
+      # create the release, so - unlike the read-only `plan` job above - it
+      # keeps the checkout action's default credential helper rather than
+      # passing persist-credentials: false. Nothing untrusted runs in this
+      # job, only the pinned release tool above and this repository's own
+      # reviewed scripts below.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Install semantic-release (pinned, not a project dependency)
+        run: |
+          npm install --no-save --no-audit --no-fund --ignore-scripts \
+            semantic-release@25.0.9 \
+            @semantic-release/commit-analyzer@13.0.1 \
+            @semantic-release/exec@7.1.0 \
+            @semantic-release/git@11.0.1 \
+            @semantic-release/github@12.0.9
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: npx --no-install semantic-release

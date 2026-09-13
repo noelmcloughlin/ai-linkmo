@@ -205,11 +205,13 @@ The sections above are everything you need to run it. What follows is for anyone
 - **The bundle's `base_iri` is a placeholder.** Every concept's `id` is built on `https://github.com/noelmcloughlin/ai-linkmo/knowledge/`, an address nothing will ever answer at; moving to a namespace the project controls has waited for a decision since 2026-08-05 and rewrites every `id`.
 - **`graph/` holds about 4 MB of regenerable output**, committed so the Neo4j walkthrough works without a long build; the export commands rewrite it in place.
 - **Slow paths.** `--mode local` loads the ontology in-process on every call; the full local-mode test sweep takes about 25 minutes. LLM inferencing needs a vLLM host you run; ARES needs an upstream pull request.
-- **No release yet.** `pyproject.toml` says 0.1.0; no tag exists.
+- **No release yet.** `pyproject.toml` says 0.1.0, matching the `v0.1.0` baseline tag; nothing has been published. The version stays in `0.x` deliberately - see [Releases](#releases).
 
 ## Releases
 
-No release has been cut yet. `CHANGELOG.md`'s `## [Unreleased]` section is written as changes happen. Once the first tag exists, [`semantic-release.yml`](.github/workflows/semantic-release.yml) takes over: each merge to `main` computes the next version from Conventional Commits, promotes that section into a dated heading, bumps `pyproject.toml` and `uv.lock` to match, and publishes a GitHub Release from the same text - behind the `release` Environment, so a person approves each one.
+No release has been cut yet. [`CHANGELOG.md`](CHANGELOG.md)'s `## [Unreleased]` section is written as changes happen, and [`semantic-release.yml`](.github/workflows/semantic-release.yml) does the rest: each merge to `main` computes the next version from Conventional Commits, promotes that section into a dated heading, bumps `pyproject.toml` and `uv.lock` to match, and publishes a GitHub Release from the same text - behind the `release` Environment, so a person approves each one. Only `feat:`, `fix:` and `security:` cut a release; `docs:` and `chore:` merge cleanly and release nothing.
+
+**This project stays below 1.0.0.** It is a demo and the shapes above are expected to change, so the `v0.1.0` tag is a baseline rather than a release - it stops semantic-release defaulting a first release to 1.0.0 - and a breaking change bumps the minor version instead of the major one. Reaching 1.0.0 will be a deliberate act, not something a commit message can trigger. [CONTRIBUTING.md](CONTRIBUTING.md#releasing-maintainers) has the detail.
 
 ## Development
 
