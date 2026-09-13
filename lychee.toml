@@ -10,4 +10,8 @@ exclude = [
   # Development-only addresses printed in setup instructions.
   '^http://localhost',
   '^http://127\.0\.0\.1',
+  # docs.vllm.ai rate-limits (429) aggressively enough to survive lychee's
+  # default retry-with-backoff; not a dead link. Drop this exclusion if
+  # upstream relaxes its limits, or if CI starts flagging a real 404 here.
+  '^https://docs\.vllm\.ai/',
 ]
