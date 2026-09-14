@@ -168,7 +168,7 @@
   `knowledge-*.yaml` automation workflows conscious exclusions); the root
   README's LLM-visitors pointer to the bundle was repaired to `.lokf/`.
 
-## 2026-07-13 (3)
+## 2026-07-13
 
 * **Steady-state refresh**: re-verified all 31 concepts against their recorded
   `resource`/`derivedFrom` provenance (manifest identity, CLI/API OpenAPI
@@ -183,8 +183,6 @@
   own Open Data, §Building Python Applications, §Research) so future refreshes
   don't need to re-investigate them.
 
-## 2026-07-13 (2)
-
 * **Bootstrap discovery** (lokf-librarian): swept the repository and replaced the
   scaffold's placeholder services with 31 real concepts - 4 services (CLI,
   FastAPI backend, Svelte web UI, Neo4j graph DB), 11 datasets (knowledge-graph
@@ -193,8 +191,6 @@
   3 playbooks (knowledge-sources map, install-and-run, BYOD), and 2
   organizations (FINOS, IBM). Recorded the scrape map as
   `playbooks/knowledge-sources.md`; rebuilt all section indexes and the root TOC.
-
-## 2026-07-13
 
 * **Initialization**: Scaffolded the LOKF bundle for AI-LinkMO with placeholder
   services. Real concepts to follow.
