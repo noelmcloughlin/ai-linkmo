@@ -27,6 +27,11 @@ name: Semantic release
 
 on:
   pull_request:
+    # `edited` matters: the title check below is the one check a person clears
+    # by retitling the pull request rather than by pushing. Without it the
+    # default types (opened, synchronize, reopened) never fire again, so the
+    # fix the error message asks for could not clear the check it failed.
+    types: [opened, synchronize, reopened, edited]
     branches: [main]
   push:
     branches: [main]
