@@ -5,9 +5,8 @@ name: Semantic release
 # heading via .github/scripts/changelog-release.mjs, writes that version into
 # pyproject.toml and uv.lock via .github/scripts/bump-version.mjs, and
 # publishes a GitHub Release built from that same text. There is no package
-# published to an index here and nothing else creates a tag, so unlike
-# the lokf-agent-skills - semantic-release runs for real and creates the tag
-# and release itself.
+# published to an index here and nothing else creates a tag, so
+# semantic-release creates the tag and the release itself.
 #
 # This project stays below 1.0.0 deliberately: it is a demo, and its OpenAPI
 # spec, web UI and CLI are all expected to change shape. Two things keep it
