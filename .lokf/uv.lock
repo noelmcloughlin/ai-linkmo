@@ -17,7 +17,7 @@ dependencies = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "lokf", extras = ["build"], specifier = ">=0.7.0" }]
+requires-dist = [{ name = "lokf", extras = ["build"], specifier = ">=0.8.0" }]
 
 [[package]]
 name = "alabaster"
@@ -940,7 +940,7 @@ wheels = [
 
 [[package]]
 name = "lokf"
-version = "0.7.0"
+version = "0.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "linkml-runtime" },
@@ -951,9 +951,9 @@ dependencies = [
     { name = "ruamel-yaml" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6e/06/12271891d303e491a5d1f92241a40d7747a915d27bc383f3ffb2296e5827/lokf-0.7.0.tar.gz", hash = "sha256:fc31a2afb63dc391e2e3d7b8e2bf044226d3a67e189e38050ed460d5d6da26de", size = 524409, upload-time = "2026-08-28T15:45:24.102Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/0c/02545d1ae27ac5cb9c224d86635bc5b216dd6bc6214e7d2a451c4c6f7b69/lokf-0.8.0.tar.gz", hash = "sha256:6745eb52579babc411b896166a6d3ebe31fb96ca8bf12b2f42a1fc97ff9dcb61", size = 526074, upload-time = "2026-09-16T22:12:05.982Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bc/6d/5c6eea0bab9b4823274a4ea0422d757d97b9101b081db9552daf06c6a13c/lokf-0.7.0-py3-none-any.whl", hash = "sha256:5bb285b1b8231203ef3f77513b9d21810bd0913448d52734a44d824a8c41df07", size = 241572, upload-time = "2026-08-28T15:45:22.611Z" },
+    { url = "https://files.pythonhosted.org/packages/eb/3b/cbf48f3bc8f15ba8a9bd07c39dc84f443aaccca4500bee4b5654e7c3c4a0/lokf-0.8.0-py3-none-any.whl", hash = "sha256:d39b6ea3191fc2478a5da43c78020c40822f90626869f54480c5a5ce959f5056", size = 250253, upload-time = "2026-09-16T22:12:04.306Z" },
 ]
 
 [package.optional-dependencies]
