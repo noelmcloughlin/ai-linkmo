@@ -67,6 +67,55 @@ jobs:
             @semantic-release/git@11.0.1 \
             @semantic-release/github@12.0.9
 
+      # Would these commits release? The types are .releaserc.json's: the
+      # Angular preset's feat/fix plus this repository's `security`, and any
+      # type marked breaking by a `!` or a BREAKING CHANGE footer. Both checks
+      # below key off this one answer.
+      - name: Read whether these commits would release
+        id: commits
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if git log --format='%s%n%b' "$BASE..HEAD" \
+            | grep -qE '^((feat|fix|security)(\([^)]*\))?!?:|[a-z]+(\([^)]*\))?!:|BREAKING CHANGE:)'; then
+            echo "releases=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "releases=false" >> "$GITHUB_OUTPUT"
+            echo "No feat/fix/security or breaking commit here, so this pull request releases nothing."
+          fi
+
+      # semantic-release detects a pull_request event itself and exits before
+      # running any plugin, including @semantic-release/exec's verifyRelease
+      # hook - so the --dry-run below never calls changelog-release.mjs check
+      # on this event, and an empty "## [Unreleased]" would otherwise pass a
+      # pull request and only fail at release time. Call it directly - but
+      # only when these commits would actually release, or a chore-only pull
+      # request (a Dependabot bump, a docs tidy) fails for lacking notes it
+      # was never meant to write.
+      - name: Refuse an empty changelog entry when these commits would release
+        if: steps.commits.outputs.releases == 'true'
+        run: node .github/scripts/changelog-release.mjs check
+
+      # A squash merge takes its commit subject from the pull request title,
+      # and GitHub's default title is the branch name in words, which carries
+      # no type - so a typed `fix:` commit reaches main as "Fix the thing (#12)"
+      # and releases nothing, leaving its notes stranded in "## [Unreleased]".
+      # So when the commits would release, the title must too: then either
+      # merge strategy releases. The title is read through `env:`, never
+      # interpolated into the script, since anyone can open a pull request.
+      - name: Refuse a title that would lose the release on a squash merge
+        if: steps.commits.outputs.releases == 'true'
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if printf '%s\n' "$TITLE" \
+            | grep -qE '^((feat|fix|security)(\([^)]*\))?!?:|[a-z]+(\([^)]*\))?!:)'; then
+            echo "Title carries a releasing type, so a squash merge releases too."
+          else
+            echo "::error::These commits would release, but the pull request title '$TITLE' has no releasing type (feat:, fix:, security:, or a breaking '!'). A squash merge uses the title as the commit subject and would release nothing - retitle the pull request, or use a merge commit."
+            exit 1
+          fi
+
       - name: Preview the next release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
