@@ -1,5 +1,14 @@
 # Change Log
 
+## 2026-09-18
+
+* **Sidecar brought up to the skills templates**: the wrapper here predated
+  the `EXIT`-trap restore and the registrar gate still read confirmations by
+  their `by:` line. Synced all five scripts - the conventions pair is new to
+  this repository - added `.gitattributes`, and bumped `LOKF_SKILLS_REF`
+  from `v0.9.0` to `v0.19.2`. The release workflow now checks release notes
+  and the pull request title on a releasing pull request.
+
 ## 2026-09-12
 
 * **Toolkit upgrade 0.6.0 -> 0.7.0** (minor - PyPI shows no breaking-change notice; the bundle
