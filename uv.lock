@@ -24,7 +24,7 @@ wheels = [
 
 [[package]]
 name = "ai-atlas-nexus"
-version = "1.2.4"
+version = "1.2.5"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "chardet" },
@@ -50,9 +50,9 @@ dependencies = [
     { name = "txtai" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/84/30/fafe86c8c1d5caab903229809caf11bbdc2ad7860255fc316fc03a44ab49/ai_atlas_nexus-1.2.4.tar.gz", hash = "sha256:e26dc8bf2e189ec3f42b2434350ea106f71c0265ba15ead4c99026af2d0b1fe4", size = 555787, upload-time = "2026-07-31T14:58:09.306Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c1/07/96eedef9cf2898bdabc2697a652eb4267dcf3165bc1e41e9591b161234d9/ai_atlas_nexus-1.2.5.tar.gz", hash = "sha256:e1394ab91e2971e1ff94bdd696d0f651d755739ac6d3e3051ea5e425a82f16a3", size = 587224, upload-time = "2026-08-31T18:21:52.869Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ae/de/c21e57f43376cbeee8f65370a069dfc4a0146bd9c111fa268b0882935b21/ai_atlas_nexus-1.2.4-py3-none-any.whl", hash = "sha256:e4c61022e253377971f59c11c53a0911e227f8fdac771b54dfb78746d4b03033", size = 620881, upload-time = "2026-07-31T14:58:07.407Z" },
+    { url = "https://files.pythonhosted.org/packages/95/aa/67fb3a756df419edf1e38ef313bd2bc6d104160269c19a9320a7f8564890/ai_atlas_nexus-1.2.5-py3-none-any.whl", hash = "sha256:e65e42e70b49820762ca82cb23a48f8a79b6984abe951ec2087305857d0b642d", size = 660287, upload-time = "2026-08-31T18:21:51.343Z" },
 ]
 
 [[package]]
