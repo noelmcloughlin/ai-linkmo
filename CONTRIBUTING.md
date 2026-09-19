@@ -42,11 +42,11 @@ npm run dev
 
 Nothing in the application depends on any agent skill, and no user of the CLI, API, or UI needs one. The skills below concern one thing only: this repository's own `.lokf/knowledge/` bundle, the documentation-about-this-repo that CI keeps in step with the source. Skip this section unless you are editing that.
 
-The bundle is maintained with [lokf-agent-skills](https://github.com/noelmcloughlin/lokf-agent-skills), **installed, never committed** - `.agents/`, `.claude/`, and `skills-lock.json` are git-ignored, and CI installs the librarian skill itself at run time, pinned to a release. To work on the bundle locally:
+The bundle is maintained with [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder), **installed, never committed** - `.agents/`, `.claude/`, and `skills-lock.json` are git-ignored, and CI installs the librarian skill itself at run time, pinned to a release. To work on the bundle locally:
 
 ```bash
-npx skills add noelmcloughlin/lokf-agent-skills --skill lokf-librarian --yes   # derive concepts
-npx skills add noelmcloughlin/lokf-agent-skills --skill lokf-curator --yes     # confirm them as a person
+npx skills add noelmcloughlin/knowledge-trust-ladder --skill lokf-librarian --yes   # derive concepts
+npx skills add noelmcloughlin/knowledge-trust-ladder --skill lokf-curator --yes     # confirm them as a person
 ```
 
 `lokf-sidecar` is only for re-generating the `.lokf/` tooling and the two bundle workflows from their template (rare); `lokf-docent` only lets an agent answer questions from the bundle. Neither is needed to contribute.
@@ -112,7 +112,7 @@ Step 3 onward runs behind the `release` GitHub Environment - **configure require
 ### What the repository settings mean for you
 
 - **Changes reach `main` by pull request, but the rule is not enforced by a ruleset.** A ruleset that requires pull requests rejects every direct push, and the release job's own push - the changelog promotion and tag in step 4 - cannot be exempted from it: a ruleset bypass list accepts roles, teams, GitHub Apps and Dependabot, and `github-actions[bot]` is none of those. So the pull-request discipline here is a convention, held to by the maintainer, not a gate. Open one anyway. Required status checks are off for the same reason - that rule is applied to direct pushes too, and rejects the release job's `[skip ci]` commit for having no checks of its own. CI still runs on every pull request and is still read before merge; it is just not the thing that blocks one, so treat a red check as your problem to fix rather than a net that will catch it.
-- **"Require signed commits" as a branch rule is deliberately off**, and must stay off. A `git commit` made inside a runner is unsigned - GitHub only auto-signs commits made through the web UI or API, and `@semantic-release/git` uses the git CLI. Turning the rule on would reject step 4 and break every release. Signing your own commits locally is a different thing, nothing gates on it here, and it is still worth doing: [`lokf-agent-skills`](https://github.com/noelmcloughlin/lokf-agent-skills/blob/main/CONTRIBUTING.md#signing-your-commits) walks through GPG and SSH setup, and how to renew a GPG key before it expires.
+- **"Require signed commits" as a branch rule is deliberately off**, and must stay off. A `git commit` made inside a runner is unsigned - GitHub only auto-signs commits made through the web UI or API, and `@semantic-release/git` uses the git CLI. Turning the rule on would reject step 4 and break every release. Signing your own commits locally is a different thing, nothing gates on it here, and it is still worth doing: [`knowledge-trust-ladder`](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/main/docs/signing-commits.md) walks through GPG and SSH setup, and how to renew a GPG key before it expires.
 
 ## License
 

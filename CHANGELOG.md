@@ -6,6 +6,12 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Changed
+
+- **The skills repository is now `knowledge-trust-ladder`**, formerly `lokf-agent-skills`: a third-party repository named after the format read as upstream LOKF's official home.
+- **Every link, both `npx skills add` lines and `LOKF_SKILLS_REPO` follow it.** The skill names are unchanged, and GitHub redirects the old paths.
+- **The signing-guide link pointed at a heading that no longer exists**: that repository's `CONTRIBUTING.md#signing-your-commits`. The guide has its own page now, `docs/signing-commits.md`.
+
 ## [0.1.1] - 2026-09-18
 
 ### Fixed
