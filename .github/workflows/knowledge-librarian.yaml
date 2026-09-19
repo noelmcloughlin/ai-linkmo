@@ -70,7 +70,7 @@ jobs:
       - name: Install the pinned lokf-librarian skill
         env:
           LOKF_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          LOKF_SKILLS_REF: v0.9.0 # bump together with the sibling repositories' pins
+          LOKF_SKILLS_REF: v0.19.2 # bump together with the sibling repositories' pins
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -108,7 +108,9 @@ jobs:
         run: bash .lokf/scripts/knowledge-librarian.sh
 
       # The wrapper enforces the same boundary itself, immediately after the agent
-      # returns. This is the second layer: it runs even when the wrapper didn't
+      # returns, and restores .git/config and .git/hooks from an EXIT trap, so a
+      # failing agent or a cancelled job cannot leave a poisoned core.fsmonitor
+      # or core.hooksPath behind to blind either check. This is the second layer: it runs even when the wrapper didn't
       # (agent disarmed, or an early exit), so no path outside the bundle can reach
       # `publish` in the patch. .lokf/uv.lock is excluded too - the earlier
       # "Install the lokf sidecar" step's `uv sync` can touch it, the same

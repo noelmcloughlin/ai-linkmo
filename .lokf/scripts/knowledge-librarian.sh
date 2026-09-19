@@ -123,6 +123,29 @@ outside_bundle() {
     | cut -c4- | sort -u
 }
 
+# Snapshots of .git/config and .git/hooks/ taken by main() before the agent
+# runs. File-scope, not local, so the EXIT trap below can reach them.
+config_snapshot=""
+hooks_snapshot=""
+
+# Put .git/config and .git/hooks/ back as they were before the agent ran, then
+# forget the snapshot so a second call is a no-op. Called explicitly right after
+# the agent returns, and again from the EXIT trap for every other way out: the
+# agent exiting non-zero (which `set -e` turns into this script's exit), the job
+# being cancelled (the runner's SIGINT/SIGTERM, handled below by exiting), or an
+# error anywhere after the snapshot. Without the trap, a failing agent left its
+# poisoned config in the checkout for the workflow's next steps to read.
+restore_git_state() {
+  [ -n "$config_snapshot" ] || return 0
+  cp "$config_snapshot" .git/config
+  rm -rf .git/hooks
+  mkdir .git/hooks
+  cp -a "$hooks_snapshot/." .git/hooks/
+  rm -rf "$config_snapshot" "$hooks_snapshot"
+  config_snapshot=""
+  hooks_snapshot=""
+}
+
 main() {
   # A local, well-formed AGENT_CLI can still run code that writes anywhere in
   # this job's checkout - that's what the check above is for. But that check
@@ -131,15 +154,23 @@ main() {
   # .git/hooks/, gets it run by *this script's own* later git commands (and
   # by the workflow's separate detect/package steps after this script exits,
   # which share this job's checkout). Snapshot both around the agent call and
-  # restore them unconditionally, so neither this check nor anything the
-  # workflow does afterwards can be blinded or hijacked that way. This is
-  # defence in depth, not the actual backstop - a human reviewing the PR
-  # before merge is.
-  local config_snapshot hooks_snapshot
+  # restore them on every exit - success, agent failure, cancellation - so
+  # neither this check nor anything the workflow does afterwards can be
+  # blinded or hijacked that way. Only SIGKILL escapes this; a runner that
+  # kills the step outright also discards the job, so nothing reads the
+  # checkout after it. This is defence in depth, not the actual backstop - a
+  # human reviewing the PR before merge is.
   config_snapshot="$(mktemp)"
   hooks_snapshot="$(mktemp -d)"
   cp .git/config "$config_snapshot"
   cp -a .git/hooks/. "$hooks_snapshot/"
+  trap restore_git_state EXIT
+  # A signal caught by a trap does not end the shell, so these turn it into an
+  # exit, which runs the EXIT trap above. bash delivers them only once the
+  # foreground agent has itself exited, so the restore never races the agent.
+  trap 'exit 129' HUP
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
 
   local before_outside
   before_outside="$(outside_bundle)"
@@ -147,11 +178,8 @@ main() {
   echo "knowledge-librarian: refreshing the .lokf/ bundle via AGENT_CLI"
   "${agent_cmd[@]}" -p "$prompt"
 
-  cp "$config_snapshot" .git/config
-  rm -rf .git/hooks
-  mkdir .git/hooks
-  cp -a "$hooks_snapshot/." .git/hooks/
-  rm -rf "$config_snapshot" "$hooks_snapshot"
+  # Restore before the check below reads git, not only at exit.
+  restore_git_state
 
   local stray
   stray="$(comm -13 <(printf '%s\n' "$before_outside") <(outside_bundle))"
