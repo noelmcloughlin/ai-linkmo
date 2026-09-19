@@ -69,7 +69,7 @@ jobs:
       # invisible both to the write-scope check below and to "Detect changes".
       - name: Install the pinned lokf-librarian skill
         env:
-          LOKF_SKILLS_REPO: https://github.com/noelmcloughlin/lokf-agent-skills
+          LOKF_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
           LOKF_SKILLS_REF: v0.9.0 # bump together with the sibling repositories' pins
         run: |
           set -euo pipefail

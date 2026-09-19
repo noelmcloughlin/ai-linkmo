@@ -6,6 +6,12 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Changed
+
+- **The skills repository is now `knowledge-trust-ladder`**, formerly `lokf-agent-skills`: a third-party repository named after the format read as upstream LOKF's official home.
+- **Every link, both `npx skills add` lines and `LOKF_SKILLS_REPO` follow it.** The skill names are unchanged, and GitHub redirects the old paths.
+- **The signing-guide link pointed at a heading that no longer exists**: that repository's `CONTRIBUTING.md#signing-your-commits`. The guide has its own page now, `docs/signing-commits.md`.
+
 ### Added
 
 - **Semantic release.** The version is computed from Conventional Commits on `main`; this file's `## [Unreleased]` section is promoted into a dated heading and used as the release notes, `pyproject.toml` and `uv.lock` are bumped to match, and a GitHub Release is published from it - behind the `release` Environment, so a person approves each one.

@@ -5,7 +5,7 @@ This covenant establishes community norms for responsible AI use in the project.
 It applies to the following repos central to the linked open knowledge mission:
 
 - <https://github.com/noelmcloughlin/ai-linkmo>
-- <https://github.com/noelmcloughlin/lokf-agent-skills>
+- <https://github.com/noelmcloughlin/knowledge-trust-ladder>
 
 ## Core Principle: You Own Your Contributions
 
@@ -109,4 +109,4 @@ This covenant is built on trust. By contributing, you agree that:
 
 ---
 
-*This covenant may evolve as AI tools and community needs change. It is adapted from the [LOKF Agent Skills AI Covenant](https://github.com/noelmcloughlin/lokf-agent-skills/blob/main/AI_COVENANT.md), itself adapted from the [LinkML AI Covenant](https://github.com/linkml/linkml/blob/main/AI_COVENANT.md). Feedback and suggestions are welcome.*
+*This covenant may evolve as AI tools and community needs change. It is adapted from the [Knowledge Trust Ladder AI Covenant](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/main/AI_COVENANT.md), itself adapted from the [LinkML AI Covenant](https://github.com/linkml/linkml/blob/main/AI_COVENANT.md). Feedback and suggestions are welcome.*
