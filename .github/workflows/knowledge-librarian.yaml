@@ -69,17 +69,17 @@ jobs:
       # invisible both to the write-scope check below and to "Detect changes".
       - name: Install the pinned lokf-librarian skill
         env:
-          LOKF_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          LOKF_SKILLS_REF: v0.19.2 # bump together with the sibling repositories' pins
+          TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
+          TRUST_LADDER_SKILLS_REF: v0.19.7 # bump together with the sibling repositories' pins
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
-          git -c advice.detachedHead=false clone --quiet --depth 1 --branch "$LOKF_SKILLS_REF" "$LOKF_SKILLS_REPO" "$tmp"
+          git -c advice.detachedHead=false clone --quiet --depth 1 --branch "$TRUST_LADDER_SKILLS_REF" "$TRUST_LADDER_SKILLS_REPO" "$tmp"
           mkdir -p .agents/skills
           rm -rf .agents/skills/lokf-librarian
           cp -R "$tmp/skills/lokf-librarian" .agents/skills/
           test -f .agents/skills/lokf-librarian/SKILL.md
-          echo "Installed lokf-librarian@$LOKF_SKILLS_REF"
+          echo "Installed lokf-librarian@$TRUST_LADDER_SKILLS_REF"
 
       # Wire this up under Settings -> Secrets and variables -> Actions:
       #   1. Set KNOWLEDGE_LIBRARIAN_ENABLED to "true" to arm the run. Anything
