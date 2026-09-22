@@ -310,7 +310,7 @@ jobs:
       # signature from a key not on file for that id fails even when GitHub
       # shows it as Verified. A repository with no .lokf/curators/ never runs
       # it; the script itself says so and passes if run by hand. Laid down by
-      # lokf-sidecar Step 5.
+      # ktl-sidecar Step 5.
       - name: Verify signatures against the keys on file
         if: hashFiles('.lokf/curators/*.asc', '.lokf/curators/*.pub') != ''
         env:

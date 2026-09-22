@@ -9,14 +9,14 @@ tags:
   - byod
   - ai-governance
 generated:
-  by: process:lokf-librarian
+  by: process:ktl-librarian
   at: "2026-08-28T00:00:00Z"
 derivedFrom:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ffiec-it-handbook
 source:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
 verified:
-  - by: process:lokf-librarian
+  - by: process:ktl-librarian
     at: "2026-09-12T00:00:00Z"
 ---
 

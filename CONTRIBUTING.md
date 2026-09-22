@@ -45,11 +45,11 @@ Nothing in the application depends on any agent skill, and no user of the CLI, A
 The bundle is maintained with [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder), **installed, never committed** - `.agents/`, `.claude/`, and `skills-lock.json` are git-ignored, and CI installs the librarian skill itself at run time, pinned to a release. To work on the bundle locally:
 
 ```bash
-npx skills add noelmcloughlin/knowledge-trust-ladder --skill lokf-librarian --yes   # derive concepts
-npx skills add noelmcloughlin/knowledge-trust-ladder --skill lokf-curator --yes     # confirm them as a person
+npx skills add noelmcloughlin/knowledge-trust-ladder --skill ktl-librarian --yes   # derive concepts
+npx skills add noelmcloughlin/knowledge-trust-ladder --skill ktl-curator --yes     # confirm them as a person
 ```
 
-`lokf-sidecar` is only for re-generating the `.lokf/` tooling and the two bundle workflows from their template (rare); `lokf-docent` only lets an agent answer questions from the bundle. Neither is needed to contribute.
+`ktl-sidecar` is only for re-generating the `.lokf/` tooling and the two bundle workflows from their template (rare); `ktl-docent` only lets an agent answer questions from the bundle. Neither is needed to contribute.
 
 ## Before opening a pull request
 

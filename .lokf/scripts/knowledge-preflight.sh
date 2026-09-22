@@ -10,7 +10,7 @@
 #
 # Bash 3.2 and POSIX tools only, so it runs on macOS's stock bash and on Git
 # for Windows. From PowerShell, run it through Git for Windows' bash - the
-# one-liner is in lokf-sidecar/references/portability.md.
+# one-liner is in ktl-sidecar/references/portability.md.
 #
 # Usage: knowledge-preflight.sh [repo-root]   (default: the nearest ancestor of
 # the current directory holding `.lokf/`, else the current directory)
@@ -62,7 +62,7 @@ if [ -d "$bundle" ]; then
   else doorway="no knowledge_bundle doorway (ln -s .lokf/knowledge knowledge_bundle, or mklink /J on Windows)"; fi
   ok bundle ".lokf/knowledge, $n concepts; $doorway"
 else
-  miss bundle "no .lokf/knowledge under $root - run lokf-sidecar first" "every skill but lokf-sidecar"
+  miss bundle "no .lokf/knowledge under $root - run ktl-sidecar first" "every skill but ktl-sidecar"
 fi
 case "$root" in
   *OneDrive*|*Dropbox*|*iCloud*|*"Google Drive"*|*GoogleDrive*|*Nextcloud*)
@@ -81,7 +81,7 @@ if have git && git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1; t
   attrs="absent"; [ -f "$root/.lokf/.gitattributes" ] && attrs="present"
   ok git "bundle $tracked; history $([ "$shallow" = true ] && echo shallow || echo full); core.autocrlf=$crlf; .lokf/.gitattributes $attrs"
   [ "$shallow" = true ] && warn git "shallow clone: the conventions script cannot resolve a revision - fetch the full history"
-  [ "$attrs" = absent ] && [ -d "$bundle" ] && warn git "no .lokf/.gitattributes: a Windows checkout may differ from CI - lokf-sidecar Step 1 lays it down"
+  [ "$attrs" = absent ] && [ -d "$bundle" ] && warn git "no .lokf/.gitattributes: a Windows checkout may differ from CI - ktl-sidecar Step 1 lays it down"
   remote="$(git -C "$root" remote get-url origin 2>/dev/null || true)"
   case "$remote" in
     *github*) forge=github ;;  # github.com, or an Enterprise Server host named after it
@@ -93,9 +93,9 @@ if have git && git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1; t
   esac
   gate="$root/.github/workflows/knowledge-registrar.yaml"
   case "$forge" in
-    github) if [ -f "$gate" ]; then ok forge "github; gate workflow present"; else warn forge "github; no knowledge-registrar.yaml - lokf-sidecar Step 5 lays it down"; fi ;;
+    github) if [ -f "$gate" ]; then ok forge "github; gate workflow present"; else warn forge "github; no knowledge-registrar.yaml - ktl-sidecar Step 5 lays it down"; fi ;;
     none) info forge "no origin remote - no gate applies; the host's own review is the record" ;;
-    *) info forge "$forge - no gate template for it; the porting recipe is in lokf-sidecar/references/portability.md" ;;
+    *) info forge "$forge - no gate template for it; the porting recipe is in ktl-sidecar/references/portability.md" ;;
   esac
 else
   info git "no git: gate, pull requests and signed-commit checks do not apply; the host's own version history is the record"
@@ -130,9 +130,9 @@ elif have glab; then
 fi
 if [ -z "$id" ]; then
   case "$forge" in
-    github) miss identity "no authenticated login (gh) - the signing-key route in lokf-curator/references/portability.md is the alternative" "Confirm, Correct now (lokf-curator), named feedback (lokf-docent)" ;;
-    gitlab|forgejo|bitbucket|other) miss identity "no authenticated login (glab, or the signing-key route in lokf-curator/references/portability.md)" "Confirm, Correct now (lokf-curator), named feedback (lokf-docent)" ;;
-    none) info identity "no forge: on a synced folder the id is the account the platform's version history shows (lokf-curator/references/portability.md)" ;;
+    github) miss identity "no authenticated login (gh) - the signing-key route in ktl-curator/references/portability.md is the alternative" "Confirm, Correct now (ktl-curator), named feedback (ktl-docent)" ;;
+    gitlab|forgejo|bitbucket|other) miss identity "no authenticated login (glab, or the signing-key route in ktl-curator/references/portability.md)" "Confirm, Correct now (ktl-curator), named feedback (ktl-docent)" ;;
+    none) info identity "no forge: on a synced folder the id is the account the platform's version history shows (ktl-curator/references/portability.md)" ;;
   esac
 fi
 key=""; fmt=openpgp
@@ -202,8 +202,8 @@ fi
 found=""; templates=""
 for dir in .claude/skills .github/skills .agents/skills skills; do
   here=""
-  for s in lokf-sidecar lokf-librarian lokf-curator lokf-docent; do
-    [ -f "$root/$dir/$s/SKILL.md" ] && here="$here ${s#lokf-}"
+  for s in ktl-sidecar ktl-librarian ktl-curator ktl-docent; do
+    [ -f "$root/$dir/$s/SKILL.md" ] && here="$here ${s#ktl-}"
   done
   [ -n "$here" ] && found="${found}${found:+; }$dir:$here"
 done
@@ -211,11 +211,11 @@ done
 # repository that publishes the skills is its own canonical copy), then the
 # wrapper's install locations in its order.
 for dir in skills .claude/skills .github/skills .agents/skills; do
-  [ -z "$templates" ] && [ -d "$root/$dir/lokf-sidecar/templates" ] && templates="$root/$dir/lokf-sidecar/templates"
+  [ -z "$templates" ] && [ -d "$root/$dir/ktl-sidecar/templates" ] && templates="$root/$dir/ktl-sidecar/templates"
 done
 if [ -n "$found" ]; then
   ok skills "$found"
-  for s in lokf-sidecar lokf-librarian lokf-curator lokf-docent; do
+  for s in ktl-sidecar ktl-librarian ktl-curator ktl-docent; do
     first=""
     for dir in .claude/skills .github/skills .agents/skills skills; do
       [ -d "$root/$dir/$s" ] || continue
@@ -255,10 +255,10 @@ if [ -n "$templates" ] && [ -d "$root/.lokf" ]; then
   if [ -z "$drift" ]; then
     ok copies "host copies match the installed sidecar's templates (${templates#"$root"/})"
   else
-    warn copies "differ from ${templates#"$root"/}: $drift - a deliberate host edit, or a template bump not yet copied (lokf-sidecar repair)"
+    warn copies "differ from ${templates#"$root"/}: $drift - a deliberate host edit, or a template bump not yet copied (ktl-sidecar repair)"
   fi
 elif [ -n "$missing_py" ]; then
-  warn copies "$missing_py - the lokf-sidecar repair lays it down"
+  warn copies "$missing_py - the ktl-sidecar repair lays it down"
 fi
 
 # ---- session ---------------------------------------------------------------
@@ -271,7 +271,7 @@ agent=""
 [ -n "${CODESPACES:-}" ] && agent="${agent}${agent:+, }Codespaces"
 [ "${TERM_PROGRAM:-}" = vscode ] && agent="${agent}${agent:+, }VS Code terminal"
 if [ -n "$unattended" ]; then
-  info session "unattended ($unattended set): lokf-curator stops after its report; lokf-librarian edits only under the bundle"
+  info session "unattended ($unattended set): ktl-curator stops after its report; ktl-librarian edits only under the bundle"
 else
   info session "attended${agent:+ ($agent)}: a person can answer item by item"
 fi

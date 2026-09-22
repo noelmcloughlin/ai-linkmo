@@ -8,8 +8,9 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ### Changed
 
+- **The skills and plugins take the `ktl-` prefix**: the librarian workflow, sidecar scripts and README name `ktl-librarian`, KTL Registrar and KTL Curator. The workflow's pin must move to the first skills release that carries the new names.
 - **The skills repository is now `knowledge-trust-ladder`**, formerly `lokf-agent-skills`: a third-party repository named after the format read as upstream LOKF's official home.
-- **Every link, both `npx skills add` lines and `TRUST_LADDER_SKILLS_REPO` follow it.** The skill names are unchanged, and GitHub redirects the old paths.
+- **Every link, both `npx skills add` lines and `TRUST_LADDER_SKILLS_REPO` follow it.** GitHub redirects the old paths.
 - **The scheduled librarian installs `v0.19.7`**, up from `v0.19.2`, so it runs the current skill rather than one five releases behind.
 - **`LOKF_SKILLS_REPO`/`LOKF_SKILLS_REF` are now `TRUST_LADDER_SKILLS_REPO`/`TRUST_LADDER_SKILLS_REF`**, following the skills repository's own rename.
 - **The signing-guide link pointed at a heading that no longer exists**: that repository's `CONTRIBUTING.md#signing-your-commits`. The guide has its own page now, `docs/signing-commits.md`.

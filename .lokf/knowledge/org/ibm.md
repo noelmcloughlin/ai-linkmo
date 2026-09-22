@@ -7,7 +7,7 @@ description: Publisher of the ai-atlas-nexus project and its AI Risk Ontology, t
 resource: https://ibm.github.io/ai-atlas-nexus/
 timestamp: "2026-08-12T00:00:00Z"
 verified:
-  - by: process:lokf-librarian
+  - by: process:ktl-librarian
     at: "2026-09-12T00:00:00Z"
 ---
 

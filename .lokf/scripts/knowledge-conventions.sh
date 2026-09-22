@@ -8,11 +8,11 @@
 #
 #   1. log.md has one `## YYYY-MM-DD` heading per day - the bare ISO date,
 #      newest first, no duplicates. OKF §9 makes the date form a MUST, and the
-#      LOKF Curator plugin finds today's section by that exact heading.
+#      KTL Curator plugin finds today's section by that exact heading.
 #   2. Every `at:` is a quoted string. Unquoted, YAML hands the toolkit a
 #      datetime object and the curator's string comparison a surprise.
 #   3. `verified` is a list, never a bare `{ by, at }` mapping, and carries at
-#      most one `process:lokf-librarian` event - the librarian replaces its
+#      most one `process:ktl-librarian` event - the librarian replaces its
 #      own, it does not stack them.
 #   4. A bullet under `## Open questions` is `- YYYY-MM-DD, <actor>: ...`, the
 #      shape the curator and both plugins write and read; the curator quotes

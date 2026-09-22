@@ -144,7 +144,7 @@ def check_file(path: Path, ids: dict[str, list[Path]]) -> list[str]:
         findings.append(f"{path}: unquoted timestamp at {where}")
 
     # 3. verified is a list, never a bare mapping, and carries at most one
-    #    process:lokf-librarian event.
+    #    process:ktl-librarian event.
     verified = frontmatter.get("verified")
     if isinstance(verified, dict):
         findings.append(f"{path}: verified is a bare mapping - write a one-item list")
@@ -153,10 +153,10 @@ def check_file(path: Path, ids: dict[str, list[Path]]) -> list[str]:
         events = [item for item in verified if isinstance(item, dict)]
     else:
         events = []
-    librarian_events = [e for e in events if e.get("by") == "process:lokf-librarian"]
+    librarian_events = [e for e in events if e.get("by") == "process:ktl-librarian"]
     if len(librarian_events) > 1:
         findings.append(
-            f"{path}: {len(librarian_events)} process:lokf-librarian events - "
+            f"{path}: {len(librarian_events)} process:ktl-librarian events - "
             "the librarian replaces its own, never stacks"
         )
 

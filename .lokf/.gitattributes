@@ -2,6 +2,6 @@
 # says. Git for Windows defaults to CRLF checkouts, and the conventions
 # script, the Obsidian plugins and the toolkit must read the same bytes on
 # every machine - a Windows checkout used to disagree with CI over the same
-# bundle. `text=auto` leaves any binary alone. Laid down by lokf-sidecar
+# bundle. `text=auto` leaves any binary alone. Laid down by ktl-sidecar
 # Step 1; inert on a host without git.
 * text=auto eol=lf

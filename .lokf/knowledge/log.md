@@ -23,7 +23,7 @@
   `lib/cli`, `lib/api`, `lib/frontend` (Svelte 5.55 + Vite 8, port-5173 proxy) unchanged; README
   §Key concepts table still backs all six `glossary/` terms; `org/finos` and `org/ibm` resources
   unchanged. All 39 concepts re-confirmed against their `resource`/`derivedFrom`/`source` and given
-  a fresh `verified: [{by: process:lokf-librarian, at: 2026-09-12T00:00:00Z}]` event (none of them
+  a fresh `verified: [{by: process:ktl-librarian, at: 2026-09-12T00:00:00Z}]` event (none of them
   had ever recorded one before this run). No concept content changed, none deleted, no `human:`
   text touched.
 * **Source map updated.** Two new repo-root artifacts from an unrelated skill-tooling change (the
@@ -45,7 +45,7 @@
   `lokf_version`/`okf_version` `"0.1"` -> `"0.2"`.
 * **Steady-state refresh** (drift surface since the 2026-08-12 run is exactly commit `36354c4`,
   "updated files for latest ai-atlas-nexus schema"): two dataset concepts had drifted and were
-  corrected, both now carrying v0.2 `generated` provenance (`by: process:lokf-librarian`) in place
+  corrected, both now carrying v0.2 `generated` provenance (`by: process:ktl-librarian`) in place
   of the superseded `timestamp`:
   1. `datasets/eu-ai-act` - the encoding's taxonomy row is now `type: RiskTaxonomy` (was
      `Taxonomy`); Format line updated.
@@ -192,7 +192,7 @@
   own Open Data, §Building Python Applications, §Research) so future refreshes
   don't need to re-investigate them.
 
-* **Bootstrap discovery** (lokf-librarian): swept the repository and replaced the
+* **Bootstrap discovery** (ktl-librarian): swept the repository and replaced the
   scaffold's placeholder services with 31 real concepts - 4 services (CLI,
   FastAPI backend, Svelte web UI, Neo4j graph DB), 11 datasets (knowledge-graph
   export, NIST AI RMF crosswalks, and the nine `byo/data/*.yaml` framework
