@@ -48,3 +48,8 @@ updates:
     groups:
       dev-dependencies:
         dependency-type: "development"
+    ignore:
+      # svelte-check and typescript-eslint don't accept TypeScript 7 yet
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+
