@@ -27,7 +27,7 @@ updates:
   # from the application tree above: it maintains this repo's knowledge bundle
   # and has nothing to do with the app. A major bump here can require concept
   # frontmatter changes, so these PRs want a human read, not a rubber stamp -
-  # see the lokf-librarian skill's own "check sidecar tooling versions" step.
+  # see the ktl-librarian skill's own "check sidecar tooling versions" step.
   - package-ecosystem: "uv"
     directory: "/.lokf"
     schedule:

@@ -67,7 +67,7 @@ jobs:
       # every run. A plain clone of the tagged repo needs no `gh` flags and no
       # token (the repo is public). .agents/ is git-ignored, so the install is
       # invisible both to the write-scope check below and to "Detect changes".
-      - name: Install the pinned lokf-librarian skill
+      - name: Install the pinned ktl-librarian skill
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
           TRUST_LADDER_SKILLS_REF: v0.19.7 # bump together with the sibling repositories' pins
@@ -76,10 +76,10 @@ jobs:
           tmp="$(mktemp -d)"
           git -c advice.detachedHead=false clone --quiet --depth 1 --branch "$TRUST_LADDER_SKILLS_REF" "$TRUST_LADDER_SKILLS_REPO" "$tmp"
           mkdir -p .agents/skills
-          rm -rf .agents/skills/lokf-librarian
-          cp -R "$tmp/skills/lokf-librarian" .agents/skills/
-          test -f .agents/skills/lokf-librarian/SKILL.md
-          echo "Installed lokf-librarian@$TRUST_LADDER_SKILLS_REF"
+          rm -rf .agents/skills/ktl-librarian
+          cp -R "$tmp/skills/ktl-librarian" .agents/skills/
+          test -f .agents/skills/ktl-librarian/SKILL.md
+          echo "Installed ktl-librarian@$TRUST_LADDER_SKILLS_REF"
 
       # Wire this up under Settings -> Secrets and variables -> Actions:
       #   1. Set KNOWLEDGE_LIBRARIAN_ENABLED to "true" to arm the run. Anything
@@ -139,7 +139,7 @@ jobs:
           set -euo pipefail
           # Scope to the bundle so tool artifacts (e.g. a fresh .lokf/uv.lock from
           # `uv sync`) never trigger a PR by themselves. Both of the bundle's
-          # names are listed: with lokf-sidecar's doorway link the second
+          # names are listed: with ktl-sidecar's doorway link the second
           # matches nothing, harmlessly, and it still covers a host rearranged
           # by hand into a real knowledge_bundle/ with .lokf/knowledge a link
           # onto it, since a git pathspec never traverses a symlink. A name
@@ -152,7 +152,7 @@ jobs:
 
       # Plain-language counts for the PR's "For the curator" section. Computed
       # from frontmatter with grep - deterministic, no dependence on what the
-      # agent printed. The lokf-curator skill's own report is the authoritative
+      # agent printed. The ktl-curator skill's own report is the authoritative
       # version; this is the nudge that gets a busy person to run it.
       - name: Summarise for the curator
         id: curator
@@ -171,7 +171,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       # Hand the proposed change to the privileged job as a patch (captures adds,
-      # edits and deletes under the bundle, plus lokf-docent's feedback.md). The
+      # edits and deletes under the bundle, plus ktl-docent's feedback.md). The
       # agent never sees a write token; `publish` applies this on a clean checkout.
       - name: Package the bundle change
         if: steps.diff.outputs.changed == 'true'
@@ -182,7 +182,7 @@ jobs:
           # (see "Detect changes"); `git add` refuses a pathspec that matches
           # nothing, hence the guard.
           [ -e knowledge_bundle ] && git add -A -- knowledge_bundle || true
-          # Reader feedback (written by lokf-docent, consumed by the librarian,
+          # Reader feedback (written by ktl-docent, consumed by the librarian,
           # which removes handled entries) - carry it so entries don't come back.
           [ -e .lokf/feedback.md ] && git add -A -- .lokf/feedback.md || true
           git diff --cached --binary > "$RUNNER_TEMP/librarian.patch"
@@ -239,7 +239,7 @@ jobs:
             printf '%s\n' "$bad" | sed '/^$/d; s/^/  /'
             exit 1
           fi
-          # This skill never writes a human: confirmation (see lokf-librarian's
+          # This skill never writes a human: confirmation (see ktl-librarian's
           # SKILL.md). A PR opened with GITHUB_TOKEN never fires
           # knowledge-registrar.yaml's own pull_request-triggered job - GitHub
           # does not start pull_request workflows for a PR authored by the
@@ -298,7 +298,7 @@ jobs:
               `Across the whole bundle: ${DRAFTS} concept(s) are drafts (not yet confirmed by a person),`,
               `${QUESTIONS} carry open questions the librarian could not settle, and ${HUMAN} have been`,
               'confirmed by a person. The librarian derives facts; it never vouches for them. A few',
-              'minutes with the **lokf-curator** skill turns drafts into confirmed knowledge - run its',
+              'minutes with the **ktl-curator** skill turns drafts into confirmed knowledge - run its',
               'report for the full picture and a guided review.',
             ].join('\n');
             const { data: pr } = await github.rest.pulls.create({

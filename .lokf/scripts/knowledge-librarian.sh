@@ -12,7 +12,7 @@
 # CONTRACT (the workflow relies on this):
 #   - This script only READS the repo and WRITES files under .lokf/knowledge/
 #     (the workflow diffs and commits that path only; tooling files are
-#     lokf-sidecar's domain).
+#     ktl-sidecar's domain).
 #   - It MUST NOT git commit, push, or open PRs - the workflow owns that.
 #   - On success it exits 0 whether or not it changed anything; the workflow
 #     diffs the working tree to decide whether to open a PR.
@@ -26,18 +26,18 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repo_root"
 
-# The lokf-librarian skill may live under any of these skill-directory
+# The ktl-librarian skill may live under any of these skill-directory
 # conventions - the three install targets, plus bare skills/ for a repo that
 # publishes the skills it also uses. If this repo uses a different one, add it here - a candidate
 # list that doesn't match reality fails this whole script at run time, not at
 # scaffold time.
 skill=""
-for candidate in .claude/skills/lokf-librarian/SKILL.md .github/skills/lokf-librarian/SKILL.md \
-                 .agents/skills/lokf-librarian/SKILL.md skills/lokf-librarian/SKILL.md; do
+for candidate in .claude/skills/ktl-librarian/SKILL.md .github/skills/ktl-librarian/SKILL.md \
+                 .agents/skills/ktl-librarian/SKILL.md skills/ktl-librarian/SKILL.md; do
   if [ -f "$candidate" ]; then skill="$candidate"; break; fi
 done
 [ -n "$skill" ] || {
-  echo "knowledge-librarian: lokf-librarian SKILL.md not found in .claude/skills/, .github/skills/, .agents/skills/, or skills/" >&2
+  echo "knowledge-librarian: ktl-librarian SKILL.md not found in .claude/skills/, .github/skills/, .agents/skills/, or skills/" >&2
   exit 2
 }
 
@@ -46,7 +46,7 @@ if [ -z "${AGENT_CLI:-}" ]; then
 knowledge-librarian: AGENT_CLI is not set.
 
 Set AGENT_CLI to your non-interactive agent command (e.g. a Copilot CLI or
-internal runner). This wrapper hands it a prompt built from the lokf-librarian
+internal runner). This wrapper hands it a prompt built from the ktl-librarian
 skill; the agent is expected to edit files under .lokf/knowledge/ only.
 EOF
   exit 2
@@ -113,10 +113,10 @@ fi
 # nothing forces it. Record paths already dirty outside the bundle (e.g. a
 # uv.lock the workflow refreshed) so the agent is held to account only for *new*
 # ones. Allowed: the bundle under either of its two names - .lokf/knowledge/,
-# and knowledge_bundle/, which is lokf-sidecar's doorway link by default (then
+# and knowledge_bundle/, which is ktl-sidecar's doorway link by default (then
 # the pathspec matches nothing) but a real folder on a host rearranged by hand
 # with .lokf/knowledge a link onto it (git pathspecs do not traverse a symlink,
-# so both must be named) - plus lokf-docent's .lokf/feedback.md.
+# so both must be named) - plus ktl-docent's .lokf/feedback.md.
 outside_bundle() {
   git status --porcelain -- '.' \
     ':(exclude).lokf/knowledge' ':(exclude)knowledge_bundle' ':(exclude).lokf/feedback.md' \
