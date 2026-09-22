@@ -1,4 +1,4 @@
-import yaml from "js-yaml";
+import { dump, load } from "js-yaml";
 import type {
   EndpointType,
   NexusRecord,
@@ -142,7 +142,7 @@ export async function fetchYourData(): Promise<{
           throw new Error(`HTTP ${result.value.status}`);
         }
         const text = await result.value.text();
-        const yamlData = yaml.load(text);
+        const yamlData = load(text);
         // A 404 page or plain-text error parses as a string; reject it.
         if (!yamlData || typeof yamlData !== "object") {
           throw new Error("file is not a YAML mapping");
@@ -475,7 +475,7 @@ export async function saveYamlData({
       );
     }
 
-    const yamlText = yaml.dump(yamlDataReordered);
+    const yamlText = dump(yamlDataReordered);
 
     // Persist the actual file (backup handled by API server)
     const res = await fetch(`${APP_URL}/byo?filename=${yourFileName}.yaml`, {
