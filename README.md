@@ -10,7 +10,7 @@ AI-LinkMO is a reference implementation of *operational* AI governance. It takes
 
 *Here to run it? Start at [Install](#install). Here to see what this adds to AI Atlas Nexus? Start at [Where this sits](#where-this-sits-an-execution-workshop-over-ai-atlas-nexus).*
 
-> **Two ways in.** This README is one; the other is a docent. Install [`ktl-docent`](https://github.com/noelmcloughlin/knowledge-trust-ladder) into whatever agent you already use (`npx skills add noelmcloughlin/knowledge-trust-ladder --skill ktl-docent --yes`) and ask it anything about this project, such as *Where does the EU AI Act encoding come from, and who checked it?* It answers from `.lokf/knowledge/`, the checked part of what the project knows, and says how far each answer has been trusted: still a draft, checked by automation only, or confirmed by a named person. It opens the source for exact values and records what it could not answer, so the gap gets filled. One door serves a person at a prompt, an agent reading this file, and a chatbot that can load a skill. **Agents:** if `.lokf/knowledge/index.md` exists, read it first; `llms.txt` says how to weigh it.
+> **Prefer to ask?** Install the docent skill into any agent you already use (`npx skills add noelmcloughlin/knowledge-trust-ladder --skill ktl-docent --yes`) and ask it about this project, such as *where the EU AI Act encoding comes from, and who checked it*. It answers from this repository's own bundle and says how far each answer has been checked. **Agents:** if `.lokf/knowledge/index.md` exists, read it first; `llms.txt` says how to weigh it.
 
 ## Why governance needs a catalogue
 
