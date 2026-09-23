@@ -15,7 +15,7 @@
     "test": "npm run test:unit -- --run"
   },
   "dependencies": {
-    "daisyui": "^5.5.19",
+    "daisyui": "^5.7.42",
     "debounce": "^3.0.0",
     "js-yaml": "^4.1.1",
     "svelte": "^5.57.1",
