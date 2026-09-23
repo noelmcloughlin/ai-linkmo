@@ -14,4 +14,8 @@ exclude = [
   # default retry-with-backoff; not a dead link. Drop this exclusion if
   # upstream relaxes its limits, or if CI starts flagging a real 404 here.
   '^https://docs\.vllm\.ai/',
+  # conventionalcommits.org (Netlify) answers CI runners with 503 on every
+  # retry while serving 200 elsewhere; not a dead link. Drop this exclusion
+  # if CI reaches it again.
+  '^https://www\.conventionalcommits\.org/',
 ]
