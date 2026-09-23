@@ -4,8 +4,6 @@ Both of these need infrastructure you run yourself. Neither is required for the 
 
 ## LLM inferencing
 
-**Requires an LLM service.**
-
 AI-LinkMO can use a large language model to infer risk dimensions. You need access to a model (for example `ibm-granite/granite-3.1-8b-instruct`) served by an inference engine such as [vLLM](https://docs.vllm.ai/). On a host with the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#with-dnf-rhel-centos-fedora-amazon-linux), the official [vLLM container](https://docs.vllm.ai/en/stable/deployment/docker/) is the simplest route:
 
 ```bash
@@ -30,4 +28,4 @@ The container above also listens on port 8000, which is the FastAPI backend's po
 
 ## ARES evaluation
 
-ARES is an evaluation framework for Retrieval-Augmented Generation (RAG) systems. An [extension for ai-atlas-nexus](https://github.com/ibm/ai-atlas-nexus-extensions/tree/main/ran-ares-integration) exists, but an upstream pull request is needed before it can be installed here.
+ARES is an evaluation framework for Retrieval-Augmented Generation (RAG) systems. An [extension for ai-atlas-nexus](https://github.com/ibm/ai-atlas-nexus-extensions/tree/main/ran-ares-integration) exists, but it cannot be installed here until an upstream pull request merges.

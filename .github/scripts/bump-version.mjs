@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 // Writes a version into pyproject.toml and uv.lock for the semantic-release
 // pipeline in .github/workflows/semantic-release.yml. Plain Node, no
-// dependencies - reviewable in one read, matching this project's preference
+// dependencies: reviewable in one read, matching this project's preference
 // for a fixed, in-repo script over an inline command string (see
 // changelog-release.mjs and knowledge-librarian.sh).
 //
 // There is no Python equivalent of @semantic-release/npm, so the two files
 // that carry the version are edited here instead. uv.lock is edited in place
 // rather than regenerated with `uv lock`, which keeps uv out of the release
-// runner entirely: only the project's own version line changes, so the lock
+// runner entirely. Only the project's own version line changes, so the lock
 // stays consistent with pyproject.toml and CI's `uv sync --locked` is happy.
 //
 // Usage:
