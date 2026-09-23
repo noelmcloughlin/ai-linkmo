@@ -30,9 +30,9 @@ function getPropsFromRef(
   const def = match && defs[match[1]];
   return def && typeof def === "object" && def !== null && "properties" in def
     ? ((def as { properties?: Record<string, unknown> }).properties as Record<
-      string,
-      unknown
-    >) || null
+        string,
+        unknown
+      >) || null
     : null;
 }
 
@@ -120,13 +120,13 @@ export async function getSchemaFieldsFromJSON(): Promise<
       allFields[endpoint.key] =
         props && typeof props === "object"
           ? Object.entries(props).map(([key, value]) => ({
-            key,
-            value: value as {
-              [prop: string]: unknown;
-              description?: string;
-              type?: string;
-            },
-          }))
+              key,
+              value: value as {
+                [prop: string]: unknown;
+                description?: string;
+                type?: string;
+              },
+            }))
           : [];
     }
   } catch (e) {
