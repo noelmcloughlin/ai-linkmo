@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Reads and rewrites this repository's own CHANGELOG.md "## [Unreleased]"
 // section for the semantic-release pipeline in
-// .github/workflows/semantic-release.yml. Plain Node, no dependencies -
+// .github/workflows/semantic-release.yml. Plain Node, no dependencies:
 // reviewable in one read, matching this project's preference for a fixed,
 // in-repo script over an inline command string (see knowledge-librarian.sh).
 //
@@ -11,7 +11,7 @@
 //       verifyReleaseCmd, so a release with nothing written up never ships.
 //
 //   node changelog-release.mjs notes [version]
-//       Prints the Unreleased section's body to stdout - becomes the
+//       Prints the Unreleased section's body to stdout; it becomes the
 //       release notes when used as generateNotesCmd. With a version arg,
 //       also appends `next_version=<version>` to $GITHUB_OUTPUT if that
 //       env var is set (a side channel a caller can read even from a

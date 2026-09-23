@@ -5,16 +5,16 @@ name: Knowledge Librarian
 # changed. It NEVER pushes to the default branch and NEVER auto-merges; no changes
 # -> no PR; and it is inert until KNOWLEDGE_LIBRARIAN_ENABLED is set to "true".
 #
-# Two jobs by design (least privilege): the `refresh` job runs the agent - third-
-# party code - under a read-only token with no git credentials on disk, then hands
-# the proposed bundle change to `publish` as a patch artifact. Only `publish`,
-# which runs no agent code, holds the contents-write / pull-requests-write token
-# used to push the branch and open the PR, so a compromised agent cannot reach it.
+# Two jobs, for least privilege. The `refresh` job runs the agent (third-party
+# code) under a read-only token with no git credentials on disk, then hands the
+# proposed bundle change to `publish` as a patch artifact. Only `publish`, which
+# runs no agent code, holds the contents-write / pull-requests-write token used
+# to push the branch and open the PR, so a compromised agent cannot reach it.
 on:
   schedule:
     - cron: "0 5 * * 1" # Mondays at 05:00 UTC
   # Before arming KNOWLEDGE_LIBRARIAN_ENABLED (below), run this once by hand from
-  # the Actions tab to exercise the install step on its own - it runs on every
+  # the Actions tab to exercise the install step on its own. It runs on every
   # trigger, so this checks the skill installs from the pinned tag before the
   # agent step (skipped until the variable is set) is ever asked to do anything.
   workflow_dispatch:
@@ -30,7 +30,7 @@ jobs:
     name: Refresh the LOKF bundle (agent, read-only)
     runs-on: ubuntu-latest
     permissions:
-      contents: read # read the repo only - no write token near the agent
+      contents: read # read the repo only; no write token near the agent
     outputs:
       changed: ${{ steps.diff.outputs.changed }}
       validate_outcome: ${{ steps.validate-lokf.outcome }}
@@ -83,7 +83,7 @@ jobs:
 
       # Wire this up under Settings -> Secrets and variables -> Actions:
       #   1. Set KNOWLEDGE_LIBRARIAN_ENABLED to "true" to arm the run. Anything
-      #      else (or unset) leaves this step skipped - a safe no-op.
+      #      else (or unset) leaves this step skipped, a safe no-op.
       #   2. Set AGENT_CLI to your non-interactive agent command (it takes a prompt
       #      via -p). If it embeds an API key or token, define it as a *secret*
       #      (secrets are masked in logs; `vars.` are not, and public-repo logs are
@@ -91,14 +91,14 @@ jobs:
       #      still, keep the credential out of the command and let the agent CLI read
       #      it from its own secret-provided environment variable.
       #
-      # What runs is fixed to the reviewed, in-repo wrapper below - not an arbitrary
-      # command string from a repo variable - so changing *what executes* goes
+      # What runs is fixed to the reviewed, in-repo wrapper below, not an arbitrary
+      # command string from a repo variable. So changing *what executes* goes
       # through code review, not an unreviewed Settings edit.
       #
       # Security rationale (human + automated reviewers): AGENT_CLI is trusted,
       # admin-set config (not untrusted input). The wrapper parses it into a quoted
-      # argv array and runs it directly - no eval, no re-expansion - and only here,
-      # in this read-only job (contents: read, no persisted credentials); a post-run
+      # argv array and runs it directly (no eval, no re-expansion), and only here,
+      # in this read-only job (contents: read, no persisted credentials). A post-run
       # check fails if the agent writes outside .lokf/knowledge/. Contained by
       # design, not arbitrary execution.
       - name: Run the librarian agent
@@ -108,13 +108,14 @@ jobs:
         run: bash .lokf/scripts/knowledge-librarian.sh
 
       # The wrapper enforces the same boundary itself, immediately after the agent
-      # returns, and restores .git/config and .git/hooks from an EXIT trap, so a
-      # failing agent or a cancelled job cannot leave a poisoned core.fsmonitor
-      # or core.hooksPath behind to blind either check. This is the second layer: it runs even when the wrapper didn't
-      # (agent disarmed, or an early exit), so no path outside the bundle can reach
-      # `publish` in the patch. .lokf/uv.lock is excluded too - the earlier
-      # "Install the lokf sidecar" step's `uv sync` can touch it, the same
-      # tool-artifact exception "Detect changes" below already makes.
+      # returns. It also restores .git/config and .git/hooks from an EXIT trap, so
+      # a failing agent or a cancelled job cannot leave a poisoned core.fsmonitor
+      # or core.hooksPath behind to blind either check. This is the second layer:
+      # it runs even when the wrapper did not (agent disarmed, or an early exit),
+      # so no path outside the bundle can reach `publish` in the patch.
+      # .lokf/uv.lock is excluded too: the earlier "Install the lokf sidecar"
+      # step's `uv sync` can touch it, the same tool-artifact exception "Detect
+      # changes" below already makes.
       - name: Enforce the agent's write scope
         if: vars.KNOWLEDGE_LIBRARIAN_ENABLED == 'true'
         run: |
@@ -151,7 +152,7 @@ jobs:
           fi
 
       # Plain-language counts for the PR's "For the curator" section. Computed
-      # from frontmatter with grep - deterministic, no dependence on what the
+      # from frontmatter with grep: deterministic, no dependence on what the
       # agent printed. The ktl-curator skill's own report is the authoritative
       # version; this is the nudge that gets a busy person to run it.
       - name: Summarise for the curator

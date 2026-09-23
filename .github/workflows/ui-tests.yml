@@ -32,9 +32,9 @@ jobs:
       # Audit-mode egress monitor. This job runs npm lifecycle scripts (`npm ci`
       # below runs esbuild's and Playwright's, which fetch platform binaries)
       # and then a headless browser, so it has the widest dependency surface of
-      # any workflow here. Note the deliberate absence of `--ignore-scripts`:
-      # the Vite/Playwright toolchain needs those scripts to produce a working
-      # build, so the monitor - not script suppression - is the control.
+      # any workflow here. `--ignore-scripts` is left off here: the
+      # Vite/Playwright toolchain needs those scripts to produce a working
+      # build, so the monitor, not script suppression, is the control.
       - name: Harden the runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:

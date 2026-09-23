@@ -1,14 +1,39 @@
 name: Knowledge Registrar
 
 # The registrar's job: keep the LOKF knowledge bundle's records well-formed and
-# provenanced - never judge whether their content is true, that's the curator's
-# job. Validates the bundle whenever it (or its tooling) changes, and on a
-# weekly schedule.
+# provenanced. It never judges whether their content is true; that is the
+# curator's job. It validates the bundle whenever it (or its tooling) changes,
+# and on a weekly schedule.
+#
+# How to read this file. Three jobs, and none of them can write to the
+# repository: each runs with a read-only token, keeps no credential on disk,
+# and runs no LLM or agent. An auditor can follow a run top to bottom:
+#
+#   validate      every run       `lokf validate`, which checks the schema;
+#                                 the conventions script, which checks dates,
+#                                 event shape and open questions; then the
+#                                 `lokf-check-refs` recipe, which checks every
+#                                 relation target.
+#   provenance    pull requests   for each new `human:<id>` event in the diff:
+#                                   approved this pull request    -> ok
+#                                   signed the commit, per GitHub -> ok
+#                                   neither                       -> unbacked
+#                                 With keys in .lokf/curators/, a second check
+#                                 verifies the same signatures with plain git.
+#   attestation   unbacked only   pauses until a reviewer of the configured
+#                                 environment clicks Approve; the click is
+#                                 logged with the run.
+#
+# The evidence is GitHub's own record of approvals and signature checks,
+# never the pull request's text. What this file does not prove is that the
+# named person read the source. The skills repository's docs/three-lines.md
+# places this job as the second line of defence and says what remains open:
+# https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/main/docs/three-lines.md
 on:
   pull_request:
     paths:
       - ".lokf/**"
-      - "knowledge_bundle/**" # the bundle's second name - a link by default, a real folder on a host rearranged by hand
+      - "knowledge_bundle/**" # the bundle's second name: a link by default, a real folder on a host rearranged by hand
       - ".github/workflows/knowledge-registrar.yaml"
   schedule:
     - cron: "0 6 * * 1" # Mondays at 06:00 UTC
@@ -60,12 +85,12 @@ jobs:
         working-directory: .lokf
 
       # `lokf validate` reads a concept body as an opaque string and never
-      # opens log.md, so the conventions the skills and both Obsidian plugins
-      # rely on - one ISO-date heading per day, quoted timestamps, `verified`
-      # as a list with one librarian event, open questions in the shape the
-      # curator reads - are checked by the script the sidecar lays down beside
-      # the agent wrapper. Each of them has been broken by an agent that had
-      # the rule in prose.
+      # opens log.md. So the conventions the skills and both Obsidian plugins
+      # rely on are checked by the script the sidecar lays down beside the
+      # agent wrapper. Those are one ISO-date heading per day, quoted
+      # timestamps, `verified` as a list with one librarian event, and open
+      # questions in the shape the curator reads. Each of them has been broken
+      # by an agent that had the rule in prose.
       - name: Check the conventions lokf validate cannot see
         run: bash scripts/knowledge-conventions.sh knowledge
         working-directory: .lokf
@@ -81,16 +106,16 @@ jobs:
   provenance:
     name: Check new human confirmations
     # A `human:<id>` verification claims that a named person checked a concept
-    # against its source. Nothing in the bundle's own format proves one: any
-    # writer - an agent steered by another agent, a script, a careless merge -
-    # can type the string, and `lokf validate` sees a perfectly well-formed
-    # event. This job is where such a claim gets tied back to a person, using
-    # the only evidence the forge actually holds: who approved the pull
-    # request, and who signed the commits.
+    # against its source. Nothing in the bundle's own format proves one. Any
+    # writer can type the string (an agent steered by another agent, a script,
+    # a careless merge), and `lokf validate` sees a perfectly well-formed
+    # event. This job ties such a claim back to a person, using the only
+    # evidence the forge holds: who approved the pull request, and who signed
+    # the commits.
     #
     # When the confirming person also opens the pull request: GitHub will not
     # let anyone approve their own pull request, so their signature on the
-    # commits is the path here - it is also the stronger claim, being
+    # commits is the path here. It is also the stronger claim, being
     # cryptographic and checkable long after a review could be dismissed.
     # One-time setup with the SSH key already used to push:
     #
@@ -99,12 +124,12 @@ jobs:
     #   git config --global commit.gpgsign true
     #
     # then add that same key again at github.com/settings/keys as a
-    # *signing* key - GitHub keeps auth and signing keys in separate
+    # *signing* key. GitHub keeps auth and signing keys in separate
     # lists, this check reads GitHub's own verdict, and a key registered
     # only for auth leaves every commit Unverified. The commit email must
     # also be a verified email on the account.
     #
-    # If you genuinely cannot sign, see the `attestation` job below.
+    # If you cannot sign, see the `attestation` job below.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -306,7 +331,7 @@ jobs:
 
       # Second opinion where the repository carries curator keys: the same
       # signature check with plain git, gpg and ssh-keygen against the keys
-      # on file (<id>.asc or <id>.pub) rather than GitHub's verdict, so a
+      # on file (<id>.asc or <id>.pub) rather than GitHub's verdict. So a
       # signature from a key not on file for that id fails even when GitHub
       # shows it as Verified. A repository with no .lokf/curators/ never runs
       # it; the script itself says so and passes if run by hand. Laid down by
@@ -323,14 +348,14 @@ jobs:
     # The escape hatch for a repository that cannot sign commits and has
     # nobody else available to approve.
     #
-    # It is deliberately NOT a switch that turns the check off. A permanent
+    # It is NOT a switch that turns the check off. A permanent
     # "provenance: off" setting gets flipped for one urgent afternoon and
     # never flipped back, and the bundle then claims confirmations it cannot
     # support. This asks instead for a fresh human action on every pull
     # request that needs one: the run pauses, GitHub emails the environment's
     # reviewers, and someone clicks Approve in a browser. Unlike a pull
     # request review, an environment reviewer MAY be the person who opened
-    # the pull request, which is what makes this work when the same person
+    # the pull request. That is what makes this work when the same person
     # opens the pull request and attests.
     # The click lands in the deployment log, so it stays auditable.
     #
