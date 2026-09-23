@@ -6,6 +6,8 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-23
+
 ### Changed
 
 - **This repository follows the skills repository's renames.** `lokf-agent-skills` is now `knowledge-trust-ladder` (a third-party repository named after the format read as LOKF's official home), and its skills and plugins carry the `ktl-` prefix. Every link, both `npx skills add` lines, the librarian workflow, the sidecar scripts and the `TRUST_LADDER_SKILLS_REPO`/`TRUST_LADDER_SKILLS_REF` variables (formerly `LOKF_SKILLS_*`) follow; GitHub redirects the old paths. The workflow's pin must move to the first skills release that carries the new names.

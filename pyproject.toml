@@ -1,6 +1,6 @@
 [project]
 name = "ai-linkmo"
-version = "0.1.1"
+version = "0.1.2"
 description = "One linked AI-governance model, four ways in: CLI, API, web UI and graph"
 readme = "README.md"
 license = "Apache-2.0"
