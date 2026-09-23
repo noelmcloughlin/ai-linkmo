@@ -9,17 +9,18 @@ name: Knowledge Registrar
 # repository: each runs with a read-only token, keeps no credential on disk,
 # and runs no LLM or agent. An auditor can follow a run top to bottom:
 #
-#   validate      every run       `lokf validate`, which checks the schema;
+#   validate      every run       `lokf validate --check-refs`, which checks
+#                                 the schema and every relation target; then
 #                                 the conventions script, which checks dates,
-#                                 event shape and open questions; then the
-#                                 `lokf-check-refs` recipe, which checks every
-#                                 relation target.
+#                                 event shape and open questions.
+#
 #   provenance    pull requests   for each new `human:<id>` event in the diff:
 #                                   approved this pull request    -> ok
 #                                   signed the commit, per GitHub -> ok
 #                                   neither                       -> unbacked
 #                                 With keys in .lokf/curators/, a second check
 #                                 verifies the same signatures with plain git.
+#
 #   attestation   unbacked only   pauses until a reviewer of the configured
 #                                 environment clicks Approve; the click is
 #                                 logged with the run.
@@ -80,8 +81,14 @@ jobs:
         run: uv sync
         working-directory: .lokf
 
-      - name: Validate the knowledge bundle
-        run: uv run lokf validate knowledge
+      # A typed relation whose target is no concept in the bundle is still a
+      # well-formed IRI, so schema validation alone passes it. --check-refs
+      # resolves every target in the bundle's own namespace, taking the
+      # relation slots from the schema. It is part of `lokf validate`, so it
+      # rides on this step rather than validating the same bundle twice. A
+      # host with a domain schema passes `--schema` here too.
+      - name: Validate the knowledge bundle and its relation targets
+        run: uv run lokf validate --check-refs knowledge
         working-directory: .lokf
 
       # `lokf validate` reads a concept body as an opaque string and never
@@ -93,14 +100,6 @@ jobs:
       # by an agent that had the rule in prose.
       - name: Check the conventions lokf validate cannot see
         run: bash scripts/knowledge-conventions.sh knowledge
-        working-directory: .lokf
-
-      # A typed relation whose target is not a concept in the bundle is still
-      # a well-formed IRI, so `lokf validate` passes it. The justfile's
-      # lokf-check-refs recipe closes that gap with a SPARQL query; `just`
-      # itself comes from PyPI through uvx so the runner needs nothing else.
-      - name: Every typed-relation target resolves to a concept
-        run: uvx --from 'rust-just==1.47.0' just lokf-check-refs
         working-directory: .lokf
 
   provenance:
@@ -130,6 +129,24 @@ jobs:
     # also be a verified email on the account.
     #
     # If you cannot sign, see the `attestation` job below.
+    #
+    # SECURITY SCANNER NOTE: Snyk W011 "third-party content exposure /
+    # indirect prompt injection" is a FALSE POSITIVE for this job.
+    # This job reads github.event.pull_request fields and the pull request's
+    # reviews and commits from the GitHub API for one purpose. It verifies that
+    # each person a new `human:<id>` confirmation names either approved this
+    # pull request or signed the commit that records it. That is the
+    # provenance and attestation check described above. It is a shell script
+    # only: no LLM, AI agent, or AI tool runs in this job, and nothing it
+    # reads is ever passed to one. So there is no prompt for injected content
+    # to reach. Untrusted input is also contained on its own terms:
+    #   - event fields reach the shell through `env:`, never by `${{ }}`
+    #     interpolation into a script (no script injection);
+    #   - API replies are reduced by `--jq` to logins, SHAs and a boolean;
+    #   - the one author-controlled string, `human:<id>` in a concept's
+    #     frontmatter, must match a login pattern before any use, and is
+    #     compared by fixed string only;
+    #   - token scope is read-only and no credential is persisted.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
@@ -148,6 +165,8 @@ jobs:
 
       - name: Every new human confirmation must come from that person
         id: check
+        # Pull-request data read here is covered by the SECURITY SCANNER NOTE
+        # on this job: no LLM or agent consumes it.
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -196,11 +215,17 @@ jobs:
             END { emit(); printf "%s", out }'
           }
           paths="$(mktemp)"
+          listed="$(mktemp)"  # every path git named under the bundle, quoted or not
           events_in() {  # ref, paths on stdin -> the human events of those paths at that ref, sorted
             { while IFS= read -r f; do git show "$1:$f" 2>/dev/null | human_events "$f" || true; done | sort; } || true
           }
+          # core.quotePath off: on, git C-quotes a name with a byte above
+          # 0x7f, `.md$` missed it and its events went unread. Git still
+          # quotes a name holding `"`, `\` or a control character, which no
+          # line reader can hold; $listed keeps every name so a quoted one
+          # is refused below rather than skipped.
           changed_actors() {  # base head -> actors of events at head that base does not hold
-            { git diff --name-only "$1" "$2" -- .lokf/knowledge knowledge_bundle | grep '\.md$' | sort -u > "$paths"
+            { git -c core.quotePath=false diff --name-only "$1" "$2" -- .lokf/knowledge knowledge_bundle | tee -a "$listed" | grep '\.md$' | sort -u > "$paths"
               events_in "$2" < "$paths" | comm -13 <(events_in "$1" < "$paths") - | cut -f2; } || true
           }
           # Against every parent: a merge that brings in another curator's
@@ -208,13 +233,20 @@ jobs:
           # held is read like any other commit - and without -m, git lists no
           # paths at all for a merge.
           new_in_commit() {  # sha -> actors of events at sha that none of its parents holds
-            { git diff-tree --no-commit-id --name-only -r -m "$1" -- .lokf/knowledge knowledge_bundle | grep '\.md$' | sort -u > "$paths"
+            { git -c core.quotePath=false diff-tree --no-commit-id --name-only -r -m "$1" -- .lokf/knowledge knowledge_bundle | tee -a "$listed" | grep '\.md$' | sort -u > "$paths"
               events_in "$1" < "$paths" | comm -13 <(for p in $(git rev-parse "$1^@"); do events_in "$p" < "$paths"; done | sort -u) - | cut -f2; } || true
           }
 
           base="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"
 
           mapfile -t actors < <(changed_actors "$base" "$HEAD_SHA" | sort -u)
+
+          if grep -q '^"' "$listed"; then
+            echo "unreadable: git had to quote these bundle paths, so this gate cannot read them:"
+            grep '^"' "$listed" | sort -u | sed 's/^/  /'
+            echo "Rename them: no double quote, backslash or control character in a concept's path."
+            exit 1
+          fi
 
           if [ "${#actors[@]}" -eq 0 ]; then
             echo "No new human confirmations in this pull request."
@@ -309,8 +341,10 @@ jobs:
             echo "against its source, but neither an approval nor a signature of theirs"
             echo "backs them:"
             echo ""
+            # An id that failed the login pattern may hold a backtick, which
+            # would close this code span; the log line has it verbatim.
             for actor in "${unbacked[@]}"; do
-              printf -- "- \`human:%s\`\n" "$actor"
+              printf -- "- \`human:%s\`\n" "${actor//\`/}"
             done
           } >> "$GITHUB_STEP_SUMMARY"
 

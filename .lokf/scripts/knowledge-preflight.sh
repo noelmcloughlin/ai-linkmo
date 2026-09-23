@@ -149,7 +149,7 @@ if [ "$ingit" -eq 1 ]; then
     if [ "$fmt" = ssh ]; then have ssh-keygen || warn signing "gpg.format is ssh but ssh-keygen is not installed - commits will fail to sign"
     else have gpg || warn signing "gpg.format is $fmt but gpg is not installed - commits will fail to sign"; fi
   else
-    warn signing "commit signing off - a curation pull request you open yourself fails the gate (docs/signing-commits.md in lokf-agent-skills)"
+    warn signing "commit signing off - a curation pull request you open yourself fails the gate (docs/signing-commits.md in knowledge-trust-ladder)"
   fi
 fi
 
@@ -232,18 +232,26 @@ fi
 # ---- host copies of the sidecar's templates ----------------------------------
 # The conventions script runs its Python half, so a host holding the .sh
 # without the .py has a gate that fails outright, not a stale copy - said
-# whether or not a sidecar is installed to compare against.
-missing_py=""
+# whether or not a sidecar is installed to compare against. A bundle with no
+# knowledge-feedback.sh is the same kind of gap rather than drift: ktl-docent
+# then has to open feedback.md to add an entry, which is the one thing that
+# script exists to stop. A host on a sidecar that predates it should hear so
+# before a reader's first recorded gap, not after.
+script_gaps=""
 if [ -f "$root/.lokf/scripts/knowledge-conventions.sh" ] && [ ! -f "$root/.lokf/scripts/knowledge-conventions.py" ]; then
-  missing_py=".lokf/scripts/knowledge-conventions.py missing beside the .sh, which runs it"
+  script_gaps=".lokf/scripts/knowledge-conventions.py missing beside the .sh, which runs it"
+fi
+if [ -d "$bundle" ] && [ ! -f "$root/.lokf/scripts/knowledge-feedback.sh" ]; then
+  script_gaps="${script_gaps}${script_gaps:+, }.lokf/scripts/knowledge-feedback.sh missing, so ktl-docent must edit feedback.md by hand"
 fi
 if [ -n "$templates" ] && [ -d "$root/.lokf" ]; then
-  drift="$missing_py"
+  drift="$script_gaps"
   for pair in "scripts/knowledge-conventions.sh:.lokf/scripts/knowledge-conventions.sh" \
               "scripts/knowledge-conventions.py:.lokf/scripts/knowledge-conventions.py" \
               "scripts/knowledge-librarian.sh:.lokf/scripts/knowledge-librarian.sh" \
               "scripts/knowledge-preflight.sh:.lokf/scripts/knowledge-preflight.sh" \
               "scripts/knowledge-provenance.sh:.lokf/scripts/knowledge-provenance.sh" \
+              "scripts/knowledge-feedback.sh:.lokf/scripts/knowledge-feedback.sh" \
               "gitattributes:.lokf/.gitattributes" \
               "github/knowledge-registrar.yaml:.github/workflows/knowledge-registrar.yaml" \
               "github/knowledge-librarian.yaml:.github/workflows/knowledge-librarian.yaml"; do
@@ -257,8 +265,8 @@ if [ -n "$templates" ] && [ -d "$root/.lokf" ]; then
   else
     warn copies "differ from ${templates#"$root"/}: $drift - a deliberate host edit, or a template bump not yet copied (ktl-sidecar repair)"
   fi
-elif [ -n "$missing_py" ]; then
-  warn copies "$missing_py - the ktl-sidecar repair lays it down"
+elif [ -n "$script_gaps" ]; then
+  warn copies "$script_gaps - the ktl-sidecar repair lays it down"
 fi
 
 # ---- session ---------------------------------------------------------------
