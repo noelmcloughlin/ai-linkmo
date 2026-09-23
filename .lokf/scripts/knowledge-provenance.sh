@@ -23,7 +23,9 @@
 #     is not a login any forge could list;
 #   - the range adds, changes or removes that id's own key file *and* records
 #     a confirmation by them - a key lands in its own reviewed change first,
-#     so nobody registers a key and vouches with it in one step.
+#     so nobody registers a key and vouches with it in one step;
+#   - a commit touches a bundle path git has to quote (`"`, `\` or a control
+#     character in the name), which this line reader cannot hold.
 # No `.lokf/curators/` directory: says so and exits 0 - nothing to verify
 # against, and the forge's gate, if any, is the only check.
 #
@@ -142,9 +144,11 @@ events_in() {  # ref, paths on stdin -> the human events of those paths at that 
   done | sort
 }
 # The paths a commit changes against any of its parents: without -m, git
-# lists nothing at all for a merge commit.
+# lists nothing at all for a merge commit. core.quotePath off, or a name with
+# a byte above 0x7f comes C-quoted and `.md$` misses it; git still quotes
+# `"`, `\` and control characters, and the caller refuses those.
 changed_paths() {  # commit, pathspecs... -> paths, one per line
-  git diff-tree --no-commit-id --name-only -r -m "$@" 2>/dev/null | sort -u
+  git -c core.quotePath=false diff-tree --no-commit-id --name-only -r -m "$@" 2>/dev/null | sort -u
 }
 
 # The range, oldest first, and the ids whose key file it adds, changes or
@@ -160,17 +164,23 @@ rekeyed_said=""
 
 checked=0
 for sha in $commits; do
+  short="$(git rev-parse --short "$sha")"
   # The actor of every event new or changed against every parent, in the
-  # concepts this commit touches; an id this script cannot check is a
-  # finding below, never a skip.
-  files="$(changed_paths "$sha" -- "$bundle" knowledge_bundle | grep '\.md$' || true)"
+  # concepts this commit touches. A path this script cannot read, like an id
+  # it cannot check, is a finding, never a skip.
+  listed="$(changed_paths "$sha" -- "$bundle" knowledge_bundle)"
+  quoted="$(printf '%s\n' "$listed" | grep '^"' || true)"
+  if [ -n "$quoted" ]; then
+    say "$short touches a bundle path git has to quote, which this script cannot read - rename it: $(printf '%s' "$quoted" | tr '\n' ' ')"
+    continue
+  fi
+  files="$(printf '%s\n' "$listed" | grep '\.md$' || true)"
   [ -n "$files" ] || continue
   for p in $(git rev-parse "$sha^@" 2>/dev/null); do
     printf '%s\n' "$files" | events_in "$p"
   done | sort -u > "$home/parent.events"
   ids="$(printf '%s\n' "$files" | events_in "$sha" | comm -13 "$home/parent.events" - | cut -f2 | sort -u)"
   [ -n "$ids" ] || continue
-  short="$(git rev-parse --short "$sha")"
   format="$(sig_format "$sha")"
   status=""; signer=""
   if [ "$format" = pgp ] && [ "$gpg_ok" -eq 1 ]; then

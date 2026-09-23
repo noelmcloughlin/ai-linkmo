@@ -25,21 +25,12 @@ lokf-convert FILE=bundle:
 lokf-serve:
     uv run lokf serve {{ bundle }}
 
-# Every typed-relation target resolves to a concept - the one gap neither
-# `lokf validate` nor the generated SHACL shapes cover, since a stale or
-# invented IRI is still a syntactically valid IRI. The registrar workflow
-# runs this recipe by name, so it must keep it.
-
-# Check every typed-relation target resolves to a concept in the bundle
+# Audit: every typed-relation target must resolve to a concept in the bundle.
+# Schema validation alone reads a fabricated or stale IRI as a valid string.
+# --check-refs (lokf 0.8.0+) takes the relation slots from the schema, so
+# reified `relations` entries and a domain schema's own slots are covered too;
+# a host with a domain schema passes `--schema <slug>.yaml` here as well as on
+# lokf-validate. Targets outside base_iri are left alone - `source` and
+# `definedBy` are documented as taking an external resource.
 lokf-check-refs:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    q='SELECT DISTINCT ?target WHERE { ?s ?p ?target . FILTER(?p IN (dcterms:isPartOf, schema:hasPart, dcterms:references, dcterms:requires, prov:wasDerivedFrom, schema:about, schema:sameAs, dcterms:relation, rdfs:isDefinedBy, dcterms:source)) FILTER(isIRI(?target)) FILTER NOT EXISTS { ?target a ?anytype } }'
-    dangling="$(uv run lokf query {{ bundle }} "$q" --format csv | tail -n +2)"
-    if [ -z "$dangling" ]; then
-      echo "OK - every typed-relation target resolves to a concept in the bundle."
-    else
-      echo "FAIL - relation target(s) with no matching concept in the bundle:"
-      echo "$dangling"
-      exit 1
-    fi
+    uv run lokf validate --check-refs {{ bundle }}

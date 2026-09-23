@@ -3,3 +3,7 @@
 __pycache__/
 *.pyc
 lokf-tables/
+
+# knowledge-feedback.sh rewrites feedback.md through a temporary file and a
+# lock directory beside it; a run killed outright can leave either behind.
+feedback.md.*

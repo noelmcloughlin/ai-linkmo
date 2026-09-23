@@ -1,5 +1,19 @@
 # Change Log
 
+## 2026-09-23
+
+* **The docent records a reader's gap without reading the file it goes in.**
+  The sidecar now carries `knowledge-feedback.sh`, so ktl-docent hands over
+  its own entry and never opens `.lokf/feedback.md`, where other readers' free
+  text would enter its session (Snyk W011).
+
+* **The scheduled librarian installs its skill from a tag that has it.** The
+  pin read `v0.19.7`, where the skills are named `lokf-*`, so the install step
+  (not gated on `KNOWLEDGE_LIBRARIAN_ENABLED`) failed on every run. It moves to
+  `v0.23.0`. The scripts under `.lokf/scripts/` and `knowledge-registrar.yaml`
+  now match that release's templates: the gate runs `lokf validate
+  --check-refs`, and every bundle path is read with `core.quotePath` off.
+
 ## 2026-09-18
 
 * **Sidecar brought up to the skills templates**: the wrapper here predated

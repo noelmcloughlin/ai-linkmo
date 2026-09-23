@@ -70,7 +70,7 @@ jobs:
       - name: Install the pinned ktl-librarian skill
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.19.7 # bump together with the sibling repositories' pins
+          TRUST_LADDER_SKILLS_REF: v0.23.0 # bump together with the sibling repositories' pins
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -232,8 +232,10 @@ jobs:
           # workspace with the agent, so its checks can in principle be
           # blinded or skipped (see the wrapper script's comments). Re-derive
           # the path check here, on this job's clean checkout, before
-          # anything from the patch touches disk.
-          paths="$(git apply --numstat "$RUNNER_TEMP/librarian.patch" | cut -f3-)"
+          # anything from the patch touches disk. core.quotePath off, or a
+          # concept named with a byte above 0x7f is listed C-quoted and
+          # refused as outside the bundle.
+          paths="$(git -c core.quotePath=false apply --numstat "$RUNNER_TEMP/librarian.patch" | cut -f3-)"
           bad="$(printf '%s\n' "$paths" | grep -Ev '^(\.lokf/knowledge/|knowledge_bundle/|\.lokf/feedback\.md$)' || true)"
           if [ -n "${bad//[$'\n\t ']/}" ]; then
             echo "::error::Patch touches paths outside the allowed bundle:"
