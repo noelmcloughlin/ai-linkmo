@@ -17,7 +17,7 @@
   "dependencies": {
     "daisyui": "^5.7.42",
     "debounce": "^3.0.0",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^5.4.2",
     "svelte": "^5.57.1",
     "svelte-routing": "^2.13.0",
     "svelte-select": "^5.8.3",
