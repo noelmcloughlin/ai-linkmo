@@ -6,6 +6,8 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-09-24
+
 ### Security
 
 - **Releases carry the docent as a Microsoft 365 Copilot skill.** The new `.lokf/m365/`, copied from the `v0.27.0` templates, holds its instructions, `ktl-docent-m365.md`, and `knowledge-m365.sh`, which builds it from a snapshot of the bundle. `knowledge-release.yaml` attaches it as `ktl-docent-m365-<tag>-<repository>.zip` beside the bundle zip; without the folder it attached the bundle alone. `CONTRIBUTING.md` and `SECURITY.md` count `.lokf/m365/` among the copies that move with the pin.
