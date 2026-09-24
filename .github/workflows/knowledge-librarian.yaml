@@ -13,10 +13,6 @@ name: Knowledge Librarian
 on:
   schedule:
     - cron: "0 5 * * 1" # Mondays at 05:00 UTC
-  # Before arming KNOWLEDGE_LIBRARIAN_ENABLED (below), run this once by hand from
-  # the Actions tab to exercise the install step on its own. It runs on every
-  # trigger, so this checks the skill installs from the pinned tag before the
-  # agent step (skipped until the variable is set) is ever asked to do anything.
   workflow_dispatch:
 
 permissions: {} # deny by default; each job requests only the scopes it needs
@@ -43,8 +39,9 @@ jobs:
       questions: ${{ steps.curator.outputs.questions }}
       human: ${{ steps.curator.outputs.human }}
     steps:
-      # Same audit-mode egress monitor the test workflows run; this job installs
-      # packages, clones a skill, and runs a third-party agent.
+      # Same audit-mode egress monitor step 5's other templates use; this job
+      # installs packages, installs a skill everywhere but the repository
+      # that publishes it, and runs a third-party agent.
       - name: Harden the runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
         with:
@@ -85,7 +82,7 @@ jobs:
         if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.25.0 # the one pin; CONTRIBUTING.md points here instead of repeating it
+          TRUST_LADDER_SKILLS_REF: v0.26.0 # the one pin; point your docs here instead of repeating it
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -141,15 +138,14 @@ jobs:
           AGENT_API_KEY_ENV: ${{ vars.AGENT_API_KEY_ENV }}
         run: bash .lokf/scripts/knowledge-librarian.sh
 
-      # The wrapper enforces the same boundary itself, immediately after the agent
-      # returns. It also restores .git/config and .git/hooks from an EXIT trap, so
-      # a failing agent or a cancelled job cannot leave a poisoned core.fsmonitor
-      # or core.hooksPath behind to blind either check. This is the second layer:
-      # it runs even when the wrapper did not (agent disarmed, or an early exit),
-      # so no path outside the bundle can reach `publish` in the patch.
-      # .lokf/uv.lock is excluded too: the earlier "Install the lokf sidecar"
-      # step's `uv sync` can touch it, the same tool-artifact exception "Detect
-      # changes" below already makes.
+      # The wrapper enforces this same boundary itself, immediately after the
+      # agent returns. It also restores .git/config and .git/hooks around the
+      # call, from an EXIT trap, so a failing agent or a cancelled job restores
+      # too. That keeps a poisoned core.fsmonitor/hooksPath from blinding
+      # either check (see the wrapper's own comments). This is the second,
+      # independent layer: it runs even when the wrapper did not get to (agent
+      # disarmed, early exit), so no path outside the bundle can reach
+      # `publish` in the patch.
       - name: Enforce the agent's write scope
         if: vars.KNOWLEDGE_LIBRARIAN_ENABLED == 'true'
         run: |
@@ -245,10 +241,6 @@ jobs:
         with:
           egress-policy: audit
 
-      # Unlike the `refresh` job this keeps persist-credentials at its default:
-      # "Commit and push the librarian branch" below needs the token to push. No
-      # agent code runs in this job, so the write-scoped token is never exposed
-      # to one.
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -281,8 +273,7 @@ jobs:
           # knowledge-registrar.yaml's own pull_request-triggered provenance
           # job - GitHub does not start pull_request workflows for a PR
           # authored by the default token - so this is that check's only
-          # backstop for this particular PR; see the sibling skills
-          # repository's scheduled-task.md.
+          # backstop for this particular PR; see scheduled-task.md.
           if grep -Eq '^\+ *-? *by: *human:' "$RUNNER_TEMP/librarian.patch"; then
             echo "::error::Patch adds a 'by: human:' claim - the scheduled librarian must never author one."
             exit 1

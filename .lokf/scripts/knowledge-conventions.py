@@ -13,7 +13,7 @@
 # is where a line-oriented regex used to guess wrong. Rule 4 is a body rule
 # that rides along, and rule 10 exists because the provenance gates do read
 # the frontmatter line by line: it keeps the fields they read to spellings a
-# line reader and a parser agree on. Rules 1, 5, 6 and 8 stay in the shell
+# line reader and a parser agree on. Rules 1, 5, 6, 8 and 11 stay in the shell
 # script: they are git and filesystem facts, and needn't wait on uv.
 #
 # Usage: knowledge-conventions.py <bundle-dir>. Same contract as the shell

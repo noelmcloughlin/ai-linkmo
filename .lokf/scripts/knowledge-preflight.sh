@@ -195,7 +195,7 @@ if have uv; then
   fi
   if have just; then ok just "just $(just --version 2>/dev/null | sed 's/^just //')"; else info just "just not installed - uvx --from rust-just just works the same"; fi
 else
-  miss toolkit "uv not installed - lokf validate, convert and query unavailable, and the conventions script skips its parser's half (rules 2, 3, 4, 7, 9, 10); only the manual schema cross-check remains" "lokf validate and six of the ten conventions (every skill's audit)"
+  miss toolkit "uv not installed - lokf validate, convert and query unavailable, and the conventions script skips its parser's half (rules 2, 3, 4, 7, 9, 10); only the manual schema cross-check remains" "lokf validate and six of the eleven conventions (every skill's audit)"
 fi
 
 # ---- installed skills, and drift between copies -----------------------------
