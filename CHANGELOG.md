@@ -8,13 +8,13 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ### Fixed
 
-- **The scheduled librarian installs its skill from `v0.23.1`.** The pin still named `v0.19.7`, which has no `skills/ktl-librarian`, so the weekly run failed at that step.
+- **The scheduled librarian installs its skill from `v0.24.0`.** The pin still named `v0.19.7`, which has no `skills/ktl-librarian`, so the weekly run failed at that step.
 
 ### Security
 
 - **The sidecar carries `knowledge-feedback.sh`.** ktl-docent records a reader's gap through it and never opens `feedback.md`, so no other reader's text enters its session (Snyk W011).
-- **The sidecar copies follow knowledge-trust-ladder's `main`.** `knowledge-release.yaml` is new: it attaches the bundle to a release as a tarball unless the bundle matches the last release's, runs when dispatched by hand, and is otherwise inert. Once `KNOWLEDGE_RELEASE_ENABLED` is `true`, the release job dispatches it for each new tag, because a release made with the job token starts no workflow. The librarian workflow and wrapper hand the agent its credential, the `AGENT_API_KEY` secret or the job's own token with `AGENT_USE_JOB_TOKEN`, under the name `AGENT_API_KEY_ENV` gives and to nothing else; the job requests `copilot-requests: write` for Copilot CLI, idle until then, and sets up Node 22 for an `npx`-run agent. `knowledge-preflight.sh` compares the new workflow with its template.
-- **The sidecar scripts and registrar gate match the `v0.23.1` templates.** A bundle path with a byte above 0x7f is now read rather than skipped, and one git must quote is refused; relation targets are checked by `lokf validate --check-refs`.
+- **The sidecar copies match the `v0.24.0` templates.** `knowledge-release.yaml` is new: it attaches the bundle to a release as a tarball unless the bundle matches the last release's, runs when dispatched by hand, and is otherwise inert. Once `KNOWLEDGE_RELEASE_ENABLED` is `true`, the release job dispatches it for each new tag, because a release made with the job token starts no workflow. The librarian workflow and wrapper hand the agent its credential, the `AGENT_API_KEY` secret or the job's own token with `AGENT_USE_JOB_TOKEN`, under the name `AGENT_API_KEY_ENV` gives and to nothing else; the job requests `copilot-requests: write` for Copilot CLI, idle until then, and sets up Node 22 for an `npx`-run agent. The librarian validates relation targets with `--check-refs` before it opens a pull request, as the gate does. `knowledge-preflight.sh` compares the new workflow with its template.
+- **The sidecar scripts and registrar gate took the `v0.23.1` template fixes.** A bundle path with a byte above 0x7f is now read rather than skipped, and one git must quote is refused; relation targets are checked by `lokf validate --check-refs`.
 
 ## [0.1.2] - 2026-09-23
 
