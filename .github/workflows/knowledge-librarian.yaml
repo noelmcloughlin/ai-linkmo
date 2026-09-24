@@ -70,7 +70,7 @@ jobs:
       - name: Install the pinned ktl-librarian skill
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.23.0 # bump together with the sibling repositories' pins
+          TRUST_LADDER_SKILLS_REF: v0.23.1 # bump together with the sibling repositories' pins
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"

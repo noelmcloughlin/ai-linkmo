@@ -244,6 +244,9 @@ fi
 if [ -d "$bundle" ] && [ ! -f "$root/.lokf/scripts/knowledge-feedback.sh" ]; then
   script_gaps="${script_gaps}${script_gaps:+, }.lokf/scripts/knowledge-feedback.sh missing, so ktl-docent must edit feedback.md by hand"
 fi
+# A host moves TRUST_LADDER_SKILLS_REF on its own schedule, so a different
+# pin is not drift; every other byte of the librarian workflow still counts.
+unpin() { sed -E 's/(TRUST_LADDER_SKILLS_REF: )v[0-9]+\.[0-9]+\.[0-9]+/\1vX.Y.Z/' "$1"; }
 if [ -n "$templates" ] && [ -d "$root/.lokf" ]; then
   drift="$script_gaps"
   for pair in "scripts/knowledge-conventions.sh:.lokf/scripts/knowledge-conventions.sh" \
@@ -258,7 +261,7 @@ if [ -n "$templates" ] && [ -d "$root/.lokf" ]; then
     src="$templates/${pair%%:*}"; dst="$root/${pair##*:}"
     [ -f "$dst" ] || continue
     [ -f "$src" ] || { drift="${drift}${drift:+, }${pair##*:} (the installed sidecar predates it)"; continue; }
-    cmp -s "$src" "$dst" || drift="${drift}${drift:+, }${pair##*:}"
+    cmp -s <(unpin "$src") <(unpin "$dst") || drift="${drift}${drift:+, }${pair##*:}"
   done
   if [ -z "$drift" ]; then
     ok copies "host copies match the installed sidecar's templates (${templates#"$root"/})"
