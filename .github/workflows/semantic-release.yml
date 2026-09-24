@@ -176,7 +176,7 @@ jobs:
       # workflow from an event that token causes, so knowledge-release.yaml's
       # release trigger never fires here. A dispatch is the one exception, so
       # once KNOWLEDGE_RELEASE_ENABLED arms that workflow this step asks for
-      # the bundle tarball directly, built from the tag. semantic-release
+      # the bundle zip directly, built from the tag. semantic-release
       # commits and tags in this checkout, so the new tag sits on HEAD; a run
       # that released nothing leaves HEAD untagged, and the step stops there.
       - name: Attach the knowledge bundle
@@ -187,4 +187,4 @@ jobs:
           tag="$(git tag --points-at HEAD --list 'v*' | head -n 1)"
           if [ -z "$tag" ]; then echo "No release this run, so no bundle to attach."; exit 0; fi
           gh workflow run knowledge-release.yaml --ref "$tag" -f tag="$tag" \
-            || { echo "::error::$tag is released, but the bundle tarball was not requested. Run the Knowledge Release workflow by hand with tag=$tag."; exit 1; }
+            || { echo "::error::$tag is released, but the bundle zip was not requested. Run the Knowledge Release workflow by hand with tag=$tag."; exit 1; }

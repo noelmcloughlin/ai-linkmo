@@ -46,7 +46,7 @@ The execution surfaces outside the application itself are:
 - the scheduled `knowledge-librarian.yaml`, which installs a pinned [`knowledge-trust-ladder`](https://github.com/noelmcloughlin/knowledge-trust-ladder) skill, runs it against this repository's own `.lokf/knowledge/` bundle, and opens a review pull request. The agent itself runs with **no write permissions**;
 - the wrapper script `.lokf/scripts/knowledge-librarian.sh`, which that workflow executes;
 - `semantic-release.yml`, which computes the next version from Conventional Commits, promotes `CHANGELOG.md`, bumps `pyproject.toml` and `uv.lock`, publishes a GitHub Release, and dispatches `knowledge-release.yaml` for it once `KNOWLEDGE_RELEASE_ENABLED` is `true`;
-- `knowledge-release.yaml`, a copy of the template's, which attaches the bundle to a release as a tarball. It is inert until dispatched or armed, and only its `attach` job, which runs no third-party packages, can write;
+- `knowledge-release.yaml`, a copy of the template's, which attaches the bundle to a release as a zip file. It is inert until dispatched or armed, and only its `attach` job, which runs no third-party packages, can write;
 - this repository's `README.md`, `llms.txt`, `byo/` content, and the knowledge bundle: these are prompt-injection surfaces whenever an agent is asked to act on repository text, external URLs, or reader feedback.
 
 ### Repository hardening

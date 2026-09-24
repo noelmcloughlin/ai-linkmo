@@ -1,8 +1,8 @@
 name: Knowledge Release
 
-# Attaches the LOKF knowledge bundle to a GitHub release as a tarball, so a
+# Attaches the LOKF knowledge bundle to a GitHub release as a zip file, so a
 # reader can take the bundle as it stood at that release without cloning the
-# repository. It runs no LLM or agent, and it never commits or pushes.
+# repository, and open it with any operating system's own tools. It runs no LLM or agent, and it never commits or pushes.
 #
 # Two ways to start it:
 #
@@ -20,16 +20,17 @@ name: Knowledge Release
 #   gh workflow run knowledge-release.yaml --ref "$TAG" -f tag="$TAG"
 # with `actions: write` on that job.
 #
-# A release whose bundle is unchanged gets no tarball. `pack` compares the
+# A release whose bundle is unchanged gets no zip. `pack` compares the
 # bundle's git tree at this tag with its tree at the newest other published
-# release that carries a knowledge tarball. When the two match, the run ends
+# release that carries a knowledge bundle, as a zip or as the tarball earlier
+# releases attached. When the two match, the run ends
 # green with a notice and uploads nothing. The `force` input of a manual run
 # skips the comparison, for repairing a release's assets.
 #
 # Two jobs, for least privilege. `pack` installs the lokf toolkit (third-party
-# packages), validates the bundle and builds the tarball under a read-only
+# packages), validates the bundle and builds the zip under a read-only
 # token. `attach` holds the write token, runs no third-party packages, checks
-# the tarball against its checksum and uploads both to the release.
+# the zip against its checksum and uploads both to the release.
 on:
   release:
     types: [published]
@@ -88,7 +89,7 @@ jobs:
       # SECURITY SCANNER NOTE: Snyk W011 "third-party content exposure /
       # indirect prompt injection" does not apply to this job. It reads the
       # repository's own release list from the GitHub API for one purpose: to
-      # find the newest release that already carries a knowledge tarball. No
+      # find the newest release that already carries a knowledge bundle. No
       # LLM, AI agent or AI tool runs anywhere in this workflow, so nothing it
       # reads can reach a prompt. The reply is reduced by `--jq` to tag names,
       # and each tag name is used only as a quoted `refs/tags/` revision in
@@ -119,9 +120,10 @@ jobs:
           echo "path=$path" >> "$GITHUB_OUTPUT"
           # Newest first. Drafts are left out, since nobody has published them.
           # The tag is filtered in the shell, so no tag name reaches jq's source.
+          # The `knowledge-<tag>.tar.gz` that earlier releases attached counts too.
           tags="$(gh api --paginate "repos/$GH_REPO/releases?per_page=100" \
             --jq '.[] | select(.draft | not)
-                  | select(any(.assets[]; .name | startswith("knowledge-") and endswith(".tar.gz")))
+                  | select(any(.assets[]; .name | startswith("knowledge-") and (endswith(".zip") or endswith(".tar.gz"))))
                   | .tag_name')"
           prev="$(printf '%s\n' "$tags" | grep -vxF -- "$TAG" | sed -n 1p || true)"
           if [ "$FORCE" = true ]; then
@@ -129,13 +131,13 @@ jobs:
             echo "::notice::force is set, so the bundle is attached without comparing it."
           elif [ -z "$prev" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "No earlier release carries a knowledge tarball; this is the first."
+            echo "No earlier release carries a knowledge bundle; this is the first."
           elif ! read -r prev_tree _ < <(bundle_tree "$prev"); then
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "::warning::$prev carries a tarball but its tag holds no bundle here; attaching without a comparison."
+            echo "::warning::$prev carries a bundle but its tag holds no bundle folder here; attaching without a comparison."
           elif [ "$tree" = "$prev_tree" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::The bundle at $TAG is identical to the one released with $prev (tree ${tree:0:12}), so no tarball is attached."
+            echo "::notice::The bundle at $TAG is identical to the one released with $prev (tree ${tree:0:12}), so no zip is attached."
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "The bundle changed since $prev: $(git diff --shortstat "refs/tags/$prev" "refs/tags/$TAG" -- "$path")"
@@ -143,7 +145,7 @@ jobs:
 
       - name: Set up uv
         if: steps.compare.outputs.changed == 'true'
-        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           python-version: "3.12"
 
@@ -164,19 +166,23 @@ jobs:
         run: bash scripts/knowledge-conventions.sh knowledge
         working-directory: .lokf
 
-      # The same bundle always gives the same bytes: names sorted, owner,
-      # group and modes fixed, every mtime set to the time of the last commit
-      # that touched the bundle, and no name or time in the gzip header. A
-      # reader can rebuild the tarball from the tag and compare checksums, and
-      # an unchanged bundle has the same checksum at every release.
+      # The same bundle always gives the same bytes. The bundle is copied to
+      # a staging folder, where modes are fixed and every file takes the time
+      # of the last commit that touched the bundle. Names go to zip sorted.
+      # `-X` leaves out the uid, gid and extended-time fields, and TZ=UTC fixes
+      # the one time zip keeps, which it stores as local time. A reader can
+      # rebuild the zip from the tag and compare checksums, and an unchanged
+      # bundle has the same checksum at every release.
       #
       # The path is the one the compare step found, resolved to the real
       # folder in case it is a link (see the sidecar's references/portability.md).
       # The archive root is always `knowledge/`.
-      # Links inside the bundle are stored as links and never followed, so
-      # nothing outside the bundle can reach the tarball. The `S` flag keeps
-      # their targets as written. Only tracked files are packed, because the
-      # checkout holds nothing else.
+      # A link inside the bundle is copied as a link (`cp -P`) and stored as
+      # a link (`zip -y`), never followed, so nothing outside the bundle can
+      # reach the zip. A bundle normally carries none; this is a guard. Only
+      # tracked files are packed, because the checkout holds nothing else.
+      # The name carries the repository, so zips downloaded from several
+      # repositories stay apart.
       - name: Pack the bundle
         id: pack
         if: steps.compare.outputs.changed == 'true'
@@ -184,16 +190,20 @@ jobs:
           BUNDLE_PATH: ${{ steps.compare.outputs.path }}
         run: |
           set -euo pipefail
-          asset="knowledge-${TAG//\//-}.tar.gz"
+          asset="knowledge-${TAG//\//-}-${GITHUB_REPOSITORY#*/}.zip"
           src="$(cd "$BUNDLE_PATH" && pwd -P)"
           mtime="$(git log -1 --format=%ct -- "$BUNDLE_PATH")"
-          mkdir -p "$RUNNER_TEMP/release"
-          LC_ALL=C tar -C "$src" --sort=name --mtime="@$mtime" --owner=0 --group=0 --numeric-owner --mode='u=rwX,go=rX' --transform 's,^\.,knowledge,S' -cf - . | gzip -n > "$RUNNER_TEMP/release/$asset"
+          stage="$RUNNER_TEMP/stage"
+          mkdir -p "$stage" "$RUNNER_TEMP/release"
+          cp -R -P "$src" "$stage/knowledge"
+          chmod -R u=rwX,go=rX "$stage/knowledge"
+          find "$stage/knowledge" -exec touch -h -d "@$mtime" {} +
+          (cd "$stage" && find knowledge \( -type f -o -type l \) -print | LC_ALL=C sort | TZ=UTC zip -q -X -y -@ "$RUNNER_TEMP/release/$asset")
           (cd "$RUNNER_TEMP/release" && sha256sum "$asset" > "$asset.sha256")
           echo "asset=$asset" >> "$GITHUB_OUTPUT"
-          echo "Packed $(tar -tzf "$RUNNER_TEMP/release/$asset" | grep -vc '/$') files into $asset"
+          echo "Packed $(unzip -Z1 "$RUNNER_TEMP/release/$asset" | wc -l) files into $asset"
 
-      - name: Upload the tarball
+      - name: Upload the zip
         if: steps.compare.outputs.changed == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -203,7 +213,7 @@ jobs:
           if-no-files-found: error
 
   attach:
-    name: Attach the tarball to the release (privileged)
+    name: Attach the zip to the release (privileged)
     needs: pack
     if: needs.pack.outputs.changed == 'true'
     runs-on: ubuntu-latest
@@ -220,18 +230,18 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Download the tarball
+      - name: Download the zip
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: knowledge-release
           path: ${{ runner.temp }}/release
 
-      - name: Check the tarball against its checksum
+      - name: Check the zip against its checksum
         run: sha256sum -c "$ASSET.sha256"
         working-directory: ${{ runner.temp }}/release
 
       # A signed record of which workflow run, commit and repository built the
-      # tarball. Anyone can check it with `gh attestation verify <file> -R
+      # zip. Anyone can check it with `gh attestation verify <file> -R
       # <owner>/<repo>`. GitHub stores attestations for public repositories on
       # every plan; a private repository needs GitHub Enterprise Cloud, so the
       # step skips itself there.
