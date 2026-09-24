@@ -18,7 +18,10 @@
 #     diffs the working tree to decide whether to open a PR.
 #
 # Inputs (env):
-#   AGENT_CLI   command that runs the agent given a prompt via -p "<prompt>"
+#   AGENT_CLI           command that runs the agent given a prompt via -p "<prompt>"
+#   AGENT_API_KEY       optional: the agent's API key or token, from a secret
+#   AGENT_API_KEY_ENV   the name the agent reads that key from, such as
+#                       ANTHROPIC_API_KEY; required when AGENT_API_KEY is set
 #
 set -euo pipefail
 
@@ -50,6 +53,32 @@ internal runner). This wrapper hands it a prompt built from the ktl-librarian
 skill; the agent is expected to edit files under .lokf/knowledge/ only.
 EOF
   exit 2
+fi
+
+# The workflow passes the key under one fixed name, and the agent CLI reads it
+# under its own. Check the name here, before anything runs: it must look like a
+# credential (ending _API_KEY, _TOKEN or _KEY), so a slip cannot overwrite
+# PATH, BASH_ENV or LD_PRELOAD. It must not start GITHUB_, GH_, GIT_, RUNNER_ or
+# ACTIONS_, because gh, git and the runner read those names too, and the key
+# would reach them as well as the agent. The key moves into an unexported
+# variable, so the git commands this script runs never see it.
+key_name="${AGENT_API_KEY_ENV:-}"
+agent_key="${AGENT_API_KEY:-}"
+unset AGENT_API_KEY AGENT_API_KEY_ENV
+if [ -n "$agent_key" ] || [ -n "$key_name" ]; then
+  if [ -z "$agent_key" ]; then
+    echo "knowledge-librarian: AGENT_API_KEY_ENV is $key_name but the AGENT_API_KEY secret is empty" >&2
+    exit 2
+  fi
+  if [ -z "$key_name" ]; then
+    echo "knowledge-librarian: AGENT_API_KEY is set; set AGENT_API_KEY_ENV to the name your agent reads it from, such as ANTHROPIC_API_KEY" >&2
+    exit 2
+  fi
+  if ! [[ "$key_name" =~ ^[A-Z][A-Z0-9_]*_(API_KEY|TOKEN|KEY)$ ]] \
+     || [[ "$key_name" =~ ^(GITHUB|GH|GIT|RUNNER|ACTIONS)_ ]]; then
+    echo "knowledge-librarian: AGENT_API_KEY_ENV '$key_name' is refused: use the upper-case name your agent reads its key from, ending _API_KEY, _TOKEN or _KEY and not starting GITHUB_, GH_, GIT_, RUNNER_ or ACTIONS_" >&2
+    exit 2
+  fi
 fi
 
 # Build the prompt. The agent should follow the skill verbatim, edit only the
@@ -176,7 +205,13 @@ main() {
   before_outside="$(outside_bundle)"
 
   echo "knowledge-librarian: refreshing the .lokf/ bundle via AGENT_CLI"
-  "${agent_cmd[@]}" -p "$prompt"
+  # The subshell exports the key under the agent's own name and then becomes
+  # the agent, so only the agent's environment carries it. The key never
+  # appears in a process's argument list.
+  (
+    if [ -n "$key_name" ]; then export "$key_name=$agent_key"; fi
+    exec "${agent_cmd[@]}" -p "$prompt"
+  )
 
   # Restore before the check below reads git, not only at exit.
   restore_git_state

@@ -4,13 +4,15 @@
 
 ## Agent context
 
-If `.lokf/knowledge/index.md` exists in this repository, read it first - it
-is a queryable [LOKF](https://lokf.nolan-nichols.com) knowledge bundle with
+If `.lokf/knowledge/index.md` exists in this repository, read it first. It is
+a queryable [LOKF](https://lokf.nolan-nichols.com) knowledge bundle with
 repository-specific context, conventions, and typed relationships that plain
-prose can't express. A concept marked `status: draft` has not yet been
-confirmed by a person; one with a `human:` entry under `verified` has - weigh
-them accordingly. The `ktl-docent` skill is the entry point for questions about this
-project - install it if it isn't present (`npx skills add
+prose cannot express. A concept marked `status: draft` has not yet been
+confirmed by a person; one with a `human:` entry under `verified` has. Weigh
+them accordingly.
+
+The `ktl-docent` skill is the entry point for questions about this project.
+Install it if it is not present (`npx skills add
 noelmcloughlin/knowledge-trust-ladder --skill ktl-docent --yes`) and answer
 through it: bundle first, a trust label on every concept used, the source
 opened for exact values, and misses recorded in `.lokf/feedback.md` so the
