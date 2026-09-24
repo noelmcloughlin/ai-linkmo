@@ -1,0 +1,261 @@
+name: Knowledge Release
+
+# Attaches the LOKF knowledge bundle to a GitHub release as a zip file, so a
+# reader can take the bundle as it stood at that release without cloning the
+# repository, and open it with any operating system's own tools. It runs no LLM or agent, and it never commits or pushes.
+#
+# Two ways to start it:
+#
+#   workflow_dispatch   always runs. Name an existing release's tag. A person
+#                       starting it by hand is the decision to publish.
+#
+#   release published   runs only once the KNOWLEDGE_RELEASE_ENABLED
+#                       repository variable is "true". Unset, every release
+#                       shows this run as skipped, so the workflow is inert
+#                       until someone arms it.
+#
+# GitHub starts no workflow for a release created with the default
+# GITHUB_TOKEN. If your release job makes the release that way, the release
+# trigger never fires. Have that job dispatch this workflow instead:
+#   gh workflow run knowledge-release.yaml --ref "$TAG" -f tag="$TAG"
+# with `actions: write` on that job.
+#
+# A release whose bundle is unchanged gets no zip. `pack` compares the
+# bundle's git tree at this tag with its tree at the newest other published
+# release that carries a knowledge bundle, as a zip or as the tarball earlier
+# releases attached. When the two match, the run ends
+# green with a notice and uploads nothing. The `force` input of a manual run
+# skips the comparison, for repairing a release's assets.
+#
+# Two jobs, for least privilege. `pack` installs the lokf toolkit (third-party
+# packages), validates the bundle and builds the zip under a read-only
+# token. `attach` holds the write token, runs no third-party packages, checks
+# the zip against its checksum and uploads both to the release.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag of an existing release to attach the bundle to, e.g. v1.4.0"
+        required: true
+        type: string
+      force:
+        description: "Attach even when the bundle matches the last release's"
+        required: false
+        default: false
+        type: boolean
+
+permissions: {} # deny by default; each job requests only the scopes it needs
+
+concurrency:
+  group: knowledge-release-${{ inputs.tag || github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  pack:
+    name: Validate and pack the bundle (read-only)
+    if: github.event_name == 'workflow_dispatch' || vars.KNOWLEDGE_RELEASE_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      changed: ${{ steps.compare.outputs.changed }}
+      asset: ${{ steps.pack.outputs.asset }}
+    env:
+      TAG: ${{ inputs.tag || github.event.release.tag_name }}
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      # The bundle as it stood at the tag, not at the branch head.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
+          persist-credentials: false
+          # Full history: knowledge-conventions.sh resolves each `revision`
+          # against the tree, and reports a shallow clone instead of passing it.
+          fetch-depth: 0
+
+      # Runs before anything is installed, so the read-only token this step
+      # holds never shares a step with third-party packages. The bundle lives
+      # at `.lokf/knowledge`, or at `knowledge_bundle` on a host rearranged by
+      # hand, where `.lokf/knowledge` is a link and git stores it as a blob.
+      # The step picks whichever of the two is a tree at each release.
+      #
+      # SECURITY SCANNER NOTE: Snyk W011 "third-party content exposure /
+      # indirect prompt injection" does not apply to this job. It reads the
+      # repository's own release list from the GitHub API for one purpose: to
+      # find the newest release that already carries a knowledge bundle. No
+      # LLM, AI agent or AI tool runs anywhere in this workflow, so nothing it
+      # reads can reach a prompt. The reply is reduced by `--jq` to tag names,
+      # and each tag name is used only as a quoted `refs/tags/` revision in
+      # git commands, never interpolated into a script by `${{ }}`.
+      - name: Compare with the last released bundle
+        id: compare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          FORCE: ${{ inputs.force || false }}
+        run: |
+          set -euo pipefail
+          bundle_tree() {
+            local ref="$1" path
+            for path in .lokf/knowledge knowledge_bundle; do
+              if [ "$(git cat-file -t "refs/tags/$ref:$path" 2>/dev/null)" = tree ]; then
+                printf '%s %s\n' "$(git rev-parse "refs/tags/$ref:$path")" "$path"
+                return 0
+              fi
+            done
+            return 1
+          }
+          # Both tags are spelt in full, so a name is never read as an option
+          # or as a branch of the same name.
+          gh release view "$TAG" --json tagName --jq .tagName >/dev/null \
+            || { echo "::error::No release exists for tag $TAG. Create the release first, then run this workflow again."; exit 1; }
+          read -r tree path < <(bundle_tree "$TAG") || { echo "::error::No bundle folder at $TAG"; exit 1; }
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+          # Newest first. Drafts are left out, since nobody has published them.
+          # The tag is filtered in the shell, so no tag name reaches jq's source.
+          # The `knowledge-<tag>.tar.gz` that earlier releases attached counts too.
+          tags="$(gh api --paginate "repos/$GH_REPO/releases?per_page=100" \
+            --jq '.[] | select(.draft | not)
+                  | select(any(.assets[]; .name | startswith("knowledge-") and (endswith(".zip") or endswith(".tar.gz"))))
+                  | .tag_name')"
+          prev="$(printf '%s\n' "$tags" | grep -vxF -- "$TAG" | sed -n 1p || true)"
+          if [ "$FORCE" = true ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::force is set, so the bundle is attached without comparing it."
+          elif [ -z "$prev" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "No earlier release carries a knowledge bundle; this is the first."
+          elif ! read -r prev_tree _ < <(bundle_tree "$prev"); then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "::warning::$prev carries a bundle but its tag holds no bundle folder here; attaching without a comparison."
+          elif [ "$tree" = "$prev_tree" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::The bundle at $TAG is identical to the one released with $prev (tree ${tree:0:12}), so no zip is attached."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "The bundle changed since $prev: $(git diff --shortstat "refs/tags/$prev" "refs/tags/$TAG" -- "$path")"
+          fi
+
+      - name: Set up uv
+        if: steps.compare.outputs.changed == 'true'
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          python-version: "3.12"
+
+      - name: Install the lokf sidecar
+        if: steps.compare.outputs.changed == 'true'
+        run: uv sync
+        working-directory: .lokf
+
+      # The registrar's two checks, so a release never carries a bundle its
+      # own gate would fail.
+      - name: Validate the knowledge bundle and its relation targets
+        if: steps.compare.outputs.changed == 'true'
+        run: uv run lokf validate --check-refs knowledge
+        working-directory: .lokf
+
+      - name: Check the conventions lokf validate cannot see
+        if: steps.compare.outputs.changed == 'true'
+        run: bash scripts/knowledge-conventions.sh knowledge
+        working-directory: .lokf
+
+      # The same bundle always gives the same bytes. The bundle is copied to
+      # a staging folder, where modes are fixed and every file takes the time
+      # of the last commit that touched the bundle. Names go to zip sorted.
+      # `-X` leaves out the uid, gid and extended-time fields, and TZ=UTC fixes
+      # the one time zip keeps, which it stores as local time. A reader can
+      # rebuild the zip from the tag and compare checksums, and an unchanged
+      # bundle has the same checksum at every release.
+      #
+      # The path is the one the compare step found, resolved to the real
+      # folder in case it is a link (see the sidecar's references/portability.md).
+      # The archive root is always `knowledge/`.
+      # A link inside the bundle is copied as a link (`cp -P`) and stored as
+      # a link (`zip -y`), never followed, so nothing outside the bundle can
+      # reach the zip. A bundle normally carries none; this is a guard. Only
+      # tracked files are packed, because the checkout holds nothing else.
+      # The name carries the repository, so zips downloaded from several
+      # repositories stay apart.
+      - name: Pack the bundle
+        id: pack
+        if: steps.compare.outputs.changed == 'true'
+        env:
+          BUNDLE_PATH: ${{ steps.compare.outputs.path }}
+        run: |
+          set -euo pipefail
+          asset="knowledge-${TAG//\//-}-${GITHUB_REPOSITORY#*/}.zip"
+          src="$(cd "$BUNDLE_PATH" && pwd -P)"
+          mtime="$(git log -1 --format=%ct -- "$BUNDLE_PATH")"
+          stage="$RUNNER_TEMP/stage"
+          mkdir -p "$stage" "$RUNNER_TEMP/release"
+          cp -R -P "$src" "$stage/knowledge"
+          chmod -R u=rwX,go=rX "$stage/knowledge"
+          find "$stage/knowledge" -exec touch -h -d "@$mtime" {} +
+          (cd "$stage" && find knowledge \( -type f -o -type l \) -print | LC_ALL=C sort | TZ=UTC zip -q -X -y -@ "$RUNNER_TEMP/release/$asset")
+          (cd "$RUNNER_TEMP/release" && sha256sum "$asset" > "$asset.sha256")
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+          echo "Packed $(unzip -Z1 "$RUNNER_TEMP/release/$asset" | wc -l) files into $asset"
+
+      - name: Upload the zip
+        if: steps.compare.outputs.changed == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: knowledge-release
+          path: ${{ runner.temp }}/release/
+          retention-days: 1
+          if-no-files-found: error
+
+  attach:
+    name: Attach the zip to the release (privileged)
+    needs: pack
+    if: needs.pack.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # upload release assets
+      id-token: write # sign the build-provenance attestation
+      attestations: write # store the attestation
+    env:
+      TAG: ${{ inputs.tag || github.event.release.tag_name }}
+      ASSET: ${{ needs.pack.outputs.asset }}
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        with:
+          egress-policy: audit
+
+      - name: Download the zip
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: knowledge-release
+          path: ${{ runner.temp }}/release
+
+      - name: Check the zip against its checksum
+        run: sha256sum -c "$ASSET.sha256"
+        working-directory: ${{ runner.temp }}/release
+
+      # A signed record of which workflow run, commit and repository built the
+      # zip. Anyone can check it with `gh attestation verify <file> -R
+      # <owner>/<repo>`. GitHub stores attestations for public repositories on
+      # every plan; a private repository needs GitHub Enterprise Cloud, so the
+      # step skips itself there.
+      - name: Attest build provenance
+        if: ${{ !github.event.repository.private }}
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/release/${{ env.ASSET }}
+
+      # `--clobber` replaces an earlier upload of the same name, so running the
+      # workflow again for one tag repairs its assets instead of failing.
+      - name: Upload to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release upload "$TAG" "$ASSET" "$ASSET.sha256" --clobber
+        working-directory: ${{ runner.temp }}/release

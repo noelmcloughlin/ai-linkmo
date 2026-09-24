@@ -53,7 +53,9 @@ jobs:
       - name: actionlint
         uses: docker://rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667 # v1.7.12
         with:
-          args: -color
+          # -ignore: actionlint 1.7.12 predates the copilot-requests scope
+          # knowledge-librarian.yaml requests; drop it once a release knows it.
+          args: -color -ignore copilot-requests
 
   validate-markdown:
     name: Lint Markdown & check links

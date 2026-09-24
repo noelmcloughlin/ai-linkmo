@@ -31,6 +31,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read # read the repo only; no write token near the agent
+      # Lets the job token pay for Copilot CLI requests. The token reaches the
+      # agent only when AGENT_USE_JOB_TOKEN is "true" (see the agent step);
+      # until then the scope is idle. actionlint 1.7.12 does not know this
+      # scope yet, so the lint step ignores that one message.
+      copilot-requests: write
     outputs:
       changed: ${{ steps.diff.outputs.changed }}
       validate_outcome: ${{ steps.validate-lokf.outcome }}
@@ -52,7 +57,7 @@ jobs:
           persist-credentials: false # keep GITHUB_TOKEN off disk while the agent runs
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           python-version: "3.12"
 
@@ -62,15 +67,25 @@ jobs:
         run: uv sync --locked
         working-directory: .lokf
 
-      # The librarian skill is runtime state, not source (its own hygiene note),
-      # so it is never committed here: install it, pinned to one release, on
-      # every run. A plain clone of the tagged repo needs no `gh` flags and no
-      # token (the repo is public). .agents/ is git-ignored, so the install is
-      # invisible both to the write-scope check below and to "Detect changes".
+      # ktl-librarian is runtime state here, not source (Step 5's own hygiene
+      # note: .agents/ and .claude/ are gitignored), so a scheduled run cannot
+      # rely on it already being present in the checkout. Install it fresh,
+      # pinned to one release, on every run. A plain clone of the tagged
+      # public repo needs no `gh` flags and no token. The install target is
+      # gitignored, so it is invisible both to "Enforce the agent's write
+      # scope" below and to "Detect changes". The one repository that skips
+      # this step is the one it clones from, named again in the `if`: there
+      # the skill is source under bare skills/, and an install would land in
+      # .agents/skills/, which the wrapper searches first, so the pinned
+      # release would run instead of the current one. Repository identity is
+      # the switch, not a file in the tree, so nothing a host commits can
+      # change which instructions its scheduled agent runs. A fork that
+      # develops the skills changes the name in both places.
       - name: Install the pinned ktl-librarian skill
+        if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.23.1 # bump together with the sibling repositories' pins
+          TRUST_LADDER_SKILLS_REF: v0.25.0 # the one pin; CONTRIBUTING.md points here instead of repeating it
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -81,15 +96,32 @@ jobs:
           test -f .agents/skills/ktl-librarian/SKILL.md
           echo "Installed ktl-librarian@$TRUST_LADDER_SKILLS_REF"
 
-      # Wire this up under Settings -> Secrets and variables -> Actions:
+      # Both agent commands the sidecar documents run through npx, and Copilot
+      # CLI needs Node 22 or newer, which a runner image does not promise.
+      - name: Set up Node for the agent
+        if: vars.KNOWLEDGE_LIBRARIAN_ENABLED == 'true'
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+
+      # Wire this up under Settings -> Secrets and variables -> Actions. The
+      # sidecar's references/automation.md gives the full commands for Copilot
+      # CLI and for Claude Code.
       #   1. Set KNOWLEDGE_LIBRARIAN_ENABLED to "true" to arm the run. Anything
       #      else (or unset) leaves this step skipped, a safe no-op.
-      #   2. Set AGENT_CLI to your non-interactive agent command (it takes a prompt
-      #      via -p). If it embeds an API key or token, define it as a *secret*
-      #      (secrets are masked in logs; `vars.` are not, and public-repo logs are
-      #      world-readable) and reference `secrets.AGENT_CLI` here instead. Better
-      #      still, keep the credential out of the command and let the agent CLI read
-      #      it from its own secret-provided environment variable.
+      #   2. Set AGENT_CLI to your non-interactive agent command; the wrapper
+      #      appends -p "<prompt>". It splits the value on whitespace and
+      #      honours no quotes, so no flag value may contain a space. Keep the
+      #      credential out of it. If the command must embed one, make
+      #      AGENT_CLI a *secret* instead: secrets are masked in logs, `vars.`
+      #      are not, and public-repo logs are world-readable.
+      #   3. Set AGENT_API_KEY_ENV to the name the agent reads its credential
+      #      from: COPILOT_GITHUB_TOKEN for Copilot CLI, ANTHROPIC_API_KEY for
+      #      Claude Code. The wrapper hands it to the agent under that name only.
+      #   4. Then either set AGENT_USE_JOB_TOKEN to "true", so the job's own
+      #      GITHUB_TOKEN is that credential (Copilot CLI: no key to keep, and
+      #      the requests are billed to the repository owner's Copilot seat, or
+      #      to the organisation); or put the key in the AGENT_API_KEY secret.
       #
       # What runs is fixed to the reviewed, in-repo wrapper below, not an arbitrary
       # command string from a repo variable. So changing *what executes* goes
@@ -105,6 +137,8 @@ jobs:
         if: vars.KNOWLEDGE_LIBRARIAN_ENABLED == 'true'
         env:
           AGENT_CLI: ${{ vars.AGENT_CLI || secrets.AGENT_CLI }}
+          AGENT_API_KEY: ${{ vars.AGENT_USE_JOB_TOKEN == 'true' && github.token || secrets.AGENT_API_KEY }}
+          AGENT_API_KEY_ENV: ${{ vars.AGENT_API_KEY_ENV }}
         run: bash .lokf/scripts/knowledge-librarian.sh
 
       # The wrapper enforces the same boundary itself, immediately after the agent
@@ -131,7 +165,7 @@ jobs:
         id: validate-lokf
         if: steps.install-lokf.outcome == 'success'
         continue-on-error: true
-        run: uv run lokf validate knowledge
+        run: uv run lokf validate --check-refs knowledge
         working-directory: .lokf
 
       - name: Detect changes
@@ -244,10 +278,11 @@ jobs:
           fi
           # This skill never writes a human: confirmation (see ktl-librarian's
           # SKILL.md). A PR opened with GITHUB_TOKEN never fires
-          # knowledge-registrar.yaml's own pull_request-triggered job - GitHub
-          # does not start pull_request workflows for a PR authored by the
-          # default token - so this is that check's only backstop for this
-          # particular PR.
+          # knowledge-registrar.yaml's own pull_request-triggered provenance
+          # job - GitHub does not start pull_request workflows for a PR
+          # authored by the default token - so this is that check's only
+          # backstop for this particular PR; see the sibling skills
+          # repository's scheduled-task.md.
           if grep -Eq '^\+ *-? *by: *human:' "$RUNNER_TEMP/librarian.patch"; then
             echo "::error::Patch adds a 'by: human:' claim - the scheduled librarian must never author one."
             exit 1
@@ -290,7 +325,7 @@ jobs:
               'and reconciled the `.lokf/` bundle. A human maintainer must review and',
               'approve - this PR must not be auto-merged.',
               '',
-              `- LOKF validation (\`lokf validate\`): ${check(LOKF_OUTCOME)}`,
+              `- LOKF validation (\`lokf validate --check-refs\`): ${check(LOKF_OUTCOME)}`,
               '',
               '### Reviewer checklist',
               '- [ ] Claims trace to a source of truth.',

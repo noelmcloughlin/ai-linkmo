@@ -257,7 +257,8 @@ if [ -n "$templates" ] && [ -d "$root/.lokf" ]; then
               "scripts/knowledge-feedback.sh:.lokf/scripts/knowledge-feedback.sh" \
               "gitattributes:.lokf/.gitattributes" \
               "github/knowledge-registrar.yaml:.github/workflows/knowledge-registrar.yaml" \
-              "github/knowledge-librarian.yaml:.github/workflows/knowledge-librarian.yaml"; do
+              "github/knowledge-librarian.yaml:.github/workflows/knowledge-librarian.yaml" \
+              "github/knowledge-release.yaml:.github/workflows/knowledge-release.yaml"; do
     src="$templates/${pair%%:*}"; dst="$root/${pair##*:}"
     [ -f "$dst" ] || continue
     [ -f "$src" ] || { drift="${drift}${drift:+, }${pair##*:} (the installed sidecar predates it)"; continue; }
