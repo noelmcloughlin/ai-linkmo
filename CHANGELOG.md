@@ -8,12 +8,12 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ### Fixed
 
-- **The scheduled librarian installs its skill from `v0.23.0`.** The pin still named `v0.19.7`, which has no `skills/ktl-librarian`, so the weekly run failed at that step.
+- **The scheduled librarian installs its skill from `v0.23.1`.** The pin still named `v0.19.7`, which has no `skills/ktl-librarian`, so the weekly run failed at that step.
 
 ### Security
 
 - **The sidecar carries `knowledge-feedback.sh`.** ktl-docent records a reader's gap through it and never opens `feedback.md`, so no other reader's text enters its session (Snyk W011).
-- **The sidecar scripts and registrar gate match the `v0.23.0` templates.** A bundle path with a byte above 0x7f is now read rather than skipped, and one git must quote is refused; relation targets are checked by `lokf validate --check-refs`.
+- **The sidecar scripts and registrar gate match the `v0.23.1` templates.** A bundle path with a byte above 0x7f is now read rather than skipped, and one git must quote is refused; relation targets are checked by `lokf validate --check-refs`.
 
 ## [0.1.2] - 2026-09-23
 
