@@ -85,7 +85,7 @@ jobs:
         if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.25.0 # bump together with the sibling repositories' pins
+          TRUST_LADDER_SKILLS_REF: v0.25.0 # the one pin; CONTRIBUTING.md points here instead of repeating it
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -278,10 +278,11 @@ jobs:
           fi
           # This skill never writes a human: confirmation (see ktl-librarian's
           # SKILL.md). A PR opened with GITHUB_TOKEN never fires
-          # knowledge-registrar.yaml's own pull_request-triggered job - GitHub
-          # does not start pull_request workflows for a PR authored by the
-          # default token - so this is that check's only backstop for this
-          # particular PR.
+          # knowledge-registrar.yaml's own pull_request-triggered provenance
+          # job - GitHub does not start pull_request workflows for a PR
+          # authored by the default token - so this is that check's only
+          # backstop for this particular PR; see the sibling skills
+          # repository's scheduled-task.md.
           if grep -Eq '^\+ *-? *by: *human:' "$RUNNER_TEMP/librarian.patch"; then
             echo "::error::Patch adds a 'by: human:' claim - the scheduled librarian must never author one."
             exit 1
