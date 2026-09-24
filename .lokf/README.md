@@ -26,6 +26,7 @@ You write normal Markdown; you get a validated, queryable graph for free.
 |-- pyproject.toml        # declares the `lokf` toolkit as a dependency
 |-- justfile              # convenience commands (below)
 |-- scripts/              # the librarian wrapper, the preflight, the gate's two checks and the docent's feedback recorder
+|-- m365/                 # the Microsoft 365 Copilot skills' instructions and their builder; the release workflow packs them
 |-- queries.http          # SPARQL queries for the local endpoint (VS Code REST Client)
 |-- curators/             # appears once a curator's public key is on file; who may confirm at the gate
 |-- feedback.md           # appears once a reader's agent records a gap; input for the librarian, not knowledge
