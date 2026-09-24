@@ -44,6 +44,15 @@
 #      block scalars or values spanning lines. Each of those is valid YAML
 #      that `lokf validate` accepts and both gates cannot see, which is a
 #      confirmation nobody has to stand behind.
+#  11. No `at:` is later than the commit that first recorded it, or, before
+#      it is committed, than now. A time written ahead of the clock - local
+#      time labelled `Z`, a round placeholder - sorts after the edits and
+#      confirmations that really followed it, so a concept reads as edited
+#      since it was confirmed when it was not. Each value is looked up in the
+#      concept's own history; a rename or a shallow clone can only make that
+#      commit look later, so the rule can miss a bad time but never accuses a
+#      good one. A time with an offset other than `Z` is not compared. Needs
+#      git; outside it the rule is skipped.
 #
 # Rules 2, 3, 8 and 10 are house rules, stricter than the format: OKF permits
 # an unquoted datetime, a bare `verified` mapping (which every reader here -
@@ -58,7 +67,7 @@
 # Rules 2, 3, 7, 9 and 10 are questions about a document's YAML that a real
 # parse answers outright, and rule 4 rides along, so this script hands them
 # to knowledge-conventions.py (same directory) through `uv run`, which needs
-# nothing preinstalled. Rules 1, 5, 6 and 8 stay here: they are git and
+# nothing preinstalled. Rules 1, 5, 6, 8 and 11 stay here: they are git and
 # filesystem facts, and this half keeps running - grep and awk only -
 # wherever bash and git do, with no toolchain at all. Without uv, this half
 # still runs and says so.
@@ -119,6 +128,42 @@ done
 # reported, because a pin the script cannot resolve is not a pin it has checked.
 gitroot="$(git -C "$root" rev-parse --show-toplevel 2>/dev/null || true)"
 shallow="$(git -C "$root" rev-parse --is-shallow-repository 2>/dev/null || echo false)"
+now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+# Rule 11's comparison. Times are compared as strings, which is exact once
+# both are in the one UTC shape: a bare date is its midnight, minutes gain
+# `:00`, fractions of a second are dropped. Anything else prints nothing and
+# is not compared. History lines come first: \001 carries a commit's time,
+# `+` lines are what it added. Then \002 carries now, and \003 each `at:` the
+# frontmatter holds today.
+# shellcheck disable=SC2016 # awk's own $0, not the shell's
+rule11='
+function norm(v) {
+  gsub(/^["'"'"']|["'"'"']$/, "", v)
+  if (v ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) return v "T00:00:00Z"
+  if (v ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]Z$/) return substr(v, 1, 16) ":00Z"
+  if (v ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9](\.[0-9]+)?Z$/) return substr(v, 1, 19) "Z"
+  return ""
+}
+function value(line) {
+  sub(/^[+]?[ \t]*(- )?at:[ \t]*/, "", line); sub(/[ \t]+$/, "", line)
+  gsub(/^["'"'"']|["'"'"']$/, "", line)
+  return line
+}
+/^\001/ { ct = substr($0, 2); next }
+/^\002/ { now = substr($0, 2); next }
+/^\003/ {
+  v = value(substr($0, 2)); n = norm(v)
+  if (n == "" || v in seen) next
+  seen[v] = 1
+  if (v in first) {
+    if (n > first[v]) print "at \"" v "\" is later than the commit that recorded it (" first[v] ") - take the time from date -u when the event happens"
+  } else if (n > now) {
+    print "at \"" v "\" is in the future (now " now ") - take the time from date -u when the event happens"
+  }
+  next
+}
+/^[+][ \t]*(- )?at:[ \t]/ { v = value($0); if (!(v in first)) first[v] = ct }
+'
 while IFS= read -r f; do
   # 8. path shape, checked on every Markdown file, reserved ones included
   rel="${f#"$bundle"/}"
@@ -163,6 +208,22 @@ while IFS= read -r f; do
       say "$f: revision $rev does not hold $res - no such commit, or the path was absent in it"
     fi
   done < <(printf '%s\n' "$fm" | sed -nE 's/^[[:space:]]*(- )?revision:[[:space:]]*(.*[^[:space:]])[[:space:]]*$/\2/p')
+  # 11. no `at:` later than the commit that first recorded it. One `git log`
+  #     per concept: the times of the commits that touched it, oldest first,
+  #     each followed by the lines it added.
+  if [ -n "$gitroot" ]; then
+    abs="$(cd "$(dirname "$f")" && pwd -P)/$(basename "$f")"
+    while IFS= read -r finding; do
+      say "$f: $finding"
+    done < <(
+      {
+        TZ=UTC git -C "$root" log --reverse --no-color --no-ext-diff --unified=0 -p \
+          --format='%x01%cd' --date=format-local:'%Y-%m-%dT%H:%M:%SZ' -- "$abs" 2>/dev/null | tr -d '\r' || true
+        printf '\002%s\n' "$now"
+        printf '%s\n' "$fm" | sed -nE 's/^[[:space:]]*(- )?at:[[:space:]]*(.*[^[:space:]])[[:space:]]*$/\2/p' | awk '{ print "\003" $0 }'
+      } | awk "$rule11"
+    )
+  fi
 done < <(find "$bundle/" -name '*.md' -not -path '*/.obsidian/*' | sort)
 
 # ---- 2, 3, 4, 7, 9, 10. the parser's half ------------------------------------
