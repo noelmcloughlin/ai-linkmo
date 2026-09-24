@@ -6,6 +6,8 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-09-24
+
 ### Fixed
 
 - **The scheduled librarian installs its skill from `v0.26.0`.** The old pin, `v0.19.7`, has no `skills/ktl-librarian`, so every weekly run failed.
