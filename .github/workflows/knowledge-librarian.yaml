@@ -82,7 +82,7 @@ jobs:
         if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.26.0 # the one pin; point your docs here instead of repeating it
+          TRUST_LADDER_SKILLS_REF: v0.27.0 # the one pin; point your docs here instead of repeating it
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"

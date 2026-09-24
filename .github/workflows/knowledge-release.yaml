@@ -2,7 +2,10 @@ name: Knowledge Release
 
 # Attaches the LOKF knowledge bundle to a GitHub release as a zip file, so a
 # reader can take the bundle as it stood at that release without cloning the
-# repository, and open it with any operating system's own tools. It runs no LLM or agent, and it never commits or pushes.
+# repository, and open it with any operating system's own tools. Beside it,
+# when the host has laid down .lokf/m365/, one Microsoft 365 Copilot skill
+# zip per instructions file there, for a person with nothing installed to
+# upload to Agent Builder. It runs no LLM or agent, and it never commits or pushes.
 #
 # Two ways to start it:
 #
@@ -203,6 +206,35 @@ jobs:
           echo "asset=$asset" >> "$GITHUB_OUTPUT"
           echo "Packed $(unzip -Z1 "$RUNNER_TEMP/release/$asset" | wc -l) files into $asset"
 
+      # Build one Copilot skill per .lokf/m365/*.md with the host's
+      # knowledge-m365.sh, dated at the bundle's commit so each zip is
+      # reproducible. If the builder is missing or refuses the bundle, the
+      # step posts a notice and the release ships the bundle zip alone.
+      - name: Pack the Copilot skills
+        if: steps.compare.outputs.changed == 'true'
+        env:
+          BUNDLE_PATH: ${{ steps.compare.outputs.path }}
+        run: |
+          set -euo pipefail
+          if [ ! -f .lokf/m365/knowledge-m365.sh ]; then
+            echo "::notice::.lokf/m365/knowledge-m365.sh is not laid down here, so no Copilot skill is attached; ktl-sidecar's repair path adds it."
+            exit 0
+          fi
+          epoch="$(git log -1 --format=%ct -- "$BUNDLE_PATH")"
+          if ! SOURCE_DATE_EPOCH="$epoch" bash .lokf/m365/knowledge-m365.sh \
+               --repo-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" --ref "$TAG" \
+               "$RUNNER_TEMP/stage/knowledge" "$RUNNER_TEMP/m365"; then
+            echo "::warning::knowledge-m365.sh refused this bundle (its output above says why), so no Copilot skill is attached to $TAG."
+            exit 0
+          fi
+          shopt -s nullglob
+          for zip in "$RUNNER_TEMP"/m365/*.zip; do
+            asset="$(basename "$zip" .zip)-${TAG//\//-}-${GITHUB_REPOSITORY#*/}.zip"
+            cp "$zip" "$RUNNER_TEMP/release/$asset"
+            (cd "$RUNNER_TEMP/release" && sha256sum "$asset" > "$asset.sha256")
+            echo "Packed a Copilot skill into $asset"
+          done
+
       - name: Upload the zip
         if: steps.compare.outputs.changed == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -223,7 +255,6 @@ jobs:
       attestations: write # store the attestation
     env:
       TAG: ${{ inputs.tag || github.event.release.tag_name }}
-      ASSET: ${{ needs.pack.outputs.asset }}
     steps:
       - name: Harden the runner
         uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
@@ -236,12 +267,14 @@ jobs:
           name: knowledge-release
           path: ${{ runner.temp }}/release
 
-      - name: Check the zip against its checksum
-        run: sha256sum -c "$ASSET.sha256"
+      # Every .sha256 the pack job wrote: the bundle's, and the Copilot
+      # skill's when it was packed.
+      - name: Check each zip against its checksum
+        run: sha256sum -c -- *.sha256
         working-directory: ${{ runner.temp }}/release
 
-      # A signed record of which workflow run, commit and repository built the
-      # zip. Anyone can check it with `gh attestation verify <file> -R
+      # A signed record of which workflow run, commit and repository built
+      # each zip. Anyone can check one with `gh attestation verify <file> -R
       # <owner>/<repo>`. GitHub stores attestations for public repositories on
       # every plan; a private repository needs GitHub Enterprise Cloud, so the
       # step skips itself there.
@@ -249,7 +282,7 @@ jobs:
         if: ${{ !github.event.repository.private }}
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: ${{ runner.temp }}/release/${{ env.ASSET }}
+          subject-path: ${{ runner.temp }}/release/*.zip
 
       # `--clobber` replaces an earlier upload of the same name, so running the
       # workflow again for one tag repairs its assets instead of failing.
@@ -257,5 +290,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-        run: gh release upload "$TAG" "$ASSET" "$ASSET.sha256" --clobber
+        run: gh release upload "$TAG" ./*.zip ./*.sha256 --clobber
         working-directory: ${{ runner.temp }}/release
