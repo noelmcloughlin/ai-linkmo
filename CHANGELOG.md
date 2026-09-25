@@ -8,7 +8,7 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ### Changed
 
-- **The README is a front door, with its detail in `docs/`**, the way `knowledge-trust-ladder` does it. Seven pages hold what moved out, from key concepts and working with the data to status, releasing, layout, Neo4j and for-the-curious, and a Read on table links them.
+- **The README is a front door, with its detail in `docs/`**. Seven pages hold what moved out, from key concepts and working with the data to status, releasing, layout, Neo4j and for-the-curious, and a Read on table links them.
 - **The sidecar has its `knowledge_bundle` doorway**, a link to `.lokf/knowledge` at the root, and the linters skip it. `.lokf/.gitignore`, `justfile` and `queries.http` catch up with the current templates: Obsidian's workspace folder is ignored, `just lokf-link` restores the doorway, and two queries list the concepts nobody has confirmed and those past review.
 - **The scheduled librarian installs its skill from `v0.27.1`**, the release whose templates every sidecar copy now matches.
 
