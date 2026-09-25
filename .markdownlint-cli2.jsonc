@@ -9,7 +9,11 @@
     // Agent skills are installed at run time, never committed; they are
     // upstream prose, not this repo's content.
     "**/.agents/**",
-    "**/.claude/**"
+    "**/.claude/**",
+    // knowledge_bundle is a symlink to .lokf/knowledge (the Obsidian vault
+    // entry point, see ktl-sidecar Step 2) - the same files already
+    // linted at their real path.
+    "knowledge_bundle/**"
   ],
   // Rules disabled for reasons specific to this repo's content, not because
   // the underlying style guidance is wrong in general:

@@ -4,9 +4,11 @@
 > Consult, then act; this is the rule that right approves."\
 > — Thiruvalluvar, *Tirukkural* 541, *The Right Sceptre* (tr. G.U. Pope, 1886)
 
-**Regulation in → auditable, queryable AI governance out.**
+**Regulation in ==> auditable, queryable AI governance out.**
 
-AI-LinkMO is a reference implementation of *operational* AI governance. It takes open AI-risk data and turns it from documents you *read* into linked data you can *query, integrate and automate against*. The sources are the [IBM AI Atlas Nexus ontology](https://ibm.github.io/ai-atlas-nexus/ontology/), the [FINOS AI Governance Framework](https://air-governance-framework.finos.org/), NIST AI RMF, the EU AI Act, ISO/IEC 42001, the OWASP Top 10s and more: nine frameworks, each credited in [NOTICE](NOTICE). **One linked model, four ways in: a risk identifier means the same thing in a terminal, a pipeline, a browser and a graph query.**
+AI-LinkMO is a reference implementation of *operational* AI governance. It takes open AI-risk data and turns it from documents you *read* into linked data you can *query, integrate and automate against*. The sources are the [IBM AI Atlas Nexus ontology](https://ibm.github.io/ai-atlas-nexus/ontology/), the [FINOS AI Governance Framework](https://air-governance-framework.finos.org/), NIST AI RMF, the EU AI Act, ISO/IEC 42001, the OWASP Top 10s and more: nine frameworks, each credited in [NOTICE](NOTICE).
+
+ **One linked model, four ways in: a risk identifier means the same thing in a terminal, a pipeline, a browser and a graph query.**
 
 *Here to run it? Start at [Install](#install). Here to see what this adds to AI Atlas Nexus? Start at [Where this sits](#where-this-sits).*
 
@@ -44,23 +46,10 @@ Every door is generated from [the same ontology](https://ibm.github.io/ai-atlas-
 - *"Show me every risk defined by NIST AI RMF"* → `./ai risk --isDefinedByTaxonomy nist-ai-rmf`
 - *"Which controls mitigate toxic output?"* → `./ai control --related --hasRelatedRisk atlas-toxic-output`
 - *"Map NIST risks to the FINOS framework"* → `./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod`
-- *"Add our internal AI policy taxonomy alongside the public ones"* → drop a schema-compliant YAML file into [./byo/data](./byo/data) ([Bring your own data](#bring-your-own-data))
+- *"Add our internal AI policy taxonomy alongside the public ones"* → drop a schema-compliant YAML file into [./byo/data](./byo/data) ([Bring your own data](docs/working-with-the-data.md#bring-your-own-data))
 - *"Walk me through all four, with a real incident"* → [byo/notes/EXAMPLES.md](byo/notes/EXAMPLES.md), a scripted demo that traces a leaked-prompt incident to its risks and controls and ends in a CI gate
 
-Screenshots of each door are in [byo/images/](byo/images/): the API starting, the web UI and its record viewer, curate mode, the CLI, a crosswalk, and the graph in Neo4j.
-
-### Key concepts, in plain English
-
-| Term | What it means |
-| :--- | :--- |
-| **Taxonomy** | A framework's catalogue of risks/controls (e.g. NIST AI RMF, FINOS AIGF) |
-| **Risk** | A named, identified harm (e.g. `atlas-toxic-output`, `nist-confabulation`) |
-| **Control / Action** | Something you do or deploy to detect or mitigate a risk |
-| **Obligation** | A requirement a framework imposes, with evidence categories describing how you prove it |
-| **Crosswalk** | A machine-generated mapping of equivalent concepts *between* frameworks |
-| **Incident** | A realised risk, something that happened (e.g. `ibm-risk-atlas-ri-fake-legal-cases`), linked back to the risks it demonstrates |
-| **Evaluation** | A benchmark or test that measures a risk or a capability (e.g. `ai_eval_PopQA`), linked to the datasets and tasks it uses |
-| **BYOD** | Bring Your Own Data: your internal policies encoded in the same schema, queryable alongside the open data |
+The words those commands use, taxonomy, risk, control, obligation, crosswalk, are defined in [docs/key-concepts.md](docs/key-concepts.md). Screenshots of each door are in [byo/images/](byo/images/).
 
 ## Where this sits
 
@@ -75,17 +64,17 @@ uv sync --extra test
 ./ai --help
 ```
 
-That is the offline CLI, ready to use. If `uv sync` needs to compile anything on your machine (an older `gcc`, a CUDA build, a corporate package index), or you have upgraded `ai-atlas-nexus` and need to regenerate the UI's schema, see [docs/install-notes.md](docs/install-notes.md).
+That is the offline CLI, ready to use. If `uv sync` needs to compile anything on your machine, or you have upgraded `ai-atlas-nexus` and need to regenerate the UI's schema, see [docs/install-notes.md](docs/install-notes.md).
 
 ## Quick start
 
-1. **Start the API** ([details](lib/api/README.md)). It listens on port 8000, aligned to [the ontology](https://ibm.github.io/ai-atlas-nexus/ontology/) and to [OpenAPI](lib/api/openapi.yaml). Its write endpoints are not authenticated, so keep it on localhost.
+1. **Start the API** ([details](lib/api/README.md)). It listens on port 8000. Its write endpoints are not authenticated, so keep it on localhost.
 
    ```bash
    uv run uvicorn lib.api.server:app --reload
    ```
 
-2. **Start the web UI** in a second terminal ([details](lib/frontend/README.md)). The login in the top corner is a persona picker for the demo, not authentication. **Curate mode**, which lets you add, edit and delete records in your own data files, sits behind it.
+2. **Start the web UI** in a second terminal ([details](lib/frontend/README.md)). The login in the top corner is a persona picker for the demo, not authentication. **Curate mode**, which edits records in your own data files, sits behind it.
 
    ```bash
    cd lib/frontend
@@ -100,80 +89,27 @@ That is the offline CLI, ready to use. If `uv sync` needs to compile anything on
    ./ai risk -h
    ```
 
-## Working with the data
-
-### Bring your own data
-
-The open frameworks are the starting point. The value comes when your **internal** policies, taxonomies and controls live in the same model, so one query spans public regulation and private practice.
-
-Add schema-compliant YAML files to [./byo/data](./byo/data); the [upstream readme](https://github.com/IBM/ai-atlas-nexus/blob/main/src/ai_atlas_nexus/ai_risk_ontology/util/README.md) says what the schema expects, and the nine encodings already there, [FINOS](./byo/data/finos-aigf.yaml) first, show the shape. Validate a contributed file against the schema:
-
-```bash
-SDIR="$(uv run python -c 'import ai_atlas_nexus, pathlib; print(pathlib.Path(ai_atlas_nexus.__file__).parent / "ai_risk_ontology" / "schema")')"
-uv run linkml validate byo/data/*.yaml -s "${SDIR}/ai-risk-ontology.yaml"
-```
-
-### Crosswalk
-
-A crosswalk is computed from the data, not kept by hand in a spreadsheet. That is where linked data pays off for a compliance team. The `./ai` command maps the risks in one taxonomy onto another, finds the related risks, and shows a subset of the risk content as a pandas dataframe:
-
-```bash
-./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod
-```
-
-### Graph database
-
-Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. One command exports the schema and the data as Cypher:
-
-```bash
-./ai graph cypher --export --byod
-```
-
-The export reads the packaged ontology, so it shows the open frameworks; `--byod` does not add your uploads to it ([Status and caveats](#status-and-caveats)). To load it into Neo4j in a container and look at it in the browser: [docs/neo4j.md](docs/neo4j.md).
-
-## For the curious
-
-The sections above are everything you need to run it. What the repository leaves out, provenance on the records; where it could go next, from policy documents to risks and from risks to provenance records; how to curate open data or build Python applications on the ontology; and how to run LLM inference or ARES with your own infrastructure: [docs/for-the-curious.md](docs/for-the-curious.md).
+From there, bring your own data, compute a crosswalk, or load the graph into Neo4j: [docs/working-with-the-data.md](docs/working-with-the-data.md).
 
 ## Status and caveats
 
-- **This is a demo.** The OpenAPI spec, the web UI and the CLI will all be reworked; treat their shapes as illustrative, not as a contract.
-- **Keep it on localhost.** The write endpoints are unauthenticated, the web UI's login is a persona picker, and `graph/` is committed, regenerable output that the export commands rewrite in place. [SECURITY.md](SECURITY.md) lists each limitation and what is planned.
-- **`--byod` does not reach the Cypher export.** `graph/cypher/export.py` reads the packaged ontology only, so the Neo4j walkthrough shows the open data, not your uploads.
-- **Two encodings are thinner than their type suggests.** `byo/data/eu_ai_act.yaml` is a `RiskTaxonomy` of 308 requirement rows and no risks, so query it as `rule`, not `risk`; `ffiec_it_handbook.yaml` is a `RiskControlGroupTaxonomy` with groups and no controls.
-- **No encoding has been checked by a named person against its framework's text.** Each header says which script produced it; the ontology has no field for a reviewer, and there has been none ([what it does not add yet](docs/for-the-curious.md#what-it-does-not-add-yet-provenance)).
-- **Nobody has confirmed a bundle concept yet.** All 39 are *Checked by automation only*; `ktl-curator` is how a person changes that. The bundle's `base_iri` is also a placeholder; moving it to a namespace the project controls rewrites every `id`, and has waited for a decision since 2026-08-05.
-- **Slow paths.** `--mode local` loads the ontology in-process on every call, and the full local-mode test sweep takes about 25 minutes. LLM inferencing needs a vLLM host you run; ARES needs an upstream pull request.
-
-## Releases
-
-No release has been cut yet; `pyproject.toml` says 0.1.0, matching the `v0.1.0` baseline tag. [`CHANGELOG.md`](CHANGELOG.md)'s `## [Unreleased]` section is written as changes happen, and [`semantic-release.yml`](.github/workflows/semantic-release.yml) does the rest on each merge to `main`: it computes the next version from Conventional Commits, promotes that section into a dated heading, bumps `pyproject.toml` and `uv.lock`, and publishes a GitHub Release from the same text, once a person approves it in the `release` Environment. Only `feat:`, `fix:` and `security:` cut a release. Once `KNOWLEDGE_RELEASE_ENABLED` is set, each release also carries the `.lokf/knowledge/` bundle as a zip, when it changed.
-
-**The version stays below 1.0.0.** This is a demo, and the shapes above will change. The `v0.1.0` tag is a baseline, not a release: it stops semantic-release defaulting the first release to 1.0.0, and a breaking change bumps the minor version, not the major one. Reaching 1.0.0 will be a decision, not something a commit message can trigger. [CONTRIBUTING.md](CONTRIBUTING.md#releasing-maintainers) has the maintainer's steps.
-
-## Development
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the dev setup and the pre-PR checklist. Three toolchains live here: Python and uv at the root, Node in `lib/frontend/`, and a second uv project in `.lokf/`.
-
-```text
-ai                      the CLI entry point (runs lib/cli through uv)
-lib/cli/                argparse generated from the OpenAPI spec; fastCLI (via the API) or slowCLI (offline)
-lib/api/                FastAPI backend; openapi.yaml is the source of truth for every route
-lib/frontend/           Svelte 5 web UI (Vite; proxies to the API on :8000)
-lib/test/               pytest suite; its API-mode CLI cases are this README's examples, checked
-graph/                  the exported ontology, crosswalk CSVs, and cypher/export.py for Neo4j
-byo/data/               nine governance frameworks encoded for the AI Risk Ontology
-byo/notes/EXAMPLES.md   a scripted walk through all four access patterns
-docs/                   longer material moved out of this README
-.lokf/                  the sidecar: this repository's own knowledge bundle (knowledge/) and its tooling
-.github/workflows/      tests, lint, the knowledge-bundle gates, releases
-```
-
-The test suite runs 101 CLI cases in API mode and in local mode, and starts the API server for you. `uv run pytest lib/test -m "not slow"` is what CI runs, about two minutes; `./scripts/tests.sh` has the narrower modes. The web UI (`npm run check`, `npm run lint`, `npm test` in `lib/frontend/`) and the bundle (`cd .lokf && just lokf-validate`) have their own gates. [lib/test/README.md](lib/test/README.md) has the detail.
+This is a demo. The OpenAPI spec, the web UI and the CLI will all be reworked, so treat their shapes as illustrative, and the version stays below 1.0.0 until they settle. Keep it on localhost: the write endpoints are unauthenticated. No encoding under `byo/data/` has been checked by a named person against its framework's text. The full list, including what is thinner than its type suggests and what is slow: [docs/status.md](docs/status.md).
 
 ## This repository's own bundle
 
-This repository keeps a LOKF bundle of its own under `.lokf/knowledge/`: documentation about AI-LinkMO, kept the way AI-LinkMO keeps governance data, with one identifier per concept and a source beside every claim. The [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder) skills maintain it, installed at run time by a scheduled [workflow](.github/workflows/knowledge-librarian.yaml). It is what the docent answers from, and none of it is part of the product. To contribute to it, [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-optional---only-for-editing-this-repos-own-lokf-bundle) says which skills that takes.
+This repository keeps a LOKF bundle of its own under `.lokf/knowledge/`: documentation about AI-LinkMO, kept the way AI-LinkMO keeps governance data, with one identifier per concept and a source beside every claim. The [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder) skills maintain it on a schedule, it is what the docent answers from, and none of it is part of the product. [CONTRIBUTING.md](CONTRIBUTING.md#agent-skills-optional---only-for-editing-this-repos-own-lokf-bundle) says which skills editing it takes.
+
+## Read on
+
+| | |
+| --- | --- |
+| The vocabulary the four doors share: taxonomy, risk, control, obligation, crosswalk, incident, evaluation, BYOD | [docs/key-concepts.md](docs/key-concepts.md) |
+| Working with the data: bring your own, crosswalks, the graph export and Neo4j | [docs/working-with-the-data.md](docs/working-with-the-data.md), [docs/neo4j.md](docs/neo4j.md) |
+| Every CLI command, by entity type | [docs/cli-examples.md](docs/cli-examples.md) |
+| What this adds over AI Atlas Nexus, what it leaves out, where it could go; LLM inference and ARES on your own infrastructure | [docs/for-the-curious.md](docs/for-the-curious.md), [docs/llm-inferencing.md](docs/llm-inferencing.md) |
+| Status and caveats, the full list | [docs/status.md](docs/status.md) |
+| How releases are cut, and why the version stays below 1.0.0 | [docs/releasing.md](docs/releasing.md), [CHANGELOG.md](CHANGELOG.md) |
+| The repository tree, the three toolchains and the test suite; contributing; reporting a security issue | [docs/repository-layout.md](docs/repository-layout.md), [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md) |
 
 ## Credits
 

@@ -83,7 +83,7 @@ Open an issue; the templates ask for your OS, Python version, access pattern, an
 
 ## Releasing (maintainers)
 
-[README.md#releases](README.md#releases) says how releases work and why the version stays in `0.x`. The maintainer's steps:
+[docs/releasing.md](docs/releasing.md) says how releases work and why the version stays in `0.x`. The maintainer's steps:
 
 - Write `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md) as you go; the release job refuses an empty one (`.github/scripts/changelog-release.mjs check`).
 - Type the commit ([Conventional Commits](https://www.conventionalcommits.org/)) for what the change *is*: a user-visible behaviour change is a `feat:` even when most of the diff is prose. Only `feat:`, `fix:` and `security:` cut a release; `docs:`, `chore:`, `refactor:`, `style:` and `test:` leave their entries for the next release that does.

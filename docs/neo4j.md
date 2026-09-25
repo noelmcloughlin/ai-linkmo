@@ -2,7 +2,7 @@
 
 Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. These steps export the ontology and its data as Cypher, start Neo4j in a container, load the export, and open it in the browser. They need the README's [Install](../README.md#install) step done, and `podman` or `docker`; the flags below are the same for both.
 
-1. **Export the Cypher.** This writes `graph/cypher/ai-risk-ontology.cypher`. The export reads the packaged ontology only, so it shows the open frameworks; `--byod` does not add your uploads to it ([Status and caveats](../README.md#status-and-caveats)). The repository commits the output, so this step is optional unless you want it fresh.
+1. **Export the Cypher.** This writes `graph/cypher/ai-risk-ontology.cypher`. The export reads the packaged ontology only, so it shows the open frameworks; `--byod` does not add your uploads to it ([Status and caveats](status.md)). The repository commits the output, so this step is optional unless you want it fresh.
 
    ```bash
    ./ai graph cypher --export --byod

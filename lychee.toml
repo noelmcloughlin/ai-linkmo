@@ -19,3 +19,10 @@ exclude = [
   # if CI reaches it again.
   '^https://www\.conventionalcommits\.org/',
 ]
+
+# knowledge_bundle is a symlink to .lokf/knowledge (the Obsidian vault entry
+# point, see ktl-sidecar Step 2) - exclude it so lychee doesn't walk the
+# same files twice, once at each path.
+exclude_path = [
+  "(^|/)knowledge_bundle/",
+]
