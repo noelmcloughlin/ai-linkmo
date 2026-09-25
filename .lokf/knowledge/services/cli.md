@@ -10,14 +10,16 @@ tags:
   - cli
   - automation
   - ci-cd
-timestamp: "2026-08-12T00:00:00Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-09-25T20:31:56Z"
 dependsOn:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/fastapi-backend
 references:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
   - by: process:ktl-librarian
-    at: "2026-09-12T00:00:00Z"
+    at: "2026-09-25T20:31:56Z"
 ---
 
 # Overview
@@ -26,4 +28,4 @@ The **AI-LinkMO CLI** (`./ai`, implemented in `lib/cli/cli.py`) is the automatio
 
 It has two modes: **fastCLI** delegates queries to the running FastAPI backend (hence `dependsOn`); **slowCLI** works offline against the bundled ai-atlas-nexus and BYOD data. Subcommands cover the ontology's entities (`risk`, `taxonomy`, `control`, `action`, `model`, `evaluation`, `incident`, ...) plus `crosswalk` and `graph --export` for Cypher/knowledge-graph output.
 
-Tests: `lib/test/test_cli_examples.py` exercises every README example in both modes (`scripts/tests.sh`).
+Tests: `lib/test/test_cli_examples.py` runs 101 CLI cases, most of the commands listed in `docs/cli-examples.md`, in both API and local modes (`scripts/tests.sh`; CI runs `uv run pytest lib/test -m "not slow"`).

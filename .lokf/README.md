@@ -32,6 +32,8 @@ You write normal Markdown; you get a validated, queryable graph for free.
 |-- feedback.md           # appears once a reader's agent records a gap; input for the librarian, not knowledge
 ```
 
+The `knowledge_bundle` link at the repository root is this same `knowledge/` directory under an ordinary, visible name. It is there for folder pickers and file managers that hide dot-directories, and, for Obsidian users, for "Open folder as vault": open the link *itself* as a vault, never the repository root, which cannot see a dot-folder or a link that resolves inside it. Git carries the link; a sync service does not, so `just lokf-link` recreates it on a machine where it is missing (Windows: `mklink /J knowledge_bundle .lokf\knowledge`). Every command below works without it.
+
 ## Prerequisites
 
 - [`uv`](https://docs.astral.sh/uv/), the Python package runner.

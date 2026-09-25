@@ -6,16 +6,18 @@ title: Bring Your Own Data
 abbreviation: BYOD
 definition: Your internal policies encoded in the same schema, queryable alongside the open data.
 description: The pattern of encoding institutional governance data in the AI Risk Ontology schema so it is served alongside the public frameworks.
-resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/README.md
+resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/key-concepts.md
 tags:
   - glossary
   - byod
-timestamp: "2026-08-12T00:00:00Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-09-25T20:31:05Z"
 relatedTo:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/playbooks/bring-your-own-data
 verified:
   - by: process:ktl-librarian
-    at: "2026-09-12T00:00:00Z"
+    at: "2026-09-25T20:31:05Z"
 ---
 
 # Bring Your Own Data (BYOD)

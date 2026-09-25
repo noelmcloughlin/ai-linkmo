@@ -28,6 +28,25 @@ WHERE { ?s a schema:WebAPI ; schema:name ?title .
         OPTIONAL { ?s schema:url ?endpoint } }
 ORDER BY ?title
 
+### 3. Not yet confirmed by a person (no human verification recorded)
+POST {{base}}/sparql
+Content-Type: application/sparql-query
+
+SELECT ?title
+WHERE { ?s schema:name ?title .
+        FILTER NOT EXISTS { ?s lokf:verified ?v . ?v prov:wasAssociatedWith ?by .
+                            FILTER(STRSTARTS(STR(?by), "human:")) } }
+ORDER BY ?title
+
+### 4. Past review date (stale_after has passed)
+POST {{base}}/sparql
+Content-Type: application/sparql-query
+
+SELECT ?title ?due
+WHERE { ?s schema:name ?title ; schema:expires ?due .
+        FILTER(SUBSTR(STR(?due), 1, 10) <= SUBSTR(STR(NOW()), 1, 10)) }
+ORDER BY ?due
+
 ### Bonus: whole graph as Turtle (CONSTRUCT -> text/turtle)
 POST {{base}}/sparql
 Content-Type: application/sparql-query

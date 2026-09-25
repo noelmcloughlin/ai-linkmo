@@ -47,13 +47,14 @@ The external authorities the data encodes ([index](references/index.md)): [AI Ri
 
 ## Glossary
 
-The domain vocabulary ([index](glossary/index.md)): [Taxonomy](glossary/taxonomy.md), [Risk](glossary/risk.md), [Control / Action](glossary/control-action.md), [Obligation](glossary/obligation.md), [Crosswalk](glossary/crosswalk.md), [Bring Your Own Data (BYOD)](glossary/byod.md)
+The domain vocabulary ([index](glossary/index.md)): [Taxonomy](glossary/taxonomy.md), [Risk](glossary/risk.md), [Control / Action](glossary/control-action.md), [Obligation](glossary/obligation.md), [Crosswalk](glossary/crosswalk.md), [Incident](glossary/incident.md), [Evaluation](glossary/evaluation.md), [Bring Your Own Data (BYOD)](glossary/byod.md)
 
 ## Explanations
 
 ([index](explanations/index.md))
 
 * [Why linked AI governance](explanations/why-linked-ai-governance.md) - the problem the repository answers, and why one shared ontology makes traceability auditable.
+* [What AI-LinkMO adds to AI Atlas Nexus](explanations/what-ai-linkmo-adds.md) - doors, encodings and checks over the upstream model, and the provenance not yet added.
 
 ## Organizations
 

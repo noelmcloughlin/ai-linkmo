@@ -5,16 +5,18 @@ id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/glossary/taxonomy
 title: Taxonomy
 definition: A framework's catalogue of risks or controls - for example NIST AI RMF or the FINOS AI Governance Framework.
 description: A framework's catalogue of risks/controls; the unit each BYOD data file and each `--isDefinedByTaxonomy` query is scoped to.
-resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/README.md
+resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/key-concepts.md
 tags:
   - glossary
   - ontology
-timestamp: "2026-08-12T00:00:00Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-09-25T20:31:05Z"
 definedBy:
   - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
   - by: process:ktl-librarian
-    at: "2026-09-12T00:00:00Z"
+    at: "2026-09-25T20:31:05Z"
 ---
 
 # Taxonomy

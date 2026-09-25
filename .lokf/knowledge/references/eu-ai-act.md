@@ -8,7 +8,7 @@ resource: https://artificialintelligenceact.eu/
 timestamp: "2026-08-12T00:00:00Z"
 verified:
   - by: process:ktl-librarian
-    at: "2026-09-12T00:00:00Z"
+    at: "2026-09-25T20:33:34Z"
 ---
 
 # EU Artificial Intelligence Act

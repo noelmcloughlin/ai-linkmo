@@ -4,6 +4,11 @@ __pycache__/
 *.pyc
 lokf-tables/
 
+# Written into knowledge/ (not this directory) when the bundle is opened as an
+# Obsidian vault - directly, or through the root knowledge_bundle link (Step 2)
+# - workspace state, not bundle content.
+.obsidian/
+
 # knowledge-feedback.sh rewrites feedback.md through a temporary file and a
 # lock directory beside it; a run killed outright can leave either behind.
 feedback.md.*

@@ -13,7 +13,10 @@ default:
 lokf-install:
     uv sync
 
-# Assemble and validate the knowledge bundle against the LOKF schema
+# Assemble and validate the knowledge bundle against the LOKF schema.
+# A bundle that extends the vocabulary with a domain schema passes it here as
+# `--schema <slug>.yaml` (and in both workflows' validate steps);
+# see ktl-librarian/references/domain-schema.md for the recipe.
 lokf-validate:
     uv run lokf validate {{ bundle }}
 
@@ -34,3 +37,22 @@ lokf-serve:
 # `definedBy` are documented as taking an external resource.
 lokf-check-refs:
     uv run lokf validate --check-refs {{ bundle }}
+
+# The knowledge_bundle doorway: the bundle under an ordinary, visible name at the
+# host root, for folder pickers and file managers that hide dot-folders and, for
+# Obsidian users, its "Open folder as vault" (open the link itself, never the host root).
+# Git carries the link; a sync service such as OneDrive does not, so a machine
+# may need it recreated. POSIX only - on Windows: mklink /J knowledge_bundle .lokf\knowledge
+
+# Create (or recreate) the knowledge_bundle -> .lokf/knowledge doorway link at the host root
+lokf-link:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [ -L knowledge ]; then echo "knowledge is itself a link onto $(readlink knowledge) - that folder is already the visible name; nothing to do"; exit 0; fi
+    if [ ! -d knowledge ]; then echo "no knowledge/ folder here to link to" >&2; exit 1; fi
+    if [ -L ../knowledge_bundle ]; then
+      if [ "$(readlink ../knowledge_bundle)" = ".lokf/knowledge" ]; then echo "knowledge_bundle already present - nothing to link"; exit 0; fi
+      echo "../knowledge_bundle is a link elsewhere ($(readlink ../knowledge_bundle)) - remove it and re-run" >&2; exit 1
+    fi
+    if [ -e ../knowledge_bundle ]; then echo "../knowledge_bundle exists and is not a link - leaving it alone" >&2; exit 1; fi
+    ln -s .lokf/knowledge ../knowledge_bundle && echo "linked knowledge_bundle -> .lokf/knowledge"

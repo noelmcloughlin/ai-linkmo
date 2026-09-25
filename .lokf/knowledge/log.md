@@ -1,5 +1,14 @@
 # Change Log
 
+## 2026-09-25
+
+* **Glossary follows the README split**: the six terms now cite `docs/key-concepts.md`, where the table moved, and `glossary/incident` and `glossary/evaluation` are new drafts for the two rows the table gained, each checked against its endpoint and an example id in the packaged data.
+* **Cypher export scope corrected**: `datasets/knowledge-graph-export`, `services/graph-db` and `playbooks/bring-your-own-data` said BYOD files reach every door; the Cypher export runs `graph/cypher/export.py`, which loads packaged data only, so only the YAML export includes them.
+* **Install and BYOD playbooks re-walked**: `install-and-run` follows the new README, install notes and Neo4j page (`uv sync --extra test`, `npm ci`, `--isDefinedByTaxonomy` in place of a `--taxonomy` flag that does not exist, the CI test command), and the BYOD validation path gains its missing `schema/` segment.
+* **SR 11-7 superseded**: SR 26-2 replaced it on 2026-04-17 and its URL now returns 404, so `references/sr-11-7` says so, cites SR 26-2, and is a draft with an open question for the curator.
+* **New explanation**: `explanations/what-ai-linkmo-adds` records what the repository adds over AI Atlas Nexus and the provenance its records lack, from the README and `docs/for-the-curious.md`.
+* **Source map updated**: `playbooks/knowledge-sources` names the `docs/` pages the README now delegates to, and re-decides the exclusions; 35 concepts re-confirmed against their sources, while FFIEC, ISO and OWASP ML keep their older check because their sites refused or broke the fetch.
+
 ## 2026-09-23
 
 * **The docent records a reader's gap without reading the file it goes in.**

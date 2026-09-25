@@ -8,7 +8,7 @@ resource: https://doi.org/10.6028/NIST.SP.800-53r5
 timestamp: "2026-08-12T00:00:00Z"
 verified:
   - by: process:ktl-librarian
-    at: "2026-09-12T00:00:00Z"
+    at: "2026-09-25T20:33:34Z"
 ---
 
 # NIST SP 800-53 Revision 5
