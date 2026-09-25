@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Changed
+
+- **The README is shorter, and in the same shape as its siblings.** It drops from about 3,400 words to about 2,400: the same sections as `knowledge-trust-ladder` and the two Obsidian plugins, steps before rationale, and the verb early in each sentence. Two pages take what moved out. `docs/for-the-curious.md` has what the repository adds over AI Atlas Nexus, the provenance gap, the two roadmap directions, curating and building on the ontology, the LLM and ARES pointer, and the research link. `docs/neo4j.md` has the graph walkthrough as numbered steps, with `podman exec` in place of the stray `docker exec`. The `#install`, `#releases` and `#bring-your-own-data` anchors stay, since `CONTRIBUTING.md` and the docs link to them.
+
 ## [0.1.4] - 2026-09-24
 
 ### Security
