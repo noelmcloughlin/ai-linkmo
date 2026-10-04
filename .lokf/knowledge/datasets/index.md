@@ -2,8 +2,8 @@
 
 Generated graph artifacts:
 
-* [Knowledge-graph export (YAML + Cypher)](knowledge-graph-export.md) - the merged graph, regenerable via `./ai graph --export`.
-* [NIST AI RMF crosswalks](nist-ai-rmf-crosswalks.md) - CSV mappings to FINOS AIGF, IBM Risk Atlas, and a demo taxonomy.
+* [Knowledge-graph export (YAML + Cypher)](knowledge-graph-export.md) - Export of the AI risk knowledge graph - as ontology YAML (upstream ai-atlas-nexus data plus BYOD files) and as Cypher for Neo4j import (packaged data only).
+* [NIST AI RMF crosswalks](nist-ai-rmf-crosswalks.md) - CSV crosswalks mapping NIST AI RMF risks to the FINOS AIGF, the IBM Risk Atlas, and a demo institutional (acme) risk taxonomy.
 
 BYOD framework encodings (`byo/data/*.yaml`, built from the FINOS AIGF repository):
 

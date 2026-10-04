@@ -33,7 +33,7 @@ lokf-serve:
 # --check-refs (lokf 0.8.0+) takes the relation slots from the schema, so
 # reified `relations` entries and a domain schema's own slots are covered too;
 # a host with a domain schema passes `--schema <slug>.yaml` here as well as on
-# lokf-validate. Targets outside base_iri are left alone - `source` and
+# lokf-validate. Targets outside base_iri are left alone: `source` and
 # `definedBy` are documented as taking an external resource.
 lokf-check-refs:
     uv run lokf validate --check-refs {{ bundle }}
@@ -42,7 +42,7 @@ lokf-check-refs:
 # host root, for folder pickers and file managers that hide dot-folders and, for
 # Obsidian users, its "Open folder as vault" (open the link itself, never the host root).
 # Git carries the link; a sync service such as OneDrive does not, so a machine
-# may need it recreated. POSIX only - on Windows: mklink /J knowledge_bundle .lokf\knowledge
+# may need it recreated. POSIX only; on Windows, run mklink /J knowledge_bundle .lokf\knowledge
 
 # Create (or recreate) the knowledge_bundle -> .lokf/knowledge doorway link at the host root
 lokf-link:

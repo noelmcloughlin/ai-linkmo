@@ -3,7 +3,8 @@ name: Knowledge Librarian
 # Scheduled LLM "librarian" that keeps the .lokf/ bundle in step with the repo (the
 # Karpathy rule): run the agent, validate, and open a review PR with whatever
 # changed. It NEVER pushes to the default branch and NEVER auto-merges; no changes
-# -> no PR; and it is inert until KNOWLEDGE_LIBRARIAN_ENABLED is set to "true".
+# -> no PR; a scheduled week with nothing waiting for the librarian runs no
+# agent; and it is inert until KNOWLEDGE_LIBRARIAN_ENABLED is set to "true".
 #
 # Two jobs, for least privilege. The `refresh` job runs the agent (third-party
 # code) under a read-only token with no git credentials on disk, then hands the
@@ -35,9 +36,7 @@ jobs:
     outputs:
       changed: ${{ steps.diff.outputs.changed }}
       validate_outcome: ${{ steps.validate-lokf.outcome }}
-      drafts: ${{ steps.curator.outputs.drafts }}
-      questions: ${{ steps.curator.outputs.questions }}
-      human: ${{ steps.curator.outputs.human }}
+      retrieval: ${{ steps.retrieval.outputs.score }}
     steps:
       # Same audit-mode egress monitor step 5's other templates use; this job
       # installs packages, installs a skill everywhere but the repository
@@ -70,11 +69,12 @@ jobs:
       # pinned to one release, on every run. A plain clone of the tagged
       # public repo needs no `gh` flags and no token. The install target is
       # gitignored, so it is invisible both to "Enforce the agent's write
-      # scope" below and to "Detect changes". The one repository that skips
-      # this step is the one it clones from, named again in the `if`: there
-      # the skill is source under bare skills/, and an install would land in
-      # .agents/skills/, which the wrapper searches first, so the pinned
-      # release would run instead of the current one. Repository identity is
+      # scope" below and to "Detect changes".
+      #
+      # The one repository that skips this step is the one it clones from,
+      # named again in the `if`. There the skill is source under bare skills/.
+      # An install would go to .agents/skills/, which the wrapper searches
+      # first, so the pinned release would run instead of the current one. Repository identity is
       # the switch, not a file in the tree, so nothing a host commits can
       # change which instructions its scheduled agent runs. A fork that
       # develops the skills changes the name in both places.
@@ -82,7 +82,7 @@ jobs:
         if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.27.1 # the one pin; point your docs here instead of repeating it
+          TRUST_LADDER_SKILLS_REF: v0.33.0 # the one pin; point your docs here instead of repeating it
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -101,11 +101,11 @@ jobs:
         with:
           node-version: "22"
 
-      # Wire this up under Settings -> Secrets and variables -> Actions. The
+      # Set this up under Settings -> Secrets and variables -> Actions. The
       # sidecar's references/automation.md gives the full commands for Copilot
       # CLI and for Claude Code.
-      #   1. Set KNOWLEDGE_LIBRARIAN_ENABLED to "true" to arm the run. Anything
-      #      else (or unset) leaves this step skipped, a safe no-op.
+      #   1. Set KNOWLEDGE_LIBRARIAN_ENABLED to "true" to turn on the run.
+      #      Anything else (or unset) leaves this step skipped, a safe no-op.
       #   2. Set AGENT_CLI to your non-interactive agent command; the wrapper
       #      appends -p "<prompt>". It splits the value on whitespace and
       #      honours no quotes, so no flag value may contain a space. Keep the
@@ -116,9 +116,14 @@ jobs:
       #      from: COPILOT_GITHUB_TOKEN for Copilot CLI, ANTHROPIC_API_KEY for
       #      Claude Code. The wrapper hands it to the agent under that name only.
       #   4. Then either set AGENT_USE_JOB_TOKEN to "true", so the job's own
-      #      GITHUB_TOKEN is that credential (Copilot CLI: no key to keep, and
-      #      the requests are billed to the repository owner's Copilot seat, or
-      #      to the organisation); or put the key in the AGENT_API_KEY secret.
+      #      GITHUB_TOKEN is that credential, or put the key in the
+      #      AGENT_API_KEY secret. With Copilot CLI the job's token leaves no
+      #      key to keep, and the requests are billed to the repository
+      #      owner's Copilot seat, or to the organisation.
+      #   5. Optional: set KNOWLEDGE_RETRIEVAL to "true" to score, on each run
+      #      that changes the bundle, whether the index leads the agent to the
+      #      concept behind each question readers asked. It costs one more
+      #      agent call, and the pull request then carries the score.
       #
       # What runs is fixed to the reviewed, in-repo wrapper below, not an arbitrary
       # command string from a repo variable. So changing *what executes* goes
@@ -128,20 +133,35 @@ jobs:
       # admin-set config (not untrusted input). The wrapper parses it into a quoted
       # argv array and runs it directly (no eval, no re-expansion), and only here,
       # in this read-only job (contents: read, no persisted credentials). A post-run
-      # check fails if the agent writes outside .lokf/knowledge/. Contained by
-      # design, not arbitrary execution.
+      # check fails if the agent writes anything but .lokf/patch.yaml, which the
+      # wrapper then applies with knowledge-apply.sh. Contained by design, not
+      # arbitrary execution.
+      #
+      # A scheduled run skips the agent when knowledge-report.sh finds nothing
+      # waiting for it: no source moved since its concept's stamp, no note a
+      # person left since the librarian last looked, no concept without a
+      # stamp, no reader feedback. A run a person starts never skips. In a
+      # month's first seven days a scheduled run goes ahead regardless, since
+      # the work list never fetches a source given as a URL and names no file
+      # the source map leaves out; so the librarian reads both monthly.
       - name: Run the librarian agent
         if: vars.KNOWLEDGE_LIBRARIAN_ENABLED == 'true'
         env:
           AGENT_CLI: ${{ vars.AGENT_CLI || secrets.AGENT_CLI }}
           AGENT_API_KEY: ${{ vars.AGENT_USE_JOB_TOKEN == 'true' && github.token || secrets.AGENT_API_KEY }}
           AGENT_API_KEY_ENV: ${{ vars.AGENT_API_KEY_ENV }}
-        run: bash .lokf/scripts/knowledge-librarian.sh
+          KNOWLEDGE_RETRIEVAL: ${{ vars.KNOWLEDGE_RETRIEVAL }}
+          KNOWLEDGE_RETRIEVAL_OUT: ${{ runner.temp }}/retrieval.txt
+          KNOWLEDGE_HANDOFF_OUT: ${{ runner.temp }}/handoff.txt
+          KNOWLEDGE_SKIP_QUIET: ${{ github.event_name == 'schedule' }}
+        run: |
+          if [ "$(date -u +%d)" -le 7 ]; then export KNOWLEDGE_SKIP_QUIET=false; fi
+          bash .lokf/scripts/knowledge-librarian.sh
 
       # The wrapper enforces this same boundary itself, immediately after the
       # agent returns. It also restores .git/config and .git/hooks around the
       # call, from an EXIT trap, so a failing agent or a cancelled job restores
-      # too. That keeps a poisoned core.fsmonitor/hooksPath from blinding
+      # too. That keeps a tampered core.fsmonitor or hooksPath from defeating
       # either check (see the wrapper's own comments). This is the second,
       # independent layer: it runs even when the wrapper did not get to (agent
       # disarmed, early exit), so no path outside the bundle can reach
@@ -150,9 +170,9 @@ jobs:
         if: vars.KNOWLEDGE_LIBRARIAN_ENABLED == 'true'
         run: |
           set -euo pipefail
-          out="$(git status --porcelain -- . ':!.lokf/knowledge' ':!knowledge_bundle' ':!.lokf/feedback.md' ':!.lokf/uv.lock')"
+          out="$(git status --porcelain -- . ':!.lokf/knowledge' ':!knowledge_bundle' ':!.lokf/feedback.md' ':!.lokf/questions.md' ':!.lokf/uv.lock')"
           if [ -n "$out" ]; then
-            echo "::error::The librarian agent touched files outside .lokf/knowledge/ and .lokf/feedback.md:"
+            echo "::error::The librarian run touched files outside .lokf/knowledge/, .lokf/feedback.md and .lokf/questions.md:"
             echo "$out"
             exit 1
           fi
@@ -168,12 +188,13 @@ jobs:
         id: diff
         run: |
           set -euo pipefail
-          # Scope to the bundle so tool artifacts (e.g. a fresh .lokf/uv.lock from
-          # `uv sync`) never trigger a PR by themselves. Both of the bundle's
-          # names are listed: with ktl-sidecar's doorway link the second
-          # matches nothing, harmlessly, and it still covers a host rearranged
-          # by hand into a real knowledge_bundle/ with .lokf/knowledge a link
-          # onto it, since a git pathspec never traverses a symlink. A name
+          # Scope to the bundle so tool artifacts (for example a fresh
+          # .lokf/uv.lock from `uv sync`) never trigger a pull request by
+          # themselves. Both of the bundle's names are listed. With
+          # ktl-sidecar's doorway link the second matches nothing, harmlessly.
+          # It still covers a host rearranged by hand into a real
+          # knowledge_bundle/ with .lokf/knowledge a link onto it, since a git
+          # pathspec never traverses a symlink. A name
           # that does not exist in this repository is simply ignored.
           if [ -n "$(git status --porcelain -- .lokf/knowledge knowledge_bundle)" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
@@ -181,29 +202,25 @@ jobs:
             echo "changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-      # Plain-language counts for the PR's "For the curator" section. Computed
-      # from frontmatter with grep: deterministic, no dependence on what the
-      # agent printed. The ktl-curator skill's own report is the authoritative
-      # version; this is the nudge that gets a busy person to run it.
-      - name: Summarise for the curator
-        id: curator
+      # This job ran the agent, so it hands on two things besides the patch,
+      # and `publish` computes the rest of what the pull request says on its
+      # own checkout. One is the retrieval score the wrapper wrote when
+      # KNOWLEDGE_RETRIEVAL is on, of which only two integers go on. The other
+      # is the librarian's hand-off, its own words for the reviewer, which is
+      # uploaded beside the patch and which `publish` cleans again and shows as
+      # the agent's.
+      - name: Read the retrieval score
+        id: retrieval
         if: steps.diff.outputs.changed == 'true'
         run: |
           set -euo pipefail
-          count() {
-            grep -rlE "$1" --include='*.md' .lokf/knowledge 2>/dev/null \
-              | grep -vE '/(index|log)\.md$' \
-              | grep -c . || true
-          }
-          {
-            echo "drafts=$(count '^status: *draft')"
-            echo "questions=$(count '^## Open questions')"
-            echo "human=$(count '^ *-? *by: *human:')"
-          } >> "$GITHUB_OUTPUT"
+          score="$(grep -oE '[0-9]+ of [0-9]+' "$RUNNER_TEMP/retrieval.txt" 2>/dev/null | head -n 1 || true)"
+          echo "score=$score" >> "$GITHUB_OUTPUT"
 
       # Hand the proposed change to the privileged job as a patch (captures adds,
-      # edits and deletes under the bundle, plus ktl-docent's feedback.md). The
-      # agent never sees a write token; `publish` applies this on a clean checkout.
+      # edits and deletes under the bundle, plus ktl-docent's feedback.md and the
+      # ledger a handled entry moves into). The agent never sees a write token;
+      # `publish` applies this on a clean checkout.
       - name: Package the bundle change
         if: steps.diff.outputs.changed == 'true'
         run: |
@@ -213,17 +230,24 @@ jobs:
           # (see "Detect changes"); `git add` refuses a pathspec that matches
           # nothing, hence the guard.
           [ -e knowledge_bundle ] && git add -A -- knowledge_bundle || true
-          # Reader feedback (written by ktl-docent, consumed by the librarian,
-          # which removes handled entries) - carry it so entries don't come back.
+          # Reader feedback is written by ktl-docent and consumed by the
+          # librarian, whose pen moves each handled entry into the ledger. Carry
+          # both, so entries do not come back and the questions readers asked
+          # are kept.
           [ -e .lokf/feedback.md ] && git add -A -- .lokf/feedback.md || true
+          [ -e .lokf/questions.md ] && git add -A -- .lokf/questions.md || true
           git diff --cached --binary > "$RUNNER_TEMP/librarian.patch"
+          # The lines the pen took from the patch file's `handoff`, or none.
+          [ -f "$RUNNER_TEMP/handoff.txt" ] || : > "$RUNNER_TEMP/handoff.txt"
 
       - name: Upload the bundle patch
         if: steps.diff.outputs.changed == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: librarian-bundle-patch
-          path: ${{ runner.temp }}/librarian.patch
+          path: |
+            ${{ runner.temp }}/librarian.patch
+            ${{ runner.temp }}/handoff.txt
           retention-days: 1
           if-no-files-found: error
 
@@ -254,26 +278,26 @@ jobs:
         id: push
         run: |
           set -euo pipefail
-          # Trust nothing the `refresh` job decided on its own - it shared a
+          # Trust nothing the `refresh` job decided on its own. It shared a
           # workspace with the agent, so its checks can in principle be
-          # blinded or skipped (see the wrapper script's comments). Re-derive
+          # defeated or skipped (see the wrapper script's comments). Re-derive
           # the path check here, on this job's clean checkout, before
           # anything from the patch touches disk. core.quotePath off, or a
           # concept named with a byte above 0x7f is listed C-quoted and
           # refused as outside the bundle.
           paths="$(git -c core.quotePath=false apply --numstat "$RUNNER_TEMP/librarian.patch" | cut -f3-)"
-          bad="$(printf '%s\n' "$paths" | grep -Ev '^(\.lokf/knowledge/|knowledge_bundle/|\.lokf/feedback\.md$)' || true)"
+          bad="$(printf '%s\n' "$paths" | grep -Ev '^(\.lokf/knowledge/|knowledge_bundle/|\.lokf/feedback\.md$|\.lokf/questions\.md$)' || true)"
           if [ -n "${bad//[$'\n\t ']/}" ]; then
             echo "::error::Patch touches paths outside the allowed bundle:"
             printf '%s\n' "$bad" | sed '/^$/d; s/^/  /'
             exit 1
           fi
           # This skill never writes a human: confirmation (see ktl-librarian's
-          # SKILL.md). A PR opened with GITHUB_TOKEN never fires
+          # SKILL.md). A pull request opened with GITHUB_TOKEN never fires
           # knowledge-registrar.yaml's own pull_request-triggered provenance
-          # job - GitHub does not start pull_request workflows for a PR
-          # authored by the default token - so this is that check's only
-          # backstop for this particular PR; see scheduled-task.md.
+          # job, since GitHub does not start pull_request workflows for a pull
+          # request the default token opened. So this is that check's only
+          # backstop for this pull request; see scheduled-task.md.
           if grep -Eq '^\+ *-? *by: *human:' "$RUNNER_TEMP/librarian.patch"; then
             echo "::error::Patch adds a 'by: human:' claim - the scheduled librarian must never author one."
             exit 1
@@ -281,6 +305,27 @@ jobs:
           # Apply the agent's proposed change onto a clean checkout; fails safe if
           # the default branch moved since `refresh` ran.
           git apply --index --whitespace=nowarn "$RUNNER_TEMP/librarian.patch"
+          # The line pattern above sees a block-style `by: human:` line and no
+          # other layout. This reads the events themselves on the tree the
+          # patch leaves, as the registrar's gate does. An unattended change
+          # adds, changes and removes no person's event or note, and rewrites no
+          # text a person wrote. knowledge-apply.sh refuses each of those before
+          # it writes, in a job the agent shared. This job did not share it, and
+          # the script comes from this checkout, which the path check above
+          # keeps the patch out of.
+          if [ -f .lokf/scripts/knowledge-provenance.sh ] && ! bash .lokf/scripts/knowledge-provenance.sh --unattended; then
+            echo "::error::Patch touches a person's record - the scheduled librarian must never do that."
+            exit 1
+          fi
+          # What the pull request says about the record is computed here too,
+          # from the tree about to be pushed and not from anything `refresh`
+          # reported: the bundle's health line, and what this change does.
+          if [ -f .lokf/scripts/knowledge-report.sh ]; then
+            {
+              echo "health<<KTL_REPORT_END"; bash .lokf/scripts/knowledge-report.sh health; echo "KTL_REPORT_END"
+              echo "changes<<KTL_REPORT_END"; bash .lokf/scripts/knowledge-report.sh changes; echo "KTL_REPORT_END"
+            } >> "$GITHUB_OUTPUT"
+          fi
           branch="knowledge-librarian/$(date -u +%Y-%m-%d)-${GITHUB_RUN_ID}"
           git config user.name  "knowledge-librarian[bot]"
           git config user.email "knowledge-librarian[bot]@users.noreply.github.com"
@@ -295,12 +340,14 @@ jobs:
         env:
           BRANCH: ${{ steps.push.outputs.branch }}
           LOKF_OUTCOME: ${{ needs.refresh.outputs.validate_outcome }}
-          DRAFTS: ${{ needs.refresh.outputs.drafts }}
-          QUESTIONS: ${{ needs.refresh.outputs.questions }}
-          HUMAN: ${{ needs.refresh.outputs.human }}
+          RETRIEVAL: ${{ needs.refresh.outputs.retrieval }}
+          HEALTH: ${{ steps.push.outputs.health }}
+          CHANGES: ${{ steps.push.outputs.changes }}
+          HANDOFF_FILE: ${{ runner.temp }}/handoff.txt
         with:
           script: |
-            const { BRANCH, LOKF_OUTCOME, DRAFTS, QUESTIONS, HUMAN } = process.env;
+            const fs = require('fs');
+            const { BRANCH, LOKF_OUTCOME, RETRIEVAL, HEALTH, CHANGES, HANDOFF_FILE } = process.env;
             // On `schedule` triggers the event payload is empty, so resolve the
             // default branch via the API rather than context.payload.repository.
             const { data: repo } = await github.rest.repos.get(context.repo);
@@ -309,6 +356,30 @@ jobs:
               o === 'success' ? 'pass'
               : o === 'failure' ? 'failed (review the run log)'
               : 'skipped';
+            // The score comes from the job that ran the agent, so only a line
+            // of exactly two integers is shown. The health line and the list
+            // of changes were computed by this job, by knowledge-report.sh.
+            const retrieval = /^[0-9]+ of [0-9]+$/.test(RETRIEVAL || '')
+              ? [`- Retrieval from the index: ${RETRIEVAL} reader questions reach their concept`]
+              : [];
+            // The hand-off is the agent's own words, from the job that ran
+            // it, and is shown as nothing more. The pen cleaned it there; it
+            // is cleaned again here, since that job could be blinded: ten
+            // lines of 300 characters at most, with no control or invisible
+            // character and no backtick. It goes in a code block, where no
+            // link, image, mention or HTML renders.
+            let handoff = [];
+            try {
+              handoff = fs.readFileSync(HANDOFF_FILE, 'utf8').split('\n')
+                .map((l) => l.replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]/g, '').replace(/`/g, "'").trim().slice(0, 300))
+                .filter((l) => l !== '')
+                .slice(0, 10);
+            } catch (e) {
+              handoff = [];
+            }
+            const fromLibrarian = handoff.length
+              ? ['### From the librarian', '', 'The agent wrote these lines. No program checked what they say.', '', '```text', ...handoff, '```', '']
+              : [];
             const body = [
               '## Scheduled knowledge-librarian refresh',
               '',
@@ -317,18 +388,23 @@ jobs:
               'approve - this PR must not be auto-merged.',
               '',
               `- LOKF validation (\`lokf validate --check-refs\`): ${check(LOKF_OUTCOME)}`,
+              ...retrieval,
               '',
+              '### What this change does to the record',
+              ...(CHANGES ? CHANGES.split('\n') : ['Not computed: this sidecar has no `knowledge-report.sh`.']),
+              '',
+              ...fromLibrarian,
               '### Reviewer checklist',
               '- [ ] Claims trace to a source of truth.',
               '- [ ] `type`/frontmatter and typed relations are correct.',
               '- [ ] Validation findings above are acceptable or addressed.',
               '',
               '### For the curator',
-              `Across the whole bundle: ${DRAFTS} concept(s) are drafts (not yet confirmed by a person),`,
-              `${QUESTIONS} carry open questions the librarian could not settle, and ${HUMAN} have been`,
-              'confirmed by a person. The librarian derives facts; it never vouches for them. A few',
-              'minutes with the **ktl-curator** skill turns drafts into confirmed knowledge - run its',
-              'report for the full picture and a guided review.',
+              HEALTH || 'This sidecar has no `knowledge-report.sh` to compute the health line.',
+              '',
+              'The librarian derives facts; it never vouches for them. A few minutes with the',
+              '**ktl-curator** skill turns drafts into confirmed knowledge - run its report for the',
+              'full picture and a guided review.',
             ].join('\n');
             const { data: pr } = await github.rest.pulls.create({
               owner: context.repo.owner,

@@ -3,7 +3,7 @@
 # beside this script, each with a snapshot of the knowledge bundle inside.
 #
 # Copilot runs a skill with no repository, shell or network, so the bundle
-# travels inside it. A new read-only role is just another .md file here.
+# goes inside it. A new read-only role is just another .md file here.
 # The release workflow runs this and attaches each zip; elsewhere, run it by
 # hand. Nothing is written if any skill breaks Copilot's limits, and neither
 # the source bundle nor an earlier build is ever touched.

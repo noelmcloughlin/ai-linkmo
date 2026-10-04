@@ -2,7 +2,7 @@
 
 External authorities encoded by this repository's data:
 
-* [AI Risk Ontology (ai-atlas-nexus)](ai-risk-ontology.md) - the LinkML schema everything aligns to.
+* [AI Risk Ontology (ai-atlas-nexus)](ai-risk-ontology.md) - IBM's AI Risk Ontology from the ai-atlas-nexus project - the LinkML schema (System view and Risk view) that all AI-LinkMO data, endpoints and CLI parameters align to.
 * [FINOS AI Governance Framework](finos-aigf.md)
 * [EU Artificial Intelligence Act](eu-ai-act.md)
 * [FFIEC IT Examination Handbook](ffiec-it-handbook.md)
