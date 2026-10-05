@@ -240,22 +240,23 @@ fi
 # The conventions script runs its Python half, so a host holding the .sh
 # without the .py has a gate that fails outright, not a stale copy. This is
 # reported whether or not a sidecar is installed to compare against. A bundle with no
-# knowledge-feedback.sh is the same kind of gap rather than drift: ktl-docent
-# then has to open feedback.md to add an entry, which is the one thing that
-# script exists to stop. A host on a sidecar that predates it should hear so
-# before a reader's first recorded gap, not after.
+# knowledge-feedback.sh is the same kind of gap rather than drift. ktl-docent
+# runs its own copy, but an earlier release runs this one, and without it has
+# to open feedback.md to add an entry, which is the one thing that script
+# exists to stop. A host on a sidecar that predates it should hear so before a
+# reader's first recorded gap, not after.
 script_gaps=""
 if [ -f "$root/.lokf/scripts/knowledge-conventions.sh" ] && [ ! -f "$root/.lokf/scripts/knowledge-conventions.py" ]; then
   script_gaps=".lokf/scripts/knowledge-conventions.py missing beside the .sh, which runs it"
 fi
 if [ -d "$bundle" ] && [ ! -f "$root/.lokf/scripts/knowledge-feedback.sh" ]; then
-  script_gaps="${script_gaps}${script_gaps:+, }.lokf/scripts/knowledge-feedback.sh missing, so ktl-docent must edit feedback.md by hand"
+  script_gaps="${script_gaps}${script_gaps:+, }.lokf/scripts/knowledge-feedback.sh missing, so an earlier ktl-docent must edit feedback.md by hand"
 fi
 if [ -d "$bundle" ] && [ ! -f "$root/.lokf/scripts/knowledge-apply.sh" ]; then
   script_gaps="${script_gaps}${script_gaps:+, }.lokf/scripts/knowledge-apply.sh missing, so ktl-librarian must write the bundle by hand"
 fi
 if [ -d "$bundle" ] && [ ! -f "$root/.lokf/scripts/knowledge-report.sh" ]; then
-  script_gaps="${script_gaps}${script_gaps:+, }.lokf/scripts/knowledge-report.sh missing, so ktl-curator and ktl-docent must work each trust label out by hand"
+  script_gaps="${script_gaps}${script_gaps:+, }.lokf/scripts/knowledge-report.sh missing, so ktl-curator and an earlier ktl-docent must work each trust label out by hand"
 fi
 # A host moves TRUST_LADDER_SKILLS_REF, and the commit beside it, on its own
 # schedule, so a different pin is not drift; every other byte of the
@@ -295,7 +296,7 @@ fi
 # ---- session ---------------------------------------------------------------
 unattended=""
 for v in CI GITHUB_ACTIONS GITLAB_CI TF_BUILD; do
-  eval "val=\${$v:-}"; [ -n "$val" ] && unattended="${unattended}${unattended:+, }$v"
+  val="${!v:-}"; [ -n "$val" ] && unattended="${unattended}${unattended:+, }$v"
 done
 agent=""
 [ -n "${CLAUDECODE:-}" ] && agent="Claude Code"
