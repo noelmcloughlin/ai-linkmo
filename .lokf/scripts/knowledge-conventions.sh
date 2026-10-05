@@ -6,14 +6,14 @@
 # Obsidian plugins rely on a few conventions beyond that, and each has been
 # broken at least once by an agent that had been told the rule in prose:
 #
-#   1. log.md has one `## YYYY-MM-DD` heading per day - the bare ISO date,
+#   1. log.md has one `## YYYY-MM-DD` heading per day: the bare ISO date,
 #      newest first, no duplicates. OKF §9 makes the date form a MUST, and the
 #      KTL Curator plugin finds today's section by that exact heading.
 #   2. Every `at:` is a quoted string. Unquoted, YAML hands the toolkit a
 #      datetime object and the curator's string comparison a surprise.
 #   3. `verified` is a list, never a bare `{ by, at }` mapping, and carries at
-#      most one `process:ktl-librarian` event - the librarian replaces its
-#      own, it does not stack them.
+#      most one `process:ktl-librarian` event: the librarian replaces its
+#      own, and does not stack them.
 #   4. A bullet under `## Open questions` is `- YYYY-MM-DD, <actor>: ...`, the
 #      shape the curator and both plugins write and read; the curator quotes
 #      the first bullet, so a trailing signature would become the question.
@@ -22,12 +22,12 @@
 #      `.lokf/`; failing that, the bundle's parent). A source that has gone
 #      should fail the gate now, not wait for the librarian's next refresh.
 #      URLs are never fetched.
-#   6. A commit-shaped `revision` on a `generated` or `verified` event (a
-#      field proposed for lokf 0.9.0; the released 0.8.0 validator rejects it,
-#      so the skills write it only where `lokf validate` accepts it) names a
-#      commit in this repository that holds the concept's local `resource`.
-#      ETags, digests and version labels pin URLs and are not checked. Needs
-#      the full history: a shallow clone is reported.
+#   6. A commit-shaped `revision` on a `generated` or `verified` event names
+#      a commit in this repository that holds the concept's local `resource`.
+#      The field is proposed for lokf 0.9.0. The released 0.8.0 validator
+#      rejects it, so the skills write it only where `lokf validate` accepts
+#      it. ETags, digests and version labels pin URLs and are not checked.
+#      The rule needs the full history, and reports a shallow clone.
 #   7. One file per `id`. A sync client's conflict copy (OneDrive, Dropbox,
 #      Drive, iCloud) or a pasted duplicate carries the same `id`, passes
 #      `lokf validate`, and silently merges into the original in the graph.
@@ -38,39 +38,64 @@
 #   9. Every concept starts with a `---` frontmatter block that closes, with no
 #      byte order mark in front of it. A BOM from a web editor or Notepad, or a
 #      file with no block at all, would otherwise pass this script unread.
-#  10. The fields the provenance gates read line by line - `id`, and `by`,
-#      `at` and `revision` on an event - are spelt so a line reader and a
-#      parser see the same thing: no tags, anchors, aliases, quoted keys,
-#      block scalars or values spanning lines. Each of those is valid YAML
-#      that `lokf validate` accepts and both gates cannot see, which is a
-#      confirmation nobody has to stand behind.
+#  10. The fields the provenance gates read line by line are spelt so a line
+#      reader and a parser see the same thing. They are `id`, and `by`, `at`
+#      and `revision` on an event, and they carry no tags, anchors, aliases,
+#      quoted keys, block scalars or values spanning lines. Each of those is
+#      valid YAML that `lokf validate` accepts and both gates cannot see,
+#      which makes a confirmation nobody has to stand behind.
 #  11. No `at:` is later than the commit that first recorded it, or, before
-#      it is committed, than now. A time written ahead of the clock - local
-#      time labelled `Z`, a round placeholder - sorts after the edits and
-#      confirmations that really followed it, so a concept reads as edited
+#      it is committed, than now. A time written ahead of the clock, such as
+#      local time labelled `Z` or a round placeholder, sorts after the edits
+#      and confirmations that really followed it. So a concept reads as edited
 #      since it was confirmed when it was not. Each value is looked up in the
-#      concept's own history; a rename or a shallow clone can only make that
-#      commit look later, so the rule can miss a bad time but never accuses a
-#      good one. A time with an offset other than `Z` is not compared. Needs
-#      git; outside it the rule is skipped.
+#      concept's own history. A rename or a shallow clone can only make that
+#      commit look later, so the rule can miss a bad time but never flags a
+#      good one. A time with an offset other than `Z` is not compared. The
+#      rule needs git, and outside it the rule is skipped.
+#  12. An index bullet that names a concept carries that concept's title and
+#      description, in the folder's index.md and in the root's. ktl-docent
+#      chooses what to open from the bullets alone, so one left behind by an
+#      edit hides the concept it names. knowledge-apply.sh keeps the three
+#      equal for every concept it writes; this is the check for every other
+#      writer, and its `reindex` operation is the repair. A concept no index
+#      lists is not a finding.
+#  13. A concept labelled confirmed by a person still says what that person
+#      confirmed. The label rests on `generated.at` being no later than the
+#      confirmation, so an edit that leaves `generated` alone keeps the label
+#      while the text moves on. After the commit that recorded the latest
+#      confirmation, a change must move `generated.at` past it, which turns
+#      the label to edited since. That holds for a change to the body outside
+#      `## Open questions` and KTL Registrar's lokf:related block. It holds
+#      for a change to any frontmatter field but `generated`, `verified`,
+#      `status`, `stale_after`, `timestamp` and `usage_window`.
 #
-# Rules 2, 3, 8 and 10 are house rules, stricter than the format: OKF permits
-# an unquoted datetime, a bare `verified` mapping (which every reader here -
-# the toolkit, both plugins, the gates - does read as a one-item list, as it
-# MUST), any file name and any YAML. This bundle holds itself to more so that
-# an event is always appended to a list and never converted first, a datetime
-# reaches every consumer as the same string, a name never collides on a
-# case-insensitive host, and an event reads the same to a line reader as to
-# a parser. A bundle written to the letter of OKF may fail them; that is a
-# policy of the gate, not a defect in the bundle.
+#      knowledge-apply.sh restamps every change it writes; this is the check
+#      for every other writer. Parsed values are compared, so a requoted value
+#      is no change. The newest commit that recorded the confirmation's time
+#      is the one compared with, so the rule can miss an edit but never flags
+#      a concept the person saw. The rule needs git, and outside it the rule
+#      is skipped.
 #
-# Rules 2, 3, 7, 9 and 10 are questions about a document's YAML that a real
-# parse answers outright, and rule 4 rides along, so this script hands them
-# to knowledge-conventions.py (same directory) through `uv run`, which needs
-# nothing preinstalled. Rules 1, 5, 6, 8 and 11 stay here: they are git and
-# filesystem facts, and this half keeps running - grep and awk only -
-# wherever bash and git do, with no toolchain at all. Without uv, this half
-# still runs and says so.
+# Rules 2, 3, 8 and 10 are house rules, stricter than the format. OKF permits
+# an unquoted datetime, a bare `verified` mapping, any file name and any YAML.
+# Every reader here reads a bare mapping as a one-item list, as it MUST: the
+# toolkit, both plugins and the gates. This bundle asks more of itself so that:
+#   - an event is always appended to a list and never converted first;
+#   - a datetime reaches every consumer as the same string;
+#   - a name never collides on a case-insensitive host;
+#   - an event reads the same to a line reader as to a parser.
+# A bundle written to the letter of OKF may fail them; that is a policy of the
+# gate, not a defect in the bundle.
+#
+# Rules 2, 3, 7, 9, 10 and 12 are questions about a document's YAML that a real
+# parse answers outright, and rule 4 goes with them. So this script hands
+# them to knowledge-conventions.py (same directory) through `uv run`, which
+# needs nothing preinstalled. Rule 13 goes there too: it reads git as well, but it
+# compares parsed values. Rules 1, 5, 6, 8 and 11 stay here: they are git and
+# filesystem facts, and this half, grep and awk only, keeps running wherever
+# bash and git do, with no toolchain at all. Without uv, this half still runs
+# and says so.
 #
 # Files are read with carriage returns removed and a leading byte order mark
 # stripped, so a Windows checkout (`core.autocrlf`) reads the same as CI. The
@@ -82,8 +107,8 @@
 [ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [bundle-dir]" >&2; exit 2; }
 set -euo pipefail
 
-# The bundle directory may be a link (a host that keeps the real folder as a
-# visible knowledge_bundle/), and find never enters a link it is handed bare:
+# The bundle directory may be a link, on a host that keeps the real folder as
+# a visible knowledge_bundle/. find never enters a link it is handed bare, so
 # the trailing slash below is what makes it read the files at all.
 bundle="${1:-knowledge}"; bundle="${bundle%/}"
 [ -d "$bundle" ] || { echo "no bundle directory at $bundle" >&2; exit 2; }
@@ -190,9 +215,10 @@ while IFS= read -r f; do
     [ -e "$target" ] || say "$f: resource not found: $res (looked at $target)"
   done < <(printf '%s\n' "$fm" | sed -nE 's/^[[:space:]]*(- )?resource:[[:space:]]*(.*[^[:space:]])[[:space:]]*$/\2/p')
   # 6. a commit-shaped `revision` names a commit that holds the concept's own
-  #    local `resource`. Anything with a character outside [0-9a-f] - an ETag,
-  #    a `sha256:` digest, a version label - pins a URL and is skipped, as is
-  #    every revision on a concept whose `resource` is a URL, absolute or absent.
+  #    local `resource`. Anything with a character outside [0-9a-f], such as
+  #    an ETag, a `sha256:` digest or a version label, pins a URL and is
+  #    skipped, as is every revision on a concept whose `resource` is a URL,
+  #    absolute or absent.
   res="$(printf '%s\n' "$fm" | sed -nE 's/^resource:[[:space:]]*(.*[^[:space:]])[[:space:]]*$/\1/p' | sed -n 1p)"
   res="${res%%#*}"
   res="${res#\"}"; res="${res%\"}"; res="${res#\'}"; res="${res%\'}"
@@ -226,7 +252,7 @@ while IFS= read -r f; do
   fi
 done < <(find "$bundle/" -name '*.md' -not -path '*/.obsidian/*' | sort)
 
-# ---- 2, 3, 4, 7, 9, 10. the parser's half ------------------------------------
+# ---- 2, 3, 4, 7, 9, 10, 12, 13. the parser's half ------------------------------
 py="$(dirname "$0")/knowledge-conventions.py"
 skipped=""
 if command -v uv >/dev/null 2>&1; then
@@ -235,7 +261,7 @@ if command -v uv >/dev/null 2>&1; then
     fail=1
   fi
 else
-  skipped="rules 2, 3, 4, 7, 9 and 10 not checked: uv not found"
+  skipped="rules 2, 3, 4, 7, 9, 10, 12 and 13 not checked: uv not found"
   echo "$skipped - install uv, or run $py directly with python3 and pyyaml" >&2
 fi
 

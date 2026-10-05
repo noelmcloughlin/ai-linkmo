@@ -4,16 +4,35 @@
 # The GitHub `provenance` job asks GitHub whether the person named in a new
 # `by: human:<id>` line approved the pull request or signed its commit. Off
 # GitHub there is no such job, and on GitHub it is the only check. This
-# script does the signature half anywhere git runs: the repository carries
-# one public key per curator id under `.lokf/curators/` - `<id>.asc`, a GPG
-# key as `gpg --armor --export` writes it, or `<id>.pub`, an OpenSSH public
-# key as `ssh-keygen` writes it, one key per line - and every commit in a
-# range that adds or changes a `human:<id>` event under the bundle - a
-# `verified` entry, or the `generated` record the curator's Correct writes -
-# must be signed by a key on file for exactly that id. A GPG key
-# counts with every subkey it carries, since most keys sign with a subkey; an
-# SSH key is verified with `ssh-keygen -Y verify` (OpenSSH 8.2+) against the
-# commit's own payload.
+# script does the signature half anywhere git runs.
+#
+# The repository carries one public key per curator id under
+# `.lokf/curators/`: `<id>.asc`, a GPG key as `gpg --armor --export` writes
+# it, or `<id>.pub`, an OpenSSH public key as `ssh-keygen` writes it, one key
+# per line. Every commit in a range that adds, changes or removes a
+# `human:<id>` event under the bundle must be signed by a key on file for
+# exactly that id. The event is a `verified` entry, or the `generated` record
+# the curator's Correct writes. A GPG key counts with every subkey it carries,
+# since most keys sign with a subkey. An SSH key is verified with
+# `ssh-keygen -Y verify` (OpenSSH 8.2+) against the commit's own payload.
+#
+# A removal is a claim too. A person's record is never removed without that
+# person. A `verified` event every parent held and the commit no longer holds,
+# struck out or gone with its concept, needs the same signature as one that
+# was added. A person's `generated` record may be replaced by another
+# person's, which is what the curator's Correct writes, and that second
+# person signs it as an addition. A record replaced by anything else needs
+# the signature of the person it named.
+#
+# `--unattended` is the other half, for a change nobody stands behind: the
+# scheduled librarian's. It compares the working tree, staged or not, with
+# HEAD, and needs no key and no forge. It reports every way such a change
+# touches a person's record:
+#   - a `human:` event added, changed or removed in any YAML layout;
+#   - a person's note under `## Open questions` added or removed;
+#   - text a person wrote, changed.
+# knowledge-apply.sh refuses each of these before it writes. This is the same
+# refusal, checked on the result, by a job the agent never ran in.
 #
 # Findings, one line each, exit 1:
 #   - the commit is unsigned, or its signature does not verify;
@@ -22,12 +41,12 @@
 #   - the id has no key on file (a stranger, or a curator not yet added), or
 #     is not a login any forge could list;
 #   - the range adds, changes or removes that id's own key file *and* records
-#     a confirmation by them - a key lands in its own reviewed change first,
+#     a confirmation by them: a key is added in its own reviewed change first,
 #     so nobody registers a key and vouches with it in one step;
 #   - a commit touches a bundle path git has to quote (`"`, `\` or a control
 #     character in the name), which this line reader cannot hold.
-# No `.lokf/curators/` directory: says so and exits 0 - nothing to verify
-# against, and the forge's gate, if any, is the only check.
+# With no `.lokf/curators/` directory it says so and exits 0: there is nothing
+# to verify against, and the forge's gate, if any, is the only check.
 #
 # What a pass proves: the holder of that key made that commit. Not that
 # anyone read the source, and not who the person is beyond what the key file's
@@ -35,18 +54,26 @@
 # ssh-keygen for the kind of key on file.
 #
 # Usage: knowledge-provenance.sh <base-ref> [head-ref] [bundle-dir]
-#   e.g. knowledge-provenance.sh origin/main            (a branch, locally)
+#        knowledge-provenance.sh --unattended [bundle-dir]
+#   For example:
+#        knowledge-provenance.sh origin/main            (a branch, locally)
 #        knowledge-provenance.sh "$BASE_SHA" "$HEAD_SHA"  (in CI)
-[ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} <base-ref> [head-ref]" >&2; exit 2; }
+#        knowledge-provenance.sh --unattended            (what the librarian workflow runs)
+[ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} <base-ref> [head-ref] | --unattended" >&2; exit 2; }
 set -u
 
-base="${1:-}"; head="${2:-HEAD}"; bundle="${3:-.lokf/knowledge}"
-[ -n "$base" ] || { echo "usage: knowledge-provenance.sh <base-ref> [head-ref] [bundle-dir]" >&2; exit 2; }
+unattended=0
+if [ "${1:-}" = "--unattended" ]; then
+  unattended=1; base=HEAD; head=""; bundle="${2:-.lokf/knowledge}"
+else
+  base="${1:-}"; head="${2:-HEAD}"; bundle="${3:-.lokf/knowledge}"
+fi
+[ -n "$base" ] || { echo "usage: knowledge-provenance.sh <base-ref> [head-ref] [bundle-dir] | --unattended [bundle-dir]" >&2; exit 2; }
 command -v git >/dev/null 2>&1 || { echo "git is required" >&2; exit 2; }
 root="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "not inside a git work tree" >&2; exit 2; }
 cd "$root" || exit 2
 curators=".lokf/curators"
-if [ ! -d "$curators" ]; then
+if [ "$unattended" -eq 0 ] && [ ! -d "$curators" ]; then
   echo "skipped - no $curators/ directory; nothing to verify confirmations against (the forge's gate, if any, is the only check)"
   exit 0
 fi
@@ -61,7 +88,7 @@ home="$(mktemp -d)"
 trap 'rm -rf "$home"' EXIT
 chmod 700 "$home"
 gpg_ok=0
-if have gpg; then
+if [ "$unattended" -eq 0 ] && have gpg; then
   gpg_ok=1
   for k in "$curators"/*.asc; do
     [ -f "$k" ] || continue
@@ -102,24 +129,26 @@ sig_format() {  # commit -> pgp | ssh | none
   esac
 }
 
-# The human events of a concept - its `verified` list and its `generated`
-# record, since the curator's Correct writes `generated.by: human:<id>` - as
-# `<id or path>\t<by>\t<at>\t<revision>`, one per line, whatever the YAML
-# layout: a block list in any key order, a flow-style item, a flow sequence, a
-# bare mapping. Only the frontmatter is read, so an example event in a body
-# code fence is not a claim. Keyed by the concept's `id` so a renamed concept
-# keeps its events and a confirmation copied into another concept does not.
+# The human events of a concept, one per line, as
+# `<id or path>\t<by>\t<at>\t<revision>\t<verified|generated>`. They are its
+# `verified` list and its `generated` record, since the curator's Correct
+# writes `generated.by: human:<id>`. Any YAML layout is read: a block list in
+# any key order, a flow-style item, a flow sequence, a bare mapping. Only the
+# frontmatter is read, so an example event in a body code fence is not a
+# claim. Events are keyed by the concept's `id`, so a renamed concept keeps
+# its events and a confirmation copied into another concept does not.
+#
 # An event present in a commit's tree and absent from every parent's is new or
-# changed - a re-dated `at` or a moved `revision` is as much a claim as a new
-# line - and its actor must stand behind it. Every parent, so a merge that
-# brings in another curator's confirmation claims nothing, and one that adds
-# an event neither side held is read like any other commit.
+# changed, and its actor must stand behind it. A re-dated `at` or a moved
+# `revision` is as much a claim as a new line. Every parent is compared, so a
+# merge that brings in another curator's confirmation claims nothing, and one
+# that adds an event neither side held is read like any other commit.
 human_events() {  # path -> events, reading the concept on stdin
   awk -v path="$1" '
   function val(s) { sub(/^[^:]*:[[:space:]]*/, "", s); gsub(/["'"'"']/, "", s); sub(/[[:space:]]+$/, "", s); return s }
   function kv(l,  k) { k = l; sub(/:.*/, "", k); sub(/^[[:space:]]+/, "", k)
     if (k == "by") by = val(l); else if (k == "at") at = val(l); else if (k == "revision") rev = val(l) }
-  function emit() { if (inev && by ~ /^human:/) { sub(/^human:/, "", by); out = out (cid ? cid : path) "\t" by "\t" at "\t" rev "\n" }
+  function emit() { if (inev && by ~ /^human:/) { sub(/^human:/, "", by); out = out (cid ? cid : path) "\t" by "\t" at "\t" rev "\t" kind "\n" }
     inev = 0; by = ""; at = ""; rev = "" }
   function flow(s,  n, parts, i) { emit(); inev = 1; gsub(/[{}]/, "", s); n = split(s, parts, ",")
     for (i = 1; i <= n; i++) kv(parts[i]); emit() }
@@ -127,7 +156,7 @@ human_events() {  # path -> events, reading the concept on stdin
   NR == 1 { if ($0 == "---") { fm = 1; next } else exit }
   fm && $0 == "---" { emit(); exit }
   /^id:/ { cid = val($0) }
-  /^(verified|generated):/ { emit(); inv = 1; rest = $0; sub(/^(verified|generated):[[:space:]]*/, "", rest)
+  /^(verified|generated):/ { emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated):[[:space:]]*/, "", rest)
     if (rest ~ /^\{/) { flow(rest); inv = 0 }
     else if (rest ~ /^\[/) { gsub(/[][]/, "", rest); n = split(rest, items, /\}[[:space:]]*,/); for (i = 1; i <= n; i++) flow(items[i]); inv = 0 }
     next }
@@ -143,13 +172,78 @@ events_in() {  # ref, paths on stdin -> the human events of those paths at that 
     git show "$1:$f" 2>/dev/null | human_events "$f"
   done | sort
 }
-# The paths a commit changes against any of its parents: without -m, git
-# lists nothing at all for a merge commit. core.quotePath off, or a name with
-# a byte above 0x7f comes C-quoted and `.md$` misses it; git still quotes
-# `"`, `\` and control characters, and the caller refuses those.
+# The paths a commit changes against any of its parents. Without -m, git
+# lists nothing at all for a merge commit. With core.quotePath on, a name
+# with a byte above 0x7f would come C-quoted and `.md$` would miss it, so it
+# is off. Git still quotes `"`, `\` and control characters, and the caller
+# refuses those.
 changed_paths() {  # commit, pathspecs... -> paths, one per line
   git -c core.quotePath=false diff-tree --no-commit-id --name-only -r -m "$@" 2>/dev/null | sort -u
 }
+
+# The events a commit removes: those every parent held that it no longer
+# holds. A `verified` event is never removed without its person. A person's
+# `generated` record may be replaced by another person's, the curator's
+# Correct, which that person signs as an addition. So it counts only when no
+# person's `generated` record stands in its place.
+removed_from() {  # events-before file, events-now file -> the removed events that need their person
+  comm -23 "$1" "$2" | awk -F'\t' -v now="$2" '
+    BEGIN { while ((getline line < now) > 0) { split(line, f, "\t"); if (f[5] == "generated") kept[f[1]] = 1 } }
+    $5 == "verified" || !($1 in kept)'
+}
+
+# ---- --unattended: a change nobody stands behind may touch no person's record ----
+# A concept's body up to `## Open questions`, without trailing blank lines:
+# the text a person wrote, which a note added below it does not change.
+body_of() {
+  awk '{ sub(/\r$/, "") }
+       NR == 1 && $0 == "---" { fm = 1; next }
+       fm == 1 { if ($0 == "---") fm = 2; next }
+       /^## Open questions[ \t]*$/ { exit }
+       /^[ \t]*$/ { blank++; next }
+       { while (blank > 0) { print ""; blank-- } print }'
+}
+notes_of() {  # path, a concept on stdin -> each line a person's note would be, keyed by the path
+  grep -E '^- [0-9]{4}-[0-9]{2}-[0-9]{2}, *human:' | awk -v f="$1" '{ print f "\t" $0 }' || true
+}
+if [ "$unattended" -eq 1 ]; then
+  git rev-parse -q --verify HEAD >/dev/null 2>&1 || { echo "no commit to compare with" >&2; exit 2; }
+  listed="$( { git -c core.quotePath=false diff --no-renames --name-only HEAD -- "$bundle" knowledge_bundle 2>/dev/null
+               git -c core.quotePath=false ls-files --others --exclude-standard -- "$bundle" knowledge_bundle 2>/dev/null; } | sort -u )"
+  quoted="$(printf '%s\n' "$listed" | grep '^"' || true)"
+  [ -z "$quoted" ] || say "the change touches a bundle path git has to quote, which this script cannot read - rename it: $(printf '%s' "$quoted" | tr '\n' ' ')"
+  : > "$home/was.events"; : > "$home/now.events"; : > "$home/was.notes"; : > "$home/now.notes"
+  while IFS= read -r f; do
+    case "$f" in *.md) ;; *) continue ;; esac
+    git show "HEAD:$f" > "$home/was.file" 2>/dev/null || : > "$home/was.file"
+    if [ -f "$f" ]; then cat "$f" > "$home/now.file"; else : > "$home/now.file"; fi
+    human_events "$f" < "$home/was.file" >> "$home/was.events"
+    human_events "$f" < "$home/now.file" >> "$home/now.events"
+    notes_of "$f" < "$home/was.file" >> "$home/was.notes"
+    notes_of "$f" < "$home/now.file" >> "$home/now.notes"
+    if [ -f "$f" ] && human_events "$f" < "$home/was.file" | awk -F'\t' '$5 == "generated" { found = 1 } END { exit !found }' \
+       && [ "$(body_of < "$home/was.file")" != "$(body_of < "$home/now.file")" ]; then
+      say "$f: a person wrote this text, and an unattended change rewrites it"
+    fi
+  done < <(printf '%s\n' "$listed" | grep -v '^"' || true)
+  for kind in events notes; do sort -u "$home/was.$kind" -o "$home/was.$kind"; sort -u "$home/now.$kind" -o "$home/now.$kind"; done
+  while IFS="$(printf '\t')" read -r id by at _; do
+    [ -n "$id" ] && say "$id: an unattended change adds or changes a confirmation by human:$by ($at)"
+  done < <(comm -13 "$home/was.events" "$home/now.events")
+  while IFS="$(printf '\t')" read -r id by at _; do
+    [ -n "$id" ] && say "$id: an unattended change removes a confirmation by human:$by ($at)"
+  done < <(comm -23 "$home/was.events" "$home/now.events")
+  while IFS="$(printf '\t')" read -r f _; do
+    [ -n "$f" ] && say "$f: an unattended change adds a note in a person's name"
+  done < <(comm -13 "$home/was.notes" "$home/now.notes")
+  while IFS="$(printf '\t')" read -r f _; do
+    [ -n "$f" ] && say "$f: an unattended change removes a person's note"
+  done < <(comm -23 "$home/was.notes" "$home/now.notes")
+  if [ "$fail" -eq 0 ]; then
+    echo "OK - the change against HEAD adds, changes and removes no person's event or note, and rewrites no text a person wrote"
+  fi
+  exit "$fail"
+fi
 
 # The range, oldest first, and the ids whose key file it adds, changes or
 # removes: a confirmation by one of them in the same range fails outright.
@@ -176,10 +270,20 @@ for sha in $commits; do
   fi
   files="$(printf '%s\n' "$listed" | grep '\.md$' || true)"
   [ -n "$files" ] || continue
+  # every.events: what every parent holds, so a merge that merely lacks what
+  # one side never had removes nothing. A root commit has no parent and
+  # removes nothing either.
+  : > "$home/every.events"; first=1
   for p in $(git rev-parse "$sha^@" 2>/dev/null); do
-    printf '%s\n' "$files" | events_in "$p"
+    printf '%s\n' "$files" | events_in "$p" | sort -u > "$home/one.events"
+    if [ "$first" -eq 1 ]; then cp "$home/one.events" "$home/every.events"; first=0
+    else comm -12 "$home/every.events" "$home/one.events" > "$home/every.tmp"; mv "$home/every.tmp" "$home/every.events"; fi
+    cat "$home/one.events"
   done | sort -u > "$home/parent.events"
-  ids="$(printf '%s\n' "$files" | events_in "$sha" | comm -13 "$home/parent.events" - | cut -f2 | sort -u)"
+  printf '%s\n' "$files" | events_in "$sha" | sort -u > "$home/sha.events"
+  added="$(comm -13 "$home/parent.events" "$home/sha.events" | cut -f2 | sort -u)"
+  gone="$(removed_from "$home/every.events" "$home/sha.events" | cut -f2 | sort -u)"
+  ids="$(printf '%s\n%s\n' "$added" "$gone" | sed '/^$/d' | sort -u)"
   [ -n "$ids" ] || continue
   format="$(sig_format "$sha")"
   status=""; signer=""
@@ -189,11 +293,14 @@ for sha in $commits; do
   fi
   for id in $ids; do
     checked=$((checked + 1))
+    # What this commit does with that person's record, for the finding's wording.
+    does="adds or changes"
+    printf '%s\n' "$added" | grep -qxF -- "$id" || does="removes"
     # A forge login is letters, digits, '.', '_' and '-'; anything else names
     # nobody the gate can look up, and could name a path outside $curators.
     case "$id" in
       *[!A-Za-z0-9._-]*|[!A-Za-z0-9]*)
-        say "$short adds or changes a confirmation by human:$id, which is not a login this gate can check (letters, digits, . _ - only)"
+        say "$short $does a confirmation by human:$id, which is not a login this gate can check (letters, digits, . _ - only)"
         continue ;;
     esac
     has_asc=0; has_pub=0
@@ -208,38 +315,38 @@ for sha in $commits; do
         continue ;;
     esac
     if [ "$has_asc" -eq 0 ] && [ "$has_pub" -eq 0 ]; then
-      say "$short adds or changes a confirmation by human:$id, who has no key on file at $curators/$id.asc or $id.pub"
+      say "$short $does a confirmation by human:$id, who has no key on file at $curators/$id.asc or $id.pub"
       continue
     fi
     case "$format" in
       none)
-        say "$short adds or changes a confirmation by human:$id but is unsigned" ;;
+        say "$short $does a confirmation by human:$id but is unsigned" ;;
       pgp)
         if [ "$has_asc" -eq 0 ]; then
-          say "$short adds or changes a confirmation by human:$id with a GPG signature, but the key on file for them is an SSH key ($id.pub)"
+          say "$short $does a confirmation by human:$id with a GPG signature, but the key on file for them is an SSH key ($id.pub)"
         elif [ "$gpg_ok" -eq 0 ]; then
-          say "$short adds or changes a confirmation by human:$id with a GPG signature, and gpg is not installed here to verify it"
+          say "$short $does a confirmation by human:$id with a GPG signature, and gpg is not installed here to verify it"
         elif printf '%s\n' "$status" | grep -qE '^\[GNUPG:\] (EXPKEYSIG|REVKEYSIG|EXPSIG)'; then
-          say "$short adds or changes a confirmation by human:$id signed by a key that has expired or been revoked"
+          say "$short $does a confirmation by human:$id signed by a key that has expired or been revoked"
         elif [ -z "$signer" ]; then
           unknown="$(printf '%s\n' "$status" | awk '/^\[GNUPG:\] NO_PUBKEY/ {print $3; exit}')"
           if [ -n "$unknown" ]; then
-            say "$short adds or changes a confirmation by human:$id but is signed by another key ($unknown, on file for nobody)"
+            say "$short $does a confirmation by human:$id but is signed by another key ($unknown, on file for nobody)"
           else
-            say "$short adds or changes a confirmation by human:$id but its signature does not verify (damaged, or made over different content)"
+            say "$short $does a confirmation by human:$id but its signature does not verify (damaged, or made over different content)"
           fi
         elif ! gpg_fprs "$id" | grep -qx "$signer"; then
-          say "$short adds or changes a confirmation by human:$id but is signed by another key (${signer#"${signer%????????????????}"} is not in $id.asc)"
+          say "$short $does a confirmation by human:$id but is signed by another key (${signer#"${signer%????????????????}"} is not in $id.asc)"
         fi ;;
       ssh)
         if [ "$has_pub" -eq 0 ]; then
-          say "$short adds or changes a confirmation by human:$id with an SSH signature, but the key on file for them is a GPG key ($id.asc)"
+          say "$short $does a confirmation by human:$id with an SSH signature, but the key on file for them is a GPG key ($id.asc)"
         elif ! have ssh-keygen; then
-          say "$short adds or changes a confirmation by human:$id with an SSH signature, and ssh-keygen is not installed here to verify it"
+          say "$short $does a confirmation by human:$id with an SSH signature, and ssh-keygen is not installed here to verify it"
         else
           signature_of "$sha" > "$home/$sha.sig"
           if ! payload_of "$sha" | ssh-keygen -Y verify -f "$(allowed_of "$id")" -I "$id" -n git -s "$home/$sha.sig" >/dev/null 2>&1; then
-            say "$short adds or changes a confirmation by human:$id but its SSH signature is not by a key in $id.pub"
+            say "$short $does a confirmation by human:$id but its SSH signature is not by a key in $id.pub"
           fi
         fi ;;
     esac
@@ -247,6 +354,6 @@ for sha in $commits; do
 done
 
 if [ "$fail" -eq 0 ]; then
-  echo "OK - $checked confirmation(s), new or changed, in $base..$head signed by the key on file for their curator"
+  echo "OK - $checked confirmation(s), new, changed or removed, in $base..$head signed by the key on file for their curator"
 fi
 exit "$fail"

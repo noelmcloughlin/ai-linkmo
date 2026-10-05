@@ -25,14 +25,15 @@ You write normal Markdown; you get a validated, queryable graph for free.
 |   |-- org/              # FINOS, IBM, the maintainer
 |-- pyproject.toml        # declares the `lokf` toolkit as a dependency
 |-- justfile              # convenience commands (below)
-|-- scripts/              # the librarian wrapper, the preflight, the gate's two checks and the docent's feedback recorder
+|-- scripts/              # the librarian wrapper and its apply script, the report script, the preflight, the gate's two checks and the docent's feedback recorder
 |-- m365/                 # the Microsoft 365 Copilot skills' instructions and their builder; the release workflow packs them
 |-- queries.http          # SPARQL queries for the local endpoint (VS Code REST Client)
 |-- curators/             # appears once a curator's public key is on file; who may confirm at the gate
 |-- feedback.md           # appears once a reader's agent records a gap; input for the librarian, not knowledge
+|-- questions.md          # appears once the librarian handles a reader's entry; the questions readers asked, kept by the apply script
 ```
 
-The `knowledge_bundle` link at the repository root is this same `knowledge/` directory under an ordinary, visible name. It is there for folder pickers and file managers that hide dot-directories, and, for Obsidian users, for "Open folder as vault": open the link *itself* as a vault, never the repository root, which cannot see a dot-folder or a link that resolves inside it. Git carries the link; a sync service does not, so `just lokf-link` recreates it on a machine where it is missing (Windows: `mklink /J knowledge_bundle .lokf\knowledge`). Every command below works without it.
+The `knowledge_bundle` link at the repository root is this same `knowledge/` directory under an ordinary, visible name. It is there for folder pickers and file managers that hide dot-directories, and for Obsidian's "Open folder as vault". Open the link *itself* as a vault, never the repository root, which cannot see a dot-folder or a link that resolves inside it. Git carries the link; a sync service does not, so `just lokf-link` recreates it on a machine where it is missing (Windows: `mklink /J knowledge_bundle .lokf\knowledge`). Every command below works without it.
 
 ## Prerequisites
 
@@ -61,7 +62,7 @@ uv run lokf convert knowledge --format ttl
 
 ## Add or edit a concept
 
-1. Create a Markdown file under `knowledge/<kind>/` (e.g. `services/`, `metrics/`).
+1. Create a Markdown file under `knowledge/<kind>/`, such as `services/` or `metrics/`.
 2. Start with frontmatter. OKF requires only `type`; this bundle also sets `id`, `title`, and `description` on every concept.
 3. Link concepts with typed-relation keys whose values are target `id`s, such as `dependsOn:`, `about:`, `references:`, `measures:`. Run `uv run lokf vocab` to list available relations.
 4. Add the concept to the table of contents in `knowledge/index.md`.

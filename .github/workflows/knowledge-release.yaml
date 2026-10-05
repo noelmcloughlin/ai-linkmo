@@ -3,7 +3,7 @@ name: Knowledge Release
 # Attaches the LOKF knowledge bundle to a GitHub release as a zip file, so a
 # reader can take the bundle as it stood at that release without cloning the
 # repository, and open it with any operating system's own tools. Beside it,
-# when the host has laid down .lokf/m365/, one Microsoft 365 Copilot skill
+# when the host has installed .lokf/m365/, one Microsoft 365 Copilot skill
 # zip per instructions file there, for a person with nothing installed to
 # upload to Agent Builder. It runs no LLM or agent, and it never commits or pushes.
 #
@@ -15,7 +15,7 @@ name: Knowledge Release
 #   release published   runs only once the KNOWLEDGE_RELEASE_ENABLED
 #                       repository variable is "true". Unset, every release
 #                       shows this run as skipped, so the workflow is inert
-#                       until someone arms it.
+#                       until someone turns it on.
 #
 # GitHub starts no workflow for a release created with the default
 # GITHUB_TOKEN. If your release job makes the release that way, the release
@@ -185,15 +185,23 @@ jobs:
       # reach the zip. A bundle normally carries none; this is a guard. Only
       # tracked files are packed, because the checkout holds nothing else.
       # The name carries the repository, so zips downloaded from several
-      # repositories stay apart.
+      # repositories stay apart. A host whose published name differs from
+      # its repository's (a package renamed for PyPI, say) sets it in the
+      # KNOWLEDGE_RELEASE_NAME repository variable.
       - name: Pack the bundle
         id: pack
         if: steps.compare.outputs.changed == 'true'
         env:
           BUNDLE_PATH: ${{ steps.compare.outputs.path }}
+          RELEASE_NAME: ${{ vars.KNOWLEDGE_RELEASE_NAME }}
         run: |
           set -euo pipefail
-          asset="knowledge-${TAG//\//-}-${GITHUB_REPOSITORY#*/}.zip"
+          name="${RELEASE_NAME:-${GITHUB_REPOSITORY#*/}}"
+          if [[ ! "$name" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+            echo "::error::KNOWLEDGE_RELEASE_NAME must be letters, digits, '.', '_' or '-', starting with a letter or digit."
+            exit 1
+          fi
+          asset="knowledge-${TAG//\//-}-$name.zip"
           src="$(cd "$BUNDLE_PATH" && pwd -P)"
           mtime="$(git log -1 --format=%ct -- "$BUNDLE_PATH")"
           stage="$RUNNER_TEMP/stage"
@@ -204,16 +212,18 @@ jobs:
           (cd "$stage" && find knowledge \( -type f -o -type l \) -print | LC_ALL=C sort | TZ=UTC zip -q -X -y -@ "$RUNNER_TEMP/release/$asset")
           (cd "$RUNNER_TEMP/release" && sha256sum "$asset" > "$asset.sha256")
           echo "asset=$asset" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
           echo "Packed $(unzip -Z1 "$RUNNER_TEMP/release/$asset" | wc -l) files into $asset"
 
       # Build one Copilot skill per .lokf/m365/*.md with the host's
       # knowledge-m365.sh, dated at the bundle's commit so each zip is
       # reproducible. If the builder is missing or refuses the bundle, the
-      # step posts a notice and the release ships the bundle zip alone.
+      # step posts a notice and the release carries the bundle zip alone.
       - name: Pack the Copilot skills
         if: steps.compare.outputs.changed == 'true'
         env:
           BUNDLE_PATH: ${{ steps.compare.outputs.path }}
+          NAME: ${{ steps.pack.outputs.name }}
         run: |
           set -euo pipefail
           if [ ! -f .lokf/m365/knowledge-m365.sh ]; then
@@ -229,7 +239,7 @@ jobs:
           fi
           shopt -s nullglob
           for zip in "$RUNNER_TEMP"/m365/*.zip; do
-            asset="$(basename "$zip" .zip)-${TAG//\//-}-${GITHUB_REPOSITORY#*/}.zip"
+            asset="$(basename "$zip" .zip)-${TAG//\//-}-$NAME.zip"
             cp "$zip" "$RUNNER_TEMP/release/$asset"
             (cd "$RUNNER_TEMP/release" && sha256sum "$asset" > "$asset.sha256")
             echo "Packed a Copilot skill into $asset"

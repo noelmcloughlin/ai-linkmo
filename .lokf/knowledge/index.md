@@ -20,17 +20,17 @@ A [LOKF](https://lokf.nolan-nichols.com) knowledge base for AI-LinkMO. Every Mar
 
 The four access patterns ([index](services/index.md)):
 
-* [AI-LinkMO CLI](services/cli.md) - command-line access for automation and CI/CD.
-* [FastAPI Backend](services/fastapi-backend.md) - REST API generated from the OpenAPI spec.
-* [Svelte Web UI](services/web-ui.md) - Vite + Svelte 5 SPA for exploration.
-* [Neo4j Graph Database](services/graph-db.md) - relationship analysis over the exported graph.
+* [AI-LinkMO CLI](services/cli.md) - Command-line tool (./ai) for querying AI governance data - risks, taxonomies, controls, models, evaluations, crosswalks - built dynamically from the OpenAPI specification.
+* [FastAPI Backend](services/fastapi-backend.md) - REST API serving AI governance data to the CLI, web UI, and external GRC tooling; endpoints are generated dynamically from the OpenAPI specification.
+* [Svelte Web UI](services/web-ui.md) - Vite + Svelte 5 single-page application for exploring AI governance data through the FastAPI backend, aimed at non-technical stakeholders.
+* [Neo4j Graph Database](services/graph-db.md) - Graph-database access pattern - the exported knowledge graph is loaded into Neo4j via Cypher for relationship analysis and regulatory crosswalks.
 
 ## Datasets
 
 Graph artifacts and BYOD framework encodings ([index](datasets/index.md)):
 
-* [Knowledge-graph export (YAML + Cypher)](datasets/knowledge-graph-export.md)
-* [NIST AI RMF crosswalks](datasets/nist-ai-rmf-crosswalks.md)
+* [Knowledge-graph export (YAML + Cypher)](datasets/knowledge-graph-export.md) - Export of the AI risk knowledge graph - as ontology YAML (upstream ai-atlas-nexus data plus BYOD files) and as Cypher for Neo4j import (packaged data only).
+* [NIST AI RMF crosswalks](datasets/nist-ai-rmf-crosswalks.md) - CSV crosswalks mapping NIST AI RMF risks to the FINOS AIGF, the IBM Risk Atlas, and a demo institutional (acme) risk taxonomy.
 * [FINOS AIGF](datasets/finos-aigf.md), [EU AI Act](datasets/eu-ai-act.md), [FFIEC IT Handbook](datasets/ffiec-it-handbook.md), [ISO/IEC 42001](datasets/iso-42001.md), [NIST AI 600-1](datasets/nist-ai-600-1.md), [NIST SP 800-53 r5](datasets/nist-sp-800-53-r5.md), [OWASP LLM Top 10](datasets/owasp-llm-top-10.md), [OWASP ML Top 10](datasets/owasp-ml-top-10.md), [SR 11-7](datasets/sr-11-7.md)
 
 ## References
@@ -41,9 +41,9 @@ The external authorities the data encodes ([index](references/index.md)): [AI Ri
 
 ([index](playbooks/index.md))
 
-* [Knowledge sources map](playbooks/knowledge-sources.md) - the librarian's scrape map.
-* [Install and run AI-LinkMO](playbooks/install-and-run.md)
-* [Bring your own data (BYOD)](playbooks/bring-your-own-data.md)
+* [Knowledge sources map](playbooks/knowledge-sources.md) - The librarian's scrape map - every repository location and external URL this bundle derives concepts from, and how to re-verify each on a refresh run.
+* [Install and run AI-LinkMO](playbooks/install-and-run.md) - How to build the environment and start each of the four access patterns - CLI, FastAPI backend, Svelte web UI, and Neo4j graph database.
+* [Bring your own data (BYOD)](playbooks/bring-your-own-data.md) - How to add institutional governance data - schema-compliant YAML dropped into byo/data/ is picked up by the CLI, API and web UI with --byod, and by the YAML graph export, but not the Cypher export.
 
 ## Glossary
 
@@ -53,8 +53,8 @@ The domain vocabulary ([index](glossary/index.md)): [Taxonomy](glossary/taxonomy
 
 ([index](explanations/index.md))
 
-* [Why linked AI governance](explanations/why-linked-ai-governance.md) - the problem the repository answers, and why one shared ontology makes traceability auditable.
-* [What AI-LinkMO adds to AI Atlas Nexus](explanations/what-ai-linkmo-adds.md) - doors, encodings and checks over the upstream model, and the provenance not yet added.
+* [Why linked AI governance](explanations/why-linked-ai-governance.md) - Why AI-LinkMO models governance as linked data behind four access patterns - the framework-fragmentation problem it answers, and why one shared ontology is what makes traceability auditable.
+* [What AI-LinkMO adds to AI Atlas Nexus](explanations/what-ai-linkmo-adds.md) - AI-LinkMO is a workshop over IBM AI Atlas Nexus - it adds doors, encodings and checks but no ontology of its own, and its governance records carry no provenance yet.
 
 ## Organizations
 

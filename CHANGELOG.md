@@ -10,7 +10,12 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 - **The README is a front door, with its detail in `docs/`**. Seven pages hold what moved out, from key concepts and working with the data to status, releasing, layout, Neo4j and for-the-curious, and a Read on table links them.
 - **The sidecar has its `knowledge_bundle` doorway**, a link to `.lokf/knowledge` at the root, and the linters skip it. `.lokf/.gitignore`, `justfile` and `queries.http` catch up with the current templates: Obsidian's workspace folder is ignored, `just lokf-link` restores the doorway, and two queries list the concepts nobody has confirmed and those past review.
-- **The scheduled librarian installs its skill from `v0.27.1`**, the release whose templates every sidecar copy now matches.
+
+### Security
+
+- **The sidecar copies and the skills pin match `v0.33.0`.** The scheduled librarian's one output is now `.lokf/patch.yaml`. `knowledge-apply.sh`, new here, checks every operation in it and writes the bundle, and keeps an index in the shape a person gave it. `publish` reads each person's event and note off the patched tree before it pushes, and the registrar gate asks the person behind a confirmation that a change removes, as it asks the one behind a confirmation it adds. `knowledge-report.sh`, also new, computes the health line and the record changes the pull request carries. A scheduled week with nothing waiting runs no agent, though a month's first week always does. A handled feedback entry moves to `.lokf/questions.md`, and the librarian's hand-off reaches the pull request in a code block. Release assets take their name from `KNOWLEDGE_RELEASE_NAME` when it is set, and a retrieval score runs only once `KNOWLEDGE_RETRIEVAL` is `true`.
+
+  Conventions rule 12 holds an index bullet equal to its concept's title and description, so the apply script's `reindex` operation re-derived the bullets of the 23 concepts here that had drifted, in place of the short summaries the indexes carried. Rule 13 fails a change to a confirmed concept that does not move its `generated` stamp past the confirmation. The scripts' comments read plainer. `.lokf/.gitignore` ignores the patch file, `.lokf/README.md` names the new scripts and `questions.md`, and `SECURITY.md` names the new path and checks. No application change.
 
 ## [0.1.4] - 2026-09-24
 

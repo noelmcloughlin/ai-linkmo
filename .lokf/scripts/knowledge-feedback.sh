@@ -13,8 +13,8 @@
 # the call, not a rule an agent has to keep (docs/threat-model.md,
 # "Prompt-injection guards").
 #
-# It prints one line - the kind, the date, and how many entries now wait - and
-# never any entry's text, the new one included. A caller that wants to show
+# It prints one line, with the kind, the date and how many entries now wait,
+# and never any entry's text, the new one included. A caller that wants to show
 # the reader what it recorded already has that text; it does not need this
 # file to tell it.
 #
@@ -24,24 +24,27 @@
 # Usage:
 #   knowledge-feedback.sh [--root <dir>] [--for <login>] <kind> <text>
 #
-#   kind    Miss or Disagreement, in any letter case, and nothing else - the
+#   kind    Miss or Disagreement, in any letter case, and nothing else: the
 #           two shapes ktl-librarian knows how to consume.
 #   text    the entry itself, one argument. Whitespace is collapsed, so a
-#           multi-line string still lands as one line per entry.
+#           multi-line string is still written as one line per entry.
 #   --for   an authenticated login (gh api user --jq .login, or glab), which
 #           records the entry as `- docent, for human:<login>`. Left out, the
-#           entry is `- docent` alone. Never a name typed in conversation and
-#           never git config user.name: the attribution is only worth carrying
-#           if the forge stands behind it.
+#           entry is `- docent` alone. It is never a name typed in
+#           conversation and never git config user.name: the attribution is
+#           only worth carrying if the forge stands behind it.
 #   --root  the repository root (default: the nearest ancestor of the current
 #           directory holding .lokf/, else the current directory).
 #
 # The day heading is today in UTC, as the bundle's own timestamps are, so two
 # machines in different zones file one day under one heading.
 #
-# Exit: 0 recorded; 2 the call was wrong and nothing was written; 1 the file
-# could not be written (a read-only .lokf/, most often, or another run holding
-# it), and the caller should tell the reader the gap out loud instead.
+# Exit:
+#   0  recorded;
+#   2  the call was wrong, and nothing was written;
+#   1  the file could not be written (a read-only .lokf/, most often, or
+#      another run holding it), and the caller should tell the reader the gap
+#      out loud instead.
 [ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [--root <dir>] [--for <login>] <kind> <text>" >&2; exit 2; }
 set -u
 
@@ -75,9 +78,9 @@ case "$kind" in
 esac
 
 # The attribution is the one field a later reader may take as evidence that a
-# named person asked, so it is held to a login's characters before it is
-# written: the shape both provenance gates accept, so a login they would pass
-# is never refused here and one they would refuse never gets in.
+# named person asked. So it must hold only a login's characters before it is
+# written, the shape both provenance gates accept. A login they would pass is
+# then never refused here, and one they would refuse never gets in.
 if [ -n "$asker" ]; then
   case "$asker" in
     *[!A-Za-z0-9._-]*|[!A-Za-z0-9]*)
@@ -115,16 +118,16 @@ readonly_bundle() {
   echo "cannot write $file - if .lokf/ is read-only, say the gap out loud to the reader instead" >&2
   exit 1
 }
-# The rewrite below lands a temporary file beside this one, so the directory
+# The rewrite below writes a temporary file beside this one, so the directory
 # has to be writable even when the file itself already is.
 [ -w "$root/.lokf" ] || readonly_bundle
 
-# Two runs at once - parallel agents in one checkout - would each read the
-# file, and the second mv would drop the first entry without a word. A
+# Two runs at once, such as parallel agents in one checkout, would each read
+# the file, and the second mv would drop the first entry without a word. A
 # directory is the one lock every platform here creates atomically. A run
 # killed outright leaves it behind; the message says what to remove. When
-# mkdir fails and no lock is there, nothing can be created here at all - a
-# read-only mount that -w did not see - and that is the other message.
+# mkdir fails and no lock is there, nothing can be created here at all, on a
+# read-only mount that -w did not see, and that is the other message.
 tries=0
 until mkdir "$lock" 2>/dev/null; do
   [ -d "$lock" ] || readonly_bundle
@@ -151,16 +154,16 @@ fi
 [ -w "$file" ] || readonly_bundle
 
 # Newest first, which is why this cannot be a plain append: today goes above
-# every older day and its entry above today's earlier ones. The entry travels
-# in the environment rather than through -v, which would read a backslash in
-# the text as an escape.
+# every older day and its entry above today's earlier ones. The entry is
+# passed in the environment rather than through -v, which would read a
+# backslash in the text as an escape.
 KF_ENTRY="$entry" awk -v hdr="## $today" '
   BEGIN { entry = ENVIRON["KF_ENTRY"]; done = 0; skipblank = 0; last = "" }
   # Headings are days, newest first, and ISO dates order as strings. Today
   # goes under the first heading that is today, or above the first that is
-  # older. A heading after today - another machine on a clock ahead of this
-  # one, or a wrong clock - stays where it is, so the file keeps its order
-  # instead of gaining a second heading for today further down.
+  # older. A heading after today, from another machine on a clock ahead of
+  # this one or from a wrong clock, stays where it is. So the file keeps its
+  # order instead of gaining a second heading for today further down.
   /^## / && done == 0 {
     h = $0; sub(/[ \t\r]+$/, "", h)
     if (h == hdr) { print hdr; print ""; print entry; skipblank = 1; done = 1; next }
