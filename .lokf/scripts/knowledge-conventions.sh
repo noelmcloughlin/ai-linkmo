@@ -41,9 +41,12 @@
 #  10. The fields the provenance gates read line by line are spelt so a line
 #      reader and a parser see the same thing. They are `id`, and `by`, `at`
 #      and `revision` on an event, and they carry no tags, anchors, aliases,
-#      quoted keys, block scalars or values spanning lines. Each of those is
-#      valid YAML that `lokf validate` accepts and both gates cannot see,
-#      which makes a confirmation nobody has to stand behind.
+#      quoted keys, block scalars or values spanning lines, and no comment
+#      beside them. Each of those is valid YAML that `lokf validate` accepts
+#      and both gates cannot see, which makes a confirmation nobody has to
+#      stand behind. A comment is read as part of the value: the actor is
+#      then a login nobody holds, and the time one no script can compare, so
+#      the concept never reads as edited since.
 #  11. No `at:` is later than the commit that first recorded it, or, before
 #      it is committed, than now. A time written ahead of the clock, such as
 #      local time labelled `Z` or a round placeholder, sorts after the edits

@@ -77,8 +77,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      # --locked installs what .lokf/uv.lock names, each file checked against
+      # the hash recorded there, and fails when the lock is missing or behind
+      # pyproject.toml. So this gate runs the toolkit a person reviewed, never
+      # whatever resolves on the day. When the step fails, run `uv lock` in
+      # .lokf/ and commit the lock with the change that moved the floor.
       - name: Install the lokf sidecar
-        run: uv sync
+        run: uv sync --locked
         working-directory: .lokf
 
       # A typed relation whose target is no concept in the bundle is still a

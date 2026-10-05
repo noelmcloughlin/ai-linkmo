@@ -198,6 +198,13 @@ else
   miss toolkit "uv not installed - lokf validate, convert and query unavailable, and the conventions script skips its parser's half (rules 2, 3, 4, 7, 9, 10, 12, 13); only the manual schema cross-check remains" "lokf validate and eight of the thirteen conventions (every skill's audit)"
 fi
 
+# The gate, the release and the scheduled librarian install the toolkit with
+# `uv sync --locked`, which fails when git holds no lock to install from.
+if [ "$ingit" = 1 ] && [ "$tracked" = tracked ] && [ -f "$root/.lokf/pyproject.toml" ] && [ -f "$root/.github/workflows/knowledge-registrar.yaml" ] \
+   && [ -z "$(git -C "$root" ls-files .lokf/uv.lock 2>/dev/null | head -n 1)" ]; then
+  warn toolkit ".lokf/uv.lock is not in git - the gate installs the toolkit with uv sync --locked and fails without it; run uv lock in .lokf/ and commit the file"
+fi
+
 # ---- installed skills, and drift between copies -----------------------------
 found=""; templates=""
 for dir in .claude/skills .github/skills .agents/skills skills; do
@@ -250,9 +257,10 @@ fi
 if [ -d "$bundle" ] && [ ! -f "$root/.lokf/scripts/knowledge-report.sh" ]; then
   script_gaps="${script_gaps}${script_gaps:+, }.lokf/scripts/knowledge-report.sh missing, so ktl-curator and ktl-docent must work each trust label out by hand"
 fi
-# A host moves TRUST_LADDER_SKILLS_REF on its own schedule, so a different
-# pin is not drift; every other byte of the librarian workflow still counts.
-unpin() { sed -E 's/(TRUST_LADDER_SKILLS_REF: )v[0-9]+\.[0-9]+\.[0-9]+/\1vX.Y.Z/' "$1"; }
+# A host moves TRUST_LADDER_SKILLS_REF, and the commit beside it, on its own
+# schedule, so a different pin is not drift; every other byte of the
+# librarian workflow still counts.
+unpin() { sed -E -e 's/(TRUST_LADDER_SKILLS_REF: )v[0-9]+\.[0-9]+\.[0-9]+/\1vX.Y.Z/' -e 's/(TRUST_LADDER_SKILLS_SHA: )[0-9a-f]{40}/\1COMMIT/' "$1"; }
 if [ -n "$templates" ] && [ -d "$root/.lokf" ]; then
   drift="$script_gaps"
   for pair in "scripts/knowledge-conventions.sh:.lokf/scripts/knowledge-conventions.sh" \

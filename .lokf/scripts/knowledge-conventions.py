@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.9"
-# dependencies = ["pyyaml"]
+# dependencies = ["pyyaml==6.0.3"]
+# [tool.uv]
+# exclude-newer = "2025-10-01T00:00:00Z"
 # ///
 # The parser's half of knowledge-conventions.sh: rules 2, 3, 4, 7, 9, 10, 12
 # and 13 (see that script's header for the list).
@@ -29,6 +31,12 @@
 # none. Invoked by knowledge-conventions.sh through `uv run`, which reads the
 # dependency block above and needs nothing preinstalled; run directly it
 # needs python3 and pyyaml.
+#
+# That block names one PyYAML release, and `exclude-newer` takes no file
+# uploaded after its date. A registry never replaces a file, so every run
+# installs the files that were there when the pin was set, and this gate runs
+# what a person reviewed. Move the version and the date together, here and in
+# knowledge-apply.py; the skills repository's contract holds the two equal.
 
 from __future__ import annotations
 
@@ -61,9 +69,22 @@ def plain_spellings(fm_text: str) -> list[str]:
     """Rule 10: what a line reader could not read the way a parser does."""
     findings: list[str] = []
     stack: list[dict] = []  # one entry per open collection
+    lines = fm_text.split("\n")
+    commented: set[int] = set()  # the lines already reported for a comment
 
     def at(ev) -> str:
         return f"line {ev.start_mark.line + 2}"  # +1 for zero-based, +1 for the opening ---
+
+    def comment_after(ev) -> bool:
+        """A `#` comment follows this value on its line. A parser drops it, and a line reader takes it for part of the value: an actor nobody is, or a time no script can compare."""
+        row = ev.end_mark.line
+        if row in commented or row >= len(lines):
+            return False
+        rest = re.sub(r"\"[^\"]*\"|'[^']*'", "", lines[row][ev.end_mark.column :])
+        if re.search(r"(^|\s)#", rest):
+            commented.add(row)
+            return True
+        return False
 
     for ev in yaml.parse(fm_text):
         top = stack[-1] if stack else None
@@ -87,6 +108,8 @@ def plain_spellings(fm_text: str) -> list[str]:
                     findings.append(f"a block scalar for {field} at {at(ev)}")
                 elif ev.start_mark.line != ev.end_mark.line:
                     findings.append(f"a {field} spanning lines at {at(ev)}")
+                elif comment_after(ev):
+                    findings.append(f"a comment beside {field} at {at(ev)}")
         if isinstance(ev, (yaml.MappingStartEvent, yaml.SequenceStartEvent)):
             if field in GATE_FIELDS:
                 findings.append(f"a collection where {field} should be one scalar at {at(ev)}")
