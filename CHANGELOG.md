@@ -6,6 +6,8 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-10-05
+
 ### Security
 
 - **The sidecar copies and the skills pin match `v0.34.0`.** The pin names the tag's commit too, in `TRUST_LADDER_SKILLS_SHA`, and the librarian's install step installs nothing unless the tag still names that commit. The librarian workflow has a third job, `earlier`, which reads the workflow's earlier pull requests under a token that reads pull requests and nothing else. A scheduled run then opens no second pull request beside an open one, and does not propose again what a person declined. The pen refuses a patch that would change a person's record, and writes each frontmatter value back as the file held it. The registrar gate and the release workflow install the toolkit with `uv sync --locked`, and the conventions script and the pen pin PyYAML. A week is quiet again once the librarian has asked about a source it cannot act on.
