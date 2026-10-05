@@ -212,8 +212,7 @@ export async function initializeSchemaState(schemaStateArg?: SchemaStateType) {
     const descriptions: EndpointFieldDescriptions = {};
     for (const endpointObj of ENDPOINTS) {
       const entry = state.endpoints[endpointObj.key] as
-        | ComputedSchemaFields
-        | unknown;
+        ComputedSchemaFields | unknown;
       descriptions[endpointObj.key] =
         entry && typeof entry === "object" && "fieldDescriptions" in entry
           ? (entry as ComputedSchemaFields).fieldDescriptions
