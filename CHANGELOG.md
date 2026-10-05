@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Security
+
+- **The sidecar copies and the skills pin match `v0.34.1`.** The Copilot docent's instructions, `.lokf/m365/ktl-docent-m365.md`, label a concept as the report script does. A retired concept carries no other label, *edited since a person last confirmed it* takes the place of *confirmed by a person*, and an empty `verified` list reads as *nobody has checked this yet*. A Miss in its gap report starts with the reader's question and says whether a concept looked relevant from `index.md`. No application change.
+
 ## [0.1.6] - 2026-10-05
 
 ### Security
