@@ -152,9 +152,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      # --locked, as the registrar's gate installs it: what .lokf/uv.lock
+      # names, each file checked against its recorded hash.
       - name: Install the lokf sidecar
         if: steps.compare.outputs.changed == 'true'
-        run: uv sync
+        run: uv sync --locked
         working-directory: .lokf
 
       # The registrar's two checks, so a release never carries a bundle its

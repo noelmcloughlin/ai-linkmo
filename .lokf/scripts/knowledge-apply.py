@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.9"
-# dependencies = ["pyyaml"]
+# dependencies = ["pyyaml==6.0.3"]
+# [tool.uv]
+# exclude-newer = "2025-10-01T00:00:00Z"
 # ///
 # The pen, the librarian's only way to write the bundle. ktl-librarian
 # describes each change to the bundle as an operation in .lokf/patch.yaml, and
@@ -12,10 +14,18 @@
 #   - keeps a concept's description and its two index bullets equal;
 #   - files each log line under the day's heading;
 #   - moves a feedback entry an operation says it handled out of feedback.md
-#     and into the ledger of questions readers asked;
+#     and into the ledger of questions readers asked, ten to a patch at most;
 #   - refuses an operation that would write a `human:` actor, rewrite text a
 #     person wrote, or delete a concept a person confirmed or left a note on.
 # Nothing is written unless every operation passes.
+#
+# Two things hold for every concept it writes, whatever the operations were.
+# A person's record is the same after as before: each `human:` event and each
+# note in a person's name, read as knowledge-provenance.sh --unattended reads
+# them. And a frontmatter value the operation did not name keeps the text the
+# file held: YAML reads `1.10`, `0123456`, `12:30:00`, `yes` and an unquoted
+# time as a number, a boolean or a date, and written back from that they
+# would read `1.1`, `42798`, `45000`, `true` and a time in another shape.
 #
 # `--format` prints the patch file's shape. So the format comes from the
 # script that enforces it, and a host needs no particular release of the skill
@@ -26,7 +36,13 @@
 # reviews the change, in the librarian's own words. They are never written to
 # the bundle. The script accepts each only as one line of printable text,
 # with no backtick, and prints them; `--handoff <file>` also writes them there, which
-# is how the scheduled wrapper passes them to the pull request.
+# is how the scheduled wrapper passes them to the pull request. A reader's
+# question, which goes to the ledger, is cleaned the same way.
+#
+# The dependency block above names one PyYAML release, and `exclude-newer`
+# takes no file uploaded after its date, so every run installs the files
+# that were there when the pin was set. Move the two together, here and in
+# knowledge-conventions.py.
 #
 # Operations (each a mapping under `ops:` with `op:` and `path:`):
 #   create    frontmatter + body for a concept that does not exist yet
@@ -50,6 +66,8 @@ import argparse
 import datetime as dt
 import re
 import sys
+import unicodedata
+from collections import Counter
 from pathlib import Path
 
 import yaml
@@ -58,6 +76,7 @@ RESERVED = {"index.md", "log.md", "diataxis.md"}
 PATH_RE = re.compile(r"^[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9-]*)+\.md$")
 EVENT_RE = re.compile(r"^\s*-?\s*by:\s*human:")  # a line the provenance gates read as a person's event
 NOTE_RE = re.compile(r"^\s*-\s*\d{4}-\d{2}-\d{2},\s*human:")  # a line the curator reads as a person's note
+KEPT_NOTE_RE = re.compile(r"^- \d{4}-\d{2}-\d{2}, *human:")  # a person's note as knowledge-provenance.sh --unattended reads one
 ACTOR_RE = re.compile(r"^process:\S+$")
 LOGIN_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 DENIED_SET = {"id", "type", "generated", "verified", "status", "stale_after", "timestamp"}
@@ -68,10 +87,8 @@ BULLET_RE = re.compile(r"^- \d{4}-\d{2}-\d{2}, (\S+?): ")  # an open question's 
 HEADING_RE = re.compile(r"^(#{1,6})[ \t]+(.*\S)[ \t]*$")  # a Markdown heading: its level and its text
 OWN_BULLET_RE = re.compile(r"^\* \[[^\]]*\]\([^)]+\)(?: - .*)?$")  # any concept's own index bullet: its link alone, then its description
 FEEDBACK_KIND_RE = re.compile(r"^- \*\*(Miss|Disagreement)\*\* ")
-# What a hand-off line may not hold: control characters, and the invisible
-# ones that reorder or hide text where it is shown.
-UNSEEN_RE = re.compile(r"[\x00-\x1f\x7f-\x9f\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]")
 HANDOFF_LINES, HANDOFF_CHARS = 10, 300
+FEEDBACK_ENTRIES = 10  # the reader entries one patch may handle; the rest wait for the next run
 OPS = {"create", "patch", "rewrite", "question", "resolve", "recheck", "delete", "reindex"}
 EDITS = {"replace", "insert_after", "append"}
 LEDGER_HEAD = (
@@ -99,7 +116,7 @@ ops:
 
       The **Orders API** generates its endpoints from `services/orders/openapi.yaml`...
     log: "**Added**: Orders API, from `services/orders/openapi.yaml`."   # optional on create
-    from_feedback: "- **Miss** - Q: \"Which API serves orders?\" Answered from `services/orders/openapi.yaml`. Nothing relevant in index.md. - docent"   # the exact entry, which the script moves out of feedback.md
+    from_feedback: "- **Miss** - Q: \"Which API serves orders?\" Answered from `services/orders/openapi.yaml`. Nothing relevant in index.md. - docent"   # the exact entry, which the script moves out of feedback.md; ten to a patch at most
     asked: "Which API serves orders?"   # the reader's question from that entry, for the ledger in .lokf/questions.md
 
   - op: patch                    # minimal edits to a body, and frontmatter keys to set
@@ -149,12 +166,44 @@ class Refused(Exception):
     pass
 
 
+class Plain(str):
+    """A scalar YAML would read as a number, a boolean or a time, kept as the text the file holds."""
+
+    tag = "tag:yaml.org,2002:str"
+
+
+class KeepLoader(yaml.SafeLoader):
+    """A safe loader, which builds plain data and no object, that keeps each number, boolean and time as the text it was written in. So a value this script was not asked to change is written back as it was read."""
+
+
+def keep_text(loader, node):
+    text = Plain(node.value)
+    text.tag = node.tag
+    return text
+
+
+for _kind in ("int", "float", "bool", "timestamp"):
+    KeepLoader.add_constructor("tag:yaml.org,2002:" + _kind, keep_text)
+
+
+def read_yaml(text: str):
+    """What `yaml.safe_load` returns for one document, with KeepLoader's text in place of each number, boolean and time."""
+    loader = KeepLoader(text)
+    try:
+        return loader.get_single_data()
+    finally:
+        loader.dispose()
+
+
 class Dumper(yaml.SafeDumper):
-    """Writes frontmatter the way the bundle's own files do: a scalar that needs quoting gets double quotes."""
+    """Writes frontmatter the way the bundle's own files do: a scalar that needs quoting gets double quotes, and one KeepLoader kept as text goes back as that text."""
 
     def choose_scalar_style(self):
         style = super().choose_scalar_style()
         return '"' if style == "'" else style
+
+
+Dumper.add_representer(Plain, lambda dumper, text: dumper.represent_scalar(text.tag, str(text)))
 
 
 def split_frontmatter(text: str):
@@ -177,6 +226,49 @@ def one_line(value, what: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise Refused(f"{what} must be a non-empty string")
     return " ".join(value.split())
+
+
+def shown(text: str) -> str:
+    """The text without the characters no reader sees: a control character, or a format character such as a zero-width space, a soft hyphen, a bidirectional control or a tag character. The Unicode category decides, as it does in the repository contract and in prose-check.py, so no list of ranges has to keep up."""
+    return " ".join("".join(char for char in text if unicodedata.category(char) not in ("Cc", "Cf")).split())
+
+
+def person_record(text: str | None) -> Counter:
+    """What a concept holds in a person's name: each `human:` event in its frontmatter, and each line a person's note would be, read over the whole file as knowledge-provenance.sh --unattended reads it. A concept this script writes holds the same record after as before."""
+    record: Counter = Counter()
+    if text is None:
+        return record
+    split = split_frontmatter(text)
+    try:
+        fm = read_yaml(split[0]) if split else None
+    except yaml.YAMLError:
+        fm = None
+    if isinstance(fm, dict):
+        for kind in ("generated", "verified"):
+            value = fm.get(kind)
+            for event in [value] if isinstance(value, dict) else value if isinstance(value, list) else []:
+                if isinstance(event, dict) and str(event.get("by", "")).startswith("human:"):
+                    record[(kind, str(event.get("by")), str(event.get("at", "")), str(event.get("revision", "")))] += 1
+    for line in text.split("\n"):
+        if KEPT_NOTE_RE.match(line):
+            record[("note", line.rstrip())] += 1
+    return record
+
+
+def record_findings(path: str, was: Counter, now: Counter) -> list:
+    """One line for each way a patch would change a person's record in one concept, naming the actor and the day and never the words."""
+    findings = []
+    for what, entry in [("remove", e) for e in sorted(was - now)] + [("add", e) for e in sorted(now - was)]:
+        if entry[0] == "note":
+            who = re.match(r"^- (\d{4}-\d{2}-\d{2}), *(human:[^ :]*)", entry[1])
+            name = f"{who.group(2)}, {who.group(1)}" if who else "a person"
+            if what == "remove":
+                findings.append(f"{path}: this patch would remove a note a person left ({name}); only ktl-curator clears one, on that person's word, and a rewrite carries the {OPEN_Q} section over only when its own body has none")
+            else:
+                findings.append(f"{path}: this patch would add a note in a person's name ({name}); only ktl-curator records one, on that person's word")
+        else:
+            findings.append(f"{path}: this patch would {what} a person's {entry[0]} event ({entry[1]}, {entry[2] or 'no time'}); only ktl-curator writes one, in a live session")
+    return findings
 
 
 def line_offsets(body: str):
@@ -219,9 +311,11 @@ def questions_span(body: str):
 
 
 def clean_question(value, what: str) -> str:
-    """A reader's question as the ledger holds it: one line, no control character, no backtick to close the code span it sits in, and no longer than a question is."""
-    text = re.sub(r"[\x00-\x1f\x7f]", "", one_line(value, what)).replace("`", "'")
-    return text[:300]
+    """A reader's question as the ledger holds it: one line, no character a reader cannot see, no backtick to close the code span it sits in, and no longer than a question is."""
+    text = shown(one_line(value, what)).replace("`", "'")
+    if not text:
+        raise Refused(f"{what} holds no printable text")
+    return text[:300].rstrip()
 
 
 def handoff_lines(value) -> list:
@@ -234,7 +328,7 @@ def handoff_lines(value) -> list:
         raise Refused(f"handoff holds {len(value)} lines; a reviewer gets at most {HANDOFF_LINES}")
     lines = []
     for n, item in enumerate(value, start=1):
-        text = UNSEEN_RE.sub("", one_line(item, f"handoff line {n}")).replace("`", "'").strip()
+        text = shown(one_line(item, f"handoff line {n}")).replace("`", "'")
         if not text:
             raise Refused(f"handoff line {n} holds no printable text")
         if len(text) > HANDOFF_CHARS:
@@ -256,6 +350,7 @@ class Concept:
         self.path = path
         self.deleted = False
         self.touched = False
+        self.record = person_record(text)  # what the file holds in a person's name, before any operation
         if text is None:
             self.fm, self.body = {}, ""
             return
@@ -264,7 +359,7 @@ class Concept:
             raise Refused(f"{path}: no closed frontmatter block, so this script cannot read it")
         fm_text, body = split
         try:
-            fm = yaml.safe_load(fm_text)
+            fm = read_yaml(fm_text)
         except yaml.YAMLError as exc:
             raise Refused(f"{path}: frontmatter is not valid YAML ({' '.join(str(exc).split())[:80]})")
         if not isinstance(fm, dict):
@@ -317,7 +412,7 @@ class Bundle:
 
     def read_base_iri(self) -> str:
         split = split_frontmatter((self.knowledge / "index.md").read_text(encoding="utf-8"))
-        fm = yaml.safe_load(split[0]) if split else None
+        fm = read_yaml(split[0]) if split else None
         base = fm.get("base_iri") if isinstance(fm, dict) else None
         if not isinstance(base, str) or not base:
             raise Refused("index.md: the bundle's root index.md carries no base_iri, so no id can be minted")
@@ -731,6 +826,8 @@ class Bundle:
     def feedback_text(self) -> str | None:
         if not self.feedback_handled:
             return None
+        if len(self.feedback_handled) > FEEDBACK_ENTRIES:
+            raise Refused(f"feedback.md: this patch handles {len(self.feedback_handled)} reader entries, and one run handles at most {FEEDBACK_ENTRIES}; leave the newer ones for the next run and say in the hand-off how many remain")
         if not self.feedback.is_file():
             raise Refused("feedback.md: an operation handles a feedback entry, but there is no .lokf/feedback.md")
         lines = self.feedback.read_text(encoding="utf-8").split("\n")
@@ -799,7 +896,7 @@ def main(argv: list[str]) -> int:
             print(f"refused: line {n} of the patch file names a human: actor as an event or a note; only ktl-curator writes one, in a live session")
             return 1
     try:
-        doc = yaml.safe_load(raw)
+        doc = read_yaml(raw)
     except yaml.YAMLError as exc:
         print(f"the patch file is not valid YAML: {' '.join(str(exc).split())[:120]}", file=sys.stderr)
         return 2
@@ -833,6 +930,16 @@ def main(argv: list[str]) -> int:
                 findings.append(f"op {n}: {exc}")
             except (OSError, UnicodeDecodeError) as exc:
                 findings.append(f"op {n}: {exc}")
+        # Whatever the operations were, a concept about to be written holds
+        # the same person's record as the file did. Each refusal above guards
+        # one way in. This compares the result, so a body that brings its own
+        # `## Open questions` section, a note spelt with an escaped line
+        # break and a second heading placed above the real one are all
+        # refused here.
+        if not findings:
+            for path, c in bundle.concepts.items():
+                if c.touched:
+                    findings.extend(record_findings(path, c.record, Counter() if c.deleted else person_record(dump(c.fm, c.body))))
     for line in findings:
         print(line)
     if findings:
