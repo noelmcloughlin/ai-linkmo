@@ -6,6 +6,8 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-10-07
+
 ### Security
 
 - **The sidecar copies and the skills pin match `v0.37.1`.** The provenance gate reads a `verified` or `generated` event that spans lines, or that sits behind a byte order mark or CRLF line endings, so a forged confirmation cannot hide in either. The unattended check follows a renamed concept. The pen refuses a provenance key in any letter case, and keeps a curator's send-back. The report reads every timestamp and event layout, names a retired concept's successor, marks a concept a reader disputed, and counts reliance through all thirteen relation fields. Conventions rule 14 refuses a commit that records a person's confirmation and also changes what the concept says.
