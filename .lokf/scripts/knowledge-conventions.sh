@@ -79,6 +79,17 @@
 #      is the one compared with, so the rule can miss an edit but never flags
 #      a concept the person saw. The rule needs git, and outside it the rule
 #      is skipped.
+#  14. A commit that records a person's confirmation changes the verdict, not
+#      what the concept says. Rule 13 compares with the commit that recorded
+#      the confirmation, so an edit made in that same commit reads as
+#      confirmed. With `--since <commit>`, each commit after it is read
+#      against every parent: one that adds a `human:` event no parent holds
+#      may change the concept's claims only when `generated.by` names that
+#      same person, which is how Correct now records an edit the person made.
+#      The registrar's gate passes the pull request's base. Without
+#      `--since` the rule is skipped, since on a branch's whole history a
+#      squash merge folds a librarian's edit and a later confirmation into
+#      one commit.
 #
 # Rules 2, 3, 8 and 10 are house rules, stricter than the format. OKF permits
 # an unquoted datetime, a bare `verified` mapping, any file name and any YAML.
@@ -94,8 +105,8 @@
 # Rules 2, 3, 7, 9, 10 and 12 are questions about a document's YAML that a real
 # parse answers outright, and rule 4 goes with them. So this script hands
 # them to knowledge-conventions.py (same directory) through `uv run`, which
-# needs nothing preinstalled. Rule 13 goes there too: it reads git as well, but it
-# compares parsed values. Rules 1, 5, 6, 8 and 11 stay here: they are git and
+# needs nothing preinstalled. Rules 13 and 14 go there too: they read git as
+# well, but they compare parsed values. Rules 1, 5, 6, 8 and 11 stay here: they are git and
 # filesystem facts, and this half, grep and awk only, keeps running wherever
 # bash and git do, with no toolchain at all. Without uv, this half still runs
 # and says so.
@@ -105,15 +116,21 @@
 # sidecar's `.lokf/.gitattributes` keeps tracked files on LF; rule 9 still
 # reports a BOM, because other readers do not strip it.
 #
-# Usage: knowledge-conventions.sh [bundle-dir]   (default: knowledge, i.e. run
-# from .lokf/). Exit 1 with one line per finding; nothing else is written.
-[ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [bundle-dir]" >&2; exit 2; }
+# Usage: knowledge-conventions.sh [bundle-dir] [--since <commit>]   (default:
+# knowledge, i.e. run from .lokf/). Exit 1 with one line per finding; nothing
+# else is written.
+[ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [bundle-dir] [--since <commit>]" >&2; exit 2; }
 set -euo pipefail
 
 # The bundle directory may be a link, on a host that keeps the real folder as
 # a visible knowledge_bundle/. find never enters a link it is handed bare, so
 # the trailing slash below is what makes it read the files at all.
 bundle="${1:-knowledge}"; bundle="${bundle%/}"
+since=""
+if [ $# -gt 1 ]; then
+  { [ $# -eq 3 ] && [ "$2" = "--since" ] && [ -n "$3" ]; } || { echo "usage: ${0##*/} [bundle-dir] [--since <commit>]" >&2; exit 2; }
+  since="$3"
+fi
 [ -d "$bundle" ] || { echo "no bundle directory at $bundle" >&2; exit 2; }
 fail=0
 say() { echo "$1"; fail=1; }
@@ -255,16 +272,17 @@ while IFS= read -r f; do
   fi
 done < <(find "$bundle/" -name '*.md' -not -path '*/.obsidian/*' | sort)
 
-# ---- 2, 3, 4, 7, 9, 10, 12, 13. the parser's half ------------------------------
+# ---- 2, 3, 4, 7, 9, 10, 12, 13, 14. the parser's half --------------------------
 py="$(dirname "$0")/knowledge-conventions.py"
 skipped=""
 if command -v uv >/dev/null 2>&1; then
-  if ! out="$(uv run --quiet "$py" "$bundle" 2>&1)"; then
+  if ! out="$(uv run --quiet "$py" "$bundle" ${since:+--since "$since"} 2>&1)"; then
     printf '%s\n' "$out"
     fail=1
   fi
 else
   skipped="rules 2, 3, 4, 7, 9, 10, 12 and 13 not checked: uv not found"
+  [ -z "$since" ] || skipped="rules 2, 3, 4, 7, 9, 10, 12, 13 and 14 not checked: uv not found"
   echo "$skipped - install uv, or run $py directly with python3 and pyyaml" >&2
 fi
 

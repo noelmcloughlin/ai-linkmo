@@ -32,7 +32,19 @@
 #   nobody has checked this yet  no `verified` event at all
 #   still a draft                `status: draft`
 #   past its review date         `stale_after` is today or earlier
-#   retired                      `status: deprecated`; no other label applies
+#   a reader disputed this       a reader's Disagreement that names the
+#                                concept waits in .lokf/feedback.md
+#   retired                      `status: deprecated`; no other label applies,
+#                                and it names the concept that replaced it
+#                                when the newest **Deprecation** line in
+#                                log.md links one
+#
+# The whole report also prints what ktl-curator ranks its queue by, so that
+# no model counts or sorts it: each review date due within 30 days, each
+# concept a person confirmed that is derived from one edited after that
+# confirmation, how many other concepts rely on each concept, and Worth ten
+# minutes today, the queue itself. "The curator's queue" below says how a
+# relation's target is found.
 #
 # One fact comes from git and not from frontmatter, so a host without git is
 # told it was not computed: whether a source "moved" after an event. The
@@ -125,6 +137,12 @@
 # `quiet` exits 1 when work waits.
 [ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [--root <dir>] [health|labels|worklist|quiet|changes|retrieval] [...]" >&2; exit 2; }
 set -u
+# Byte-oriented awk and sort, so the byte order mark strip, the CRLF strip and
+# every comparison read raw bytes on any awk and in any locale. A gawk under a
+# UTF-8 locale otherwise reads sprintf("%c", 239) as a two-byte character, not
+# the byte the BOM needs, and leaves the mark in place. A title is printed
+# whole, never measured by character, so it still passes through unchanged.
+export LC_ALL=C
 
 usage() {
   echo "usage: ${0##*/} [--root <dir>] [health | labels [<path>...] | worklist | quiet | changes | retrieval --prompt | retrieval <reply-file>]" >&2
@@ -189,10 +207,38 @@ function unq(s,  a, z) {
 }
 function val(l) { sub(/^[^:]*:/, "", l); return unq(l) }
 function ev(l) { sub(/^[^:]*:[ \t]*/, "", l); gsub("[\"" SQ "]", "", l); sub(/[ \t]+$/, "", l); return l }
-function norm(v) {
+function dim(y, m) {   # days in month m (1-12) of year y
+  if (m == 2) return (y % 4 == 0 && (y % 100 != 0 || y % 400 == 0)) ? 29 : 28
+  if (m == 4 || m == 6 || m == 9 || m == 11) return 30
+  return 31
+}
+function toutc(y, mo, d, h, mi, s, sign, oh, om,   tot) {
+  # Subtract the offset to reach UTC, then carry across day, month and year.
+  tot = h * 60 + mi - sign * (oh * 60 + om)
+  while (tot < 0)     { tot += 1440; d -= 1 }
+  while (tot >= 1440) { tot -= 1440; d += 1 }
+  while (d < 1)            { mo -= 1; if (mo < 1)  { mo = 12; y -= 1 } ; d += dim(y, mo) }
+  while (d > dim(y, mo))   { d -= dim(y, mo); mo += 1; if (mo > 12) { mo = 1; y += 1 } }
+  return sprintf("%04d-%02d-%02dT%02d:%02d:%02dZ", y, mo, d, int(tot / 60), tot % 60, s)
+}
+function norm(v,   off, sign, oh, om, s) {
   if (v ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/) return v "T00:00:00Z"
   if (v ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]Z$/) return substr(v, 1, 16) ":00Z"
   if (v ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9]:[0-9][0-9](\.[0-9]+)?Z$/) return substr(v, 1, 19) "Z"
+  # An explicit UTC offset (+00:00, -05:30, or the compact +0000), as the
+  # commands date -u -Iseconds and Python isoformat both write: convert it to
+  # Z, so a time that is really UTC is not dropped and read as no stamp.
+  # Seconds default to 00 when the time omits them, per trust-fields.md.
+  if (v ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T[0-9][0-9]:[0-9][0-9](:[0-9][0-9])?(\.[0-9]+)?[+-][0-9][0-9]:?[0-9][0-9]$/) {
+    off = substr(v, length(v) - 5)
+    if (off ~ /^[+-][0-9][0-9][0-9][0-9]$/) off = substr(v, length(v) - 4)
+    sign = (substr(off, 1, 1) == "-") ? -1 : 1
+    oh = substr(off, 2, 2) + 0
+    om = substr(off, length(off) - 1, 2) + 0
+    s = (substr(v, 17, 1) == ":") ? substr(v, 18, 2) + 0 : 0
+    return toutc(substr(v, 1, 4) + 0, substr(v, 6, 2) + 0, substr(v, 9, 2) + 0, \
+                 substr(v, 12, 2) + 0, substr(v, 15, 2) + 0, s, sign, oh, om)
+  }
   return ""
 }
 function kv(l,  k) { k = l; sub(/:.*/, "", k); sub(/^[ \t]+/, "", k)
@@ -207,22 +253,71 @@ function emit(  n) {
   inev = 0; by = ""; at = ""; rev = ""
 }
 function flow(s,  n, parts, i) { emit(); inev = 1; gsub(/[{}]/, "", s); n = split(s, parts, ","); for (i = 1; i <= n; i++) kv(parts[i]); emit() }
+# A flow verified/generated may span lines, and an empty one (verified: [ ])
+# names no event. Accumulate from the opener to its closing bracket, then
+# parse: a sequence into its events, a mapping as one, nothing when empty.
+function flushflow(  b, n, items, i) { b = flowbuf
+  if (flowseq) { sub(/^\[/, "", b); sub(/\].*/, "", b) } else { sub(/^\{/, "", b); sub(/\}.*/, "", b) }
+  sub(/^[ \t]+/, "", b); sub(/[ \t]+$/, "", b)
+  if (b != "") { if (flowseq) { n = split(b, items, /\}[ \t]*,/); for (i = 1; i <= n; i++) flow(items[i]) } else flow(b) }
+  inflow = 0; flowbuf = "" }
+function link(f, v,  q, j) { v = trim(v); q = substr(v, 1, 1)
+  if ((q == "\"" || q == SQ) && (j = index(substr(v, 2), q)) > 0) v = substr(v, 2, j - 1); else v = unq(v)
+  sub(/^\.\//, "", v); if (v != "") print "L\t" path "\t" f "\t" v }
+function rflush() { if (rt != "") link((rp in RELF) ? rp : "relations", rt); rp = ""; rt = "" }
+function rkv(l,  k, v) { k = l; sub(/:.*/, "", k); sub(/^[ \t]+/, "", k); v = l; sub(/^[^:]*:/, "", v)
+  if (k == "predicate") rp = unq(v); else if (k == "target") rt = v }
+function rflow(s,  n, parts, i) { rflush(); gsub(/[{}]/, "", s); n = split(s, parts, ","); for (i = 1; i <= n; i++) rkv(parts[i]); rflush() }
+function relend() { if (inrels) rflush(); inrels = 0; rel = "" }
+BEGIN { split("isPartOf hasPart references dependsOn derivedFrom about sameAs relatedTo definedBy source measures memberOf holder", relnames, " "); for (j in relnames) RELF[relnames[j]] = 1; BOM = sprintf("%c%c%c", 239, 187, 191) }
 { sub(/\r$/, "") }
-NR == 1 { if ($0 == "---") { fm = 1; started = 1; next } else exit }
-fm && $0 == "---" { emit(); inv = 0; fm = 0; body = 1; next }
+NR == 1 { if (substr($0, 1, 3) == BOM) $0 = substr($0, 4); if ($0 == "---") { fm = 1; started = 1; next } else exit }
+fm && $0 == "---" { if (inflow) flushflow(); emit(); relend(); inv = 0; fm = 0; body = 1; next }
 fm {
+  if (inflow) { flowbuf = flowbuf " " $0; if (index($0, flowseq ? "]" : "}")) flushflow(); next }
   if ($0 ~ /^title:/) title = val($0)
   else if ($0 ~ /^status:/) status = val($0)
   else if ($0 ~ /^stale_after:/) stale = val($0)
   else if ($0 ~ /^timestamp:/) tstamp = val($0)
-  if ($0 ~ /^[ \t]*(- )?resource:[ \t]*[^ \t]/) { r = $0; sub(/^[ \t]*(- )?resource:/, "", r); r = unq(r); if (r != "") print "R\t" path "\t" r }
+  else if ($0 ~ /^id:/) cid = val($0)
+  else if ($0 ~ /^type:/) ctype = val($0)
+  if ($0 ~ /^[ \t]*(- )?resource:[ \t]*[^ \t]/) {
+    r = $0; sub(/^[ \t]*(- )?resource:/, "", r); r = unq(r)
+    if (r != "") { print "R\t" path "\t" r; if ($0 ~ /^resource:/) topres = r; else if (firstres == "") firstres = r }
+  }
   if ($0 ~ /^(verified|generated):/) {
-    emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated):[ \t]*/, "", rest)
-    if (rest ~ /^\{/) { flow(rest); inv = 0 }
-    else if (rest ~ /^\[/) { gsub(/[][]/, "", rest); n = split(rest, items, /\}[ \t]*,/); for (i = 1; i <= n; i++) flow(items[i]); inv = 0 }
+    relend(); emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated):[ \t]*/, "", rest)
+    if (rest ~ /^\{/) { flowseq = 0; flowbuf = rest; inv = 0; if (index(rest, "}")) flushflow(); else inflow = 1 }
+    else if (rest ~ /^\[/) { flowseq = 1; flowbuf = rest; inv = 0; if (index(rest, "]")) flushflow(); else inflow = 1 }
     next
   }
   if (inv && $0 ~ /^[^ \t-]/) { emit(); inv = 0 }
+  # The typed relations: the thirteen fields the schema ranges over Concept,
+  # each a block list, a one-line flow list or a bare value, and `relations`,
+  # a list of { predicate, target } mappings, block or one-line flow. The
+  # contract in the skills repository holds the list of fields to the schema.
+  # Out comes one L line per target.
+  if (!inv) {
+    if ($0 ~ /^[^ \t-]/) relend()
+    if ($0 ~ /^[A-Za-z]+:/) {
+      k = $0; sub(/:.*/, "", k); rest = $0; sub(/^[^:]*:[ \t]*/, "", rest)
+      if (k in RELF) {
+        if (rest ~ /^\[/) { sub(/^\[/, "", rest); sub(/\][^]]*$/, "", rest); n = split(rest, items, ","); for (i = 1; i <= n; i++) link(k, items[i]) }
+        else if (rest != "" && rest !~ /^#/) link(k, rest)
+        else rel = k
+        next
+      }
+      if (k == "relations") {
+        inrels = 1
+        if (rest ~ /^\[/) { sub(/^\[/, "", rest); sub(/\][^]]*$/, "", rest); n = split(rest, items, "}"); for (i = 1; i <= n; i++) rflow(items[i]); inrels = 0 }
+        next
+      }
+    }
+    if (rel != "" && $0 ~ /^[ \t]*-[ \t]*[^ \t]/) { rest = $0; sub(/^[ \t]*-[ \t]*/, "", rest); link(rel, rest); next }
+    if (inrels && $0 ~ /^[ \t]*-[ \t]*\{/) { rest = $0; sub(/^[ \t]*-[ \t]*/, "", rest); rflow(rest); next }
+    if (inrels && $0 ~ /^[ \t]*-[ \t]+/) { rflush(); rest = $0; sub(/^[ \t]*-[ \t]+/, "", rest); rkv(rest); next }
+    if (inrels && $0 ~ /^[ \t]+[A-Za-z_]+:/) { rkv($0); next }
+  }
   if (inv && $0 ~ /^[ \t]*-[ \t]*\{/) { rest = $0; sub(/^[ \t]*-[ \t]*/, "", rest); flow(rest); next }
   if (inv && $0 ~ /^[ \t]*-[ \t]+/) { emit(); inev = 1; rest = $0; sub(/^[ \t]*-[ \t]+/, "", rest); kv(rest); next }
   if (inv && $0 ~ /^[ \t]+[a-z_]+:/) { inev = 1; kv($0); next }
@@ -239,11 +334,13 @@ body {
 }
 END {
   if (!started) exit
+  relend()
   emit()
   if (gen_at == "" && tstamp != "") { gen_at = norm(tstamp); gen_raw = tstamp }
   st = norm(stale); if (st != "") st = substr(st, 1, 10)
   if (human_rev ~ /^[0-9a-f]+$/ && length(human_rev) > 7) human_rev = substr(human_rev, 1, 7)
   printf "C\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%s\t%d\t%s\t%s\t%s\n", path, (title == "" ? path : title), status, st, gen_by, gen_at, human_at, hn, vn, check_at, qn, human_raw, (gen_at > check_at ? gen_raw : check_raw), human_rev
+  printf "I\t%s\t%s\t%s\t%s\n", path, cid, ctype, (topres != "" ? topres : firstres)
 }'
 
 facts() {  # every concept in the bundle -> its C, R and Q lines
@@ -365,14 +462,17 @@ moved() {
     line="$(TZ=UTC git -C "$root" log -1 --format='%H %cd' --date=format-local:%Y-%m-%d -- "$p" 2>/dev/null || true)"
     [ -n "$line" ] && printf '%s|clean|%s|%s\n' "$res" "${line%% *}" "${line##* }"
   done > "$src"
-  printf '%s\n' "$all" | awk -F'\t' '$1 == "C" && $4 != "deprecated" { print $2 "|" $14 "|" $13 "|" $9 }' | while IFS='|' read -r path ref human hn; do
+  printf '%s\n' "$all" | awk -F'\t' '$1 == "C" && $4 != "deprecated" { print $2 "|" $14 "|" $13 "|" $9 "|" (($9 > 0 && $7 != "" && $8 != "" && $7 > $8) ? 1 : 0) }' | while IFS='|' read -r path ref human hn wasedited; do
     cdirty=0
     [ -n "$(git -C "$kdir" status --porcelain -- "$path" 2>/dev/null | head -1)" ] && cdirty=1
     dec="$(declined_for "$path")"
     qc=""; qdone=0
     for which in w c; do
       at="$ref"
-      if [ "$which" = c ]; then [ "${hn:-0}" -gt 0 ] || continue; at="$human"; fi
+      # The confirmed-source-moved list is for a standing confirmation. A
+      # concept edited since that confirmation is already on the work list
+      # under its own derivation, so it is counted there, not here as well.
+      if [ "$which" = c ]; then { [ "${hn:-0}" -gt 0 ] && [ "${wasedited:-0}" = 0 ]; } || continue; at="$human"; fi
       rec=""
       [ -n "$at" ] && rec="$(git -C "$kdir" log --format=%H -S"$at" -- "$path" 2>/dev/null | tail -1)"
       out=""; asked=""; aside=""
@@ -437,12 +537,61 @@ health() {
   END { printf "Confirmed by a person: %d of %d · Checked by automation only: %d · Nobody has checked: %d · Drafts: %d · Past review date: %d · Edited since confirmed: %d · Retired: %d\n", confirmed, n, auto, none, drafts, past, was, retired }'
 }
 
+# The concept that replaced a retired one, from the newest **Deprecation**
+# line in log.md that links the retired concept, as S<TAB>retired<TAB>successor.
+# ktl-curator writes that line, and links the successor after "replaced by"
+# where the person named one, in the `../` form the KTL Curator plugin writes
+# too. A line with no such link names no successor.
+successors() {
+  [ -f "$bundle/log.md" ] || return 0
+  awk '
+  function target(s,  a, b) {
+    a = index(s, "]("); if (!a) return ""; s = substr(s, a + 2); b = index(s, ")"); if (!b) return ""
+    rest = substr(s, b + 1); s = substr(s, 1, b - 1); sub(/^\.\.\//, "", s); sub(/^\.\//, "", s); return s
+  }
+  /^[*-] \*\*Deprecation\*\*: \[/ {
+    old = target($0); if (old == "" || (old in seen)) next
+    seen[old] = 1   # the newest line for this concept decides, whether or not it names a successor
+    c = index(rest, "replaced by ["); if (!c) next
+    new = target(substr(rest, c)); if (new == "") next
+    print "S\t" old "\t" new
+  }' "$bundle/log.md"
+}
+
+# A reader's Disagreement that names its concept and still waits, as
+# X<TAB>path<TAB>day, newest first. knowledge-feedback.sh writes the name right
+# after the kind, `- **Disagreement** (on `<path>`) -`, where no reader's text
+# can stand, and this reads that name and nothing else of the entry. A path
+# counts only in the bundle's own spelling and only while it names a concept,
+# so a line filed by hand meets the same test.
+disputed() {
+  [ -f "$root/.lokf/feedback.md" ] || return 0
+  awk -v dir="$bundle" '
+  function held(p,  line, there) {
+    if (p !~ /^[a-z0-9][a-z0-9._\/-]*\.md$/ || p ~ /\.\./) return 0
+    there = (getline line < (dir "/" p)); close(dir "/" p); return there >= 0
+  }
+  /^## [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/ { day = substr($0, 4, 10); next }
+  /^- \*\*Disagreement\*\* \(on `[^`]*`\) - / {
+    p = $0; sub(/^- \*\*Disagreement\*\* \(on `/, "", p); sub(/`.*$/, "", p)
+    if (day != "" && held(p) && !(p in seen)) { seen[p] = 1; print "X\t" p "\t" day }
+  }' "$root/.lokf/feedback.md"
+}
+
 labels() {  # [<path>...]
-  printf '%s\n' "$all" | awk -F'\t' -v today="$today" -v want="$*" "$label_fn"'
+  { successors; disputed; printf '%s\n' "$all"; } | awk -F'\t' -v today="$today" -v want="$*" -v dir="$bundle" "$label_fn"'
+  function held(p,  line, there) {
+    if (p !~ /^[a-z0-9][a-z0-9._\/-]*\.md$/ || p ~ /\.\./) return 0
+    there = (getline line < (dir "/" p)); close(dir "/" p); return there >= 0
+  }
   BEGIN { nw = split(want, w, " "); for (i = 1; i <= nw; i++) pick[w[i]] = 1 }
+  $1 == "S" { if (!($2 in after)) after[$2] = $3; next }
+  $1 == "X" { if (!($2 in disp)) disp[$2] = $3; next }
   $1 != "C" { next }
   nw && !($2 in pick) { next }
-  { seen[$2] = 1; print "- " $3 " (" $2 ") - " label() }
+  { s = label(); if ($4 == "deprecated" && ($2 in after) && after[$2] != $2 && held(after[$2])) s = s ", replaced by " after[$2]
+    if ($4 != "deprecated" && ($2 in disp)) s = s ", a reader disputed this on " disp[$2]
+    seen[$2] = 1; print "- " $3 " (" $2 ") - " s }
   END { for (i = 1; i <= nw; i++) if (!(w[i] in seen)) print "- " w[i] " - no such concept in this bundle" }'
 }
 
@@ -503,6 +652,106 @@ repeats() {  # concepts the ledger names more than once: readers keep asking abo
   }
   END { for (p in seen) if (seen[p] > 1) { n2++; out = out "- " p " (" seen[p] " times)\n" }
         print "Concepts readers asked about more than once: " (n2 ? n2 : "none"); if (n2) printf "%s", out }' "$root/.lokf/questions.md" | { IFS= read -r first; printf '%s\n' "$first"; LC_ALL=C sort; }
+}
+
+# ---- the curator's queue -----------------------------------------------------
+# What ktl-curator ranks its queue by, so that no model counts or sorts it.
+# A relation's target is resolved as the KTL Curator plugin resolves it: an
+# IRI under base_iri by the path after it, any other IRI as written, and a
+# relative path from the bundle's root and then from the citing concept's
+# folder. A concept's id is its `id`, or base_iri and its path without `.md`.
+# Each concept that names another counts once for it, and a concept never
+# counts for itself. Retired concepts are left out of every list here.
+# `queue` prints Worth ten minutes today, in the order ktl-curator's
+# references/trust-fields.md gives; `lists` prints the rest.
+ranked() {  # queue | lists
+  local base
+  base="$(awk -v SQ="'" '{ sub(/\r$/, "") } NR == 1 { sub(/^\357\273\277/, "") } NR == 1 { if ($0 != "---") exit; next } $0 == "---" { exit }
+    /^base_iri:/ { v = $0; sub(/^base_iri:[ \t]*/, "", v); sub(/[ \t\r]+$/, "", v)
+      if (substr(v, 1, 1) == "\"" || substr(v, 1, 1) == SQ) v = substr(v, 2, length(v) - 2); print v; exit }' "$bundle/index.md" 2>/dev/null || true)"
+  { printf '%s\n' "$all"; printf '%s\n' "$times"; } | awk -F'\t' -v mode="$1" -v today="$today" -v base="$base" "$label_fn"'
+  function jdn(d,  y, m, a) { y = substr(d, 1, 4) + 0; m = substr(d, 6, 2) + 0; a = int((14 - m) / 12); y += 4800 - a; m += 12 * a - 3
+    return substr(d, 9, 2) + int((153 * m + 2) / 5) + 365 * y + int(y / 4) - int(y / 100) + int(y / 400) - 32045 }
+  function cut(v,  i) { i = index(v, "#"); return i ? substr(v, 1, i - 1) : v }
+  function find(id) { return (id in byid) ? byid[id] : "" }
+  function resolve(v, from,  d, r) {
+    if (v ~ /^[A-Za-z][A-Za-z0-9+.-]*:/) {
+      if (base != "" && index(v, base) == 1) return find(base cut(substr(v, length(base) + 1)))
+      return find(v)
+    }
+    if (base == "") return ""
+    v = cut(v); sub(/\.md$/, "", v)
+    r = find(base v); if (r != "") return r
+    d = from; if (sub(/\/[^\/]*$/, "", d)) return find(base d "/" v)
+    return ""
+  }
+  function also(s, t) { return s == "" ? t : s "; " t }
+  function relies(n) { return n == 1 ? "1 other concept relies on this" : n " other concepts rely on this" }
+  function before(a, b) {  # a ranks ahead of b in the queue
+    if (grp[a] != grp[b]) return grp[a] < grp[b]
+    if (relied[a] != relied[b]) return relied[a] > relied[b]
+    if (gat[a] != gat[b]) return gat[a] > gat[b]
+    return a < b
+  }
+  function section(title, n, body) { print title ": " (n ? n : "none"); if (n) printf "%s", body }
+  $1 == "C" { nc++; order[nc] = $2; row[$2] = $0 }
+  $1 == "I" { cid[$2] = $3; ctype[$2] = $4; csrc[$2] = $5 }
+  $1 == "L" { nl++; lp[nl] = $2; lf[nl] = $3; lt[nl] = $4 }
+  $1 == "M" && $2 == "c" { cmoved[$3] = 1 }
+  END {
+    for (i = 1; i <= nc; i++) { p = order[i]; id = cid[p]; if (id == "") { id = p; sub(/\.md$/, "", id); id = base id }; byid[id] = p }
+    for (i = 1; i <= nc; i++) {
+      p = order[i]; $0 = row[p]
+      if ($4 == "deprecated") continue
+      live[p] = 1; gat[p] = $7; hat[p] = $8; conf[p] = ($9 > 0 && !edited())
+    }
+    for (k = 1; k <= nl; k++) {
+      t = resolve(lt[k], lp[k]); if (t == "" || t == lp[k] || !(t in live) || !(lp[k] in live)) continue
+      if (!((t, lp[k]) in pair)) { pair[t, lp[k]] = 1; relied[t]++ }
+      if (lf[k] == "derivedFrom" && !((lp[k], t) in dpair)) { dpair[lp[k], t] = 1; nd++; dfrom[nd] = lp[k]; dto[nd] = t }
+    }
+    if (mode == "lists") {
+      td = jdn(today)
+      for (i = 1; i <= nc; i++) {
+        p = order[i]; if (!(p in live)) continue; $0 = row[p]
+        if ($5 != "" && $5 > today && jdn($5) - td <= 30) { ns++; soon = soon "- " p " (" $5 ")\n" }
+      }
+      section("Due soon, a review date within 30 days", ns, soon)
+      for (k = 1; k <= nd; k++) {
+        a = dfrom[k]; b = dto[k]
+        if (conf[a] && gat[b] != "" && gat[b] > hat[a]) { nx++; drv = drv "- " a ": " b " (edited " day(gat[b]) ", confirmed " day(hat[a]) ")\n" }
+      }
+      section("Confirmed by a person, and derived from a concept edited after that confirmation", nx, drv)
+      m = 0
+      for (i = 1; i <= nc; i++) { p = order[i]; if ((p in live) && relied[p] > 0) { m++; lst[m] = p; grp[p] = 0 } }
+      for (i = 2; i <= m; i++) { p = lst[i]; j = i - 1; while (j > 0 && before(p, lst[j])) { lst[j + 1] = lst[j]; j-- } lst[j + 1] = p }
+      for (i = 1; i <= m; i++) body = body "- " lst[i] " (" relied[lst[i]] ")\n"
+      section("Relied on by other concepts", m, body)
+      exit
+    }
+    m = 0
+    for (i = 1; i <= nc; i++) {
+      p = order[i]; if (!(p in live)) continue; $0 = row[p]
+      why = ""; g = 0
+      if ($5 != "" && $5 <= today) why = also(why, "past its review date (" $5 ")")
+      if (edited()) why = also(why, "edited since a person last confirmed it")
+      else if (p in cmoved) why = also(why, "confirmed by a person, and a source moved since")
+      if (why != "") g = 1
+      else if ($4 == "draft" && $12 > 0) { g = 2; why = "still a draft, with an open question" }
+      else if ($10 == 0) { g = 3; why = "nobody has checked this yet" ($4 == "draft" ? ", still a draft" : "") }
+      else if ($4 == "draft") { g = 4; why = "still a draft" }
+      else if ($9 == 0) { g = 4; why = "checked by automation only" }
+      if (!g) continue
+      if (relied[p] > 0) why = why "; " relies(relied[p])
+      m++; lst[m] = p; grp[p] = g; qwhy[p] = why; ttl[p] = $3
+    }
+    for (i = 2; i <= m; i++) { p = lst[i]; j = i - 1; while (j > 0 && before(p, lst[j])) { lst[j + 1] = lst[j]; j-- } lst[j + 1] = p }
+    print "Worth ten minutes today: " (m ? (m < 5 ? m : 5) " of " m " waiting" : "none")
+    for (i = 1; i <= m && i <= 5; i++) {
+      p = lst[i]
+      printf "%d. %s (%s) - %s - %s\n", i, ttl[p], (ctype[p] != "" ? ctype[p] : "no type"), qwhy[p], (csrc[p] != "" ? csrc[p] : "no source recorded")
+    }
+  }'
 }
 
 # ---- quiet -------------------------------------------------------------------
@@ -618,15 +867,19 @@ changes() {
     echo "Changes: not compared here, since this folder has no git history"
     return 0
   fi
-  local line st path rel top added=0 changed=0 removed=0 demoted="" ndemoted=0 hidden=0 was now does fb_was led_now led_was
+  local line st path rel top pfx added=0 changed=0 removed=0 demoted="" ndemoted=0 hidden=0 was now does fb_was led_now led_was
   # Git names each changed path from the top of the work tree, which is above
   # $root when the sidecar sits in a subfolder of a larger repository.
   top="$(git -C "$root" rev-parse --show-toplevel 2>/dev/null)" || top="$root"
+  # The sidecar may sit in a subfolder: git names each path, and resolves a
+  # HEAD:<path>, from the top of the work tree, so prepend that folder's prefix
+  # (empty when the sidecar is at the top) to reach the bundle and the ledgers.
+  pfx="$(git -C "$root" rev-parse --show-prefix 2>/dev/null || true)"
   while IFS= read -r line; do
     [ -n "$line" ] || continue
     st="${line%%$'\t'*}"; path="${line#*$'\t'}"
     case "$path" in *.md) ;; *) continue ;; esac
-    rel="${path#.lokf/knowledge/}"; rel="${rel#knowledge_bundle/}"
+    rel="${path#"$pfx"}"; rel="${rel#.lokf/knowledge/}"; rel="${rel#knowledge_bundle/}"
     case "${rel##*/}" in index.md|log.md|diataxis.md) continue ;; esac
     case "$st" in A*) added=$((added + 1)); continue ;; D*) removed=$((removed + 1)) ;; *) changed=$((changed + 1)) ;; esac
     was="$(git -C "$root" show "HEAD:$path" 2>/dev/null | awk -v path="$rel" -v SQ="'" "$extract" | awk -F'\t' "$label_fn$standing_fn")"
@@ -649,9 +902,9 @@ changes() {
   echo "Confirmed by a person, and changed or removed here: $ndemoted"
   printf '%s' "$demoted"
   [ "$hidden" -eq 0 ] || echo "- and $hidden more, whose paths hold characters this report does not print"
-  fb_was="$(git -C "$root" show HEAD:.lokf/feedback.md 2>/dev/null | grep -c '^- \*\*' || true)"
+  fb_was="$(git -C "$root" show "HEAD:${pfx}.lokf/feedback.md" 2>/dev/null | grep -c '^- \*\*' || true)"
   led_now="$(grep -c '^- ' "$root/.lokf/questions.md" 2>/dev/null || true)"
-  led_was="$(git -C "$root" show HEAD:.lokf/questions.md 2>/dev/null | grep -c '^- ' || true)"
+  led_was="$(git -C "$root" show "HEAD:${pfx}.lokf/questions.md" 2>/dev/null | grep -c '^- ' || true)"
   echo "Reader feedback waiting: $(waiting_feedback) (was ${fb_was:-0}) · Lines added to the ledger of readers' questions: $(( ${led_now:-0} > ${led_was:-0} ? ${led_now:-0} - ${led_was:-0} : 0 ))"
 }
 
@@ -782,6 +1035,8 @@ case "$cmd" in
     echo "Knowledge bundle report - $today (computed by knowledge-report.sh; nothing here is stored)"
     health
     echo ""
+    ranked queue
+    echo ""
     echo "Concepts"
     labels
     echo ""
@@ -789,7 +1044,10 @@ case "$cmd" in
     echo ""
     lists confirmed-moved
     echo ""
+    ranked lists
+    echo ""
     echo "Reader feedback waiting: $(waiting_feedback)"
+    disputed | awk -F'\t' '{ n++; body = body "- " $2 " (" $3 ")\n" } END { print "Disputed by a reader, waiting for the librarian: " (n ? n : "none"); if (n) printf "%s", body }'
     repeats
     ;;
   *) usage ;;

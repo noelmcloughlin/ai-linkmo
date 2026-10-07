@@ -102,9 +102,21 @@ jobs:
       # agent wrapper. Those are one ISO-date heading per day, quoted
       # timestamps, `verified` as a list with one librarian event, and open
       # questions in the shape the curator reads. Each of them has been broken
-      # by an agent that had the rule in prose.
+      # by an agent that had the rule in prose. On a pull request, rule 14
+      # reads each of its commits too: one that records a person's
+      # confirmation changes only the verdict. The base is the merge-base of
+      # the pull request, as the provenance job uses, so a commit the base
+      # branch gained after the pull request opened is not read as the pull
+      # request's. The SHAs enter through env:, never interpolated, and a
+      # scheduled run has none, so it skips rule 14.
       - name: Check the conventions lokf validate cannot see
-        run: bash scripts/knowledge-conventions.sh knowledge
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          since=""
+          if [ -n "$BASE_SHA" ]; then since="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"; fi
+          bash scripts/knowledge-conventions.sh knowledge ${since:+--since "$since"}
         working-directory: .lokf
 
   provenance:
@@ -183,6 +195,13 @@ jobs:
           ATTEST_ENV: ${{ vars.KNOWLEDGE_CURATION_ENVIRONMENT }}
         run: |
           set -euo pipefail
+          # Byte-oriented awk, sort and comm, so the frontmatter reader below
+          # strips a byte order mark by its bytes on any awk, and sort agrees
+          # with comm. A UTF-8 gawk would otherwise read the three BOM bytes as
+          # one character, see no "---", read no events, and pass a forged
+          # unsigned confirmation that every YAML parser reads. Matches
+          # knowledge-provenance.sh.
+          export LC_ALL=C
 
           # A claim is an event in a concept's frontmatter: a `verified`
           # entry, or the `generated` record the curator's Correct writes as
@@ -210,13 +229,31 @@ jobs:
               inev = 0; by = ""; at = ""; rev = "" }
             function flow(s,  n, parts, i) { emit(); inev = 1; gsub(/[{}]/, "", s); n = split(s, parts, ",")
               for (i = 1; i <= n; i++) kv(parts[i]); emit() }
-            BEGIN { fm = 0; inv = 0; inev = 0; cid = ""; out = "" }
-            NR == 1 { if ($0 == "---") { fm = 1; next } else exit }
+            # A flow verified/generated may span lines - valid YAML a
+            # block-only reader skips, which would let a forged confirmation
+            # past the gate. Accumulate to the closing bracket, then parse: a
+            # sequence into its events, a mapping as one. Matches
+            # knowledge-provenance.sh.
+            function flushflow(  b, n, items, i) { b = flowbuf
+              if (flowseq) { sub(/^\[/, "", b); sub(/\].*/, "", b) } else { sub(/^\{/, "", b); sub(/\}.*/, "", b) }
+              sub(/^[[:space:]]+/, "", b); sub(/[[:space:]]+$/, "", b)
+              if (b != "") { if (flowseq) { n = split(b, items, /\}[[:space:]]*,/); for (i = 1; i <= n; i++) flow(items[i]) } else flow(b) }
+              inflow = 0; flowbuf = "" }
+            BEGIN { fm = 0; inv = 0; inev = 0; inflow = 0; cid = ""; out = "" }
+            { sub(/\r$/, "") }
+            # A byte order mark or CRLF on the opener would make a block-only
+            # reader see no "---", read no events, and wave a forged unsigned
+            # event past the gate, though every YAML parser strips both and
+            # sees it. Strip them (bytes, under LC_ALL=C). Matches
+            # knowledge-provenance.sh.
+            NR == 1 { sub(/^\357\273\277/, ""); if ($0 == "---") { fm = 1; next } else exit }
+            inflow && $0 == "---" { flushflow(); exit }
+            inflow { flowbuf = flowbuf " " $0; if (index($0, flowseq ? "]" : "}")) flushflow(); next }
             fm && $0 == "---" { emit(); exit }
             /^id:/ { cid = val($0) }
             /^(verified|generated):/ { emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated):[[:space:]]*/, "", rest)
-              if (rest ~ /^\{/) { flow(rest); inv = 0 }
-              else if (rest ~ /^\[/) { gsub(/[][]/, "", rest); n = split(rest, items, /\}[[:space:]]*,/); for (i = 1; i <= n; i++) flow(items[i]); inv = 0 }
+              if (rest ~ /^\{/) { flowseq = 0; flowbuf = rest; inv = 0; if (index(rest, "}")) flushflow(); else inflow = 1 }
+              else if (rest ~ /^\[/) { flowseq = 1; flowbuf = rest; inv = 0; if (index(rest, "]")) flushflow(); else inflow = 1 }
               next }
             inv && /^[^[:space:]-]/ { emit(); inv = 0 }
             inv && /^[[:space:]]*-[[:space:]]*\{/ { rest = $0; sub(/^[[:space:]]*-[[:space:]]*/, "", rest); flow(rest); next }

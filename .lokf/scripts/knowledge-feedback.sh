@@ -22,7 +22,7 @@
 # for Windows, like the other scripts here.
 #
 # Usage:
-#   knowledge-feedback.sh [--root <dir>] [--for <login>] <kind> <text>
+#   knowledge-feedback.sh [--root <dir>] [--for <login>] [--concept <path>] <kind> <text>
 #
 #   kind    Miss or Disagreement, in any letter case, and nothing else: the
 #           two shapes ktl-librarian knows how to consume.
@@ -35,6 +35,13 @@
 #           only worth carrying if the forge stands behind it.
 #   --root  the repository root (default: the nearest ancestor of the current
 #           directory holding .lokf/, else the current directory).
+#   --concept  with a Disagreement only, the bundle path of the concept the
+#           reader disputes, such as services/orders-api.md. It must name a
+#           concept file under .lokf/knowledge, in the bundle's lowercase
+#           spelling. The entry then reads `- **Disagreement** (on `<path>`) -`,
+#           and knowledge-report.sh labels that concept as disputed until the
+#           librarian handles the entry. The report reads the path and never
+#           the text.
 #
 # The day heading is today in UTC, as the bundle's own timestamps are, so two
 # machines in different zones file one day under one heading.
@@ -47,17 +54,22 @@
 #      out loud instead.
 [ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [--root <dir>] [--for <login>] <kind> <text>" >&2; exit 2; }
 set -u
+# A-Z, a-z and 0-9 in a case glob mean the ASCII letters and digits, not
+# whatever a locale collates between them, so a login check below cannot be
+# widened by the host's locale. A no-op where the option is unknown (bash 3.2).
+shopt -s globasciiranges 2>/dev/null || :
 
 usage() {
-  echo "usage: ${0##*/} [--root <dir>] [--for <login>] <Miss|Disagreement> <text>" >&2
+  echo "usage: ${0##*/} [--root <dir>] [--for <login>] [--concept <path>] <Miss|Disagreement> <text>" >&2
   exit 2
 }
 
-root=""; asker=""
+root=""; asker=""; concept=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --root) [ $# -ge 2 ] || usage; root="$2"; shift 2 ;;
     --for)  [ $# -ge 2 ] || usage; asker="$2"; shift 2 ;;
+    --concept) [ $# -ge 2 ] || usage; concept="$2"; shift 2 ;;
     -h|--help) usage ;;
     --) shift; break ;;
     -*) echo "unknown option: $1" >&2; usage ;;
@@ -88,6 +100,21 @@ if [ -n "$asker" ]; then
   esac
 fi
 
+# The concept a Disagreement names is the one field a program reads back:
+# knowledge-report.sh labels that concept as disputed while the entry waits.
+# So it holds only the bundle's own path spelling (conventions rule 8), no
+# `..`, and must name a concept file that exists. A Miss names a gap, not a
+# concept, so it takes none.
+if [ -n "$concept" ]; then
+  [ "$kind" = Disagreement ] || { echo "--concept goes with a Disagreement only; a Miss names a gap, not a concept the bundle holds" >&2; exit 2; }
+  case "$concept" in
+    *[!a-z0-9._/-]*|[!a-z0-9]*|*..*|*/|*//*|*/./*)
+      echo "--concept takes a concept's path in the bundle, in lowercase with no '..' or '.' segment, such as services/orders-api.md, not '$concept'" >&2; exit 2 ;;
+  esac
+  case "$concept" in *.md) ;; *) echo "--concept takes the concept's file, ending in .md, not '$concept'" >&2; exit 2 ;; esac
+  case "${concept##*/}" in index.md|log.md) echo "--concept takes a concept, not the bundle's $concept" >&2; exit 2 ;; esac
+fi
+
 # One entry is one line. Collapse every whitespace run, drop control
 # characters, and trim: a caller that passes a paragraph still cannot break
 # the file's shape or forge a second entry with an embedded newline.
@@ -106,12 +133,15 @@ root="$(cd "$root" 2>/dev/null && pwd -P)" || { echo "no such directory: $root" 
 # Feedback is a report against a bundle. With no bundle there is nothing for
 # the librarian to fix, and ktl-docent is told to say so instead of writing.
 [ -d "$root/.lokf/knowledge" ] || { echo "no .lokf/knowledge under $root - no bundle to record a gap against; say the gap out loud, and that ktl-sidecar can create one" >&2; exit 2; }
+if [ -n "$concept" ] && [ ! -f "$root/.lokf/knowledge/$concept" ]; then
+  echo "--concept names no concept in this bundle: $concept - record the Disagreement without it" >&2; exit 2
+fi
 
 file="$root/.lokf/feedback.md"
 tmp="$file.$$"
 lock="$file.lock"
 today="$(date -u +%Y-%m-%d)"
-entry="- **$kind** - $text - docent${asker:+, for human:$asker}"
+entry="- **$kind**${concept:+ (on \`$concept\`)} - $text - docent${asker:+, for human:$asker}"
 
 # ---- the file --------------------------------------------------------------
 readonly_bundle() {
