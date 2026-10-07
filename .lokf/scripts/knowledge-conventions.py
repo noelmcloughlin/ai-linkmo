@@ -5,8 +5,8 @@
 # [tool.uv]
 # exclude-newer = "2025-10-01T00:00:00Z"
 # ///
-# The parser's half of knowledge-conventions.sh: rules 2, 3, 4, 7, 9, 10, 12
-# and 13 (see that script's header for the list).
+# The parser's half of knowledge-conventions.sh: rules 2, 3, 4, 7, 9, 10, 12,
+# 13 and 14 (see that script's header for the list).
 #
 # Rules 2, 3, 7 and 9 are questions about a document's YAML that a real
 # parser answers outright, where grep and awk could only approximate. Is this
@@ -23,10 +23,12 @@
 # the index bullets that copy them. Rule 13 asks git for the text a person
 # confirmed and compares it with today's as parsed values, since
 # knowledge-apply.sh writes the whole frontmatter back and a requoted value is
-# no change. Rules 1, 5, 6, 8 and 11 stay in the shell script: they are git
+# no change. Rule 14 walks the commits after a base and compares each concept
+# that gains a person's confirmation with the same file in every parent, as
+# parsed values too. Rules 1, 5, 6, 8 and 11 stay in the shell script: they are git
 # and filesystem facts, and need not wait on uv.
 #
-# Usage: knowledge-conventions.py <bundle-dir>. Same contract as the shell
+# Usage: knowledge-conventions.py <bundle-dir> [--since <commit>]. Same contract as the shell
 # half: one line per finding on stdout, exit 1 if any; "OK" and exit 0 if
 # none. Invoked by knowledge-conventions.sh through `uv run`, which reads the
 # dependency block above and needs nothing preinstalled; run directly it
@@ -241,6 +243,83 @@ def unstamped_edit(path: Path, frontmatter: dict, body: str) -> str | None:
     )
 
 
+def human_events(frontmatter: dict) -> set[tuple[str, str]]:
+    """The (actor, time) of each `verified` event a person recorded."""
+    verified = frontmatter.get("verified")
+    events = [verified] if isinstance(verified, dict) else verified if isinstance(verified, list) else []
+    return {
+        (str(e.get("by")), str(e.get("at")))
+        for e in events
+        if isinstance(e, dict) and str(e.get("by", "")).startswith("human:")
+    }
+
+
+def parsed(text: str | None) -> tuple[dict, str] | None:
+    """A concept's frontmatter and body as git holds them, or None when there is no such file or no mapping."""
+    if text is None:
+        return None
+    split = split_frontmatter(text.lstrip("\ufeff").replace("\r\n", "\n").replace("\r", "\n"))
+    if split is None:
+        return None
+    try:
+        frontmatter = yaml.safe_load(split[0])
+    except yaml.YAMLError:
+        return None
+    return (frontmatter, split[1]) if isinstance(frontmatter, dict) else None
+
+
+def verdict_edits(bundle: Path, since: str) -> list[str]:
+    """Rule 14: a commit that records a person's confirmation changes the verdict, not what the concept says.
+
+    Each commit after `since` that touches the bundle is read against every
+    parent, as the provenance job reads one. A person's event that no parent
+    holds is new in that commit. The commit may then change the concept's
+    claims only when `generated.by` names the same person, the shape of
+    Correct now: that person wrote the text as well as confirming it. A merge
+    that brings in a confirmation made elsewhere adds nothing new, so it is
+    never read as one. Outside git, or with no such base, nothing is said.
+    """
+    if since.startswith("-") or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/~^-]*", since):
+        return [f"rule 14: '{since}' is not a commit - pass the base the pull request was opened against"]
+    real = bundle.resolve()
+    top = git(real, "rev-parse", "--show-toplevel")
+    if top is None:
+        return []
+    top_path = Path(top.strip())
+    if git(top_path, "rev-parse", "--verify", "--quiet", since + "^{commit}") is None:
+        return [f"rule 14: the base commit {since} is not in this clone's history - check out the full history"]
+    rel = real.relative_to(top_path.resolve()).as_posix()
+    findings: list[str] = []
+    for commit in (git(top_path, "rev-list", "--reverse", f"{since}..HEAD", "--", rel) or "").split():
+        parents = (git(top_path, "rev-list", "--parents", "-n", "1", commit) or "").split()[1:]
+        names: set[str] = set()
+        for parent in parents or [""]:
+            against = [parent, commit] if parent else ["--root", commit]
+            out = git(top_path, "diff-tree", "--no-commit-id", "--name-only", "-r", "--diff-filter=AM", *against, "--", rel)
+            names.update(n for n in (out or "").splitlines() if n.endswith(".md") and Path(n).name not in RESERVED)
+        for name in sorted(names):
+            now = parsed(git(top_path, "show", f"{commit}:{name}"))
+            if now is None:
+                continue
+            frontmatter, body = now
+            before = [parsed(git(top_path, "show", f"{parent}:{name}")) for parent in parents]
+            held: set[tuple[str, str]] = set()
+            for earlier in before:
+                if earlier is not None:
+                    held |= human_events(earlier[0])
+            added = human_events(frontmatter) - held
+            if not added or any(e is not None and claims(e[0], e[1]) == claims(frontmatter, body) for e in before):
+                continue
+            generated = frontmatter.get("generated")
+            author = str(generated.get("by")) if isinstance(generated, dict) else ""
+            for by in sorted({by for by, _ in added} - {author}):
+                findings.append(
+                    f"{name}: commit {commit[:7]} records a confirmation by {by} and changes what the concept says - "
+                    f"record the verdict in a commit of its own, or as Correct now, with generated.by set to {by}"
+                )
+    return findings
+
+
 def index_bullets(index: Path, cache: dict[Path, dict[str, tuple[str, str]]]) -> dict[str, tuple[str, str]]:
     """The bullets of one index.md, as link -> (title, description), each with its whitespace collapsed."""
     if index not in cache:
@@ -342,10 +421,13 @@ def check_file(path: Path, ids: dict[str, list[Path]], entries: dict[Path, tuple
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) != 2:
-        print("usage: knowledge-conventions.py <bundle-dir>", file=sys.stderr)
+    args, since = argv[1:], ""
+    if len(args) == 3 and args[1] == "--since":
+        args, since = args[:1], args[2]
+    if len(args) != 1:
+        print("usage: knowledge-conventions.py <bundle-dir> [--since <commit>]", file=sys.stderr)
         return 2
-    bundle = Path(argv[1])
+    bundle = Path(args[0])
     if not bundle.is_dir():
         print(f"no bundle directory at {bundle}", file=sys.stderr)
         return 2
@@ -382,6 +464,13 @@ def main(argv: list[str]) -> int:
                 f"id {concept_id} is declared by more than one file: {files}- "
                 "a sync conflict copy or a pasted duplicate; keep one"
             )
+
+    # 14. a commit after the base that records a person's confirmation
+    #     changes only the verdict, unless that person also wrote the text.
+    #     Asked for a pull request's commits only: on a branch's whole
+    #     history a squash merge folds an edit and a confirmation into one.
+    if since:
+        findings.extend(verdict_edits(bundle, since))
 
     for line in findings:
         print(line)

@@ -61,6 +61,15 @@
 #        knowledge-provenance.sh --unattended            (what the librarian workflow runs)
 [ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} <base-ref> [head-ref] | --unattended" >&2; exit 2; }
 set -u
+# A-Z, a-z and 0-9 in a case glob mean the ASCII letters and digits, not
+# whatever a locale collates between them, so the login check cannot be
+# widened by the host's locale. A no-op where the option is unknown (bash 3.2).
+shopt -s globasciiranges 2>/dev/null || :
+# Byte-oriented awk, sort and comm, so this gate reads raw bytes on any awk and
+# in any locale: the frontmatter reader strips a byte order mark by its bytes
+# (a UTF-8 gawk would otherwise read those three bytes as one character and the
+# strip would miss), and `sort` feeds `comm` a byte order it agrees with.
+export LC_ALL=C
 
 unattended=0
 if [ "${1:-}" = "--unattended" ]; then
@@ -152,13 +161,29 @@ human_events() {  # path -> events, reading the concept on stdin
     inev = 0; by = ""; at = ""; rev = "" }
   function flow(s,  n, parts, i) { emit(); inev = 1; gsub(/[{}]/, "", s); n = split(s, parts, ",")
     for (i = 1; i <= n; i++) kv(parts[i]); emit() }
-  BEGIN { fm = 0; inv = 0; inev = 0; cid = ""; out = "" }
-  NR == 1 { if ($0 == "---") { fm = 1; next } else exit }
+  # A flow verified/generated may span lines - valid YAML that a block-only
+  # reader skips, which would let a forged confirmation past the gate.
+  # Accumulate from the opener to its closing bracket, then parse: a sequence
+  # into its events, a mapping as one event.
+  function flushflow(  b, n, items, i) { b = flowbuf
+    if (flowseq) { sub(/^\[/, "", b); sub(/\].*/, "", b) } else { sub(/^\{/, "", b); sub(/\}.*/, "", b) }
+    sub(/^[[:space:]]+/, "", b); sub(/[[:space:]]+$/, "", b)
+    if (b != "") { if (flowseq) { n = split(b, items, /\}[[:space:]]*,/); for (i = 1; i <= n; i++) flow(items[i]) } else flow(b) }
+    inflow = 0; flowbuf = "" }
+  BEGIN { fm = 0; inv = 0; inev = 0; inflow = 0; cid = ""; out = "" }
+  { sub(/\r$/, "") }
+  # A byte order mark or a CRLF on the opener would make a block-only reader see
+  # no "---", read no events, and wave a forged unsigned event past the gate,
+  # though every YAML parser strips both and sees it. Strip them (bytes, under
+  # LC_ALL=C) so the gate reads what the parsers read.
+  NR == 1 { sub(/^\357\273\277/, ""); if ($0 == "---") { fm = 1; next } else exit }
+  inflow && $0 == "---" { flushflow(); exit }
+  inflow { flowbuf = flowbuf " " $0; if (index($0, flowseq ? "]" : "}")) flushflow(); next }
   fm && $0 == "---" { emit(); exit }
   /^id:/ { cid = val($0) }
   /^(verified|generated):/ { emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated):[[:space:]]*/, "", rest)
-    if (rest ~ /^\{/) { flow(rest); inv = 0 }
-    else if (rest ~ /^\[/) { gsub(/[][]/, "", rest); n = split(rest, items, /\}[[:space:]]*,/); for (i = 1; i <= n; i++) flow(items[i]); inv = 0 }
+    if (rest ~ /^\{/) { flowseq = 0; flowbuf = rest; inv = 0; if (index(rest, "}")) flushflow(); else inflow = 1 }
+    else if (rest ~ /^\[/) { flowseq = 1; flowbuf = rest; inv = 0; if (index(rest, "]")) flushflow(); else inflow = 1 }
     next }
   inv && /^[^[:space:]-]/ { emit(); inv = 0 }
   inv && /^[[:space:]]*-[[:space:]]*\{/ { rest = $0; sub(/^[[:space:]]*-[[:space:]]*/, "", rest); flow(rest); next }
@@ -197,6 +222,7 @@ removed_from() {  # events-before file, events-now file -> the removed events th
 # the text a person wrote, which a note added below it does not change.
 body_of() {
   awk '{ sub(/\r$/, "") }
+       NR == 1 { sub(/^\357\273\277/, "") }
        NR == 1 && $0 == "---" { fm = 1; next }
        fm == 1 { if ($0 == "---") fm = 2; next }
        /^## Open questions[ \t]*$/ { exit }
@@ -226,6 +252,22 @@ if [ "$unattended" -eq 1 ]; then
       say "$f: a person wrote this text, and an unattended change rewrites it"
     fi
   done < <(printf '%s\n' "$listed" | grep -v '^"' || true)
+  # A rename shows above as a delete and an add, so a person-authored concept
+  # renamed and rewritten in one change slips the per-path check: the new path
+  # has no copy at HEAD. Pair the two by git's rename detection and compare the
+  # old HEAD body with the new one, so the body check follows the concept as
+  # the event check, keyed by id, already does.
+  while IFS="$(printf '\t')" read -r status old new; do
+    case "$status" in R*) ;; *) continue ;; esac
+    case "$new" in *.md) ;; *) continue ;; esac
+    git show "HEAD:$old" > "$home/was.file" 2>/dev/null || continue
+    [ -f "$new" ] || continue
+    cat "$new" > "$home/now.file"
+    if human_events "$old" < "$home/was.file" | awk -F'\t' '$5 == "generated" { found = 1 } END { exit !found }' \
+       && [ "$(body_of < "$home/was.file")" != "$(body_of < "$home/now.file")" ]; then
+      say "$new: a person wrote this text, which an unattended change rewrites under a new name (was $old)"
+    fi
+  done < <(git -c core.quotePath=false diff --name-status -M HEAD -- "$bundle" knowledge_bundle 2>/dev/null | grep -E '^R' || true)
   for kind in events notes; do sort -u "$home/was.$kind" -o "$home/was.$kind"; sort -u "$home/now.$kind" -o "$home/now.$kind"; done
   while IFS="$(printf '\t')" read -r id by at _; do
     [ -n "$id" ] && say "$id: an unattended change adds or changes a confirmation by human:$by ($at)"
