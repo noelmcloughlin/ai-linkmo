@@ -8,6 +8,7 @@ on:
       - "lib/api/**"
       - "lib/cli/**"
       - "lib/store/**"
+      - "lib/browse/**"
       - "lib/test/**"
       - "scripts/**"
       - "byo/**"
@@ -20,6 +21,7 @@ on:
       - "lib/api/**"
       - "lib/cli/**"
       - "lib/store/**"
+      - "lib/browse/**"
       - "lib/test/**"
       - "scripts/**"
       - "byo/**"
@@ -71,9 +73,11 @@ jobs:
 
       # --locked fails the run if uv.lock is out of step with pyproject.toml,
       # rather than silently resolving something the lockfile never pinned. CI
-      # then tests the same dependency set a developer gets from `uv sync`.
+      # then tests the same dependency set a developer gets from `uv sync`. The
+      # browse extra (Datasette and sqlite-utils) is what lib/test/test_browse.py
+      # needs; without it those tests skip.
       - name: Install dependencies
-        run: uv sync --locked --extra test
+        run: uv sync --locked --extra test --extra browse
 
       # The store is a build artefact (lib/store/loader.py); the suite's store
       # tests read it, and the validation step below checks it.
