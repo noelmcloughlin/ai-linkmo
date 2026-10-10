@@ -6,6 +6,22 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Changed
+
+- **The CLI and the API are generated from the schema, not from a hand-written OpenAPI file.** `lib/api/api.yaml` names the 22 exposed classes and the six hand paths; every slot of a class is a filter, an enum slot offers its values, and `lib/test/test_cli_api_identity.py` proves both doors expose the same surface. The contract is the server's `/openapi.json`, written to `docs/openapi.json` by `just gen-openapi` and served by Scalar at `/scalar` too.
+- **A scope lists every instance of its class, wherever the data file put it.** `control` is every RiskControl including the Actions (1,102), `model` every LargeLanguageModel including the Adapters (58), `requirement` the Requirements alone (51), and `group` every Group subclass (183). The expected counts follow ai-atlas-nexus 1.2.5, which is now the minimum.
+- **The web UI's entity list is generated.** `just gen-ui-config` writes `entities.json` from the exposure file, so a UI key is an API route by construction; labels, groups and filters stay a hand-written overlay, and eleven filters that were not slots of their class are gone.
+- **The Cypher export is fetched, not generated.** `just fetch-cypher` downloads the export ai-atlas-nexus commits at the installed version's tag, with a provenance header; `--byod` with it is refused, since that artefact holds the packaged data only.
+
+### Added
+
+- **A DuckDB store behind the listings.** `just load-store` loads the data through linkml-store, one collection per concrete class, in about fifteen seconds; the listings read it when `AI_LINKMO_DATA_SOURCE` is `store`, or by default once it exists, and `lib/test/test_data_source.py` shows the store and the library answer alike. `just validate-store` reads linkml-store's findings rather than its exit code, and CI runs it with the 30 upstream data findings as the ceiling. `just index-store` builds a trigram index, `GET /search` and `./ai search` query it, and `just dump-store` writes the store as YAML.
+
+### Removed
+
+- `lib/api/openapi.yaml`, `server_dynamic.py`, the 22 per-class handlers, `validate_handlers.py`, `graph/cypher/export.py`, the committed Cypher file, and the `cymple` dependency.
+
+
 ## [0.1.9] - 2026-10-07
 
 ### Security
