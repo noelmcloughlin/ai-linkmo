@@ -25,4 +25,6 @@ exclude = [
 # same files twice, once at each path.
 exclude_path = [
   "(^|/)knowledge_bundle/",
+  # The schema's pages, written by `just gen-doc` and never committed.
+  "(^|/)docs/elements/",
 ]

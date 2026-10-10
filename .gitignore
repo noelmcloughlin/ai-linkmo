@@ -1,5 +1,5 @@
-# generated part of documentation
-/docs/elements/*.md
+# The schema's pages and their examples, written by `just gen-doc`, never committed.
+/docs/elements/
 # linkml-run-examples output (not useful to have in git in its current form)
 /examples/output/
 

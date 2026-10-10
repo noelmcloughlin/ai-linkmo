@@ -2,9 +2,9 @@
 #
 # gen-openapi and gen-ui-config write files the repository keeps under version control, so
 # that a reader sees the current contract or UI list without running the server. The others
-# build local artefacts that are never committed, such as the graph export, the DuckDB store
-# and the browse databases. Run `just --list` to see them. The knowledge-bundle recipes live
-# in .lokf/justfile.
+# build local artefacts that are never committed, such as the graph export, the DuckDB store,
+# the browse databases and the schema's pages. Run `just --list` to see them. The
+# knowledge-bundle recipes live in .lokf/justfile.
 
 # List available recipes
 default:
@@ -46,3 +46,12 @@ build-browse:
 browse:
     test -f lib/browse/data/metadata.yaml || just build-browse
     uv run --extra browse datasette serve lib/browse/data
+
+# Write one example per class that has records to docs/elements/examples, and validate them.
+gen-examples:
+    uv run python scripts/gen_examples.py docs/elements/examples --validate
+
+# Write the schema's pages to docs/elements with gen-doc, each class page with its example.
+gen-doc: gen-examples
+    rm -f docs/elements/*.md
+    uv run gen-doc --render-imports --example-directory docs/elements/examples --directory docs/elements "$(uv run python -c 'from lib.api.exposure import schema_directory; print(schema_directory() / "ai-risk-ontology.yaml")')"
