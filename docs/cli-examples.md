@@ -246,7 +246,7 @@ A few flags recur. `--byod` adds the bring-your-own-data frameworks under `byo/d
 ## Export cypher queries (Neo4J integration)
 
 ```bash
-./ai graph cypher --export --byod --count
+./ai graph cypher --export
 ```
 
 ## Export full Knowledge Graph
@@ -255,4 +255,4 @@ A few flags recur. `--byod` adds the bring-your-own-data frameworks under `byo/d
 ./ai graph --export --byod --count
 ```
 
-The complete list of tested commands, with the count each is expected to return, is in [lib/test/test_cli_examples.py](../lib/test/test_cli_examples.py). The two export commands write into `graph/`. The Cypher one reads the packaged ontology only, so `--byod` does not change its output (see [Status and caveats](status.md)).
+The complete list of tested commands, with the count each is expected to return, is in [lib/test/test_cli_examples.py](../lib/test/test_cli_examples.py). The two export commands write into `graph/`. The Cypher one downloads the export that ai-atlas-nexus publishes for the installed version, which is built from the packaged data alone, so `--byod` is refused with a 400 (see [Neo4j](neo4j.md)).

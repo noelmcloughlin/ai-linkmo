@@ -13,7 +13,6 @@ import logging
 import os
 import re
 import shutil
-import subprocess
 import tempfile
 from functools import lru_cache
 from pathlib import Path
@@ -39,10 +38,9 @@ logger = logging.getLogger(__name__)
 # directory of whoever launched uvicorn / pytest / the CLI.
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _GRAPH_DIR = _PROJECT_ROOT / "graph"
-_GRAPH_EXPORT_SCRIPT = _GRAPH_DIR / "cypher" / "export.py"
 _GRAPH_DEFAULT_YAML = _GRAPH_DIR / "ai-risk-ontology.yaml"
-# Subprocess timeout (seconds) for the cypher exporter helper script.
-_GRAPH_EXPORT_TIMEOUT = 300
+# Where scripts/fetch_cypher.py saves the Cypher export that ai-atlas-nexus publishes.
+_GRAPH_CYPHER = _GRAPH_DIR / "cypher" / "ai-risk-ontology.cypher"
 
 # Constants
 BYO_BASE_DIR = (_PROJECT_ROOT / "byo" / "data").resolve()
@@ -260,45 +258,44 @@ def query_class(
 
 
 def graph(export: bool=False, id: Optional[str]=None, byod: bool=False) -> Dict[str, Any]:
-    """Export or fetch the merged ontology graph.
+    """Fetch the Cypher export, write the merged ontology as YAML, or return that YAML.
 
-    All filesystem paths are resolved relative to the repository root, not
-    the caller's CWD, so this handler behaves identically whether invoked
-    from uvicorn, pytest, or the CLI in any directory.
+    ``id="cypher"`` with ``export`` fetches the Cypher export that ai-atlas-nexus commits for
+    the installed version, through ``scripts/fetch_cypher.py``, and says which version landed
+    where. That artefact is built upstream from the packaged data alone, so ``byod`` is refused
+    here with a 400 rather than silently ignored. ``export`` without an id writes the merged
+    ontology, with the ``byo/data`` files when ``byod`` is set, to ``graph/``; no argument
+    returns that YAML.
+
+    All filesystem paths are resolved relative to the repository root, not the caller's
+    working directory, so this handler behaves the same from uvicorn, pytest or the CLI.
     """
     if id == "cypher" and export:
-        if not _GRAPH_EXPORT_SCRIPT.is_file():
+        if byod:
             raise HTTPException(
-                status_code=500,
-                detail="Cypher export helper script is missing.",
+                status_code=400,
+                detail=(
+                    "The Cypher export is the artefact ai-atlas-nexus publishes for its "
+                    "packaged data, so it cannot include the files under byo/data; "
+                    "request it without byod."
+                ),
             )
-        uv_bin = shutil.which("uv")
-        if uv_bin is None:
-            raise HTTPException(
-                status_code=500,
-                detail="'uv' command not found on PATH; cannot run cypher export.",
-            )
+        from scripts.fetch_cypher import FetchError, artefact_url, fetch, installed_version
+
+        version = installed_version()
         try:
-            logger.info("Calling helper script: %s", _GRAPH_EXPORT_SCRIPT)
-            subprocess.run(
-                [uv_bin, "run", str(_GRAPH_EXPORT_SCRIPT)],
-                check=True,
-                cwd=str(_PROJECT_ROOT),
-                timeout=_GRAPH_EXPORT_TIMEOUT,
-            )
-            return {
-                "status": "success",
-                "message": f"Cypher export completed via {_GRAPH_EXPORT_SCRIPT.name}",
-            }
-        except subprocess.TimeoutExpired:
-            logger.exception("Cypher export timed out after %ss", _GRAPH_EXPORT_TIMEOUT)
-            raise HTTPException(
-                status_code=504,
-                detail=f"Cypher export timed out after {_GRAPH_EXPORT_TIMEOUT}s.",
-            )
-        except subprocess.CalledProcessError:
-            logger.exception("Cypher export script failed")
-            raise HTTPException(status_code=500, detail="Cypher export failed.")
+            path = fetch(version=version, output=_GRAPH_CYPHER)
+        except FetchError as error:
+            logger.error("Cypher fetch failed: %s", error)
+            raise HTTPException(status_code=502, detail=str(error))
+        relative = str(path.relative_to(_PROJECT_ROOT))
+        return {
+            "status": "success",
+            "message": f"ai-atlas-nexus {version} Cypher export is at {relative}",
+            "ai_atlas_nexus": version,
+            "source": artefact_url(version),
+            "path": relative,
+        }
 
     elif export:
         # Initialize AIAtlasNexus instance

@@ -34,7 +34,7 @@ These are documented rather than fixed because this is a demo and the affected s
 - **The web UI's login is a persona picker**, not authentication. It selects which role's view to render; it checks nothing and grants nothing.
 - **The UI fetches persona avatars from `ui-avatars.com`**, a third-party origin, at render time. Offline or air-gapped use will show broken images, and that origin sees your traffic.
 - **No CodeQL or dependency-vulnerability scanning is configured** for the Python and JavaScript trees. Dependabot keeps versions current (`.github/dependabot.yml`), which is not the same thing. Worth adding once the API's shape settles.
-- **`graph/` holds committed generated output** (~4 MB). It is regenerable, and the export commands rewrite it in place; treat it as a build artifact that happens to be tracked, not as reviewed content.
+- **`graph/` holds committed generated output** (about 2 MB of YAML and CSV). It is regenerable, and the export commands rewrite it in place; treat it as a build artifact that happens to be tracked, not as reviewed content. The Cypher export is fetched from ai-atlas-nexus on request and is not tracked.
 
 ## This repository's own automation
 

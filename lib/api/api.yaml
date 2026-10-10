@@ -211,7 +211,7 @@ generator_args:
               schema:
                 type: boolean
               required: false
-              description: Bring your own AiAtlasNexus data
+              description: Include the bring-your-own-data files in the YAML export; refused with the Cypher export, which is fetched from ai-atlas-nexus
             responses:
               '200':
                 description: Graph response

@@ -25,10 +25,10 @@ A crosswalk is computed from the data, not kept by hand in a spreadsheet. That i
 
 ## Graph database
 
-Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. One command exports the schema and the data as Cypher:
+Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. The project generates no Cypher of its own; one command fetches the Cypher export that ai-atlas-nexus publishes, at the release tag of the installed package:
 
 ```bash
-./ai graph cypher --export --byod
+just fetch-cypher
 ```
 
-The export reads the packaged ontology, so it shows the open frameworks; `--byod` does not add your uploads to it ([Status and caveats](status.md)). To load it into Neo4j in a container and look at it in the browser: [neo4j.md](neo4j.md).
+`./ai graph cypher --export` does the same through the API. The artefact is built upstream from the packaged ontology, so it shows the open frameworks and cannot include your uploads; `--byod` is refused there rather than ignored ([Status and caveats](status.md)). To load it into Neo4j in a container and look at it in the browser, with the artefact's provenance header and known defects: [neo4j.md](neo4j.md).

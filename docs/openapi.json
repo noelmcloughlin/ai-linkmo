@@ -11568,10 +11568,10 @@
                   "type": "null"
                 }
               ],
-              "description": "Bring your own AiAtlasNexus data",
+              "description": "Include the bring-your-own-data files in the YAML export; refused with the Cypher export, which is fetched from ai-atlas-nexus",
               "title": "Byod"
             },
-            "description": "Bring your own AiAtlasNexus data"
+            "description": "Include the bring-your-own-data files in the YAML export; refused with the Cypher export, which is fetched from ai-atlas-nexus"
           }
         ],
         "responses": {
