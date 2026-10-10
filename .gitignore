@@ -153,3 +153,6 @@ graph/cypher/*.part
 
 # The DuckDB store and its linkml-store config are built by `just load-store`, never committed.
 lib/store/data/
+
+# The SQLite databases, their DDL and their Datasette metadata are built by `just build-browse`.
+lib/browse/data/
