@@ -32,6 +32,10 @@ test = [
     "pytest-cov>=4.1.0",
     "pytest-timeout>=2.2.0",
 ]
+browse = [
+    "datasette>=0.65,<1",
+    "sqlite-utils>=4.2.1",
+]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
