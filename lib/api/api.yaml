@@ -1,0 +1,420 @@
+# ai-linkmo exposure file.
+#
+# This file says which classes of the AI Risk Ontology the CLI and the API expose, under
+# which path, and which hand-written operations exist beside the class listings. Both
+# kernels read it through lib/api/exposure.py, and everything else about a class, such as
+# its filters, comes from the schema itself.
+#
+# The shape follows the configuration proposed for LinkML's gen-openapi in
+# linkml/linkml#3871: `expose.classes` names the classes and `overlay` is deep-merged into
+# the generated document. Three keys are ai-linkmo's own, and gen-openapi can ignore them.
+# `collection` is the key the ai-atlas-nexus library stores the class's instances under.
+# `related` marks a class whose records can be looked up by a related risk, which adds the
+# `related`, `related_ids` and `hasRelatedRisk` parameters; lib/api/handlers.py holds the
+# library call for each. `operation_id` keeps the names the hand-written contract used.
+generator_args:
+  openapi:
+    expose:
+      classes:
+        RiskTaxonomy:
+          path: /taxonomy
+          operation_id: handlers.taxonomies
+          collection: taxonomies
+        ControlActivityObligation:
+          path: /obligation
+          operation_id: handlers.obligations
+          collection: rules
+        ControlActivityRecommendation:
+          path: /recommendation
+          operation_id: handlers.recommendations
+          collection: rules
+        Risk:
+          path: /risk
+          operation_id: handlers.risks
+          collection: risks
+          related: true
+        Group:
+          path: /group
+          operation_id: handlers.groups
+          collection: groups
+        Action:
+          path: /action
+          operation_id: handlers.actions
+          collection: actions
+          related: true
+        RiskControl:
+          path: /control
+          operation_id: handlers.controls
+          collection: controls
+          related: true
+        RiskIncident:
+          path: /incident
+          operation_id: handlers.incidents
+          collection: riskincidents
+          related: true
+        LargeLanguageModel:
+          path: /model
+          operation_id: handlers.models
+          collection: aimodels
+        AiTask:
+          path: /task
+          operation_id: handlers.tasks
+          collection: aitasks
+        AiEval:
+          path: /evaluation
+          operation_id: handlers.evaluations
+          collection: evaluations
+          related: true
+        Dataset:
+          path: /dataset
+          operation_id: handlers.datasets
+          collection: datasets
+        Adapter:
+          path: /adapter
+          operation_id: handlers.adapters
+          collection: adapters
+          related: true
+        LLMIntrinsic:
+          path: /intrinsic
+          operation_id: handlers.intrinsics
+          collection: llmintrinsics
+          related: true
+        Organization:
+          path: /organization
+          operation_id: handlers.organizations
+          collection: organizations
+        Documentation:
+          path: /document
+          operation_id: handlers.documents
+          collection: documents
+        Stakeholder:
+          path: /stakeholder
+          operation_id: handlers.stakeholders
+          collection: stakeholders
+        LLMQuestionPolicy:
+          path: /questionpolicy
+          operation_id: handlers.questionpolicies
+          collection: questionpolicies
+        Principle:
+          path: /principle
+          operation_id: handlers.principles
+          collection: principles
+        BenchmarkMetadataCard:
+          path: /benchmarkcard
+          operation_id: handlers.benchmarkcards
+          collection: benchmarkmetadatacards
+          related: true
+        Vocabulary:
+          path: /vocabulary
+          operation_id: handlers.vocabularies
+          collection: vocabularies
+        Requirement:
+          path: /requirement
+          operation_id: handlers.requirements
+          collection: requirements
+    overlay:
+      info:
+        title: AI-LinkMO User Demo, Open API
+        version: 0.1.0
+      components:
+        parameters:
+          byod:
+            in: query
+            name: byod
+            schema:
+              type: boolean
+            required: false
+            description: Add the bring-your-own-data frameworks under byo/data to the packaged ontology
+          related:
+            in: query
+            name: related
+            schema:
+              type: boolean
+            required: false
+            description: Return the records related to the given risk, or to the record named by id
+          related_ids:
+            in: query
+            name: related_ids
+            schema:
+              type: boolean
+            required: false
+            description: Return only the ids of the related records
+          hasRelatedRisk:
+            in: query
+            name: hasRelatedRisk
+            schema:
+              type: string
+            required: false
+            description: Id of the risk whose related records are wanted
+        securitySchemes:
+          ApiKeyAuth:
+            type: apiKey
+            in: header
+            name: X-API-Key
+            description: 'API key authentication. This scheme is declared so write endpoints
+
+              (PUT /byo/{filename}) can reference it; the demo server does NOT
+
+              yet enforce it. Operators deploying outside localhost should add a
+
+              reverse-proxy layer that validates the header.
+
+              '
+        responses:
+          BadRequest:
+            description: Invalid request (validation failure, malformed body, traversal attempt, etc.)
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    detail:
+                      type: string
+          PayloadTooLarge:
+            description: Request body exceeds the server-side cap.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    detail:
+                      type: string
+          InternalError:
+            description: Unhandled server error.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    detail:
+                      type: string
+      paths:
+        /graph:
+          get:
+            summary: Get graph
+            operationId: handlers.graph
+            parameters:
+            - in: query
+              name: export
+              schema:
+                type: boolean
+              required: false
+              description: Export the graph or data for the selected scope
+            - in: query
+              name: id
+              schema:
+                type: string
+              required: false
+              description: Unique identifier for the resource
+            - in: query
+              name: byod
+              schema:
+                type: boolean
+              required: false
+              description: Bring your own AiAtlasNexus data
+            responses:
+              '200':
+                description: Graph response
+                content:
+                  application/json:
+                    schema:
+                      type: object
+        /crosswalk:
+          get:
+            summary: Get crosswalk
+            operationId: handlers.crosswalk
+            parameters:
+            - in: query
+              name: byod
+              schema:
+                type: boolean
+              required: false
+              description: Bring your own AiAtlasNexus data
+            - in: query
+              name: isDefinedByTaxonomy
+              schema:
+                type: string
+              required: false
+              description: Filter by taxonomy
+            - in: query
+              name: isDefinedByTaxonomy2
+              schema:
+                type: string
+              required: false
+              description: Second taxonomy ID to compare in the crosswalk scope
+            - in: query
+              name: export
+              schema:
+                type: boolean
+              required: false
+              description: Export the graph or data for the selected scope
+            responses:
+              '200':
+                description: Crosswalk response
+                content:
+                  application/json:
+                    schema:
+                      type: object
+        /inference:
+          get:
+            summary: Get inference
+            operationId: handlers.inference
+            parameters:
+            - in: query
+              name: engine
+              schema:
+                type: string
+              required: false
+              description: Specify the inference engine
+            - in: query
+              name: parameters
+              schema:
+                type: string
+              required: false
+              description: 'Inference engine parameters as a JSON object string, e.g. {"max_tokens": 1000,
+                "temperature": 0.7}'
+            - in: query
+              name: byod
+              schema:
+                type: boolean
+              required: false
+              description: Bring your own AiAtlasNexus data
+            - in: query
+              name: isDefinedByTaxonomy
+              schema:
+                type: string
+              required: false
+              description: Filter by taxonomy
+            - in: query
+              name: usecase
+              schema:
+                type: string
+              required: false
+              description: Specify the use case for the inference scope
+            - in: query
+              name: id
+              schema:
+                type: string
+              required: false
+              description: Unique identifier for the resource
+            responses:
+              '200':
+                description: Inference response
+                content:
+                  application/json:
+                    schema:
+                      type: object
+        /schemaview:
+          get:
+            summary: Get schemaview
+            operationId: handlers.schemaview
+            parameters:
+            - in: query
+              name: introspect
+              schema:
+                type: boolean
+              required: false
+              description: Enable introspection for the schemaview scope
+            responses:
+              '200':
+                description: Schemaview response
+                content:
+                  application/json:
+                    schema:
+                      type: object
+        /byo:
+          get:
+            summary: Get Bring your own data file
+            operationId: handlers.byo
+            parameters:
+            - in: query
+              name: filename
+              schema:
+                type: string
+              required: true
+              description: Filename for BYO data operations
+            responses:
+              '200':
+                description: File found and returned
+                content:
+                  application/octet-stream:
+                    schema:
+                      type: string
+                      format: binary
+              '404':
+                description: File not found
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        detail:
+                          type: string
+          put:
+            summary: Upload Bring your own data file
+            operationId: handlers.byo_put
+            security:
+            - ApiKeyAuth: []
+            parameters:
+            - in: query
+              name: filename
+              schema:
+                type: string
+              required: true
+              description: Filename for BYO data operations
+            requestBody:
+              required: true
+              content:
+                application/octet-stream:
+                  schema:
+                    type: string
+                    format: binary
+            responses:
+              '200':
+                description: File uploaded successfully
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        detail:
+                          type: string
+              '400':
+                $ref: '#/components/responses/BadRequest'
+              '413':
+                $ref: '#/components/responses/PayloadTooLarge'
+              '500':
+                $ref: '#/components/responses/InternalError'
+        /ares:
+          post:
+            summary: Run ARES evaluation
+            operationId: handlers.ares
+            requestBody:
+              required: true
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      risks:
+                        type: array
+                        items:
+                          type: object
+                          description: Risk object
+                      inference_engine:
+                        type: string
+                        description: Inference engine identifier
+                      target:
+                        type: object
+                        description: Target dictionary
+            responses:
+              '200':
+                description: ARES evaluation completed
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        result:
+                          type: object
+                          description: Evaluation result

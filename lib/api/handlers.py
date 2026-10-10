@@ -13,7 +13,7 @@ import subprocess
 import tempfile
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 import aiofiles
 import yaml
@@ -26,8 +26,11 @@ from lib.cli.utils import (
     create_typed_fetch_all,
     fetch_by_id_item,
     generic_entity_handler,
+    get_ran_instance,
     initialize_ran,
     clear_ran_cache,
+    validate_and_serialize_entities,
+    validate_taxonomy,
 )
 
 logger = logging.getLogger(__name__)
@@ -116,6 +119,143 @@ def _safe_export_segment(value: str, field: str) -> str:
             detail=f"Invalid value for '{field}': only [A-Za-z0-9._-] allowed.",
         )
     return value
+
+
+# ============================================================================
+# CLASS LISTINGS
+# ============================================================================
+#
+# Every exposed class is served by ``query_class``. The class, its collection in the library
+# and its filters come from lib/api/api.yaml and the schema through ``load_exposure``. The
+# only per-class knowledge kept here is how the library looks records up by a related risk.
+
+
+def _related_adapters(ran, risk_id: str, filters: Dict[str, Any]) -> list:
+    """Adapters carry the risk on ``hasRelatedRisk``, so a plain query finds them."""
+    query = {k: v for k, v in filters.items() if v is not None}
+    return ran.query(class_name="adapters", hasRelatedRisk=risk_id, **query) or []
+
+
+# Class name to the library call that returns its records for one risk id. Each takes the
+# library, the risk id and the other filters, of which only the taxonomy (and the task for
+# intrinsics) reaches the library; the rest are ignored on this path, as they always were.
+RELATED_LOOKUPS: Dict[str, Callable[[Any, str, Dict[str, Any]], list]] = {
+    "Action": lambda ran, risk, f: ran.get_related_actions(
+        id=risk, taxonomy=f.get("isDefinedByTaxonomy")
+    ),
+    "RiskControl": lambda ran, risk, f: ran.get_related_risk_controls(
+        id=risk, taxonomy=f.get("isDefinedByTaxonomy")
+    ),
+    "RiskIncident": lambda ran, risk, f: ran.get_related_risk_incidents(
+        risk_id=risk, taxonomy=f.get("isDefinedByTaxonomy")
+    ),
+    "AiEval": lambda ran, risk, f: ran.get_related_evaluations(
+        risk_id=risk, taxonomy=f.get("isDefinedByTaxonomy")
+    ),
+    "BenchmarkMetadataCard": lambda ran, risk, f: ran.get_benchmark_metadata_cards(
+        risk_id=risk
+    ),
+    "LLMIntrinsic": lambda ran, risk, f: ran.get_related_intrinsics(
+        risk_id=risk, taxonomy=f.get("isDefinedByTaxonomy"), aitask_id=f.get("requiredByTask")
+    ),
+    "Adapter": _related_adapters,
+}
+
+
+def _matches(record: Any, name: str, value: Any) -> bool:
+    """A record matches a filter when the field equals it, or its list holds it."""
+    field = getattr(record, name, None)
+    if field is None:
+        return False
+    if isinstance(field, list):
+        return value in field or str(value) in [str(item) for item in field]
+    return field == value or str(field) == str(value)
+
+
+def _related_records(ran, exposed, risk_id: str, related: bool, filters: Dict[str, Any]) -> list:
+    """Records of ``exposed`` for one risk, or for every risk related to it when ``related``."""
+    lookup = RELATED_LOOKUPS.get(exposed.name)
+    if lookup is None:
+        raise HTTPException(
+            status_code=500, detail=f"No related lookup is defined for {exposed.name}."
+        )
+    try:
+        if not related:
+            return lookup(ran, risk_id, filters) or []
+        records: list = []
+        for risk in ran.get_related_risks(id=risk_id) or []:
+            if risk is not None:
+                records.extend(lookup(ran, risk.id, filters) or [])
+        return records
+    except (AttributeError, TypeError) as exc:
+        # The library fails this way when the risk id does not exist.
+        logger.debug("Related lookup for %s with %s failed: %s", exposed.name, risk_id, exc)
+        return []
+
+
+def query_class(
+    class_name: str,
+    *,
+    byod: bool = False,
+    id: Optional[str] = None,
+    related: bool = False,
+    related_ids: bool = False,
+    **filters: Any,
+) -> Dict[str, Any]:
+    """List, filter or fetch the records of one exposed class.
+
+    ``filters`` are slot names of the class with the value a record must carry. With ``id``
+    the answer is ``{"item": record}``; otherwise it is the envelope the web UI reads,
+    ``{"items", "count", "validation_errors"}``. ``hasRelatedRisk`` on a class marked
+    ``related`` in api.yaml switches to the library's related-risk lookup, and ``related``
+    widens that to every risk related to the given one. A risk's own ``id`` with ``related``
+    returns the risks related to it.
+    """
+    from lib.api.exposure import load_exposure
+
+    exposed = load_exposure().classes.get(class_name)
+    if exposed is None:
+        raise HTTPException(status_code=404, detail=f"{class_name} is not exposed.")
+    unknown = sorted(set(filters) - set(exposed.slot_names) - {"hasRelatedRisk"})
+    if unknown:
+        raise HTTPException(
+            status_code=422, detail=f"{class_name} has no filter named {', '.join(unknown)}."
+        )
+    ran = get_ran_instance(byod)
+    taxonomy = filters.get("isDefinedByTaxonomy")
+    if taxonomy:
+        validate_taxonomy(ran, taxonomy)
+    model_cls = _get_model(class_name)
+    active = {k: v for k, v in filters.items() if v is not None}
+    risk_id = active.pop("hasRelatedRisk", None) if exposed.related else None
+
+    try:
+        if class_name == "Risk" and id and (related or related_ids):
+            records = ran.get_related_risks(id=id, taxonomy=taxonomy) or []
+            # The library ignores its taxonomy argument, so apply it here.
+            if taxonomy:
+                records = [r for r in records if r.isDefinedByTaxonomy == taxonomy]
+        elif risk_id is not None:
+            records = _related_records(ran, exposed, risk_id, related or related_ids, active)
+        else:
+            records = [
+                r
+                for r in (ran.query(class_name=exposed.collection) or [])
+                if isinstance(r, model_cls)
+                and all(_matches(r, k, v) for k, v in active.items())
+            ]
+            if id:
+                record = next((r for r in records if getattr(r, "id", None) == id), None)
+                return {"item": record.model_dump() if record is not None else None}
+        if related_ids:
+            records = [r.id for r in records if hasattr(r, "id")]
+        serialized, errors, _ = validate_and_serialize_entities(records, model_cls)
+        return {"items": serialized, "count": len(serialized), "validation_errors": errors}
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("query_class failed for %s", class_name)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch {class_name}.")
 
 
 def actions(
