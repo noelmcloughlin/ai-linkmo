@@ -1,6 +1,6 @@
-# Working with the data: bring your own, crosswalk, graph
+# Working with the data: bring your own, crosswalk, search, graph
 
-[The README's Quick start](../README.md#quick-start) gets the API, the web UI and the CLI running. These are the three things to do next with the data.
+[The README's Quick start](../README.md#quick-start) gets the API, the web UI and the CLI running. These are the four things to do next with the data.
 
 ## Bring your own data
 
@@ -22,6 +22,18 @@ A crosswalk is computed from the data, not kept by hand in a spreadsheet. That i
 ```bash
 ./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod
 ```
+
+## Search and dumps
+
+The store has a text index. `just load-store` builds the store and `just index-store` builds the index, a trigram index over each record's id, name and description kept in the same DuckDB files, in about half a minute for the packaged data and one minute for the set with your files. Then:
+
+```bash
+./ai search --q 'toxic output' --scope risk
+```
+
+`--scope` names one scope, `control` say, and covers its subclasses; without it every exposed class is searched. `--limit` cuts the list, 20 by default, and `--byod` searches the store that includes your files. The same operation is `GET /search?q=toxic+output&scope=risk`; each item is the record with its `score` and `type`. A scope whose index is missing answers 409 and says to run `just index-store`; run it again after `just load-store`, which rebuilds the files without the index.
+
+`just dump-store` writes the store as YAML under `lib/store/data/dump`, `atlas.yaml` and `byod.yaml`, one key per class with its records under it, so the merged view of the data can be read or diffed without DuckDB. `uv run python scripts/dump_store.py <dir> --format json` writes JSON instead.
 
 ## Graph database
 
