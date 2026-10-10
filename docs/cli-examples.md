@@ -1,6 +1,6 @@
 # CLI examples: every entity type, one command away
 
-Most of the commands below are test cases in [lib/test/test_cli_examples.py](../lib/test/test_cli_examples.py), run in both API mode and local mode. `--count` prints the number of matches; drop it to see the records. The CLI is generated from [lib/api/openapi.yaml](../lib/api/openapi.yaml), so `./ai <scope> -h` always shows the current flags.
+Most of the commands below are test cases in [lib/test/test_cli_examples.py](../lib/test/test_cli_examples.py), run in both API mode and local mode. `--count` prints the number of matches; drop it to see the records. The CLI is generated from the schema and [lib/api/api.yaml](../lib/api/api.yaml), which names the classes it exposes, so `./ai <scope> -h` lists one filter per slot of the class and is always current.
 
 A few flags recur. `--byod` adds the bring-your-own-data frameworks under `byo/data/` to the packaged ontology (see [Bring your own data](working-with-the-data.md#bring-your-own-data)). `--related` returns the related records; `--related_ids` returns only their ids. API mode, the default, sends each command through the running API; local mode, `--mode local`, loads the ontology in-process.
 
@@ -119,7 +119,7 @@ A few flags recur. `--byod` adds the bring-your-own-data frameworks under `byo/d
 ./ai dataset CybersecurityBenchmarks_datasets_frr --count
 ./ai dataset --hasLicense license-apache-2.0 --count
 ./ai dataset --hasDocumentation repo_nyu-mll_BBQ --count
-./ai dataset --provider bigcode --count
+./ai dataset --isProvidedBy bigcode --count
 ```
 
 ## Adapters
@@ -246,7 +246,7 @@ A few flags recur. `--byod` adds the bring-your-own-data frameworks under `byo/d
 ## Export cypher queries (Neo4J integration)
 
 ```bash
-./ai graph cypher --export --byod --count
+./ai graph cypher --export
 ```
 
 ## Export full Knowledge Graph
@@ -255,4 +255,4 @@ A few flags recur. `--byod` adds the bring-your-own-data frameworks under `byo/d
 ./ai graph --export --byod --count
 ```
 
-The complete list of tested commands, with the count each is expected to return, is in [lib/test/test_cli_examples.py](../lib/test/test_cli_examples.py). The two export commands write into `graph/`. The Cypher one reads the packaged ontology only, so `--byod` does not change its output (see [Status and caveats](status.md)).
+The complete list of tested commands, with the count each is expected to return, is in [lib/test/test_cli_examples.py](../lib/test/test_cli_examples.py). The two export commands write into `graph/`. The Cypher one downloads the export that ai-atlas-nexus publishes for the installed version, which is built from the packaged data alone, so `--byod` is refused with a 400 (see [Neo4j](neo4j.md)).

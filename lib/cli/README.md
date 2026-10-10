@@ -1,55 +1,46 @@
-# CLI Architecture - OpenAPI as Single Source of Truth
+# CLI Architecture - one command per exposed class
 
 ## Overview
 
 This demo CLI provides command-line access to AI-LinkMO.
 
-The OpenAPI specification (`lib/api/openapi.yaml`) is the **single source of truth** for all endpoints and parameters, used by CLI (`lib/cli`) and API (`lib/api`) for consistency and maintainability.
+The command tree is built from data. `lib/api/api.yaml` names the ontology classes the project exposes and the operations written by hand; the LinkML schema inside the installed `ai_atlas_nexus` package gives each class its slots. `lib/api/exposure.py` joins the two, and `cli.py` turns the result into one click command per exposed class, with one option per slot, plus one command per hand path (`graph`, `crosswalk`, `inference`, `schemaview`, `byo`, `ares`). The API kernel in `lib/api/server_kernel.py` reads the same view, so the CLI and the API cannot drift apart.
 
 ```ascii
 
 lib/cli/
-├── cli.py              # Main CLI tool (dynamically reads OpenAPI)
-├── utils.py            # Helper utilities
+├── cli.py              # The click command tree, built from the exposure
+├── utils.py            # Output, server detection and the cached library instance
 └── README.md           # This file
 ```
 
-CLI parameter metadata is extracted (`extract_parameters_from_spec()`) from the OpenAPI specification for consistency across both API and CLI.
+Option names are the schema's slot names unchanged, so `--isDefinedByTaxonomy` means the same thing on every scope and in the API. An enum slot offers its permissible values and rejects anything else with exit code 2; an enum without values, such as `hasJurisdiction`, is a free string. A multivalued slot still takes one value, and a record matches when its list holds it.
 
-The schema is converted to argparse format (`schema_to_argparse_config()`) preserving parameter names and descriptions, and the argparse configuration is dynamically created (`create_argument_parser()`).
-
-Parameters added, removed, or modified in `lib/api/openapi.yaml` are automatically handled by the CLI.
+A slot added upstream becomes a filter here without a code change. Adding or removing a class is one entry in `lib/api/api.yaml`.
 
 ## Usage
 
 ```bash
-# CLI automatically reads from OpenAPI spec
-./ai risk --taxonomy nist-ai-rmf
+# One scope per exposed class
+./ai risk --isDefinedByTaxonomy nist-ai-rmf
 
-# View all available parameters (from OpenAPI)
+# The scopes
 ./ai --help
 
-# Verbose mode shows all parsed parameters
-./ai risk --verbose
-
-# Show only parameters relevant to 'risk' endpoint
+# The filters of one scope, one per slot of the class
 ./ai risk --help
-
-# Show only parameters relevant to 'model' endpoint  
 ./ai model --help
 
-# Show all parameters from all endpoints
-./ai --help
+# One record by id, and the records related to it
+./ai risk atlas-toxic-output
+./ai risk atlas-toxic-output --related
+
+# Verbose mode shows the parsed arguments and the library's log messages
+./ai risk --verbose
 ```
 
-**Validation:**
-Validate all handlers match OpenAPI spec:
-
-```bash
-uv run python lib/test/validate_handlers.py
-uv run python lib/test/validate_handlers.py --strict
-uv run python lib/test/validate_handlers.py --verbose
-```
+**Checks:**
+`lib/test/test_cli_kernel.py` checks that every exposed class is a command whose options are exactly its parameters, and `lib/test/test_exposure.py` checks that every parameter is a slot of its class.
 
 ## Status
 
@@ -67,7 +58,7 @@ uv run python lib/test/validate_handlers.py --verbose
 
 The CLI computes its default API base URL with `_resolve_default_api_base_url`:
 
-- Unset `AI_ATLAS_API_URL` -> `http://localhost:8000`.
+- When `AI_ATLAS_API_URL` is unset, the default is `http://localhost:8000`.
 - `AI_ATLAS_API_URL` pointing at `localhost`, `127.0.0.1`, `::1`, or
   `0.0.0.0` is accepted unconditionally.
 - A non-local host requires `AI_ATLAS_API_URL_ALLOW_REMOTE=1`; without
@@ -92,8 +83,8 @@ the next call simply re-tries the configured URL).
 - Logging configuration runs from `main()` (not at module import time)
   and only quiets `ai_atlas_nexus` / `linkml` loggers, leaving the rest
   of the application's logging untouched.
-- `EXCLUDED_PARAMS` is imported from `lib.api.constants` so the API and
-  CLI agree on which CLI-only flags must never reach the backend.
+- The shared options (`--mode`, `--timeout`, `--count`, `--verbose`,
+  `--pretty`) are resolved by the CLI and never reach a handler or the server.
 
 ### Tests
 
@@ -108,4 +99,6 @@ New suites added in this iteration:
 - `lib/test/test_api_url_resolution.py` - unit tests for the env-var allowlist.
 - `lib/test/test_byo_put.py` - traversal / suffix / oversize / malformed-YAML on `PUT /byo`.
 - `lib/test/test_endpoints.py` - `/version`, `/ready`, `/classes`, `/inference`, `Cache-Control`.
-- `lib/test/test_validate_handlers.py` - pytest shim for the OpenAPI<->handler drift check.
+- `lib/test/test_cli_kernel.py` - the command tree matches the exposure.
+- `lib/test/test_api_kernel.py` - the generated endpoints and the published `/openapi.json`.
+- `lib/test/test_exposure.py` - the exposure file, the schema and the library agree.

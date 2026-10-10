@@ -1,5 +1,5 @@
-# generated part of documentation
-/docs/elements/*.md
+# The schema's pages and their examples, written by `just gen-doc`, never committed.
+/docs/elements/
 # linkml-run-examples output (not useful to have in git in its current form)
 /examples/output/
 
@@ -146,3 +146,13 @@ dmypy.json
 .agents/
 .claude/
 skills-lock.json
+
+# The Cypher export is fetched from ai-atlas-nexus by `just fetch-cypher`, never committed.
+graph/cypher/ai-risk-ontology.cypher
+graph/cypher/*.part
+
+# The DuckDB store and its linkml-store config are built by `just load-store`, never committed.
+lib/store/data/
+
+# The SQLite databases, their DDL and their Datasette metadata are built by `just build-browse`.
+lib/browse/data/

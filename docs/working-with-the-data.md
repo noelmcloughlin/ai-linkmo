@@ -1,6 +1,6 @@
-# Working with the data: bring your own, crosswalk, graph
+# Working with the data: bring your own, crosswalk, search, browse, graph
 
-[The README's Quick start](../README.md#quick-start) gets the API, the web UI and the CLI running. These are the three things to do next with the data.
+[The README's Quick start](../README.md#quick-start) gets the API, the web UI and the CLI running. These are the things to do next with the data.
 
 ## Bring your own data
 
@@ -23,12 +23,45 @@ A crosswalk is computed from the data, not kept by hand in a spreadsheet. That i
 ./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod
 ```
 
-## Graph database
+## Search and dumps
 
-Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. One command exports the schema and the data as Cypher:
+The store has a text index. `just load-store` builds the store and `just index-store` builds the index, a trigram index over each record's id, name and description kept in the same DuckDB files, in about half a minute for the packaged data and one minute for the set with your files. Then:
 
 ```bash
-./ai graph cypher --export --byod
+./ai search --q 'toxic output' --scope risk
 ```
 
-The export reads the packaged ontology, so it shows the open frameworks; `--byod` does not add your uploads to it ([Status and caveats](status.md)). To load it into Neo4j in a container and look at it in the browser: [neo4j.md](neo4j.md).
+`--scope` names one scope, `control` say, and covers its subclasses; without it every exposed class is searched. `--limit` cuts the list, 20 by default, and `--byod` searches the store that includes your files. The same operation is `GET /search?q=toxic+output&scope=risk`; each item is the record with its `score` and `type`. A scope whose index is missing answers 409 and says to run `just index-store`; run it again after `just load-store`, which rebuilds the files without the index.
+
+`just dump-store` writes the store as YAML under `lib/store/data/dump`, `atlas.yaml` and `byod.yaml`, one key per class with its records under it, so the merged view of the data can be read or diffed without DuckDB. `uv run python scripts/dump_store.py <dir> --format json` writes JSON instead.
+
+## Browse the data
+
+[Datasette](https://datasette.io/) gives every class a table you can filter, facet, search and export. Two recipes set it up:
+
+```bash
+just build-browse
+just browse
+```
+
+`just build-browse` writes two SQLite databases under `lib/browse/data`: `atlas.sqlite` holds the packaged data and `byod.sqlite` adds your files from `byo/data`. It takes about twenty seconds the first time and ten after that, because the table definitions are kept until the schema changes. `just browse` serves them on <http://127.0.0.1:8001>, and builds them first if they are missing. Both recipes install the `browse` extra, Datasette and sqlite-utils, through uv.
+
+The tables follow the schema. LinkML's `gen-sqltables` generator makes one table per class, abstract parents included, and a link table such as `Risk_hasRelatedAction` for each multivalued slot. Each record is written to its own class's table and to the table of every class above it, so `Taxonomy` lists every taxonomy, whatever its class. A reference points at the table of the class its slot names. A risk's taxonomy therefore links to that taxonomy's row in `Taxonomy`, and the risks that cite it are listed under *Links from other tables* on that row, not on its `RiskTaxonomy` row. Empty class tables are hidden behind the *hidden tables* link, and empty link tables are left out.
+
+`lib/browse/data/metadata.yaml` is written from the schema in the same build. It describes each table and column from its class and slot, shows each record by its name wherever another row links to it, and offers facets on enum and reference columns with few values. Search covers each table's name and description, and every page has a JSON and a CSV form. The build lists the references that name a record the data does not hold, such as 20 risks whose risk group is missing.
+
+A database's front page takes two or three seconds, since Datasette looks at each of its few hundred tables; table and row pages answer at once.
+
+## The schema's pages, with examples
+
+`just gen-doc` writes the schema's pages to `docs/elements` with LinkML's `gen-doc`, one page per class, slot, enum and type. Each class page has an *Examples* section with a record from the data: for every concrete class that has records, the record whose identifier sorts first. `just gen-examples`, which `just gen-doc` runs first, writes those examples to `docs/elements/examples` and validates each against its class, and the recipe stops if one fails. Abstract classes get no example, although the data holds a few records of `Certification`, `Group` and `Taxonomy`. Nothing under `docs/elements` is committed.
+
+## Graph database
+
+Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. The project generates no Cypher of its own; one command fetches the Cypher export that ai-atlas-nexus publishes, at the release tag of the installed package:
+
+```bash
+just fetch-cypher
+```
+
+`./ai graph cypher --export` does the same through the API. The artefact is built upstream from the packaged ontology, so it shows the open frameworks and cannot include your uploads; `--byod` is refused there rather than ignored ([Status and caveats](status.md)). To load it into Neo4j in a container and look at it in the browser, with the artefact's provenance header and known defects: [neo4j.md](neo4j.md).

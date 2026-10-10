@@ -1,0 +1,532 @@
+{
+  "generated_by": "just gen-ui-config",
+  "source": "lib/api/api.yaml",
+  "ai_atlas_nexus": "1.2.5",
+  "endpoints": [
+    {
+      "key": "taxonomy",
+      "path": "/taxonomy",
+      "label": "Risk Taxonomies",
+      "type": "RiskTaxonomy",
+      "byo": "taxonomies",
+      "description": "A taxonomy of AI system related risks",
+      "filters": [
+        "hasDocumentation",
+        "hasLicense",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasDocumentation",
+        "hasLicense",
+        "hasLifecycleStatus"
+      ]
+    },
+    {
+      "key": "obligation",
+      "path": "/obligation",
+      "label": "Control Activity Obligations",
+      "type": "ControlActivityObligation",
+      "byo": "obligations",
+      "description": "A control activity (rule) describing an obligation for performing an activity",
+      "filters": [
+        "hasControlApplication",
+        "hasEvidenceCategory",
+        "isApplicableToCapability",
+        "hasRequirement",
+        "hasRequirementType",
+        "isDefinedByTaxonomy",
+        "hasRule",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasControlApplication",
+        "hasEvidenceCategory",
+        "isApplicableToCapability"
+      ]
+    },
+    {
+      "key": "recommendation",
+      "path": "/recommendation",
+      "label": "Control Activity Recommendations",
+      "type": "ControlActivityRecommendation",
+      "byo": "rules",
+      "description": "A control activity (rule) describing a recommendation for performing an activity",
+      "filters": [
+        "hasControlApplication",
+        "hasEvidenceCategory",
+        "isApplicableToCapability",
+        "hasRequirement",
+        "hasRequirementType",
+        "isDefinedByTaxonomy",
+        "hasRule",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasControlApplication",
+        "hasEvidenceCategory",
+        "isApplicableToCapability"
+      ]
+    },
+    {
+      "key": "risk",
+      "path": "/risk",
+      "label": "Risks",
+      "type": "Risk",
+      "byo": "entries",
+      "description": "The state of uncertainty associated with an AI system, that has the potential to cause harms",
+      "filters": [
+        "hasRelatedAction",
+        "isDefinedByTaxonomy",
+        "isPartOf",
+        "detectsRiskConcept",
+        "isDetectedBy",
+        "isMitigatedBy",
+        "isUsedWithinLocality",
+        "isDefinedByVocabulary"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasRelatedAction",
+        "isDefinedByTaxonomy",
+        "isPartOf"
+      ]
+    },
+    {
+      "key": "group",
+      "path": "/group",
+      "label": "Groups",
+      "type": "Group",
+      "byo": "groups",
+      "description": "Labelled groups of concepts.",
+      "filters": [
+        "isDefinedByTaxonomy",
+        "hasDocumentation",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "isDefinedByTaxonomy",
+        "hasDocumentation",
+        "hasLifecycleStatus"
+      ]
+    },
+    {
+      "key": "action",
+      "path": "/action",
+      "label": "Actions",
+      "type": "Action",
+      "byo": "actions",
+      "description": "Action to remediate a risk",
+      "filters": [
+        "hasRelatedRisk",
+        "hasDocumentation",
+        "isDefinedByTaxonomy",
+        "detectsRiskConcept",
+        "mitigatesRiskConcept",
+        "isDetectedBy",
+        "isMitigatedBy",
+        "isUsedWithinLocality"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasRelatedRisk",
+        "hasDocumentation",
+        "isDefinedByTaxonomy"
+      ]
+    },
+    {
+      "key": "control",
+      "path": "/control",
+      "label": "Risk Controls",
+      "type": "RiskControl",
+      "byo": "controls",
+      "description": "A measure that maintains and/or modifies risk (and risk concepts)",
+      "filters": [
+        "detectsRiskConcept",
+        "mitigatesRiskConcept",
+        "isDefinedByTaxonomy",
+        "isDetectedBy",
+        "isMitigatedBy",
+        "isUsedWithinLocality",
+        "isApplicableinLocality",
+        "hasExternalReference"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "detectsRiskConcept",
+        "mitigatesRiskConcept",
+        "isDefinedByTaxonomy"
+      ]
+    },
+    {
+      "key": "incident",
+      "path": "/incident",
+      "label": "Risk Incidents",
+      "type": "RiskIncident",
+      "byo": "riskincidents",
+      "description": "An event occuring or occured which is a realised or materialised risk.",
+      "filters": [
+        "refersToRisk",
+        "isDefinedByTaxonomy",
+        "hasStatus",
+        "hasSeverity",
+        "hasLikelihood",
+        "hasImpactOn",
+        "hasConsequence",
+        "hasImpact"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "refersToRisk",
+        "isDefinedByTaxonomy",
+        "hasStatus"
+      ]
+    },
+    {
+      "key": "model",
+      "path": "/model",
+      "label": "Large Language Models",
+      "type": "LargeLanguageModel",
+      "byo": "aimodels",
+      "description": "A large language model (LLM) is an AI model which supports a range of language-related tasks such as generation, summarization, classification, among others. A LLM is implemented as an artificial neural networks using a transformer architecture.",
+      "filters": [
+        "hasInputModality",
+        "hasOutputModality",
+        "hasTrainingData",
+        "isPartOf",
+        "hasEvaluation",
+        "hasRiskControl",
+        "isProducedBy",
+        "hasDocumentation"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasInputModality",
+        "hasOutputModality",
+        "hasTrainingData"
+      ]
+    },
+    {
+      "key": "task",
+      "path": "/task",
+      "label": "Ai Tasks",
+      "type": "AiTask",
+      "byo": "aitasks",
+      "description": "A task, such as summarization and classification, performed by an AI.",
+      "filters": [
+        "requiresCapability",
+        "isDefinedByTaxonomy",
+        "isDefinedByVocabulary",
+        "hasDocumentation",
+        "hasExternalReference",
+        "hasRule",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "requiresCapability",
+        "isDefinedByTaxonomy",
+        "isDefinedByVocabulary"
+      ]
+    },
+    {
+      "key": "evaluation",
+      "path": "/evaluation",
+      "label": "Ai Evals",
+      "type": "AiEval",
+      "byo": "evaluations",
+      "description": "An AI Evaluation, e.g. a metric, benchmark, unitxt card evaluation, a question or a combination of such entities.",
+      "filters": [
+        "hasDocumentation",
+        "hasDataset",
+        "hasLicense",
+        "hasRelatedRisk",
+        "hasBenchmarkMetadata",
+        "isComposedOf",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasDocumentation",
+        "hasDataset",
+        "hasLicense"
+      ]
+    },
+    {
+      "key": "dataset",
+      "path": "/dataset",
+      "label": "Datasets",
+      "type": "Dataset",
+      "byo": "datasets",
+      "description": "A body of structured information describing some topic(s) of interest.",
+      "filters": [
+        "hasLicense",
+        "hasDocumentation",
+        "isProvidedBy",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasLicense",
+        "hasDocumentation",
+        "isProvidedBy"
+      ]
+    },
+    {
+      "key": "adapter",
+      "path": "/adapter",
+      "label": "Adapters",
+      "type": "Adapter",
+      "byo": "adapters",
+      "description": "Adapter-based methods add extra trainable parameters after the attention and fully-connected layers of a frozen pretrained model to reduce memory-usage and speed up training. The adapters are typically small but demonstrate comparable performance to a fully finetuned model and enable training larger models with fewer resources. (https://huggingface.co/docs/peft/en/conceptual_guides/adapter)",
+      "filters": [
+        "hasAdapterType",
+        "isDefinedByVocabulary",
+        "hasDocumentation",
+        "hasLicense",
+        "hasRelatedRisk",
+        "adaptsModel",
+        "implementsCapability",
+        "hasCapability"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasAdapterType",
+        "isDefinedByVocabulary",
+        "hasDocumentation"
+      ]
+    },
+    {
+      "key": "intrinsic",
+      "path": "/intrinsic",
+      "label": "LLM Intrinsics",
+      "type": "LLMIntrinsic",
+      "byo": "llmintrinsics",
+      "description": "A capability that can be invoked through a well-defined API that is reasonably stable and independent of how the LLM intrinsic itself is implemented.",
+      "filters": [
+        "hasRelatedRisk",
+        "hasRelatedTerm",
+        "hasDocumentation",
+        "isDefinedByVocabulary",
+        "hasAdapter",
+        "hasCapability",
+        "implementsCapability",
+        "isDefinedByTaxonomy"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasRelatedRisk",
+        "hasRelatedTerm",
+        "hasDocumentation"
+      ]
+    },
+    {
+      "key": "organization",
+      "path": "/organization",
+      "label": "Organizations",
+      "type": "Organization",
+      "byo": "organizations",
+      "description": "Any organizational entity such as a corporation, educational institution, consortium, government, etc.",
+      "filters": [
+        "grants_license",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "grants_license",
+        "hasLifecycleStatus"
+      ]
+    },
+    {
+      "key": "document",
+      "path": "/document",
+      "label": "Documents",
+      "type": "Documentation",
+      "byo": "documents",
+      "description": "Documented information about a concept or other topic(s) of interest.",
+      "filters": [
+        "hasLicense",
+        "isCategorizedAs",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasLicense",
+        "isCategorizedAs",
+        "hasLifecycleStatus"
+      ]
+    },
+    {
+      "key": "stakeholder",
+      "path": "/stakeholder",
+      "label": "Stakeholders",
+      "type": "Stakeholder",
+      "byo": "stakeholders",
+      "description": "Represents any individual, group or organization that can affect, be affected by or perceive itself to be affected by a decision or activity.",
+      "filters": [
+        "isDefinedByTaxonomy",
+        "isPartOf",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "isDefinedByTaxonomy",
+        "isPartOf",
+        "hasLifecycleStatus"
+      ]
+    },
+    {
+      "key": "questionpolicy",
+      "path": "/questionpolicy",
+      "label": "LLM Question Policies",
+      "type": "LLMQuestionPolicy",
+      "byo": "policies",
+      "description": "The policy guides how the language model should answer a diverse set of sensitive questions.",
+      "filters": [
+        "hasRule",
+        "isDefinedByTaxonomy",
+        "isApplicableinLocality",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasRule",
+        "isDefinedByTaxonomy",
+        "isApplicableinLocality"
+      ]
+    },
+    {
+      "key": "principle",
+      "path": "/principle",
+      "label": "Principles",
+      "type": "Principle",
+      "byo": "entries",
+      "description": "A representation of values or norms that must be taken into consideration when conducting activities.",
+      "filters": [
+        "hasDocumentation",
+        "isDefinedByTaxonomy",
+        "isDefinedByVocabulary",
+        "hasExternalReference",
+        "hasRule",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasDocumentation",
+        "isDefinedByTaxonomy",
+        "isDefinedByVocabulary"
+      ]
+    },
+    {
+      "key": "benchmarkcard",
+      "path": "/benchmarkcard",
+      "label": "Benchmark Metadata Cards",
+      "type": "BenchmarkMetadataCard",
+      "byo": "benchmarkmetadatacards",
+      "description": "Benchmark metadata cards offer a standardized way to document LLM benchmarks clearly and transparently. Inspired by Model Cards and Datasheets, Benchmark metadata cards help researchers and practitioners understand exactly what benchmarks test, how they relate to real-world risks, and how to interpret their results responsibly. This is an implementation of the design set out in BenchmarkCards: Large Language Model and Risk Reporting (https://doi.org/10.48550/arXiv.2410.12974)",
+      "filters": [
+        "describesAiEval",
+        "hasRelatedRisk",
+        "hasLicense",
+        "hasDocumentation",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "describesAiEval",
+        "hasRelatedRisk",
+        "hasLicense"
+      ]
+    },
+    {
+      "key": "vocabulary",
+      "path": "/vocabulary",
+      "label": "Vocabularies",
+      "type": "Vocabulary",
+      "byo": "vocabularies",
+      "description": "A collection of terms, with their definitions and relationships.",
+      "filters": [
+        "hasDocumentation",
+        "hasLicense",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasDocumentation",
+        "hasLicense",
+        "hasLifecycleStatus"
+      ]
+    },
+    {
+      "key": "requirement",
+      "path": "/requirement",
+      "label": "Requirements",
+      "type": "Requirement",
+      "byo": "rules",
+      "description": "A requirement representing a combination of obligation, permission, or prohibition for AI system assurance.",
+      "filters": [
+        "hasApplication",
+        "hasFrequency",
+        "hasPrinciple",
+        "isApplicableToCapability",
+        "hasRequirementType",
+        "isDefinedByTaxonomy",
+        "hasRule",
+        "hasLifecycleStatus"
+      ],
+      "prominent": [
+        "id",
+        "name",
+        "description",
+        "hasApplication",
+        "hasFrequency",
+        "hasPrinciple"
+      ]
+    }
+  ]
+}

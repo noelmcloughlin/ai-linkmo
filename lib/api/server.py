@@ -1,8 +1,8 @@
-"""
-AI-LinkMO FastAPI Server (Dynamic Generation)
+"""The AI-LinkMO FastAPI application.
 
-Server to automatically generate all endpoints.
-Uses the OpenAPI spec as single source of truth.
+The class listings and the hand-written operations are registered at startup by
+``lib/api/server_kernel.py`` from the exposure file and the ontology schema. This module
+holds the app itself: CORS, caching, the probes and the cached ``AIAtlasNexus`` instances.
 """
 
 import logging
@@ -15,11 +15,11 @@ from ai_atlas_nexus import AIAtlasNexus
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from lib.api import handlers
-from lib.api.server_dynamic import register_endpoints_from_openapi
+from lib.api.server_kernel import register_class_endpoints, register_hand_endpoints
 
 logger = logging.getLogger(__name__)
 
@@ -82,11 +82,14 @@ async def lifespan(app: FastAPI):
 
     Creates and caches AIAtlasNexus instances that are reused across all requests
     for optimal performance. Instances are stateless for read operations.
-    Also registers dynamic endpoints from OpenAPI spec.
+    Also registers the endpoints, at startup rather than on import so that importing
+    this module stays cheap for the CLI.
     """
-    # Register dynamic endpoints from OpenAPI spec (only at server startup, not on import)
-    logger.info("Generating endpoints from OpenAPI specification...")
-    register_endpoints_from_openapi(app, verbose=True)
+    logger.info(
+        "Registered %d class listings and %d hand-written operations",
+        register_class_endpoints(app),
+        register_hand_endpoints(app),
+    )
     logger.info("Initializing AIAtlasNexus instances...")
     # The default instance is required - if it fails to build the API can't
     # serve any real traffic. Surface that as a startup failure rather than
@@ -116,7 +119,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="AI-LinkMO API Demo",
-    description="REST API for AI-LinkMO Demo operations (dynamically generated from OpenAPI spec)",
+    description=(
+        "REST API over the AI Risk Ontology. One listing per exposed class, with the "
+        "class's slots as filters, beside the graph, crosswalk, inference and upload operations."
+    ),
     lifespan=lifespan,
 )
 
@@ -134,6 +140,31 @@ app.add_middleware(CacheControlMiddleware)
 def redirect_root():
     """Redirect root to API documentation."""
     return RedirectResponse(url="/docs")
+
+
+# Scalar is a third API reference beside FastAPI's Swagger UI at /docs and ReDoc at /redoc.
+# It reads the same /openapi.json. The script comes from a CDN, so the page needs the
+# network to render but adds no dependency to the project.
+_SCALAR_PAGE = """<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI-LinkMO API reference</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+    <script>Scalar.createApiReference("#app", { url: "/openapi.json" });</script>
+  </body>
+</html>
+"""
+
+
+@app.get("/scalar", include_in_schema=False)
+def scalar_reference():
+    """The Scalar API reference over the published contract."""
+    return HTMLResponse(_SCALAR_PAGE)
 
 
 @app.get("/health", include_in_schema=False)
@@ -232,7 +263,3 @@ def get_classes(
     )
     return JSONResponse(content=jsonable_encoder(result))
 
-
-# === DYNAMIC ENDPOINT GENERATION ===
-# All 27+ API endpoints are automatically registered from OpenAPI spec in the lifespan function
-# This happens at server startup, not at module import time (for faster CLI performance)

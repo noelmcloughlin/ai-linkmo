@@ -15,6 +15,10 @@
     "test": "npm run test:unit -- --run"
   },
   "dependencies": {
+    "@sjsf/ajv8-validator": "3.9.0",
+    "@sjsf/daisyui5-theme": "3.9.0",
+    "@sjsf/form": "3.9.0",
+    "ajv": "8.20.0",
     "daisyui": "^5.7.46",
     "debounce": "^3.0.0",
     "js-yaml": "^4.1.1",

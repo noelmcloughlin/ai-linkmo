@@ -1,19 +1,22 @@
-"""Business logic for AI-LinkMO API handlers.
+"""The handlers behind the API's endpoints.
 
-Usage:
-    from lib.api.handlers import actions, evaluations, ...
+``query_class`` answers every class listing that ``lib/api/api.yaml`` exposes; the API
+kernel in ``lib/api/server_kernel.py`` routes each listing to it, and the CLI calls it
+directly in local mode. The functions after it, ``graph``, ``schemaview``, ``crosswalk``,
+``ares``, ``inference``, ``byo`` and ``byo_put``, are the hand-written operations the
+overlay of the same file describes.
 
-Bug: python -c "from ai_atlas_nexus import AIAtlasNexus"  # Hangs
+Importing ``ai_atlas_nexus`` at module level hangs in some environments, so the ontology
+models are resolved lazily through ``_get_model``.
 """
 import logging
 import os
 import re
 import shutil
-import subprocess
 import tempfile
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 import aiofiles
 import yaml
@@ -21,13 +24,11 @@ from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse
 
 from lib.cli.utils import (
-    create_related_fetch_all,
-    create_standard_fetch_all,
-    create_typed_fetch_all,
-    fetch_by_id_item,
-    generic_entity_handler,
-    initialize_ran,
     clear_ran_cache,
+    get_ran_instance,
+    initialize_ran,
+    validate_and_serialize_entities,
+    validate_taxonomy,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,10 +38,9 @@ logger = logging.getLogger(__name__)
 # directory of whoever launched uvicorn / pytest / the CLI.
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 _GRAPH_DIR = _PROJECT_ROOT / "graph"
-_GRAPH_EXPORT_SCRIPT = _GRAPH_DIR / "cypher" / "export.py"
 _GRAPH_DEFAULT_YAML = _GRAPH_DIR / "ai-risk-ontology.yaml"
-# Subprocess timeout (seconds) for the cypher exporter helper script.
-_GRAPH_EXPORT_TIMEOUT = 300
+# Where scripts/fetch_cypher.py saves the Cypher export that ai-atlas-nexus publishes.
+_GRAPH_CYPHER = _GRAPH_DIR / "cypher" / "ai-risk-ontology.cypher"
 
 # Constants
 BYO_BASE_DIR = (_PROJECT_ROOT / "byo" / "data").resolve()
@@ -118,776 +118,229 @@ def _safe_export_segment(value: str, field: str) -> str:
     return value
 
 
-def actions(
-    byod: bool = False,
-    id: Optional[str] = None,
-    type: Optional[str] = None,
-    hasAiActorTask: Optional[str] = None,
-    isDefinedByTaxonomy: Optional[str] = None,
-    hasDocumentation: Optional[str] = None,
-    related: bool = False,
-    related_ids: bool = False,
-    hasRelatedRisk: Optional[str] = None
-) -> Dict[str, Any]:
-    """Handler to retrieve Action entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Action
-
-    return generic_entity_handler(
-        entity_name="actions",
-        model_cls=Action,
-        fetch_all=create_related_fetch_all(
-            related_method_name='get_related_actions',
-            related_method_params=['isDefinedByTaxonomy'],
-            related_param_mappings={'isDefinedByTaxonomy': 'taxonomy'}
-        ),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        type=type,
-        hasAiActorTask=hasAiActorTask,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        hasDocumentation=hasDocumentation,
-        hasRelatedRisk=hasRelatedRisk,
-        related=related,
-        related_ids=related_ids
-    )
+# ============================================================================
+# CLASS LISTINGS
+# ============================================================================
+#
+# Every exposed class is served by ``query_class``. The class and its filters come from
+# lib/api/api.yaml and the schema through ``load_exposure``. The
+# only per-class knowledge kept here is how the library looks records up by a related risk.
 
 
-def evaluations(
-    byod: bool = False,
-    id: Optional[str] = None,
-    hasDataset: Optional[str] = None,
-    hasTasks: Optional[str] = None,
-    hasLicense: Optional[str] = None,
-    benchmarkmetadata: Optional[str] = None,
-    unitxcard: Optional[str] = None,
-    hasDocumentation: Optional[str] = None,
-    hasRelatedRisk: Optional[str] = None,
-    related: bool = False,
-    related_ids: bool = False
-) -> Dict[str, Any]:
-    """Handler to retrieve AiEval entities.
+def _related_adapters(ran, risk_id: str, filters: Dict[str, Any]) -> list:
+    """Adapters carry the risk on ``hasRelatedRisk``, so a plain query finds them."""
+    query = {k: v for k, v in filters.items() if v is not None}
+    return ran.query(class_name="adapters", hasRelatedRisk=risk_id, **query) or []
 
-    Note: only ``isDefinedByTaxonomy`` is forwarded to the upstream
-    ``get_related_evaluations`` helper. Other filters (``hasDataset``,
-    ``hasTasks``, ...) are applied to the standard ``ran.query`` path; when
-    combined with ``--related``/``--related_ids`` they are silently ignored
-    by the upstream method.
+
+# Class name to the library call that returns its records for one risk id. Each takes the
+# library, the risk id and the other filters, of which only the taxonomy (and the task for
+# intrinsics) reaches the library; the rest are ignored on this path, as they always were.
+RELATED_LOOKUPS: Dict[str, Callable[[Any, str, Dict[str, Any]], list]] = {
+    "Action": lambda ran, risk, f: ran.get_related_actions(
+        id=risk, taxonomy=f.get("isDefinedByTaxonomy")
+    ),
+    "RiskControl": lambda ran, risk, f: ran.get_related_risk_controls(
+        id=risk, taxonomy=f.get("isDefinedByTaxonomy")
+    ),
+    "RiskIncident": lambda ran, risk, f: ran.get_related_risk_incidents(
+        risk_id=risk, taxonomy=f.get("isDefinedByTaxonomy")
+    ),
+    "AiEval": lambda ran, risk, f: ran.get_related_evaluations(
+        risk_id=risk, taxonomy=f.get("isDefinedByTaxonomy")
+    ),
+    "BenchmarkMetadataCard": lambda ran, risk, f: ran.get_benchmark_metadata_cards(
+        risk_id=risk
+    ),
+    "LLMIntrinsic": lambda ran, risk, f: ran.get_related_intrinsics(
+        risk_id=risk, taxonomy=f.get("isDefinedByTaxonomy"), aitask_id=f.get("requiredByTask")
+    ),
+    "Adapter": _related_adapters,
+}
+
+
+def _matches(record: Any, name: str, value: Any) -> bool:
+    """A record matches a filter when the field equals it, or its list holds it."""
+    field = getattr(record, name, None)
+    if field is None:
+        return False
+    if isinstance(field, list):
+        return value in field or str(value) in [str(item) for item in field]
+    return field == value or str(field) == str(value)
+
+
+def _related_records(ran, exposed, risk_id: str, related: bool, filters: Dict[str, Any]) -> list:
+    """Records of ``exposed`` for one risk, or for every risk related to it when ``related``."""
+    lookup = RELATED_LOOKUPS.get(exposed.name)
+    if lookup is None:
+        raise HTTPException(
+            status_code=500, detail=f"No related lookup is defined for {exposed.name}."
+        )
+    try:
+        if not related:
+            return lookup(ran, risk_id, filters) or []
+        records: list = []
+        for risk in ran.get_related_risks(id=risk_id) or []:
+            if risk is not None:
+                records.extend(lookup(ran, risk.id, filters) or [])
+        return records
+    except (AttributeError, TypeError) as exc:
+        # The library fails this way when the risk id does not exist.
+        logger.debug("Related lookup for %s with %s failed: %s", exposed.name, risk_id, exc)
+        return []
+
+
+def _library_instances(ran, model_cls) -> list:
+    """Every instance of ``model_cls`` the library holds, whichever data file placed it.
+
+    The library files records by collection, and a collection can hold several classes:
+    831 of the 848 ``controls`` are Actions. A scope lists a class, so it reads every
+    collection, which is also what the store does with one collection per class.
     """
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import AiEval
-
-    # bug: when invalid risk_id is provided, the upstream library's
-    # get_related_evaluations method tries to access .id on a None
-    # object (risk doesn't exist), causing the AttributeError.
-    return generic_entity_handler(
-        entity_name="evaluations",
-        model_cls=AiEval,
-        fetch_all=create_related_fetch_all(
-            related_method_name='get_related_evaluations',
-            related_method_params=['isDefinedByTaxonomy'],
-            related_param_mappings={'isDefinedByTaxonomy': 'taxonomy'}
-        ),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        hasDataset=hasDataset,
-        hasTasks=hasTasks,
-        hasLicense=hasLicense,
-        benchmarkmetadata=benchmarkmetadata,
-        unitxcard=unitxcard,
-        hasDocumentation=hasDocumentation,
-        hasRelatedRisk=hasRelatedRisk,
-        related=related,
-        related_ids=related_ids
-    )
+    container = ran._atlas_explorer._data
+    return [
+        record
+        for slot in type(container).model_fields
+        for record in (getattr(container, slot) or [])
+        if isinstance(record, model_cls)
+    ]
 
 
-def organizations(byod: bool = False, grants_license: Optional[str] = None,
-                  id: Optional[str] = None) -> Dict[str, Any]:
-    """Handler to retrieve Organization entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Organization
-
-    return generic_entity_handler(
-        entity_name="organizations",
-        model_cls=Organization,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        grants_license=grants_license,
-        id=id
-    )
-
-
-def groups(byod: bool = False, id: Optional[str] = None,
-           isDefinedByTaxonomy: Optional[str] = None, hasDocumentation: Optional[str] = None, type: Optional[str] = None,
-           belongsToDomain: Optional[str] = None, hasPart: Optional[str] = None) -> Dict[str, Any]:
-    """Handler to retrieve Group entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Group
-
-    return generic_entity_handler(
-        entity_name="groups",
-        model_cls=Group,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        hasDocumentation=hasDocumentation,
-        type=type,
-        belongsToDomain=belongsToDomain,
-        hasPart=hasPart
-    )
-
-
-def controls(
+def query_class(
+    class_name: str,
+    *,
     byod: bool = False,
     id: Optional[str] = None,
-    isDefinedByTaxonomy: Optional[str] = None,
-    hasDocumentation: Optional[str] = None,
-    hasAiActorTask: Optional[str] = None,
-    detectsRiskConcept: Optional[str] = None,
-    isDetectedBy: Optional[str] = None,
-    type: Optional[str] = None,
     related: bool = False,
     related_ids: bool = False,
-    hasRelatedRisk: Optional[str] = None
+    **filters: Any,
 ) -> Dict[str, Any]:
-    """Handler to retrieve Control entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Control
+    """List, filter or fetch the records of one exposed class.
 
-    return generic_entity_handler(
-        entity_name="controls",
-        model_cls=Control,
-        fetch_all=create_related_fetch_all(
-            related_method_name='get_related_risk_controls',
-            related_method_params=['isDefinedByTaxonomy'],
-            related_param_mappings={'isDefinedByTaxonomy': 'taxonomy'}
-        ),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        hasDocumentation=hasDocumentation,
-        hasAiActorTask=hasAiActorTask,
-        detectsRiskConcept=detectsRiskConcept,
-        isDetectedBy=isDetectedBy,
-        type=type,
-        hasRelatedRisk=hasRelatedRisk,
-        related=related,
-        related_ids=related_ids
-    )
+    ``filters`` are slot names of the class with the value a record must carry. With ``id``
+    the answer is ``{"item": record}``; otherwise it is the envelope the web UI reads,
+    ``{"items", "count", "validation_errors"}``. ``hasRelatedRisk`` on a class marked
+    ``related`` in api.yaml switches to the library's related-risk lookup, and ``related``
+    widens that to every risk related to the given one. A risk's own ``id`` with ``related``
+    returns the risks related to it.
+    """
+    from lib.api.exposure import load_exposure
 
+    exposed = load_exposure().classes.get(class_name)
+    if exposed is None:
+        raise HTTPException(status_code=404, detail=f"{class_name} is not exposed.")
+    unknown = sorted(set(filters) - set(exposed.slot_names) - {"hasRelatedRisk"})
+    if unknown:
+        raise HTTPException(
+            status_code=422, detail=f"{class_name} has no filter named {', '.join(unknown)}."
+        )
+    from lib.store.source import store_has_taxonomy, store_records, using_store
 
-def risks(
-    byod: bool = False,
-    id: Optional[str] = None,
-    isDefinedByTaxonomy: Optional[str] = None,
-    hasDocumentation: Optional[str] = None,
-    isPartOf: Optional[str] = None,
-    hasPart: Optional[str] = None,
-    descriptor: Optional[str] = None,
-    detectsRiskConcept: Optional[str] = None,
-    isDetectedBy: Optional[str] = None,
-    implementedByAdapter: Optional[str] = None,
-    risk_type: Optional[str] = None,
-    phase: Optional[str] = None,
-    related: bool = False,
-    related_ids: bool = False
-) -> Dict[str, Any]:
-    """Handler to retrieve Risk entities with special related risks logic."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Risk
+    store = using_store()
+    taxonomy = filters.get("isDefinedByTaxonomy")
+    model_cls = _get_model(class_name)
+    active = {k: v for k, v in filters.items() if v is not None}
+    risk_id = active.pop("hasRelatedRisk", None) if exposed.related else None
+    # The related lookups always run on the library; the plain listings run on the store
+    # when it is the configured source, and then the library is never loaded at all.
+    related_lookup = (class_name == "Risk" and id and (related or related_ids)) or risk_id is not None
+    ran = get_ran_instance(byod) if related_lookup or not store else None
+    if taxonomy:
+        if ran is not None:
+            validate_taxonomy(ran, taxonomy)
+        elif not store_has_taxonomy(taxonomy, byod):
+            raise HTTPException(status_code=400, detail=f"Invalid taxonomy ID: {taxonomy}")
 
-    def fetch_by_id_wrapper(ran, entity_name, id, **kw):
-        if id and (related or related_ids):
-            related_items = ran.get_related_risks(
-                id=id, taxonomy=isDefinedByTaxonomy) or []
-            # workaround bug in ran.get_related_risks (ignores taxonomy arg)
-            if isDefinedByTaxonomy:
-                related_items = [
-                    r for r in related_items if r.isDefinedByTaxonomy == isDefinedByTaxonomy]
-            if related_ids:
-                return [getattr(item, "id", None) for item in related_items if hasattr(item, "id")]
-            elif related:
-                return related_items
-        return fetch_by_id_item(ran, entity_name, id, **kw)
-
-    return generic_entity_handler(
-        entity_name="risks",
-        model_cls=Risk,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_wrapper,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        hasDocumentation=hasDocumentation,
-        hasPart=hasPart,
-        isPartOf=isPartOf,
-        descriptor=descriptor,
-        detectsRiskConcept=detectsRiskConcept,
-        isDetectedBy=isDetectedBy,
-        risk_type=risk_type,
-        phase=phase,
-        related=related,
-        related_ids=related_ids,
-        implementedByAdapter=implementedByAdapter
-    )
-
-
-def incidents(
-        byod: bool = False,
-        id: Optional[str] = None,
-        isDefinedByTaxonomy: Optional[str] = None,
-        hasDocumentation: Optional[str] = None,
-        refersToRisk: Optional[str] = None,
-        hasStatus: Optional[str] = None,
-        hasSeverity: Optional[str] = None,
-        hasLikelihood: Optional[str] = None,
-        hasImpactOn: Optional[str] = None,
-        hasImpact: Optional[str] = None,
-        hasConsequence: Optional[str] = None,
-        hasVariant: Optional[str] = None,
-        isDetectedBy: Optional[str] = None,
-        related: bool = False,
-        related_ids: bool = False,
-        hasRelatedRisk: Optional[str] = None) -> Dict[str, Any]:
-    """Handler to retrieve RiskIncident entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import RiskIncident
-
-    return generic_entity_handler(
-        entity_name="riskincidents",
-        model_cls=RiskIncident,
-        fetch_all=create_related_fetch_all(
-            related_method_name='get_related_risk_incidents',
-            related_method_params=['isDefinedByTaxonomy'],
-            related_param_mappings={'isDefinedByTaxonomy': 'taxonomy'}
-        ),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        hasDocumentation=hasDocumentation,
-        refersToRisk=refersToRisk,
-        hasStatus=hasStatus,
-        hasSeverity=hasSeverity,
-        hasLikelihood=hasLikelihood,
-        hasImpactOn=hasImpactOn,
-        hasImpact=hasImpact,
-        hasConsequence=hasConsequence,
-        hasVariant=hasVariant,
-        isDetectedBy=isDetectedBy,
-        hasRelatedRisk=hasRelatedRisk,
-        related=related,
-        related_ids=related_ids
-    )
-
-
-def datasets(byod: bool = False, id: Optional[str] = None,
-             hasDocumentation: Optional[str] = None, provider: Optional[str] = None, hasLicense: Optional[str] = None) -> Dict[str, Any]:
-    """Handler to retrieve Dataset entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Dataset
-
-    # bug: Dataset has slot 'provider' (all other classes use isProvidedBy)
-    return generic_entity_handler(
-        entity_name="datasets",
-        model_cls=Dataset,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        hasDocumentation=hasDocumentation,
-        provider=provider,
-        hasLicense=hasLicense
-    )
-
-
-def documents(byod: bool = False, id: Optional[str] = None,
-              hasLicense: Optional[str] = None) -> Dict[str, Any]:
-    """Handler to retrieve Documentation entities (optimized with factory)."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Documentation
-
-    return generic_entity_handler(
-        entity_name="documents",
-        model_cls=Documentation,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        hasLicense=hasLicense
-    )
-
-
-def benchmarkcards(
-        byod: bool = False,
-        id: Optional[str] = None,
-        isDefinedByTaxonomy: Optional[str] = None,
-        hasDocumentation: Optional[str] = None,
-        hasTasks: Optional[str] = None,
-        hasLicense: Optional[str] = None,
-        belongsToDomain: Optional[str] = None,
-        describesAiEval: Optional[str] = None,
-        hasRelatedRisk: Optional[str] = None,
-        related: bool = False,
-        related_ids: bool = False) -> Dict[str, Any]:
-    """Handler to retrieve BenchmarkMetadataCard entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import BenchmarkMetadataCard
-
-    return generic_entity_handler(
-        entity_name="benchmarkmetadatacards",
-        model_cls=BenchmarkMetadataCard,
-        fetch_all=create_related_fetch_all(
-            related_method_name='get_benchmark_metadata_cards',
-            related_method_params=['isDefinedByTaxonomy'],
-            related_param_mappings={'isDefinedByTaxonomy': 'taxonomy'}
-        ),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        hasDocumentation=hasDocumentation,
-        hasTasks=hasTasks,
-        hasLicense=hasLicense,
-        belongsToDomain=belongsToDomain,
-        describesAiEval=describesAiEval,
-        hasRelatedRisk=hasRelatedRisk,
-        related=related,
-        related_ids=related_ids
-    )
-
-
-def adapters(byod: bool = False, id: Optional[str] = None,
-             isDefinedByTaxonomy: Optional[str] = None, hasDocumentation: Optional[str] = None, hasAdapterType: Optional[str] = None,
-             hasLicense: Optional[str] = None, hasEvaluation: Optional[str] = None, isDefinedByVocabulary: Optional[str] = None,
-             isProvidedBy: Optional[str] = None, adaptsModel: Optional[str] = None, requiredByTask: Optional[str] = None,
-             performsTask: Optional[str] = None, implementsCapability: Optional[str] = None,
-             implementedByAdapter: Optional[str] = None, hasRelatedRisk: Optional[str] = None,
-             related: bool = False, related_ids: bool = False
-             ) -> Dict[str, Any]:
-    """Handler to retrieve Adapter entities. Uses hasRelatedRisk field for risk-based filtering."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Adapter
-
-    # bug in ran.query(class_name="adapters", isDefinedByTaxonomy=taxonomy) where it ignores taxonomy arg
-    def fetch_all_items(ran, entity_name, **kw):
-        has_related_risk_param = kw.get('hasRelatedRisk')
-        related_param = kw.get('related')
-        related_ids_param = kw.get('related_ids')
-
-        # Common query parameters to avoid duplication
-        query_params = {
-            'class_name': entity_name,
-            'isDefinedByTaxonomy': isDefinedByTaxonomy,
-            'isDefinedByVocabulary': isDefinedByVocabulary,
-            'hasDocumentation': hasDocumentation,
-            'hasAdapterType': hasAdapterType,
-            'hasLicense': hasLicense,
-            'hasEvaluation': hasEvaluation,
-            'provider': isProvidedBy,
-            'adaptsModel': adaptsModel,
-            'requiredByTask': requiredByTask,
-            'performsTask': performsTask,
-            'implementsCapability': implementsCapability,
-            'implementedByAdapter': implementedByAdapter
-        }
-
-        results = []
-
-        # Handle related queries using hasRelatedRisk field
-        if (related_param or related_ids_param) and has_related_risk_param:
-
-            related_risks = ran.get_related_risks(
-                id=has_related_risk_param, taxonomy=isDefinedByTaxonomy) or []
-            # Query adapters for each related risk using hasRelatedRisk field
-            for a_risk in related_risks:
-                adapters = ran.query(
-                    **query_params, hasRelatedRisk=a_risk.id) or []
-                results.extend(adapters)
-
-            if related_ids_param:
-                return [getattr(item, "id", None) for item in results if hasattr(item, "id")]
-            return results
-        elif has_related_risk_param:
-            # Query adapters for specific risk using hasRelatedRisk field
-            return ran.query(**query_params, hasRelatedRisk=has_related_risk_param) or []
+    try:
+        if class_name == "Risk" and id and (related or related_ids):
+            records = ran.get_related_risks(id=id, taxonomy=taxonomy) or []
+            # The library ignores its taxonomy argument, so apply it here.
+            if taxonomy:
+                records = [r for r in records if r.isDefinedByTaxonomy == taxonomy]
+        elif risk_id is not None:
+            records = _related_records(ran, exposed, risk_id, related or related_ids, active)
+        elif store:
+            multivalued = {p.name for p in exposed.parameters if p.multivalued}
+            # Each row is built with its own class's model, as the library's instances are.
+            records = [
+                _get_model(name)(**row)
+                for name, row in store_records(class_name, active, multivalued, byod)
+            ]
+            if id:
+                record = next((r for r in records if getattr(r, "id", None) == id), None)
+                return {"item": record.model_dump() if record is not None else None}
         else:
-            # Standard query without risk filtering
-            return ran.query(**query_params) or []
-
-    return generic_entity_handler(
-        entity_name="adapters",
-        model_cls=Adapter,
-        fetch_all=fetch_all_items,
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        hasDocumentation=hasDocumentation,
-        requiredByTask=requiredByTask,
-        performsTask=performsTask,
-        adaptsModel=adaptsModel,
-        hasAdapterType=hasAdapterType,
-        hasLicense=hasLicense,
-        hasEvaluation=hasEvaluation,
-        isDefinedByVocabulary=isDefinedByVocabulary,
-        isProvidedBy=isProvidedBy,
-        implementsCapability=implementsCapability,
-        implementedByAdapter=implementedByAdapter,
-        hasRelatedRisk=hasRelatedRisk,
-        related=related,
-        related_ids=related_ids
-    )
+            records = [
+                r
+                for r in _library_instances(ran, model_cls)
+                if all(_matches(r, k, v) for k, v in active.items())
+            ]
+            if id:
+                record = next((r for r in records if getattr(r, "id", None) == id), None)
+                return {"item": record.model_dump() if record is not None else None}
+        if related_ids:
+            records = [r.id for r in records if hasattr(r, "id")]
+        serialized, errors, _ = validate_and_serialize_entities(records, model_cls)
+        return {"items": serialized, "count": len(serialized), "validation_errors": errors}
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("query_class failed for %s", class_name)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch {class_name}.")
 
 
-def obligations(byod: bool = False, id: Optional[str] = None,
-                isDefinedByTaxonomy: Optional[str] = None,
-                hasControlApplication: Optional[str] = None,
-                hasEvidenceCategory: Optional[str] = None,
-                hasTypicalLocation: Optional[str] = None,
-                capability: Optional[str] = None,
-                hasRequirement: Optional[str] = None,
-                hasRequirementType: Optional[str] = None,
-                hasRule: Optional[str] = None,
-                ) -> Dict[str, Any]:
-    """Handler to retrieve Control Activity Obligation entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import ControlActivityObligation
-
-    return generic_entity_handler(
-        entity_name="rules",
-        model_cls=ControlActivityObligation,
-        fetch_all=create_typed_fetch_all(
-            type_value='ControlActivityObligation'),
-        fetch_by_id = fetch_by_id_item,
-        byod = byod,
-        id = id,
-        isDefinedByTaxonomy = isDefinedByTaxonomy,
-        hasRule = hasRule,
-        hasControlApplication = hasControlApplication,
-        hasEvidenceCategory = hasEvidenceCategory,
-        hasTypicalLocation = hasTypicalLocation,
-        capability = capability,
-        hasRequirement = hasRequirement,
-        hasRequirementType = hasRequirementType
-    )
 
 
-def recommendations(
-    byod: bool = False,
-    id: Optional[str] = None,
-    isDefinedByTaxonomy: Optional[str] = None,
-    hasControlApplication: Optional[str] = None,
-    hasEvidenceCategory: Optional[str] = None,
-    hasTypicalLocation: Optional[str] = None,
-    capability: Optional[str] = None,
-    hasRequirement: Optional[str] = None,
-    hasRequirementType: Optional[str] = None,
-    hasRule: Optional[str] = None,
+def search(q: str, byod: bool = False, scope: Optional[str] = None, limit: int = 20) -> Dict[str, Any]:
+    """Full-text search over the store's records, through linkml-store's trigram index.
 
-
-) -> Dict[str, Any]:
-    """Handler to retrieve ControlActivityRecommendation entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import ControlActivityRecommendation
-
-    return generic_entity_handler(
-        entity_name = "rules",
-        model_cls = ControlActivityRecommendation,
-        fetch_all = create_typed_fetch_all(
-            type_value='ControlActivityRecommendation'),
-        fetch_by_id= fetch_by_id_item,
-        byod= byod,
-        id= id,
-        isDefinedByTaxonomy= isDefinedByTaxonomy,
-        hasControlApplication= hasControlApplication,
-        hasEvidenceCategory= hasEvidenceCategory,
-        hasTypicalLocation= hasTypicalLocation,
-        capability= capability,
-        hasRequirement= hasRequirement,
-        hasRequirementType= hasRequirementType,
-        hasRule= hasRule
-    )
-
-
-def stakeholders(byod: bool=False, id: Optional[str]=None,
-                 isDefinedByTaxonomy: Optional[str]=None, isPartOf: Optional[str]=None) -> Dict[str, Any]:
+    ``scope`` narrows the search to one exposed class, named by its CLI scope such as
+    ``risk``; without it every exposed class is searched. The work is in ``lib/store/search``.
     """
-    Handler to retrieve Stakeholder entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Stakeholder
+    from lib.store.search import search as search_store
 
-    return generic_entity_handler(
-        entity_name="stakeholders",
-        model_cls=Stakeholder,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        isPartOf=isPartOf,
-    )
-
-
-def intrinsics(
-        byod: bool=False,
-        id: Optional[str]=None,
-        isDefinedByTaxonomy: Optional[str]=None,
-        hasDocumentation: Optional[str]=None,
-        isDefinedByVocabulary: Optional[str]=None,
-        hasTerm: Optional[str]=None,
-        hasAdapter: Optional[str]=None,
-        implementedByAdapter: Optional[str]=None,
-        requiredByTask: Optional[str]=None,
-        capability: Optional[str]=None,
-        requiresCapability: Optional[str]=None,
-        hasRelatedRisk: Optional[str]=None,
-        related: bool=False,
-        related_ids: bool=False) -> Dict[str, Any]:
-    """Handler to retrieve LLMIntrinsic entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import (
-        LLMIntrinsic)
-
-
-    # Parameters are API field names directly (e.g., isDefinedByTaxonomy)
-    # related_method_params: API params to pass when calling get_related_intrinsics()
-    # related_param_mappings: Renames params for upstream method calls
-    # - 'requiredByTask' (API param) → 'aitask_id' (upstream method parameter)
-    return generic_entity_handler(
-        entity_name="llmintrinsics",
-        model_cls=LLMIntrinsic,
-        fetch_all=create_related_fetch_all(
-            related_method_name = 'get_related_intrinsics',
-            related_method_params = ['isDefinedByTaxonomy', 'requiredByTask'],
-            related_param_mappings = {'requiredByTask': 'aitask_id'}
-        ),
-        fetch_by_id= fetch_by_id_item,
-        byod= byod,
-        id= id,
-        isDefinedByTaxonomy= isDefinedByTaxonomy,
-        hasDocumentation= hasDocumentation,
-        isDefinedByVocabulary= isDefinedByVocabulary,
-        hasTerm= hasTerm,
-        hasAdapter= hasAdapter,
-        implementedByAdapter= implementedByAdapter,
-        requiredByTask= requiredByTask,
-        capability= capability,
-        requiresCapability= requiresCapability,
-        hasRelatedRisk= hasRelatedRisk,
-        related= related,
-        related_ids= related_ids
-    )
-
-
-def questionpolicies(byod: bool=False, id: Optional[str]=None,
-                     isDefinedByTaxonomy: Optional[str]=None, hasRule: Optional[str]=None,
-                     hasRelatedRisk: Optional[str]=None) -> Dict[str, Any]:
-    """Handler to retrieve LLMQuestionPolicy entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import LLMQuestionPolicy
-
-    return generic_entity_handler(
-        entity_name="questionpolicies",
-        model_cls=LLMQuestionPolicy,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        hasRule=hasRule,
-        hasRelatedRisk=hasRelatedRisk
-    )
-
-
-def principles(
-    byod: bool=False,
-    id: Optional[str]=None,
-    isDefinedByTaxonomy: Optional[str]=None,
-    hasDocumentation: Optional[str]=None,
-    isDefinedByVocabulary: Optional[str]=None,
-    isPartOf: Optional[str]=None,
-    hasTasks: Optional[str]=None,
-    implementedByAdapter: Optional[str]=None,
-    requiresCapability: Optional[str]=None
-) -> Dict[str, Any]:
-    """Handler to retrieve Principle entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import (
-        Principle)
-
-    return generic_entity_handler(
-        entity_name="principles",
-        model_cls=Principle,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        hasDocumentation=hasDocumentation,
-        isDefinedByVocabulary=isDefinedByVocabulary,
-        isPartOf=isPartOf,
-        hasTasks=hasTasks,
-        implementedByAdapter=implementedByAdapter,
-        requiresCapability=requiresCapability
-    )
-
-
-def models(
-        byod: bool=False,
-        id: Optional[str]=None,
-        hasDocumentation: Optional[str]=None,
-        hasLicense: Optional[str]=None,
-        isProvidedBy: Optional[str]=None,
-        isPartOf: Optional[str]=None,
-        performsTask: Optional[str]=None,
-        hasEvaluation: Optional[str]=None,
-        hasInputModality: Optional[str]=None,
-        hasOutputModality: Optional[str]=None,
-        hasRiskControl: Optional[str]=None
-) -> Dict[str, Any]:
-    """Handler to retrieve Ai Model entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import AiModel
-
-    return generic_entity_handler(
-        entity_name="aimodels",
-        model_cls=AiModel,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        hasDocumentation=hasDocumentation,
-        hasLicense=hasLicense,
-        isProvidedBy=isProvidedBy,
-        isPartOf=isPartOf,
-        performsTask=performsTask,
-        hasEvaluation=hasEvaluation,
-        hasInputModality=hasInputModality,
-        hasOutputModality=hasOutputModality,
-        hasRiskControl=hasRiskControl
-    )
-
-
-def tasks(
-        byod: bool=False,
-        id: Optional[str]=None,
-        isDefinedByTaxonomy: Optional[str]=None,
-        isDefinedByVocabulary: Optional[str]=None,
-        hasDocumentation: Optional[str]=None,
-        isPartOf: Optional[str]=None,
-        hasTasks: Optional[str]=None,
-        hasAdapter: Optional[str]=None,
-        implementedByAdapter: Optional[str]=None,
-        requiresCapability: Optional[str]=None
-) -> Dict[str, Any]:
-    """Handler to retrieve AI Actor Task entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import AiTask
-
-    return generic_entity_handler(
-        entity_name="aitasks",
-        model_cls=AiTask,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        isDefinedByVocabulary=isDefinedByVocabulary,
-        hasDocumentation=hasDocumentation,
-        isPartOf=isPartOf,
-        hasTasks=hasTasks,
-        implementedByAdapter=implementedByAdapter,
-        requiresCapability=requiresCapability
-    )
-
-
-def vocabularies(byod: bool=False, id: Optional[str]=None,
-                 hasDocumentation: Optional[str]=None, hasLicense: Optional[str]=None) -> Dict[str, Any]:
-    """Handler to retrieve Vocabulary entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Vocabulary
-
-    return generic_entity_handler(
-        entity_name="vocabularies",
-        model_cls=Vocabulary,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        hasDocumentation=hasDocumentation,
-        hasLicense=hasLicense
-    )
-
-
-def taxonomies(byod: bool=False, id: Optional[str]=None,
-               hasDocumentation: Optional[str]=None, hasLicense: Optional[str]=None) -> Dict[str, Any]:
-    """Handler to retrieve Taxonomy entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import (
-        RiskTaxonomy)
-
-    return generic_entity_handler(
-        entity_name="taxonomies",
-        model_cls=RiskTaxonomy,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        hasDocumentation=hasDocumentation,
-        byod=byod,
-        id=id,
-        hasLicense=hasLicense
-    )
-
-
-def requirements(byod: bool=False, id: Optional[str]=None,
-         isDefinedByTaxonomy: Optional[str]=None, hasApplication: Optional[str]=None,
-         appliesToCapability: Optional[str]=None, hasRequirementType: Optional[str]=None,
-         hasRule: Optional[str]=None, type: Optional[str]=None) -> Dict[str, Any]:
-    """Handler to retrieve Rule entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Rule
-
-    return generic_entity_handler(
-        entity_name="rules",
-        model_cls=Rule,
-        fetch_all=create_standard_fetch_all(),
-        fetch_by_id=fetch_by_id_item,
-        byod=byod,
-        id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
-        hasApplication=hasApplication,
-        appliesToCapability=appliesToCapability,
-        hasRequirementType=hasRequirementType,
-        hasRule=hasRule,
-        type=type,
-    )
+    return search_store(q, byod=byod, scope=scope, limit=limit)
 
 
 def graph(export: bool=False, id: Optional[str]=None, byod: bool=False) -> Dict[str, Any]:
-    """Export or fetch the merged ontology graph.
+    """Fetch the Cypher export, write the merged ontology as YAML, or return that YAML.
 
-    All filesystem paths are resolved relative to the repository root, not
-    the caller's CWD, so this handler behaves identically whether invoked
-    from uvicorn, pytest, or the CLI in any directory.
+    ``id="cypher"`` with ``export`` fetches the Cypher export that ai-atlas-nexus commits for
+    the installed version, through ``scripts/fetch_cypher.py``, and says which version landed
+    where. That artefact is built upstream from the packaged data alone, so ``byod`` is refused
+    here with a 400 rather than silently ignored. ``export`` without an id writes the merged
+    ontology, with the ``byo/data`` files when ``byod`` is set, to ``graph/``; no argument
+    returns that YAML.
+
+    All filesystem paths are resolved relative to the repository root, not the caller's
+    working directory, so this handler behaves the same from uvicorn, pytest or the CLI.
     """
     if id == "cypher" and export:
-        if not _GRAPH_EXPORT_SCRIPT.is_file():
+        if byod:
             raise HTTPException(
-                status_code=500,
-                detail="Cypher export helper script is missing.",
+                status_code=400,
+                detail=(
+                    "The Cypher export is the artefact ai-atlas-nexus publishes for its "
+                    "packaged data, so it cannot include the files under byo/data; "
+                    "request it without byod."
+                ),
             )
-        uv_bin = shutil.which("uv")
-        if uv_bin is None:
-            raise HTTPException(
-                status_code=500,
-                detail="'uv' command not found on PATH; cannot run cypher export.",
-            )
+        from scripts.fetch_cypher import FetchError, artefact_url, fetch, installed_version
+
+        version = installed_version()
         try:
-            logger.info("Calling helper script: %s", _GRAPH_EXPORT_SCRIPT)
-            subprocess.run(
-                [uv_bin, "run", str(_GRAPH_EXPORT_SCRIPT)],
-                check=True,
-                cwd=str(_PROJECT_ROOT),
-                timeout=_GRAPH_EXPORT_TIMEOUT,
-            )
-            return {
-                "status": "success",
-                "message": f"Cypher export completed via {_GRAPH_EXPORT_SCRIPT.name}",
-            }
-        except subprocess.TimeoutExpired:
-            logger.exception("Cypher export timed out after %ss", _GRAPH_EXPORT_TIMEOUT)
-            raise HTTPException(
-                status_code=504,
-                detail=f"Cypher export timed out after {_GRAPH_EXPORT_TIMEOUT}s.",
-            )
-        except subprocess.CalledProcessError:
-            logger.exception("Cypher export script failed")
-            raise HTTPException(status_code=500, detail="Cypher export failed.")
+            path = fetch(version=version, output=_GRAPH_CYPHER)
+        except FetchError as error:
+            logger.error("Cypher fetch failed: %s", error)
+            raise HTTPException(status_code=502, detail=str(error))
+        relative = str(path.relative_to(_PROJECT_ROOT))
+        return {
+            "status": "success",
+            "message": f"ai-atlas-nexus {version} Cypher export is at {relative}",
+            "ai_atlas_nexus": version,
+            "source": artefact_url(version),
+            "path": relative,
+        }
 
     elif export:
         # Initialize AIAtlasNexus instance

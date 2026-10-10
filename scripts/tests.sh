@@ -62,11 +62,6 @@ case "$MODE" in
         uv run pytest lib/test/test_cli_examples.py -v -k "consistency or health" --tb=short
         ;;
     
-    "validate")
-        echo -e "${GREEN}Validating handlers against OpenAPI spec...${NC}"
-        python lib/test/validate_handlers.py --strict
-        ;;
-    
     *)
         echo -e "${RED}Unknown mode: $MODE${NC}"
         echo ""
@@ -80,7 +75,6 @@ case "$MODE" in
         echo "  consistency - Run consistency tests only (shows commands)"
         echo "  coverage    - Run with coverage report"
         echo "  ci          - Run minimal CI test suite"
-        echo "  validate    - Validate handler signatures"
         exit 1
         ;;
 esac

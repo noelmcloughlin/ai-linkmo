@@ -7,7 +7,10 @@ on:
       - "ai"
       - "lib/api/**"
       - "lib/cli/**"
+      - "lib/store/**"
+      - "lib/browse/**"
       - "lib/test/**"
+      - "scripts/**"
       - "byo/**"
       - "pyproject.toml"
       - "uv.lock"
@@ -17,7 +20,10 @@ on:
       - "ai"
       - "lib/api/**"
       - "lib/cli/**"
+      - "lib/store/**"
+      - "lib/browse/**"
       - "lib/test/**"
+      - "scripts/**"
       - "byo/**"
       - "pyproject.toml"
       - "uv.lock"
@@ -61,15 +67,37 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           enable-cache: true
+          # Sets UV_PYTHON for the steps below. Without it, `uv python install`
+          # takes the newest CPython, and torch, which ai-atlas-nexus pulls in
+          # through txtai, has no wheels for 3.15 yet. Raise it once uv.lock
+          # holds a torch release with 3.15 wheels.
+          python-version: "3.14"
 
       - name: Set up Python
-        run: uv python install
+        run: uv python install "$UV_PYTHON"
 
       # --locked fails the run if uv.lock is out of step with pyproject.toml,
       # rather than silently resolving something the lockfile never pinned. CI
-      # then tests the same dependency set a developer gets from `uv sync`.
+      # then tests the same dependency set a developer gets from `uv sync`. The
+      # browse extra (Datasette and sqlite-utils) is what lib/test/test_browse.py
+      # needs; without it those tests skip.
       - name: Install dependencies
-        run: uv sync --locked --extra test
+        run: uv sync --locked --extra test --extra browse
+
+      # The store is a build artefact (lib/store/loader.py); the suite's store
+      # tests read it, and the validation step below checks it.
+      - name: Build the store
+        run: uv run python scripts/load_store.py
+
+      # Reads linkml-store's findings rather than its exit code, which says
+      # nothing. --allow is the number of findings upstream's data produces
+      # today, 30 (scripts/validate_store.py lists the kinds). It is upstream's
+      # data debt and must only go down: lower it when a row is fixed upstream,
+      # never raise it to admit a new finding. Only the packaged database is
+      # checked here: the byo files add no findings, and the referential pass
+      # costs about three minutes per database.
+      - name: Validate the store
+        run: uv run python scripts/validate_store.py lib/store/data/config.yaml --database atlas --allow 30
 
       # Excludes tests marked "slow": local-mode CLI runs (each spawns a
       # fresh interpreter and loads the full ontology, ~25 min) and the
