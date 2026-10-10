@@ -2,6 +2,16 @@
 
 @import "tw-animate-css";
 
+/* daisyUI 5 draws the record form that @sjsf generates with its daisyUI theme.
+   Only the components that theme uses are included, in the light theme, and
+   the theme's own markup is scanned for the class names it needs. */
+@plugin "daisyui" {
+  themes: light --default;
+  include: fieldset, input, select, textarea, button, join;
+  logs: false;
+}
+@source "../../node_modules/@sjsf/daisyui5-theme/dist";
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
