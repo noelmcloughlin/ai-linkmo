@@ -19,7 +19,7 @@
     "@sjsf/daisyui5-theme": "3.9.0",
     "@sjsf/form": "3.9.0",
     "ajv": "8.20.0",
-    "daisyui": "^5.7.46",
+    "daisyui": "^5.7.47",
     "debounce": "^3.0.0",
     "js-yaml": "^4.1.1",
     "svelte": "^5.57.1",
