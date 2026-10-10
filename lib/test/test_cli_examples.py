@@ -64,9 +64,9 @@ CLI_TEST_CASES = [
     # AI Models
     (["model", "--count"], 58, 58, False),
     (["model", "--isPartOf", "shieldgemma", "--count"], 3, 3, False),
-    (["model", "--hasRiskControl", "gg-groundedness-detection", "--count"], 7, 7, False),
+    (["model", "--hasRiskControl", "gg-groundedness-detection", "--count"], 5, 5, False),
     (["model", "--isProvidedBy", "google", "--count"], 3, 3, False),
-    (["model", "--hasDocumentation", "granite-guardian-paper", "--count"], 5, 5, False),
+    (["model", "--hasDocumentation", "granite-guardian-paper", "--count"], 7, 7, False),
     (["model", "--hasLicense", "gemma-terms-of-use", "--count"], 3, 3, False),
     (["model", "--performsTask", "code-generation", "--count"], 24, 24, False),
     (["model", "--hasInputModality", "modality-text", "--count"], 32, 32, False),

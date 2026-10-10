@@ -24,6 +24,7 @@ from __future__ import annotations
 import importlib.metadata
 import logging
 from collections import defaultdict
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -65,6 +66,25 @@ DATABASES = {False: "atlas", True: "byod"}
 
 def database_path(byod: bool, data_dir: Path = DATA_DIR) -> Path:
     return data_dir / f"{DATABASES[byod]}.duckdb"
+
+
+@lru_cache(maxsize=1)
+def _reserved_words() -> frozenset[str]:
+    import duckdb
+
+    rows = duckdb.sql(
+        "select keyword_name from duckdb_keywords() where keyword_category = 'reserved'"
+    ).fetchall()
+    return frozenset(name.upper() for (name,) in rows)
+
+
+def collection_name(class_name: str) -> str:
+    """The store collection that holds a class, which is its name unless SQL reserves it.
+
+    linkml-store writes the collection name into SQL unquoted, so ``Group`` cannot be a
+    table; it is stored as ``GroupRecords`` instead. The config still says ``type: Group``.
+    """
+    return f"{class_name}Records" if class_name.upper() in _reserved_words() else class_name
 
 
 def rows_by_class(container: Any) -> dict[str, list[dict[str, Any]]]:
@@ -110,7 +130,7 @@ def build_database(byod: bool, data_dir: Path = DATA_DIR) -> dict[str, int]:
     database.set_schema_view(schema_view())
     counts: dict[str, int] = {}
     for class_name in sorted(rows):
-        collection = database.create_collection(class_name, alias=class_name)
+        collection = database.create_collection(class_name, alias=collection_name(class_name))
         collection.insert(rows[class_name])
         counts[class_name] = len(rows[class_name])
     database.commit()
@@ -154,7 +174,7 @@ def write_config(counts_by_database: dict[str, dict[str, int]], data_dir: Path =
             alias: {
                 "handle": f"duckdb:///{data_dir / alias}.duckdb",
                 "schema_location": str(schema),
-                "collections": {name: {"type": name} for name in sorted(counts)},
+                "collections": {collection_name(name): {"type": name} for name in sorted(counts)},
             }
             for alias, counts in counts_by_database.items()
         },

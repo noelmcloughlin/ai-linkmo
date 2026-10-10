@@ -23,3 +23,15 @@ fetch-cypher:
 # Load the packaged and bring-your-own data into the DuckDB store under lib/store/data.
 load-store:
     uv run python scripts/load_store.py
+
+# Validate every collection of the store against the schema and report findings as JSON.
+validate-store:
+    uv run python scripts/validate_store.py lib/store/data/config.yaml
+
+# Build the trigram search indexes of the store's collections.
+index-store:
+    uv run python scripts/index_store.py
+
+# Dump the store as YAML under lib/store/data/dump, one file per database.
+dump-store:
+    uv run python scripts/dump_store.py lib/store/data/dump
