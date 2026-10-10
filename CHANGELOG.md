@@ -16,11 +16,12 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 ### Added
 
 - **A DuckDB store behind the listings.** `just load-store` loads the data through linkml-store, one collection per concrete class, in about fifteen seconds; the listings read it when `AI_LINKMO_DATA_SOURCE` is `store`, or by default once it exists, and `lib/test/test_data_source.py` shows the store and the library answer alike. `just validate-store` reads linkml-store's findings rather than its exit code, and CI runs it with the 30 upstream data findings as the ceiling. `just index-store` builds a trigram index, `GET /search` and `./ai search` query it, and `just dump-store` writes the store as YAML.
+- **A browse UI over the data.** `just build-browse` builds two SQLite databases from the schema's `gen-sqltables` tables, with each record in its class's table and every ancestor's so that a reference to an abstract parent resolves, and Datasette metadata generated from the schema. `just browse` serves them with Datasette on port 8001.
+- **Class pages with an example from the data.** `just gen-doc` writes the schema's pages with `gen-doc`, and each concrete class that has records shows the record whose identifier sorts first, validated against its class by `just gen-examples`.
 
 ### Removed
 
 - `lib/api/openapi.yaml`, `server_dynamic.py`, the 22 per-class handlers, `validate_handlers.py`, `graph/cypher/export.py`, the committed Cypher file, and the `cymple` dependency.
-
 
 ## [0.1.9] - 2026-10-07
 
