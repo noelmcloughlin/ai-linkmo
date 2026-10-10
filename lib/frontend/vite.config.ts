@@ -101,6 +101,26 @@ export default defineConfig({
       },
       {
         extends: true,
+        // The record form's browser test imports app code whose dependencies
+        // Vite would otherwise find only while the test runs. It then reloads
+        // the page, and the test file fails to load whenever the cache is
+        // cold, as it always is in CI.
+        optimizeDeps: {
+          include: [
+            "@sjsf/ajv8-validator",
+            "@sjsf/daisyui5-theme",
+            "@sjsf/daisyui5-theme/extra-widgets/textarea-include",
+            "@sjsf/form",
+            "@sjsf/form/fields/extra/enum-include",
+            "@sjsf/form/focus-on-first-error",
+            "@sjsf/form/id-builders/modern",
+            "@sjsf/form/mergers/modern",
+            "@sjsf/form/resolvers/compat",
+            "@sjsf/form/translations/en",
+            "js-yaml",
+            "tailwind-variants",
+          ],
+        },
         test: {
           name: "browser",
           include: [
