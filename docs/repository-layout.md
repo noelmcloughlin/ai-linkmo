@@ -4,8 +4,8 @@
 
 ```text
 ai                      the CLI entry point (runs lib/cli through uv)
-lib/cli/                argparse generated from the OpenAPI spec; fastCLI (via the API) or slowCLI (offline)
-lib/api/                FastAPI backend; openapi.yaml is the source of truth for every route
+lib/cli/                the CLI, one command per exposed class; fastCLI (via the API) or slowCLI (offline)
+lib/api/                FastAPI backend; api.yaml names the exposed classes, the schema gives their filters
 lib/frontend/           Svelte 5 web UI (Vite; proxies to the API on :8000)
 lib/test/               pytest suite; its API-mode CLI cases are the documented CLI examples, checked
 graph/                  the exported ontology, crosswalk CSVs, and cypher/export.py for Neo4j

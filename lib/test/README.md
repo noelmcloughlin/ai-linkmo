@@ -6,7 +6,9 @@ This directory contains unit tests for the AI-LinkMO CLI Demo commands documente
 
 - **conftest.py** - Pytest fixtures including API server startup/shutdown
 - **test_cli_examples.py** - Parametrized tests for all README CLI examples
-- **validate_handlers.py** - Validation of handler signatures vs OpenAPI spec
+- **test_exposure.py** - The exposure file, the schema and the library agree; `query_class` counts
+- **test_api_kernel.py** - The generated endpoints and the published `/openapi.json`
+- **test_cli_kernel.py** - The generated CLI commands and options
 
 ## Running Tests
 

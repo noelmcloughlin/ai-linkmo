@@ -1,72 +1,42 @@
 # AI-LinkMO Demo: API Architecture
 
-FastAPI server with **dynamic endpoint generation** and **factory-pattern** handlers.
+A FastAPI server whose class listings are generated from the AI Risk Ontology schema.
 
 ## Architecture Overview
 
-The OpenAPI spec (`openapi.yaml`) is single source of truth (endpoints/parameters).
+`api.yaml` is the exposure file. It names the ontology classes the API lists, the path of
+each, and the hand-written operations (`/graph`, `/crosswalk`, `/inference`, `/schemaview`,
+`/byo`, `/ares`) as OpenAPI operation objects in its overlay. Everything else about a class
+comes from the LinkML schema shipped inside the installed `ai_atlas_nexus` package: each
+slot of the class is one query parameter, an enum slot offers its values, and a value
+outside them is a 422.
 
-Business logic (in `handlers.py`) contains all handler functions for API operations.
+`exposure.py` joins the two into one view, `load_exposure()`, which the API kernel and the
+CLI both read. Neither reads YAML or `SchemaView` itself.
 
-Both try to align to [the Ontology](https://ibm.github.io/ai-atlas-nexus/ontology/).
+`server_kernel.py` registers the endpoints at startup. `register_class_endpoints` adds one
+GET per exposed class, with a signature built from the class's slots and a response model
+built from the ontology's own Pydantic class, and routes it to `handlers.query_class`.
+`register_hand_endpoints` adds the overlay's operations, each bound to the `handlers`
+function its `operationId` names.
 
-Constants (`constants.py`, `lib/frontend/src/lib/constants.ts`) help maintainability.
+`handlers.py` holds `query_class`, which lists, filters or fetches the records of one class
+and keeps the only per-class knowledge left, how the library looks records up by a related
+risk, in `RELATED_LOOKUPS`; and the hand-written operations after it.
 
-The Dynamic endpoint generator (`server_dynamic.py`), parses OpenAPI spec and
-generates FastAPI endpoint functions on the fly, maps parameters to handler
-functions, and validates request/responses.
+`server.py` is the app itself: CORS, the cache-control middleware, the probes and the
+cached `AIAtlasNexus` instances.
 
-```ascii
-┌──────────────────────────────────────┐
-│         openapi.yaml                 │  ← Single Source of Truth
-│  - endpoints, parameters, handlers    │
-└──────────────┬───────────────────────┘
-               │ parsed by
-┌──────────────▼───────────────────────┐
-│       server_dynamic.py              │  ← Dynamic Generator
-│  - register endpoints, map handlers  |
-└──────────────┬───────────────────────┘
-               │ registers with
-┌──────────────▼───────────────────────┐
-│         server.py                    │  ← Minimal Server
-│  - FastAPI app initialization        │
-│  - Dynamic endpoint registration     │
-└──────────────┬───────────────────────┘
-               │ calls
-┌──────────────▼───────────────────────┐
-│          handlers.py                 │  ← Business Logic
-│  - handler functions/fetch factor    │
-└──────────────┬───────────────────────┘
-               │ uses
-┌──────────────▼───────────────────────┐
-│    lib/cli/utils.py                  │  ← Shared Utilities
-└──────────────────────────────────────┘
-```
+The contract is the running server's `/openapi.json` (OpenAPI 3.1), which carries the
+ontology classes under `components/schemas`. There is no checked-in spec to keep in step.
 
-## Factory Pattern Handlers
+## Adding or removing a class
 
-Handlers for basic entity queries (no related risk support) use default pattern:
-
-```python
-fetch_all=create_standard_fetch_all({
-    'taxonomy': 'isDefinedByTaxonomy',    # param_name: query_field_name
-    'document': 'hasDocumentation',
-    'license': 'hasLicense'
-})
-```
-
-Handlers with risk `related` and `related_ids` parameters use different parttern:
-
-```python
-fetch_all=create_related_fetch_all(
-    related_method_name='get_related_actions',  # AIAtlasNexus method
-    field_mappings={
-        'taxonomy': 'isDefinedByTaxonomy',
-        'document': 'hasDocumentation'
-    },
-    related_method_params=['taxonomy']  # Params to pass to related method
-)
-```
+Add or remove an entry under `expose.classes` in `api.yaml`, with its `path`, the
+`collection` the library stores it under, and `related: true` when the library can look it
+up by risk (then add its call to `RELATED_LOOKUPS`). `lib/test/test_exposure.py` checks that
+every exposed class is in the schema and every filter is a slot of its class;
+`lib/test/test_api_kernel.py` checks the contract and the envelope the web UI reads.
 
 ## FastAPI Server
 
@@ -75,25 +45,6 @@ The FastAPI server can be started in development mode:
 ```bash
 uv run uvicorn lib.api.server:app --reload
 ```
-
-## Handler Validation
-
-Check handlers remain synchronized with the OpenAPI specification.
-Consider adding to CI/CD pipeline:
-
-```bash
-# Validate handler signatures match OpenAPI
-uv run python lib/test/validate_handlers.py
-
-# Strict mode (fail on inconsistencies - for CI/CD)
-uv run python lib/test/validate_handlers.py --strict
-
-# Verbose mode (show all handlers and parameters)
-uv run python lib/test/validate_handlers.py --verbose
-```
-
-A pytest shim (`lib/test/test_validate_handlers.py`) wraps the same check
-so `uv run pytest` fails when handlers drift from `openapi.yaml`.
 
 ## Status
 
@@ -106,11 +57,10 @@ Infrastructure endpoints surfaced by `server.py`:
 | `/version` | Reports `api`, `ai_atlas_nexus`, and (when available) `git_sha`.        |
 | `/classes` | Lists schema classes, optionally filtered by `taxonomy`/`vocabulary`.   |
 
-All dynamic endpoints (`/risk`, `/action`, ...) are generated from
-`openapi.yaml` at startup by `register_endpoints_from_openapi` -
-`server_dynamic.py` walks every HTTP method (`get`/`post`/`put`) declared
-in the spec, so adding a new method to a path only requires updating the
-YAML.
+The class listings (`/risk`, `/action`, ...) and the hand-written operations
+are registered at startup by `server_kernel.py`, so a new slot in the ontology
+is a new filter without a code change, and a new method on a hand path only
+needs its operation object in the overlay of `api.yaml`.
 
 ### Security & operational hardening
 
@@ -127,8 +77,8 @@ YAML.
     the target directory, `yaml.safe_load`-validated, then atomically
     promoted via `os.replace`; a `.bak` is taken first when an existing
     file is being overwritten).
-  - The OpenAPI spec declares an `ApiKeyAuth` security scheme on this
-    operation. The demo server does **not** enforce it - operators
+  - The overlay in `api.yaml` declares an `ApiKeyAuth` security scheme on this
+    operation, and `/openapi.json` publishes it. The demo server does **not** enforce it - operators
     deploying outside localhost should add a reverse-proxy that validates
     `X-API-Key`.
 - **`/inference`**: `gpu_memory_utilization` is a `float` (was a string).

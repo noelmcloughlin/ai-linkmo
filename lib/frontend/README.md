@@ -41,7 +41,7 @@ Reactive filter state management using Svelte 5 runes:
 - Generates dropdown options
 - Owns filter validation and application logic
 - Extend functionality by adding new filter fields here
-- Aligned to `lib/api/openapi.yaml` as single source of truth
+- Aligned to the classes `lib/api/api.yaml` exposes; the filter names are the schema's slot names
 
 ## Project Structure
 

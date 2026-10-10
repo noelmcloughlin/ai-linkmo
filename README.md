@@ -35,7 +35,7 @@ AI-LinkMO closes that gap with **one linked data model**, a LinkML ontology of r
 | Access pattern | Who it serves | What you get |
 | :--- | :--- | :--- |
 | **Command Line Interface (CLI)** | Engineers, CI/CD pipelines | Automation-friendly queries and exports (fastCLI/slowCLI modes) |
-| **FastAPI Backend** | System integrators, GRC tools | REST API as the single source of truth, aligned to [OpenAPI](lib/api/openapi.yaml) |
+| **FastAPI Backend** | System integrators, GRC tools | REST API with one listing per ontology class; its contract is the server's `/openapi.json` |
 | **Svelte Web UI** | Risk, compliance and business stakeholders | Point-and-click exploration with persistent identifiers, no coding required |
 | **Graph Database (Neo4j)** | Analysts, data scientists | Relationship analysis and regulatory crosswalks as a queryable graph |
 
@@ -93,7 +93,7 @@ From there, bring your own data, compute a crosswalk, or load the graph into Neo
 
 ## Status and caveats
 
-This is a demo. The OpenAPI spec, the web UI and the CLI will all be reworked, so treat their shapes as illustrative, and the version stays below 1.0.0 until they settle. Keep it on localhost: the write endpoints are unauthenticated. No encoding under `byo/data/` has been checked by a named person against its framework's text. The full list, including what is thinner than its type suggests and what is slow: [docs/status.md](docs/status.md).
+This is a demo. The API, the web UI and the CLI will all be reworked, so treat their shapes as illustrative, and the version stays below 1.0.0 until they settle. Keep it on localhost: the write endpoints are unauthenticated. No encoding under `byo/data/` has been checked by a named person against its framework's text. The full list, including what is thinner than its type suggests and what is slow: [docs/status.md](docs/status.md).
 
 ## This repository's own bundle
 
