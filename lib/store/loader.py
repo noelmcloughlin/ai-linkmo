@@ -167,9 +167,13 @@ def write_config(counts_by_database: dict[str, dict[str, int]], data_dir: Path =
     from lib.api.exposure import schema_directory
 
     schema = schema_directory() / "ai-risk-ontology.yaml"
+    # linkml-store's ClientConfig forbids keys it does not know, so the provenance goes in
+    # a comment rather than in the document.
+    header = (
+        "# Written by `just load-store` for ai-atlas-nexus "
+        f"{importlib.metadata.version('ai-atlas-nexus')}; not hand-edited.\n"
+    )
     config = {
-        "generated_by": "just load-store",
-        "ai_atlas_nexus": importlib.metadata.version("ai-atlas-nexus"),
         "databases": {
             alias: {
                 "handle": f"duckdb:///{data_dir / alias}.duckdb",
@@ -180,7 +184,7 @@ def write_config(counts_by_database: dict[str, dict[str, int]], data_dir: Path =
         },
     }
     path = data_dir / "config.yaml"
-    path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
+    path.write_text(header + yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
     return path
 
 

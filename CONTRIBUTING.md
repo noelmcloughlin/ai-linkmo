@@ -54,6 +54,7 @@ npx skills add noelmcloughlin/knowledge-trust-ladder --skill ktl-curator --yes  
 ## Before opening a pull request
 
 - **Run the tests**: `uv run pytest lib/test -m "not slow"`. The `slow` marker covers the local-mode CLI runs; CI skips them, so run them by hand when you change how the CLI loads data.
+- **Store or data changes**: `just load-store && just validate-store` must not add findings. CI allows exactly today's count (`--allow` in `cli-tests.yml`), which must only go down.
 - **Frontend changes**: from `lib/frontend/`, `npm run check` (svelte-check), `npm run lint` (prettier + eslint) and `npm test` must pass, and `npm run build` must produce a production bundle.
 - **Knowledge-bundle changes**: `cd .lokf && just lokf-validate` must pass. The registrar keeps records well-formed; it never judges whether their content is true.
 - **Claims about a framework need a source.** Anything under `byo/` or `graph/` is this project's *interpretation* of a published framework; cite the clause or table you are reflecting, in the PR. [AI_COVENANT.md](AI_COVENANT.md) says why.

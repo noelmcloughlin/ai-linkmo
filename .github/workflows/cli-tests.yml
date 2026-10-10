@@ -7,7 +7,9 @@ on:
       - "ai"
       - "lib/api/**"
       - "lib/cli/**"
+      - "lib/store/**"
       - "lib/test/**"
+      - "scripts/**"
       - "byo/**"
       - "pyproject.toml"
       - "uv.lock"
@@ -17,7 +19,9 @@ on:
       - "ai"
       - "lib/api/**"
       - "lib/cli/**"
+      - "lib/store/**"
       - "lib/test/**"
+      - "scripts/**"
       - "byo/**"
       - "pyproject.toml"
       - "uv.lock"
@@ -70,6 +74,21 @@ jobs:
       # then tests the same dependency set a developer gets from `uv sync`.
       - name: Install dependencies
         run: uv sync --locked --extra test
+
+      # The store is a build artefact (lib/store/loader.py); the suite's store
+      # tests read it, and the validation step below checks it.
+      - name: Build the store
+        run: uv run python scripts/load_store.py
+
+      # Reads linkml-store's findings rather than its exit code, which says
+      # nothing. --allow is the number of findings upstream's data produces
+      # today, 30 (scripts/validate_store.py lists the kinds). It is upstream's
+      # data debt and must only go down: lower it when a row is fixed upstream,
+      # never raise it to admit a new finding. Only the packaged database is
+      # checked here: the byo files add no findings, and the referential pass
+      # costs about three minutes per database.
+      - name: Validate the store
+        run: uv run python scripts/validate_store.py lib/store/data/config.yaml --database atlas --allow 30
 
       # Excludes tests marked "slow": local-mode CLI runs (each spawns a
       # fresh interpreter and loads the full ontology, ~25 min) and the
