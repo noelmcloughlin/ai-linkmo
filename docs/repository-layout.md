@@ -9,6 +9,7 @@ scripts/                the scripts behind those recipes, and the test runner
 lib/cli/                the CLI, one command per exposed class; fastCLI (via the API) or slowCLI (offline)
 lib/api/                FastAPI backend; api.yaml names the exposed classes, the schema gives their filters
 lib/frontend/           Svelte 5 web UI (Vite; proxies to the API on :8000)
+lib/store/              the DuckDB store behind the listings and the search, built by `just load-store`, not committed
 lib/test/               pytest suite; its API-mode CLI cases are the documented CLI examples, checked
 graph/                  the exported ontology and crosswalk CSVs; cypher/ receives the fetched Neo4j export, not committed
 byo/data/               nine governance frameworks encoded for the AI Risk Ontology
@@ -17,7 +18,7 @@ byo/images/             screenshots of each door, and the architecture diagram
 docs/
   openapi.json              the API contract, written by `just gen-openapi` and checked against the server
   key-concepts.md           the vocabulary the four doors share
-  working-with-the-data.md  bring your own data, crosswalks, the graph export
+  working-with-the-data.md  bring your own data, crosswalks, search and dumps, the graph export
   neo4j.md                  load the graph into Neo4j in a container
   cli-examples.md           every entity type, one command away
   install-notes.md          compilers, CUDA, corporate package indexes

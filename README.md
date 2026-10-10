@@ -89,7 +89,7 @@ That is the offline CLI, ready to use. If `uv sync` needs to compile anything on
    ./ai risk -h
    ```
 
-From there, bring your own data, compute a crosswalk, or load the graph into Neo4j: [docs/working-with-the-data.md](docs/working-with-the-data.md).
+From there, bring your own data, compute a crosswalk, search the records, or load the graph into Neo4j: [docs/working-with-the-data.md](docs/working-with-the-data.md).
 
 ## Status and caveats
 
@@ -104,7 +104,7 @@ This repository keeps a LOKF bundle of its own under `.lokf/knowledge/`: documen
 | | |
 | --- | --- |
 | The vocabulary the four doors share: taxonomy, risk, control, obligation, crosswalk, incident, evaluation, BYOD | [docs/key-concepts.md](docs/key-concepts.md) |
-| Working with the data: bring your own, crosswalks, the graph export and Neo4j | [docs/working-with-the-data.md](docs/working-with-the-data.md), [docs/neo4j.md](docs/neo4j.md) |
+| Working with the data: bring your own, crosswalks, search, the graph export and Neo4j | [docs/working-with-the-data.md](docs/working-with-the-data.md), [docs/neo4j.md](docs/neo4j.md) |
 | Every CLI command, by entity type | [docs/cli-examples.md](docs/cli-examples.md) |
 | What this adds over AI Atlas Nexus, what it leaves out, where it could go; LLM inference and ARES on your own infrastructure | [docs/for-the-curious.md](docs/for-the-curious.md), [docs/llm-inferencing.md](docs/llm-inferencing.md) |
 | Status and caveats, the full list | [docs/status.md](docs/status.md) |
