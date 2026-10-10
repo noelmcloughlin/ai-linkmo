@@ -6,6 +6,8 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-10
+
 ### Changed
 
 - **The CLI and the API are generated from the schema, not from a hand-written OpenAPI file.** `lib/api/api.yaml` names the 22 exposed classes and the six hand paths; every slot of a class is a filter, an enum slot offers its values, and `lib/test/test_cli_api_identity.py` proves both doors expose the same surface. The contract is the server's `/openapi.json`, written to `docs/openapi.json` by `just gen-openapi` and served by Scalar at `/scalar` too.
