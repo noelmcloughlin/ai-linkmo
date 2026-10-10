@@ -6,21 +6,25 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-10
+
 ### Changed
 
 - **The CLI and the API are generated from the schema, not from a hand-written OpenAPI file.** `lib/api/api.yaml` names the 22 exposed classes and the six hand paths; every slot of a class is a filter, an enum slot offers its values, and `lib/test/test_cli_api_identity.py` proves both doors expose the same surface. The contract is the server's `/openapi.json`, written to `docs/openapi.json` by `just gen-openapi` and served by Scalar at `/scalar` too.
 - **A scope lists every instance of its class, wherever the data file put it.** `control` is every RiskControl including the Actions (1,102), `model` every LargeLanguageModel including the Adapters (58), `requirement` the Requirements alone (51), and `group` every Group subclass (183). The expected counts follow ai-atlas-nexus 1.2.5, which is now the minimum.
 - **The web UI's entity list is generated.** `just gen-ui-config` writes `entities.json` from the exposure file, so a UI key is an API route by construction; labels, groups and filters stay a hand-written overlay, and eleven filters that were not slots of their class are gone.
+- **The web UI's record form is generated from the JSON Schema.** `RecordForm.svelte` renders the endpoint's class with @sjsf and its daisyUI 5 theme and checks it with ajv before saving, while the taxonomy file, the stamped dates and the read-only class designator work as before. `app.css` now loads daisyUI for the components the form uses, so the existing `btn` and `input` classes in the pagination and the filter panel take daisyUI's styles too.
 - **The Cypher export is fetched, not generated.** `just fetch-cypher` downloads the export ai-atlas-nexus commits at the installed version's tag, with a provenance header; `--byod` with it is refused, since that artefact holds the packaged data only.
 
 ### Added
 
 - **A DuckDB store behind the listings.** `just load-store` loads the data through linkml-store, one collection per concrete class, in about fifteen seconds; the listings read it when `AI_LINKMO_DATA_SOURCE` is `store`, or by default once it exists, and `lib/test/test_data_source.py` shows the store and the library answer alike. `just validate-store` reads linkml-store's findings rather than its exit code, and CI runs it with the 30 upstream data findings as the ceiling. `just index-store` builds a trigram index, `GET /search` and `./ai search` query it, and `just dump-store` writes the store as YAML.
+- **A browse UI over the data.** `just build-browse` builds two SQLite databases from the schema's `gen-sqltables` tables, with each record in its class's table and every ancestor's so that a reference to an abstract parent resolves, and Datasette metadata generated from the schema. `just browse` serves them with Datasette on port 8001.
+- **Class pages with an example from the data.** `just gen-doc` writes the schema's pages with `gen-doc`, and each concrete class that has records shows the record whose identifier sorts first, validated against its class by `just gen-examples`.
 
 ### Removed
 
 - `lib/api/openapi.yaml`, `server_dynamic.py`, the 22 per-class handlers, `validate_handlers.py`, `graph/cypher/export.py`, the committed Cypher file, and the `cymple` dependency.
-
 
 ## [0.1.9] - 2026-10-07
 

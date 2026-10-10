@@ -8,6 +8,7 @@ on:
       - "lib/api/**"
       - "lib/cli/**"
       - "lib/store/**"
+      - "lib/browse/**"
       - "lib/test/**"
       - "scripts/**"
       - "byo/**"
@@ -20,6 +21,7 @@ on:
       - "lib/api/**"
       - "lib/cli/**"
       - "lib/store/**"
+      - "lib/browse/**"
       - "lib/test/**"
       - "scripts/**"
       - "byo/**"
@@ -65,15 +67,22 @@ jobs:
         uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
         with:
           enable-cache: true
+          # Sets UV_PYTHON for the steps below. Without it, `uv python install`
+          # takes the newest CPython, and torch, which ai-atlas-nexus pulls in
+          # through txtai, has no wheels for 3.15 yet. Raise it once uv.lock
+          # holds a torch release with 3.15 wheels.
+          python-version: "3.14"
 
       - name: Set up Python
-        run: uv python install
+        run: uv python install "$UV_PYTHON"
 
       # --locked fails the run if uv.lock is out of step with pyproject.toml,
       # rather than silently resolving something the lockfile never pinned. CI
-      # then tests the same dependency set a developer gets from `uv sync`.
+      # then tests the same dependency set a developer gets from `uv sync`. The
+      # browse extra (Datasette and sqlite-utils) is what lib/test/test_browse.py
+      # needs; without it those tests skip.
       - name: Install dependencies
-        run: uv sync --locked --extra test
+        run: uv sync --locked --extra test --extra browse
 
       # The store is a build artefact (lib/store/loader.py); the suite's store
       # tests read it, and the validation step below checks it.

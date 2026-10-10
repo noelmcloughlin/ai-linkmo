@@ -20,9 +20,18 @@ exclude = [
   '^https://www\.conventionalcommits\.org/',
 ]
 
+# github.com answers a burst of requests for file pages (`/blob/`) with 503, as it did to
+# CI on 2026-10-10, while raw.githubusercontent.com serves the same files. Check each file
+# there instead: a file that is missing still answers 404, so the check stays real.
+remap = [
+  '^https://github\.com/([^/]+)/([^/]+)/blob/(.+)$ https://raw.githubusercontent.com/$1/$2/$3',
+]
+
 # knowledge_bundle is a symlink to .lokf/knowledge (the Obsidian vault entry
 # point, see ktl-sidecar Step 2) - exclude it so lychee doesn't walk the
 # same files twice, once at each path.
 exclude_path = [
   "(^|/)knowledge_bundle/",
+  # The schema's pages, written by `just gen-doc` and never committed.
+  "(^|/)docs/elements/",
 ]

@@ -4,12 +4,13 @@
 
 ```text
 ai                      the CLI entry point (runs lib/cli through uv)
-justfile                build steps that derive checked-in files: the API contract, the UI entity list, the graph
+justfile                build steps: the API contract and the UI entity list, which are committed; the graph, the store, the browse databases and the schema's pages, which are not
 scripts/                the scripts behind those recipes, and the test runner
 lib/cli/                the CLI, one command per exposed class; fastCLI (via the API) or slowCLI (offline)
 lib/api/                FastAPI backend; api.yaml names the exposed classes, the schema gives their filters
 lib/frontend/           Svelte 5 web UI (Vite; proxies to the API on :8000)
 lib/store/              the DuckDB store behind the listings and the search, built by `just load-store`, not committed
+lib/browse/             the SQLite databases Datasette serves and their metadata, built from the schema by `just build-browse`, not committed
 lib/test/               pytest suite; its API-mode CLI cases are the documented CLI examples, checked
 graph/                  the exported ontology and crosswalk CSVs; cypher/ receives the fetched Neo4j export, not committed
 byo/data/               nine governance frameworks encoded for the AI Risk Ontology
@@ -17,8 +18,9 @@ byo/notes/EXAMPLES.md   a scripted walk through all four access patterns
 byo/images/             screenshots of each door, and the architecture diagram
 docs/
   openapi.json              the API contract, written by `just gen-openapi` and checked against the server
+  elements/                 the schema's pages, one example on each class page, written by `just gen-doc`, not committed
   key-concepts.md           the vocabulary the four doors share
-  working-with-the-data.md  bring your own data, crosswalks, search and dumps, the graph export
+  working-with-the-data.md  bring your own data, crosswalks, search and dumps, browsing, the schema's pages, the graph export
   neo4j.md                  load the graph into Neo4j in a container
   cli-examples.md           every entity type, one command away
   install-notes.md          compilers, CUDA, corporate package indexes
@@ -34,4 +36,4 @@ knowledge_bundle        -> .lokf/knowledge, the bundle under a visible name, for
 
 ## Tests
 
-The test suite runs 101 CLI cases in API mode and in local mode, and starts the API server for you. `uv run pytest lib/test -m "not slow"` is what CI runs, about two minutes; `./scripts/tests.sh` has the narrower modes. The web UI (`npm run check`, `npm run lint`, `npm test` in `lib/frontend/`) and the bundle (`cd .lokf && just lokf-validate`) have their own gates. [lib/test/README.md](../lib/test/README.md) has the detail.
+The test suite runs 101 CLI cases in API mode and in local mode, and starts the API server for you. `uv run pytest lib/test -m "not slow"` is what CI runs, about two minutes; `./scripts/tests.sh` has the narrower modes. The browse tests need the `browse` extra and skip without it, so CI installs it beside `test`. The web UI (`npm run check`, `npm run lint`, `npm test` in `lib/frontend/`) and the bundle (`cd .lokf && just lokf-validate`) have their own gates. [lib/test/README.md](../lib/test/README.md) has the detail.

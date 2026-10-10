@@ -1,6 +1,6 @@
 [project]
 name = "ai-linkmo"
-version = "0.1.9"
+version = "0.2.0"
 description = "One linked AI-governance model, four ways in: CLI, API, web UI and graph"
 readme = "README.md"
 license = "Apache-2.0"
@@ -31,6 +31,10 @@ test = [
     "pytest>=8.0.0",
     "pytest-cov>=4.1.0",
     "pytest-timeout>=2.2.0",
+]
+browse = [
+    "datasette>=0.65,<1",
+    "sqlite-utils>=4.2.1",
 ]
 
 [tool.pytest.ini_options]
