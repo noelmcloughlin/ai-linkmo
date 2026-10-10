@@ -159,8 +159,6 @@ def evaluations(
     hasDataset: Optional[str] = None,
     hasTasks: Optional[str] = None,
     hasLicense: Optional[str] = None,
-    benchmarkmetadata: Optional[str] = None,
-    unitxcard: Optional[str] = None,
     hasDocumentation: Optional[str] = None,
     hasRelatedRisk: Optional[str] = None,
     related: bool = False,
@@ -193,8 +191,6 @@ def evaluations(
         hasDataset=hasDataset,
         hasTasks=hasTasks,
         hasLicense=hasLicense,
-        benchmarkmetadata=benchmarkmetadata,
-        unitxcard=unitxcard,
         hasDocumentation=hasDocumentation,
         hasRelatedRisk=hasRelatedRisk,
         related=related,
@@ -244,7 +240,6 @@ def controls(
     id: Optional[str] = None,
     isDefinedByTaxonomy: Optional[str] = None,
     hasDocumentation: Optional[str] = None,
-    hasAiActorTask: Optional[str] = None,
     detectsRiskConcept: Optional[str] = None,
     isDetectedBy: Optional[str] = None,
     type: Optional[str] = None,
@@ -253,11 +248,11 @@ def controls(
     hasRelatedRisk: Optional[str] = None
 ) -> Dict[str, Any]:
     """Handler to retrieve Control entities."""
-    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import Control
+    from ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology import RiskControl
 
     return generic_entity_handler(
         entity_name="controls",
-        model_cls=Control,
+        model_cls=RiskControl,
         fetch_all=create_related_fetch_all(
             related_method_name='get_related_risk_controls',
             related_method_params=['isDefinedByTaxonomy'],
@@ -268,7 +263,6 @@ def controls(
         id=id,
         isDefinedByTaxonomy=isDefinedByTaxonomy,
         hasDocumentation=hasDocumentation,
-        hasAiActorTask=hasAiActorTask,
         detectsRiskConcept=detectsRiskConcept,
         isDetectedBy=isDetectedBy,
         type=type,
@@ -284,7 +278,6 @@ def risks(
     isDefinedByTaxonomy: Optional[str] = None,
     hasDocumentation: Optional[str] = None,
     isPartOf: Optional[str] = None,
-    hasPart: Optional[str] = None,
     descriptor: Optional[str] = None,
     detectsRiskConcept: Optional[str] = None,
     isDetectedBy: Optional[str] = None,
@@ -320,7 +313,6 @@ def risks(
         id=id,
         isDefinedByTaxonomy=isDefinedByTaxonomy,
         hasDocumentation=hasDocumentation,
-        hasPart=hasPart,
         isPartOf=isPartOf,
         descriptor=descriptor,
         detectsRiskConcept=detectsRiskConcept,
@@ -419,11 +411,9 @@ def documents(byod: bool = False, id: Optional[str] = None,
 def benchmarkcards(
         byod: bool = False,
         id: Optional[str] = None,
-        isDefinedByTaxonomy: Optional[str] = None,
         hasDocumentation: Optional[str] = None,
         hasTasks: Optional[str] = None,
         hasLicense: Optional[str] = None,
-        belongsToDomain: Optional[str] = None,
         describesAiEval: Optional[str] = None,
         hasRelatedRisk: Optional[str] = None,
         related: bool = False,
@@ -435,18 +425,14 @@ def benchmarkcards(
         entity_name="benchmarkmetadatacards",
         model_cls=BenchmarkMetadataCard,
         fetch_all=create_related_fetch_all(
-            related_method_name='get_benchmark_metadata_cards',
-            related_method_params=['isDefinedByTaxonomy'],
-            related_param_mappings={'isDefinedByTaxonomy': 'taxonomy'}
+            related_method_name='get_benchmark_metadata_cards'
         ),
         fetch_by_id=fetch_by_id_item,
         byod=byod,
         id=id,
-        isDefinedByTaxonomy=isDefinedByTaxonomy,
         hasDocumentation=hasDocumentation,
         hasTasks=hasTasks,
         hasLicense=hasLicense,
-        belongsToDomain=belongsToDomain,
         describesAiEval=describesAiEval,
         hasRelatedRisk=hasRelatedRisk,
         related=related,
@@ -541,7 +527,6 @@ def obligations(byod: bool = False, id: Optional[str] = None,
                 hasControlApplication: Optional[str] = None,
                 hasEvidenceCategory: Optional[str] = None,
                 hasTypicalLocation: Optional[str] = None,
-                capability: Optional[str] = None,
                 hasRequirement: Optional[str] = None,
                 hasRequirementType: Optional[str] = None,
                 hasRule: Optional[str] = None,
@@ -562,7 +547,6 @@ def obligations(byod: bool = False, id: Optional[str] = None,
         hasControlApplication = hasControlApplication,
         hasEvidenceCategory = hasEvidenceCategory,
         hasTypicalLocation = hasTypicalLocation,
-        capability = capability,
         hasRequirement = hasRequirement,
         hasRequirementType = hasRequirementType
     )
@@ -575,7 +559,6 @@ def recommendations(
     hasControlApplication: Optional[str] = None,
     hasEvidenceCategory: Optional[str] = None,
     hasTypicalLocation: Optional[str] = None,
-    capability: Optional[str] = None,
     hasRequirement: Optional[str] = None,
     hasRequirementType: Optional[str] = None,
     hasRule: Optional[str] = None,
@@ -597,7 +580,6 @@ def recommendations(
         hasControlApplication= hasControlApplication,
         hasEvidenceCategory= hasEvidenceCategory,
         hasTypicalLocation= hasTypicalLocation,
-        capability= capability,
         hasRequirement= hasRequirement,
         hasRequirementType= hasRequirementType,
         hasRule= hasRule
@@ -628,11 +610,9 @@ def intrinsics(
         isDefinedByTaxonomy: Optional[str]=None,
         hasDocumentation: Optional[str]=None,
         isDefinedByVocabulary: Optional[str]=None,
-        hasTerm: Optional[str]=None,
         hasAdapter: Optional[str]=None,
         implementedByAdapter: Optional[str]=None,
         requiredByTask: Optional[str]=None,
-        capability: Optional[str]=None,
         requiresCapability: Optional[str]=None,
         hasRelatedRisk: Optional[str]=None,
         related: bool=False,
@@ -660,11 +640,9 @@ def intrinsics(
         isDefinedByTaxonomy= isDefinedByTaxonomy,
         hasDocumentation= hasDocumentation,
         isDefinedByVocabulary= isDefinedByVocabulary,
-        hasTerm= hasTerm,
         hasAdapter= hasAdapter,
         implementedByAdapter= implementedByAdapter,
         requiredByTask= requiredByTask,
-        capability= capability,
         requiresCapability= requiresCapability,
         hasRelatedRisk= hasRelatedRisk,
         related= related,
@@ -698,7 +676,6 @@ def principles(
     hasDocumentation: Optional[str]=None,
     isDefinedByVocabulary: Optional[str]=None,
     isPartOf: Optional[str]=None,
-    hasTasks: Optional[str]=None,
     implementedByAdapter: Optional[str]=None,
     requiresCapability: Optional[str]=None
 ) -> Dict[str, Any]:
@@ -717,7 +694,6 @@ def principles(
         hasDocumentation=hasDocumentation,
         isDefinedByVocabulary=isDefinedByVocabulary,
         isPartOf=isPartOf,
-        hasTasks=hasTasks,
         implementedByAdapter=implementedByAdapter,
         requiresCapability=requiresCapability
     )
@@ -765,7 +741,6 @@ def tasks(
         isDefinedByVocabulary: Optional[str]=None,
         hasDocumentation: Optional[str]=None,
         isPartOf: Optional[str]=None,
-        hasTasks: Optional[str]=None,
         hasAdapter: Optional[str]=None,
         implementedByAdapter: Optional[str]=None,
         requiresCapability: Optional[str]=None
@@ -784,7 +759,6 @@ def tasks(
         isDefinedByVocabulary=isDefinedByVocabulary,
         hasDocumentation=hasDocumentation,
         isPartOf=isPartOf,
-        hasTasks=hasTasks,
         implementedByAdapter=implementedByAdapter,
         requiresCapability=requiresCapability
     )

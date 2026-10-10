@@ -78,12 +78,6 @@ paths:
           required: false
           description: Filter by partof (some entity)
         - in: query
-          name: hasPart
-          schema:
-            type: string
-          required: false
-          description: Filter by part
-        - in: query
           name: detectsRiskConcept
           schema:
             type: string
@@ -234,12 +228,6 @@ paths:
             type: string
           required: false
           description: Specify a document ID for the selected scope
-        - in: query
-          name: hasAiActorTask
-          schema:
-            type: string
-          required: false
-          description: Filter by AI Actor Task
         - in: query
           name: detectsRiskConcept
           schema:
@@ -409,12 +397,6 @@ paths:
           required: false
           description: Unique identifier for the resource
         - in: query
-          name: isDefinedByTaxonomy
-          schema:
-            type: string
-          required: false
-          description: Filter by taxonomy
-        - in: query
           name: hasDocumentation
           schema:
             type: string
@@ -426,12 +408,6 @@ paths:
             type: string
           required: false
           description: Filter by license
-        - in: query
-          name: belongsToDomain
-          schema:
-            type: string
-          required: false
-          description: Filter by domain value
         - in: query
           name: describesAiEval
           schema:
@@ -504,18 +480,6 @@ paths:
             type: string
           required: false
           description: Filter by license
-        - in: query
-          name: benchmarkmetadata
-          schema:
-            type: string
-          required: false
-          description: Filter by benchmark metadata
-        - in: query
-          name: unitxcard
-          schema:
-            type: string
-          required: false
-          description: Filter by Unitx Card
         - in: query
           name: hasDocumentation
           schema:
@@ -799,12 +763,6 @@ paths:
           required: false
           description: Filter by vocabulary
         - in: query
-          name: hasTerm
-          schema:
-            type: string
-          required: false
-          description: Filter by term in the scope
-        - in: query
           name: hasAdapter
           schema:
             type: string
@@ -822,12 +780,6 @@ paths:
             type: string
           required: false
           description: Filter by required by task
-        - in: query
-          name: capability
-          schema:
-            type: string
-          required: false
-          description: Filter by capability
         - in: query
           name: requiresCapability
           schema:
@@ -943,12 +895,6 @@ paths:
           required: false
           description: Filter by partof (some entity)
         - in: query
-          name: hasTasks
-          schema:
-            type: string
-          required: false
-          description: Filter by Task
-        - in: query
           name: implementedByAdapter
           schema:
             type: string
@@ -1016,12 +962,6 @@ paths:
             type: string
           required: false
           description: Filter by typical location of activity.
-        - in: query
-          name: capability
-          schema:
-            type: string
-          required: false
-          description: Filter by capability.
         - in: query
           name: hasRequirement
           schema:
@@ -1159,12 +1099,6 @@ paths:
             type: string
           required: false
           description: Filter by typical location of activity.
-        - in: query
-          name: capability
-          schema:
-            type: string
-          required: false
-          description: Filter by capability.
         - in: query
           name: hasRequirement
           schema:
@@ -1346,12 +1280,6 @@ paths:
             type: string
           required: false
           description: Filter by partof (some entity)
-        - in: query
-          name: hasTasks
-          schema:
-            type: string
-          required: false
-          description: Filter by Task
         - in: query
           name: implementedByAdapter
           schema:
