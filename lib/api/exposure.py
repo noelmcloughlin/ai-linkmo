@@ -62,7 +62,6 @@ class ExposedClass:
     name: str
     path: str
     operation_id: str
-    collection: str
     related: bool
     description: str
     parameters: tuple[Parameter, ...]
@@ -176,7 +175,6 @@ def load_exposure(api_file: Path = API_FILE) -> Exposure:
             name=name,
             path=entry["path"],
             operation_id=entry.get("operation_id", f"list_{name.lower()}"),
-            collection=entry["collection"],
             related=related,
             description=(definition.description or "").strip(),
             parameters=tuple(parameters),

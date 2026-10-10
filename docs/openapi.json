@@ -11514,6 +11514,100 @@
         }
       }
     },
+    "/search": {
+      "get": {
+        "summary": "Search records by text",
+        "description": "Full-text search over the records in the store, ranked by a trigram index; run `just load-store` and `just index-store` first.",
+        "operationId": "handlers.search",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The text to search for",
+              "title": "Q"
+            },
+            "description": "The text to search for"
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search one class only, named by its scope, such as risk or control",
+              "title": "Scope"
+            },
+            "description": "Search one class only, named by its scope, such as risk or control"
+          },
+          {
+            "name": "byod",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Search the store that includes the bring-your-own-data files",
+              "title": "Byod"
+            },
+            "description": "Search the store that includes the bring-your-own-data files"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "The number of results to return, 20 by default",
+              "title": "Limit"
+            },
+            "description": "The number of results to return, 20 by default"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/graph": {
       "get": {
         "summary": "Get graph",

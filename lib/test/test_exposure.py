@@ -1,7 +1,7 @@
 """The exposure file, the schema and the library agree with each other.
 
-These are the invariants the kernels rely on: every exposed class is a schema class with a
-collection the library can serve, every filter is a slot of its class, and the generic
+These are the invariants the kernels rely on: every exposed class is a schema class,
+every filter is a slot of its class, and the generic
 ``query_class`` answers the way the old per-class handlers did.
 """
 
@@ -65,15 +65,6 @@ def test_related_classes_have_a_lookup(exposure):
 
     related = {c.name for c in exposure.classes.values() if c.related}
     assert related - {"Risk"} == set(RELATED_LOOKUPS)
-
-
-@pytest.mark.slow
-def test_collections_resolve_in_the_library(exposure):
-    from lib.cli.utils import get_ran_instance
-
-    ran = get_ran_instance()
-    for exposed in exposure.classes.values():
-        ran.query(class_name=exposed.collection)
 
 
 @pytest.mark.slow

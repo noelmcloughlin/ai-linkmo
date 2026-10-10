@@ -11,6 +11,9 @@ import pytest
 
 # Test cases extracted from README.md
 # Format: (command_args, expected_count_min, expected_count_max, byod_required)
+# A scope lists every instance of its class, wherever the data file put it: ``control`` is
+# every RiskControl including the 1,085 Actions, ``group`` every Group subclass, and
+# ``model`` every LargeLanguageModel including the 26 Adapters.
 CLI_TEST_CASES = [
     # Taxonomies
     (["taxonomy", "--count"], 14, 14, False),
@@ -33,7 +36,7 @@ CLI_TEST_CASES = [
     (["risk", "atlas-toxic-output", "--related", "--isDefinedByTaxonomy", "nist-ai-rmf", "--count"], 2, 2, False),
     
     # Risk Groups
-    (["group", "--count"], 180, 180, False),
+    (["group", "--count"], 183, 183, False),
     (["group", "--type", "CapabilityGroup", "--count"], 8, 8, False),
     (["group", "--isDefinedByTaxonomy", "ai-risk-taxonomy", "--count"], 59, 59, False),
     (["group", "ai-risk-taxonomy-deception"], 1, 1, False),
@@ -59,9 +62,9 @@ CLI_TEST_CASES = [
     (["principle", "principle-un-do-no-harm"], 1, 1, False),
     
     # AI Models
-    (["model", "--count"], 32, 32, False),
+    (["model", "--count"], 58, 58, False),
     (["model", "--isPartOf", "shieldgemma", "--count"], 3, 3, False),
-    (["model", "--hasRiskControl", "gg-groundedness-detection", "--count"], 5, 5, False),
+    (["model", "--hasRiskControl", "gg-groundedness-detection", "--count"], 7, 7, False),
     (["model", "--isProvidedBy", "google", "--count"], 3, 3, False),
     (["model", "--hasDocumentation", "granite-guardian-paper", "--count"], 5, 5, False),
     (["model", "--hasLicense", "gemma-terms-of-use", "--count"], 3, 3, False),
@@ -120,7 +123,7 @@ CLI_TEST_CASES = [
     (["intrinsic", "--related", "--hasRelatedRisk", "granite-answer-relevance", "--count"], 6, 6, False),
     
     # Actions
-    (["action", "--count"], 254, 254, False),
+    (["action", "--count"], 1085, 1085, False),
     (["action", "--isDefinedByTaxonomy", "nist-ai-rmf", "--count"], 212, 212, False),
     (["action", "--hasAiActorTask", "Human Factors", "--count"], 22, 22, False),
     
@@ -129,7 +132,7 @@ CLI_TEST_CASES = [
     (["action", "--related_ids", "--hasRelatedRisk", "atlas-toxic-output", "--count"], 47, 47, False),
     
     # Controls
-    (["control", "--count"], 848, 848, False),
+    (["control", "--count"], 1102, 1102, False),
     (["control", "--isDefinedByTaxonomy", "shieldgemma-taxonomy", "--count"], 4, 4, False),
     (["control", "gg-function-call-detection"], 1, 1, False),
     

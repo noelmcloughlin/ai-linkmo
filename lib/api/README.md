@@ -41,6 +41,19 @@ up by risk (then add its call to `RELATED_LOOKUPS`). `lib/test/test_exposure.py`
 every exposed class is in the schema and every filter is a slot of its class;
 `lib/test/test_api_kernel.py` checks the contract and the envelope the web UI reads.
 
+## Where the records come from
+
+`AI_LINKMO_DATA_SOURCE` chooses the source of the class listings. `store` reads the DuckDB
+files that `just load-store` builds through linkml-store, one collection per concrete class,
+and answers a filter in milliseconds without loading the library. `library` keeps the
+`AIAtlasNexus` instance, which re-parses the YAML on first use. `auto`, the default, is the
+store when its files exist and the library otherwise. Related-risk lookups, crosswalks,
+inference and the SPARQL and SHACL surface stay on the library whichever is chosen.
+`lib/test/test_data_source.py` asks both sources the same questions and compares the answers.
+
+A scope lists every instance of its class, wherever the data file placed it, so `/control`
+holds every `RiskControl` including the Actions, and `/group` every `Group` subclass.
+
 ## FastAPI Server
 
 The FastAPI server can be started in development mode:

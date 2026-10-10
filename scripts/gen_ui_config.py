@@ -109,19 +109,14 @@ def reference_slots(exposure: Exposure, exposed: ExposedClass) -> list[str]:
 def byo_section(exposure: Exposure, exposed: ExposedClass) -> str:
     """The top-level key a bring-your-own-data file keeps this class under.
 
-    Those files are ``Container`` instances, so the key is a ``Container`` slot. The
-    library's collection name is that slot when one exists (``groups``, ``adapters``);
-    otherwise the slot of the nearest ancestor is the one the loader reads, which puts a
-    ``Risk`` under ``entries`` and a ``Requirement`` under ``rules``.
+    Those files are ``Container`` instances, so the key is a ``Container`` slot: the one whose
+    range is the class, or else the nearest ancestor's, which is what the loader reads. That
+    puts a ``Risk`` under ``entries`` and a ``Requirement`` under ``rules``.
     """
     view = exposure.schema_view
     by_range = {}
-    by_name = {}
     for slot in view.class_induced_slots("Container"):
         by_range.setdefault(slot.range, slot.name)
-        by_name[slot.name] = slot.range
-    if exposed.collection in by_name:
-        return exposed.collection
     for ancestor in view.class_ancestors(exposed.name):
         if ancestor in by_range:
             return by_range[ancestor]

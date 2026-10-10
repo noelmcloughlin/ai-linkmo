@@ -29,7 +29,7 @@
       "path": "/obligation",
       "label": "Control Activity Obligations",
       "type": "ControlActivityObligation",
-      "byo": "rules",
+      "byo": "obligations",
       "description": "A control activity (rule) describing an obligation for performing an activity",
       "filters": [
         "hasControlApplication",

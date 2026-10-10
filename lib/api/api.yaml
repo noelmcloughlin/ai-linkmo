@@ -7,8 +7,7 @@
 #
 # The shape follows the configuration proposed for LinkML's gen-openapi in
 # linkml/linkml#3871: `expose.classes` names the classes and `overlay` is deep-merged into
-# the generated document. Three keys are ai-linkmo's own, and gen-openapi can ignore them.
-# `collection` is the key the ai-atlas-nexus library stores the class's instances under.
+# the generated document. Two keys are ai-linkmo's own, and gen-openapi can ignore them.
 # `related` marks a class whose records can be looked up by a related risk, which adds the
 # `related`, `related_ids` and `hasRelatedRisk` parameters; lib/api/handlers.py holds the
 # library call for each. `operation_id` keeps the names the hand-written contract used.
@@ -19,99 +18,77 @@ generator_args:
         RiskTaxonomy:
           path: /taxonomy
           operation_id: handlers.taxonomies
-          collection: taxonomies
         ControlActivityObligation:
           path: /obligation
           operation_id: handlers.obligations
-          collection: rules
         ControlActivityRecommendation:
           path: /recommendation
           operation_id: handlers.recommendations
-          collection: rules
         Risk:
           path: /risk
           operation_id: handlers.risks
-          collection: risks
           related: true
         Group:
           path: /group
           operation_id: handlers.groups
-          collection: groups
         Action:
           path: /action
           operation_id: handlers.actions
-          collection: actions
           related: true
         RiskControl:
           path: /control
           operation_id: handlers.controls
-          collection: controls
           related: true
         RiskIncident:
           path: /incident
           operation_id: handlers.incidents
-          collection: riskincidents
           related: true
         LargeLanguageModel:
           path: /model
           operation_id: handlers.models
-          collection: aimodels
         AiTask:
           path: /task
           operation_id: handlers.tasks
-          collection: aitasks
         AiEval:
           path: /evaluation
           operation_id: handlers.evaluations
-          collection: evaluations
           related: true
         Dataset:
           path: /dataset
           operation_id: handlers.datasets
-          collection: datasets
         Adapter:
           path: /adapter
           operation_id: handlers.adapters
-          collection: adapters
           related: true
         LLMIntrinsic:
           path: /intrinsic
           operation_id: handlers.intrinsics
-          collection: llmintrinsics
           related: true
         Organization:
           path: /organization
           operation_id: handlers.organizations
-          collection: organizations
         Documentation:
           path: /document
           operation_id: handlers.documents
-          collection: documents
         Stakeholder:
           path: /stakeholder
           operation_id: handlers.stakeholders
-          collection: stakeholders
         LLMQuestionPolicy:
           path: /questionpolicy
           operation_id: handlers.questionpolicies
-          collection: questionpolicies
         Principle:
           path: /principle
           operation_id: handlers.principles
-          collection: principles
         BenchmarkMetadataCard:
           path: /benchmarkcard
           operation_id: handlers.benchmarkcards
-          collection: benchmarkmetadatacards
           related: true
         Vocabulary:
           path: /vocabulary
           operation_id: handlers.vocabularies
-          collection: vocabularies
         Requirement:
           path: /requirement
           operation_id: handlers.requirements
-          collection: requirements
     overlay:
       info:
         title: AI-LinkMO User Demo, Open API
@@ -189,6 +166,44 @@ generator_args:
                     detail:
                       type: string
       paths:
+        /search:
+          get:
+            summary: Search records by text
+            operationId: handlers.search
+            description: Full-text search over the records in the store, ranked by a trigram
+              index; run `just load-store` and `just index-store` first.
+            parameters:
+            - in: query
+              name: q
+              schema:
+                type: string
+              required: true
+              description: The text to search for
+            - in: query
+              name: scope
+              schema:
+                type: string
+              required: false
+              description: Search one class only, named by its scope, such as risk or control
+            - in: query
+              name: byod
+              schema:
+                type: boolean
+              required: false
+              description: Search the store that includes the bring-your-own-data files
+            - in: query
+              name: limit
+              schema:
+                type: integer
+              required: false
+              description: The number of results to return, 20 by default
+            responses:
+              '200':
+                description: The matching records with their scores
+                content:
+                  application/json:
+                    schema:
+                      type: object
         /graph:
           get:
             summary: Get graph

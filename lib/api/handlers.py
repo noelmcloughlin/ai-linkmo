@@ -122,8 +122,8 @@ def _safe_export_segment(value: str, field: str) -> str:
 # CLASS LISTINGS
 # ============================================================================
 #
-# Every exposed class is served by ``query_class``. The class, its collection in the library
-# and its filters come from lib/api/api.yaml and the schema through ``load_exposure``. The
+# Every exposed class is served by ``query_class``. The class and its filters come from
+# lib/api/api.yaml and the schema through ``load_exposure``. The
 # only per-class knowledge kept here is how the library looks records up by a related risk.
 
 
@@ -190,6 +190,22 @@ def _related_records(ran, exposed, risk_id: str, related: bool, filters: Dict[st
         return []
 
 
+def _library_instances(ran, model_cls) -> list:
+    """Every instance of ``model_cls`` the library holds, whichever data file placed it.
+
+    The library files records by collection, and a collection can hold several classes:
+    831 of the 848 ``controls`` are Actions. A scope lists a class, so it reads every
+    collection, which is also what the store does with one collection per class.
+    """
+    container = ran._atlas_explorer._data
+    return [
+        record
+        for slot in type(container).model_fields
+        for record in (getattr(container, slot) or [])
+        if isinstance(record, model_cls)
+    ]
+
+
 def query_class(
     class_name: str,
     *,
@@ -218,13 +234,22 @@ def query_class(
         raise HTTPException(
             status_code=422, detail=f"{class_name} has no filter named {', '.join(unknown)}."
         )
-    ran = get_ran_instance(byod)
+    from lib.store.source import store_has_taxonomy, store_records, using_store
+
+    store = using_store()
     taxonomy = filters.get("isDefinedByTaxonomy")
-    if taxonomy:
-        validate_taxonomy(ran, taxonomy)
     model_cls = _get_model(class_name)
     active = {k: v for k, v in filters.items() if v is not None}
     risk_id = active.pop("hasRelatedRisk", None) if exposed.related else None
+    # The related lookups always run on the library; the plain listings run on the store
+    # when it is the configured source, and then the library is never loaded at all.
+    related_lookup = (class_name == "Risk" and id and (related or related_ids)) or risk_id is not None
+    ran = get_ran_instance(byod) if related_lookup or not store else None
+    if taxonomy:
+        if ran is not None:
+            validate_taxonomy(ran, taxonomy)
+        elif not store_has_taxonomy(taxonomy, byod):
+            raise HTTPException(status_code=400, detail=f"Invalid taxonomy ID: {taxonomy}")
 
     try:
         if class_name == "Risk" and id and (related or related_ids):
@@ -234,12 +259,21 @@ def query_class(
                 records = [r for r in records if r.isDefinedByTaxonomy == taxonomy]
         elif risk_id is not None:
             records = _related_records(ran, exposed, risk_id, related or related_ids, active)
+        elif store:
+            multivalued = {p.name for p in exposed.parameters if p.multivalued}
+            # Each row is built with its own class's model, as the library's instances are.
+            records = [
+                _get_model(name)(**row)
+                for name, row in store_records(class_name, active, multivalued, byod)
+            ]
+            if id:
+                record = next((r for r in records if getattr(r, "id", None) == id), None)
+                return {"item": record.model_dump() if record is not None else None}
         else:
             records = [
                 r
-                for r in (ran.query(class_name=exposed.collection) or [])
-                if isinstance(r, model_cls)
-                and all(_matches(r, k, v) for k, v in active.items())
+                for r in _library_instances(ran, model_cls)
+                if all(_matches(r, k, v) for k, v in active.items())
             ]
             if id:
                 record = next((r for r in records if getattr(r, "id", None) == id), None)
@@ -255,6 +289,17 @@ def query_class(
         raise HTTPException(status_code=500, detail=f"Failed to fetch {class_name}.")
 
 
+
+
+def search(q: str, byod: bool = False, scope: Optional[str] = None, limit: int = 20) -> Dict[str, Any]:
+    """Full-text search over the store's records, through linkml-store's trigram index.
+
+    ``scope`` narrows the search to one exposed class, named by its CLI scope such as
+    ``risk``; without it every exposed class is searched. The work is in ``lib/store/search``.
+    """
+    from lib.store.search import search as search_store
+
+    return search_store(q, byod=byod, scope=scope, limit=limit)
 
 
 def graph(export: bool=False, id: Optional[str]=None, byod: bool=False) -> Dict[str, Any]:
