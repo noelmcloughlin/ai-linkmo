@@ -19,3 +19,7 @@ gen-ui-config:
 # Fetch the Cypher export that ai-atlas-nexus commits, pinned to the installed version.
 fetch-cypher:
     uv run python scripts/fetch_cypher.py graph/cypher/ai-risk-ontology.cypher
+
+# Load the packaged and bring-your-own data into the DuckDB store under lib/store/data.
+load-store:
+    uv run python scripts/load_store.py

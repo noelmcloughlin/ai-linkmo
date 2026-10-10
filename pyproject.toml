@@ -22,6 +22,8 @@ dependencies = [
     "urllib3>=1.26.0,<3.0.0",
     "charset-normalizer>=2.0.0,<3.6.0",
     "chardet>=4.0.0,<6.0.0",
+    "linkml-store>=0.3.2",
+    "sqlalchemy<2.1",
 ]
 
 [project.optional-dependencies]

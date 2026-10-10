@@ -150,3 +150,6 @@ skills-lock.json
 # The Cypher export is fetched from ai-atlas-nexus by `just fetch-cypher`, never committed.
 graph/cypher/ai-risk-ontology.cypher
 graph/cypher/*.part
+
+# The DuckDB store and its linkml-store config are built by `just load-store`, never committed.
+lib/store/data/
