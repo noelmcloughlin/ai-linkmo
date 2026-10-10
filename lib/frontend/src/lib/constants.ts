@@ -1,3 +1,6 @@
+import entities from "./entities.json";
+import type { GeneratedEndpoint, UiEndpoint } from "$types/endpoint";
+
 // Identity customiztion (BYO identity)
 export const BYO_ICON_TEXT: string = "ACME";
 export const APP_NAME: string = "AI-LinkMO";
@@ -65,92 +68,32 @@ export const YOUR_FILES = [
 // This is the endpoint that will be selected when the app loads
 export const DEFAULT_ENDPOINT: string = "taxonomy";
 
-// List of all endpoints available in the application
-// Each endpoint has a key, label, and class name for TS schema mappings.
+// The entity list is generated from lib/api/api.yaml by `just gen-ui-config`, so an
+// endpoint key here is an API route by construction. entities.json is not hand-edited;
+// what the schema cannot know lives in the overlays below and is merged over it.
+const GENERATED_ENDPOINTS: GeneratedEndpoint[] = entities.endpoints;
+
+// Hand-written overrides per endpoint key. A label replaces the plural derived from the
+// class name where that reads badly in the sidebar; a byo replaces the derived
+// Container slot if a bring-your-own-data file ever keeps a class under another key.
+const ENDPOINT_OVERLAY: Record<
+  string,
+  Partial<Pick<UiEndpoint, "label" | "byo">>
+> = {
+  taxonomy: { label: "Taxonomies" },
+  obligation: { label: "Obligations" },
+  recommendation: { label: "Recommendations" },
+  group: { label: "Risk Groups" },
+  evaluation: { label: "Evaluations" },
+};
+
+// List of all endpoints available in the application, in the order of api.yaml.
+// Each endpoint has a key, label, class name, byo section and derived defaults.
 // Used to dynamically generate UI forms and views based on selected endpoint.
-export const ENDPOINTS = [
-  {
-    key: "taxonomy",
-    label: "Taxonomies",
-    type: "RiskTaxonomy",
-    byo: "taxonomies",
-  },
-  {
-    key: "obligation",
-    label: "Obligations",
-    type: "ControlActivityObligation",
-    byo: "rules",
-  },
-  {
-    key: "recommendation",
-    label: "Recommendations",
-    type: "ControlActivityRecommendation",
-    byo: "rules",
-  },
-  { key: "risk", label: "Risks", type: "Risk", byo: "entries" },
-  { key: "group", label: "Risk Groups", type: "RiskGroup", byo: "groups" },
-  { key: "action", label: "Actions", type: "Action", byo: "actions" },
-  { key: "control", label: "Controls", type: "RiskControl", byo: "controls" },
-  {
-    key: "incident",
-    label: "Incidents",
-    type: "RiskIncident",
-    byo: "incidents",
-  },
-  { key: "model", label: "Ai Models", type: "AiModel", byo: "aimodels" },
-  { key: "task", label: "Ai Tasks", type: "AiTask", byo: "aitasks" },
-  {
-    key: "evaluation",
-    label: "Evaluations",
-    type: "AiEval",
-    byo: "evaluations",
-  },
-  { key: "dataset", label: "Datasets", type: "Dataset", byo: "datasets" },
-  { key: "adapter", label: "Adapters", type: "Adapter", byo: "adapters" },
-  {
-    key: "intrinsic",
-    label: "LLM Intrinsics",
-    type: "LLMIntrinsic",
-    byo: "intrinsics",
-  },
-  {
-    key: "organization",
-    label: "Organizations",
-    type: "Organization",
-    byo: "organizations",
-  },
-  {
-    key: "document",
-    label: "Documents",
-    type: "Documentation",
-    byo: "documents",
-  },
-  { key: "principle", label: "Principles", type: "Principle", byo: "entries" },
-  {
-    key: "stakeholder",
-    label: "Stakeholders",
-    type: "Stakeholder",
-    byo: "stakeholders",
-  },
-  {
-    key: "requirement",
-    label: "Requirements",
-    type: "Requirement",
-    byo: "requirements",
-  },
-  {
-    key: "benchmarkcard",
-    label: "Benchmarkcards",
-    type: "BenchmarkMetadataCard",
-    byo: "benchmarkcards",
-  },
-  {
-    key: "questionpolicy",
-    label: "Questionpolicies",
-    type: "LLMQuestionPolicy",
-    byo: "questionpolicies",
-  },
-];
+export const ENDPOINTS: UiEndpoint[] = GENERATED_ENDPOINTS.map((e) => ({
+  ...e,
+  ...(ENDPOINT_OVERLAY[e.key] ?? {}),
+}));
 
 // Grouped endpoints for navigation accordion
 export const ENDPOINT_GROUPS = [
@@ -160,6 +103,7 @@ export const ENDPOINT_GROUPS = [
     icon: "",
     endpoints: [
       "taxonomy",
+      "vocabulary",
       "obligation",
       "recommendation",
       "requirement",
@@ -201,10 +145,10 @@ export const ENDPOINT_GROUPS = [
   },
 ];
 
-// Convert ENDPOINTS array to a map for key lookup
-export const ENDPOINT_MAP = Array.isArray(ENDPOINTS)
-  ? Object.fromEntries(ENDPOINTS.map((e) => [e.key, `/${e.key}`]))
-  : ENDPOINTS;
+// Endpoint key to API route. The generator takes both from the same exposure entry.
+export const ENDPOINT_MAP: Record<string, string> = Object.fromEntries(
+  ENDPOINTS.map((e) => [e.key, e.path]),
+);
 
 // Record field IDs for display priority in all UI cards, any endpoint
 export const PROMINENT_FIELDS = [
@@ -219,8 +163,11 @@ export const PROMINENT_FIELDS = [
 // Fields that should be rendered as textarea-multiline inputs in forms
 export const TEXTAREA_FIELDS = ["description", "concern"];
 
-// Defines which Right Aside filter buttons are valid for each scope (endpoing key)
-export const UI_WANTED_FILTERS: { [key: string]: string[] } = {
+// Which Right Aside filter buttons to show per endpoint key. Every name must be a
+// parameter of the endpoint's class (the API rejects an unknown filter with 422;
+// lib/test/test_ui_config.py checks this list against the schema). An endpoint absent
+// here falls back to the filters the generator derived from the schema.
+const UI_FILTER_OVERLAY: { [key: string]: string[] } = {
   taxonomy: ["hasDocumentation", "hasLicense", "type"],
   // risk - excluding 'hasDocumentation', 'phase', 'implementationByAdapter'.
   risk: [
@@ -237,7 +184,6 @@ export const UI_WANTED_FILTERS: { [key: string]: string[] } = {
     "hasControlApplication",
     "hasEvidenceCategory",
     "hasTypicalLocation",
-    "appliesToCapability",
     "hasRule",
     "hasRequirement",
     "hasRequirementType",
@@ -246,7 +192,6 @@ export const UI_WANTED_FILTERS: { [key: string]: string[] } = {
     "isDefinedByTaxonomy",
     "hasApplication",
     "hasFrequency",
-    "appliesToCapability",
     "hasRequirementType",
     "hasRule",
     "type",
@@ -257,7 +202,6 @@ export const UI_WANTED_FILTERS: { [key: string]: string[] } = {
     "hasControlApplication",
     "hasEvidenceCategory",
     "hasTypicalLocation",
-    "appliesToCapability",
     "hasRule",
     "hasRequirement",
     "hasRequirementType",
@@ -280,7 +224,6 @@ export const UI_WANTED_FILTERS: { [key: string]: string[] } = {
   control: [
     "isDefinedByTaxonomy",
     "hasDocumentation",
-    "hasAiActorTask",
     "detectsRiskConcept",
     "isDetectedBy",
     "hasRelatedRisk",
@@ -307,7 +250,7 @@ export const UI_WANTED_FILTERS: { [key: string]: string[] } = {
     "hasRelatedRisk",
   ],
   document: ["hasLicense"],
-  dataset: ["hasDocumentation", "hasLicense", "provider"],
+  dataset: ["hasDocumentation", "hasLicense", "isProvidedBy"],
   model: [
     "hasDocumentation",
     "hasLicense",
@@ -321,12 +264,9 @@ export const UI_WANTED_FILTERS: { [key: string]: string[] } = {
     "hasDocumentation",
     "isDefinedByTaxonomy",
     "isDefinedByVocabulary",
-    "hasLicense",
-    "hasAdapterType",
-    "adaptsModel",
-    "implementsCapability",
-    "hasRelatedRisk",
-    "hasRiskControl",
+    "requiredByTask",
+    "implementedByAdapter",
+    "requiresCapability",
   ],
   adapter: [
     "hasDocumentation",
@@ -356,11 +296,15 @@ export const UI_WANTED_FILTERS: { [key: string]: string[] } = {
     "hasDocumentation",
     "isPartOf",
     "implementedByAdapter",
-    "hasTasks",
     "requiresCapability",
   ],
   organization: ["grants_license"],
 };
+
+export const UI_WANTED_FILTERS: { [key: string]: string[] } =
+  Object.fromEntries(
+    ENDPOINTS.map((e) => [e.key, UI_FILTER_OVERLAY[e.key] ?? e.filters]),
+  );
 
 // Default personas for authentication with avatars
 export const DEFAULT_PERSONAS = [

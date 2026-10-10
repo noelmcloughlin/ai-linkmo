@@ -5,7 +5,7 @@ import { playwright } from "@vitest/browser-playwright";
 
 import tailwindcss from "@tailwindcss/vite";
 
-// Endpoint keys proxied to the backend API. Keep aligned with src/lib/constants.ts → ENDPOINTS.
+// Endpoint keys proxied to the backend API. Keep aligned with src/lib/entities.json (just gen-ui-config).
 // Also includes infrastructure endpoints (classes, graph, crosswalk, inference, schemaview,
 // byo, ares, organization, group, health) not surfaced as ENDPOINTS rows.
 const API_ENDPOINTS = [
