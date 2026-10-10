@@ -4,6 +4,8 @@
 
 ```text
 ai                      the CLI entry point (runs lib/cli through uv)
+justfile                build steps that derive checked-in files: the API contract, the UI entity list, the graph
+scripts/                the scripts behind those recipes, and the test runner
 lib/cli/                the CLI, one command per exposed class; fastCLI (via the API) or slowCLI (offline)
 lib/api/                FastAPI backend; api.yaml names the exposed classes, the schema gives their filters
 lib/frontend/           Svelte 5 web UI (Vite; proxies to the API on :8000)
@@ -13,6 +15,7 @@ byo/data/               nine governance frameworks encoded for the AI Risk Ontol
 byo/notes/EXAMPLES.md   a scripted walk through all four access patterns
 byo/images/             screenshots of each door, and the architecture diagram
 docs/
+  openapi.json              the API contract, written by `just gen-openapi` and checked against the server
   key-concepts.md           the vocabulary the four doors share
   working-with-the-data.md  bring your own data, crosswalks, the graph export
   neo4j.md                  load the graph into Neo4j in a container

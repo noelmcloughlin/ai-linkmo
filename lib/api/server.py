@@ -15,7 +15,7 @@ from ai_atlas_nexus import AIAtlasNexus
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from lib.api import handlers
@@ -140,6 +140,31 @@ app.add_middleware(CacheControlMiddleware)
 def redirect_root():
     """Redirect root to API documentation."""
     return RedirectResponse(url="/docs")
+
+
+# Scalar is a third API reference beside FastAPI's Swagger UI at /docs and ReDoc at /redoc.
+# It reads the same /openapi.json. The script comes from a CDN, so the page needs the
+# network to render but adds no dependency to the project.
+_SCALAR_PAGE = """<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI-LinkMO API reference</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+    <script>Scalar.createApiReference("#app", { url: "/openapi.json" });</script>
+  </body>
+</html>
+"""
+
+
+@app.get("/scalar", include_in_schema=False)
+def scalar_reference():
+    """The Scalar API reference over the published contract."""
+    return HTMLResponse(_SCALAR_PAGE)
 
 
 @app.get("/health", include_in_schema=False)

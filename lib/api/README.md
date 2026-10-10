@@ -27,8 +27,11 @@ risk, in `RELATED_LOOKUPS`; and the hand-written operations after it.
 `server.py` is the app itself: CORS, the cache-control middleware, the probes and the
 cached `AIAtlasNexus` instances.
 
-The contract is the running server's `/openapi.json` (OpenAPI 3.1), which carries the
-ontology classes under `components/schemas`. There is no checked-in spec to keep in step.
+The contract is `/openapi.json` (OpenAPI 3.1), which carries the ontology classes under
+`components/schemas`. `just gen-openapi` writes the same document to `docs/openapi.json`
+without a server, and `lib/test/test_contract_published.py` fails when that copy falls
+behind, so the committed file is always the served one. Three references read it: Swagger UI
+at `/docs`, ReDoc at `/redoc` and Scalar at `/scalar`.
 
 ## Adding or removing a class
 
