@@ -73,10 +73,12 @@ def api_server(project_root):
 
 
 @pytest.fixture
-def cli_command(project_root, api_server):
+def cli_command(project_root, request):
     """Return a function to execute CLI commands.
     
     Returns a function that takes command args and returns (stdout, stderr, returncode).
+    The server fixture is requested only for a call in API mode, so the local-mode sweep,
+    the help test and the invalid-scope test run without starting a server.
     """
     def execute(*args, mode=None, timeout=30):
         """Execute CLI command with given arguments.
@@ -101,9 +103,10 @@ def cli_command(project_root, api_server):
         # Print the command being executed
         print(f"\n→ Executing: {' '.join(cmd)}")
 
-        # Pass the known server URL so the CLI skips the /health detection probe
         env = os.environ.copy()
-        env["AI_ATLAS_API_URL"] = api_server
+        if mode == "api":
+            # Pass the known server URL so the CLI skips the /health detection probe
+            env["AI_ATLAS_API_URL"] = request.getfixturevalue("api_server")
 
         result = subprocess.run(
             cmd,

@@ -91,17 +91,17 @@ def check_cli():
     return True
 
 
-def check_openapi():
-    """Verify OpenAPI spec exists."""
-    print("\nChecking OpenAPI specification...")
+def check_exposure():
+    """Verify the exposure file the CLI and the API are built from exists."""
+    print("\nChecking exposure file...")
     
-    openapi_path = project_root / "lib" / "api" / "openapi.yaml"
+    api_path = project_root / "lib" / "api" / "api.yaml"
     
-    if not openapi_path.exists():
-        print(f"✗ OpenAPI spec not found at {openapi_path}")
+    if not api_path.exists():
+        print(f"✗ Exposure file not found at {api_path}")
         return False
     
-    print(f"✓ OpenAPI spec found at {openapi_path}")
+    print(f"✓ Exposure file found at {api_path}")
     
     return True
 
@@ -117,7 +117,7 @@ def main():
         ("Imports", check_imports),
         ("Dependencies", check_dependencies),
         ("CLI Script", check_cli),
-        ("OpenAPI Spec", check_openapi),
+        ("Exposure file", check_exposure),
     ]
     
     results = []
