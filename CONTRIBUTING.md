@@ -22,8 +22,8 @@ Python 3.11+ and [uv](https://docs.astral.sh/uv/) are required; Node 22 for the 
 ```bash
 git clone https://github.com/noelmcloughlin/ai-linkmo.git
 cd ai-linkmo
-uv sync --extra test        # application + test dependencies
-./ai --help                 # runs lib/cli via uv
+uv sync --extra test --extra browse   # application, test and browse dependencies
+./ai --help                           # runs lib/cli via uv
 ```
 
 For the web UI:
