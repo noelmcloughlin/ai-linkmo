@@ -71,10 +71,16 @@ def identifier_of(view: SchemaView, class_name: str, record: dict[str, Any]) -> 
 def write_examples(
     view: SchemaView, examples: dict[str, dict[str, Any]], directory: Path
 ) -> list[Path]:
-    """Write each example to ``directory``, after removing the YAML files a previous run left."""
+    """Write each example to ``directory``, after removing the examples a previous run left.
+
+    Only files named like an example, after a class of the schema and a hyphen, are
+    removed, so a directory given by mistake loses nothing else.
+    """
     directory.mkdir(parents=True, exist_ok=True)
-    for stale in directory.glob("*.yaml"):
-        stale.unlink()
+    classes = view.all_classes()
+    for stale in directory.glob("*-*.yaml"):
+        if stale.name.split("-", 1)[0] in classes:
+            stale.unlink()
     paths = []
     for class_name, record in examples.items():
         path = directory / example_file(class_name, identifier_of(view, class_name, record))
