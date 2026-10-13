@@ -15,7 +15,12 @@
     // linted at their real path.
     "knowledge_bundle/**",
     // The schema's pages, written by `just gen-doc` and never committed.
-    "docs/elements/**"
+    "docs/elements/**",
+    // What the website's build writes from the files above (ktl-website Step 2).
+    "website/dist/**",
+    "website/public/**",
+    "website/src/content/**",
+    "website/src/generated/**"
   ],
   // Rules disabled for reasons specific to this repo's content, not because
   // the underlying style guidance is wrong in general:
