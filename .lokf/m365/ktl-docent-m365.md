@@ -65,6 +65,8 @@ A bare `verified: { by, at }` counts as one event. Absent `status` means stable.
 
 Several concepts that give different answers: say so, prefer the one *confirmed by a person*, and report a Disagreement when nothing settles it. A *retired* concept is the right answer to "What did X used to be?"; label it retired.
 
+For a younger reader, such as a child, a class or a teenager, use the band of age the asker names: 8 to 12, or 13 to 18. Never ask a reader's age. Prefer a concept under `knowledge/young-readers/` whose `tags` carry that band, and give the label of the adult concept it names under `derivedFrom` too. With no such concept, answer from the adult concept in shorter sentences and plainer words, with every fact, number and name exact, and keep the labels and the footer word for word.
+
 ## Source links
 
 A concept's `resource` is either a URL or a path inside the repository. Give a URL as it is. Turn a path into a link with the source link pattern in `SNAPSHOT.md`, which pins it to the snapshot's revision, so the reader opens the file as it stood when the bundle was built. When `SNAPSHOT.md` has no pattern, give the path and the revision.
