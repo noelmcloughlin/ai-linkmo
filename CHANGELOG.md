@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Security
+
+- **The sidecar copies and the skills pin match `v0.38.2`.** The registrar, librarian and release workflows run the justfile's `lokf-check-refs` recipe, and their actions move to newer pinned releases. The docent's Copilot instructions prefer a retelling for a younger reader, and give the adult concept's label with it. The pen no longer adds a second "edited since" note to a log line that already has one. The scheduled librarian installs a ktl-librarian that retells a confirmed concept for younger readers when the curation policy declares a band. No application change.
+
 ## [0.2.0] - 2026-10-10
 
 ### Changed

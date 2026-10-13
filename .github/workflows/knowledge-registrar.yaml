@@ -58,7 +58,7 @@ jobs:
       contents: read
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
 
@@ -73,7 +73,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           python-version: "3.12"
 
@@ -91,9 +91,10 @@ jobs:
       # resolves every target in the bundle's own namespace, taking the
       # relation slots from the schema. It is part of `lokf validate`, so it
       # rides on this step rather than validating the same bundle twice. A
-      # host with a domain schema passes `--schema` here too.
+      # host with a domain schema names it as `schema :=` in the justfile, and
+      # the recipe passes it; the workflow runs the recipe so no host edits this line.
       - name: Validate the knowledge bundle and its relation targets
-        run: uv run lokf validate --check-refs knowledge
+        run: uvx --from rust-just==1.47.0 just lokf-check-refs
         working-directory: .lokf
 
       # `lokf validate` reads a concept body as an opaque string and never

@@ -820,7 +820,7 @@ class Bundle:
             text = default
         elif not text.startswith("**"):
             text = f"**{label}**: {text}"
-        if c is not None and c.confirmed_by_person() and "edited since" not in text:
+        if c is not None and c.confirmed_by_person() and "edited since" not in text.lower():
             text += " Edited since a person confirmed it; the label says so until the curator looks again."
         fb = op.get("from_feedback")
         asked = op.get("asked")

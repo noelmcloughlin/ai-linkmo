@@ -42,7 +42,7 @@ jobs:
       record: ${{ steps.read.outputs.record }}
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
 
@@ -152,7 +152,7 @@ jobs:
       # installs packages, installs a skill everywhere but the repository
       # that publishes it, and runs a third-party agent.
       - name: Harden the runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
 
@@ -163,7 +163,7 @@ jobs:
           persist-credentials: false # keep GITHUB_TOKEN off disk while the agent runs
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           python-version: "3.12"
 
@@ -198,8 +198,8 @@ jobs:
         if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.37.1 # the one pin; point your docs here instead of repeating it
-          TRUST_LADDER_SKILLS_SHA: 459e27fd661360dc9e0b0e7821ed6fcddbb3b4ee # the commit that tag names
+          TRUST_LADDER_SKILLS_REF: v0.38.2 # the one pin; point your docs here instead of repeating it
+          TRUST_LADDER_SKILLS_SHA: 849187d49a7cee409108e13d3d01617ad10df2be # the commit that tag names
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -219,7 +219,7 @@ jobs:
       # CLI needs Node 22 or newer, which a runner image does not promise.
       - name: Set up Node for the agent
         if: vars.KNOWLEDGE_LIBRARIAN_ENABLED == 'true'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
 
@@ -316,7 +316,7 @@ jobs:
         id: validate-lokf
         if: steps.install-lokf.outcome == 'success'
         continue-on-error: true
-        run: uv run lokf validate --check-refs knowledge
+        run: uvx --from rust-just==1.47.0 just lokf-check-refs
         working-directory: .lokf
 
       # The registrar's gate does not run on the pull request this workflow
@@ -388,7 +388,7 @@ jobs:
 
       - name: Upload the bundle patch
         if: steps.diff.outputs.changed == 'true'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: librarian-bundle-patch
           path: |
@@ -407,7 +407,7 @@ jobs:
       pull-requests: write # open the review PR
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
 
@@ -415,7 +415,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download the bundle patch
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: librarian-bundle-patch
           path: ${{ runner.temp }}
