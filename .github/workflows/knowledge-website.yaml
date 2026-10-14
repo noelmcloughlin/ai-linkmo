@@ -10,7 +10,9 @@ name: Knowledge website
 # and the lokf toolkit's, under a read-only token. `deploy` runs nothing but
 # GitHub's own deploy-pages action, holds the Pages scopes, and runs for the
 # default branch only, once the repository variable KNOWLEDGE_WEBSITE_ENABLED
-# is `true`; until then this workflow builds and deploys nothing. Before
+# is `true`; until then this workflow builds and deploys nothing. Set it under
+# Repository variables, not on an environment: a job's `if:` sees only
+# repository and organization variables. Before
 # setting it, tell Pages once to take its site from Actions, under
 # Settings > Pages > Source, or with:
 #   gh api -X POST repos/{owner}/{repo}/pages -f build_type=workflow
