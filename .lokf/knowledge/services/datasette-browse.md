@@ -1,6 +1,6 @@
 ---
 type: Service
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/datasette-browse
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/datasette-browse
 genre: reference
 title: Datasette browse UI
 description: Datasette over two SQLite databases built from the schema's gen-sqltables tables, packaged and bring-your-own data, served on port 8001 with schema-derived descriptions, facets, search and JSON and CSV exports.
@@ -12,7 +12,7 @@ tags:
 - sqlite
 - browse
 derivedFrom:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 generated:
   by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"

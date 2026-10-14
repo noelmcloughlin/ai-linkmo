@@ -1,7 +1,7 @@
 ---
 type: Explanation
 genre: explanation
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/explanations/why-linked-ai-governance
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/explanations/why-linked-ai-governance
 title: Why linked AI governance
 description: Why AI-LinkMO models governance as linked data behind four access patterns - the framework-fragmentation problem it answers, and why one shared ontology is what makes traceability auditable.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/architecture.md
@@ -10,12 +10,12 @@ tags:
 - ai-governance
 timestamp: "2026-08-12T00:00:00Z"
 about:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/cli
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/fastapi-backend
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/web-ui
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/graph-db
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/cli
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/web-ui
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/graph-db
 references:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
 - by: process:ktl-librarian
   at: "2026-09-25T20:32:51Z"

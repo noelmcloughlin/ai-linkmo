@@ -1,7 +1,7 @@
 ---
 type: Person
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/noel-mcloughlin
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/noel-mcloughlin
 title: Noel McLoughlin
 description: Author and maintainer of AI-LinkMO.
 resource: https://github.com/noelmcloughlin

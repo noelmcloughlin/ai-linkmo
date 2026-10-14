@@ -1,7 +1,7 @@
 ---
 type: Dataset
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/knowledge-graph-export
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/knowledge-graph-export
 title: Knowledge-graph export (YAML + Cypher)
 description: Export of the AI risk knowledge graph - as ontology YAML (upstream ai-atlas-nexus data plus BYOD files) and as Cypher for Neo4j import (packaged data only).
 resource: https://github.com/noelmcloughlin/ai-linkmo/tree/main/graph
@@ -20,7 +20,7 @@ distribution:
   name: ai-risk-ontology.cypher
   media_type: application/x-cypher
 derivedFrom:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
 - by: process:ktl-librarian
   at: "2026-09-25T20:31:56Z"

@@ -2,6 +2,7 @@
 
 ## 2026-10-14
 
+* **Migration**: `base_iri` moved from `https://github.com/noelmcloughlin/ai-linkmo/knowledge/`, a path space GitHub owns, to `https://noelmcloughlin.github.io/ai-linkmo/knowledge/`, where the knowledge-website workflow now publishes each concept, so every concept `id` resolves to its page. The publisher `id`, every concept `id` and every typed-relation target moved with it; `resource` and `distribution` links are unchanged.
 * **Prose**: reworded 10 concept bodies in plain English. No fact, link, number or frontmatter changed.
 * **Removal**: DuckDB record store, recreated in the same run without a key a Dataset does not take.
 * **Added**: DuckDB record store, from `https://github.com/noelmcloughlin/ai-linkmo/tree/main/lib/store`.

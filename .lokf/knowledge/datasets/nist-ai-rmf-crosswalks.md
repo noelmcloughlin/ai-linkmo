@@ -1,7 +1,7 @@
 ---
 type: Dataset
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/nist-ai-rmf-crosswalks
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/nist-ai-rmf-crosswalks
 title: NIST AI RMF crosswalks
 description: CSV crosswalks mapping NIST AI RMF risks to the FINOS AIGF, the IBM Risk Atlas, and a demo institutional (acme) risk taxonomy.
 resource: https://github.com/noelmcloughlin/ai-linkmo/tree/main/graph
@@ -32,9 +32,9 @@ fields:
 - name: related_mappings
 - name: expanded_risks
 derivedFrom:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/nist-ai-rmf
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/finos-aigf
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/nist-ai-rmf
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/finos-aigf
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
 - by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"

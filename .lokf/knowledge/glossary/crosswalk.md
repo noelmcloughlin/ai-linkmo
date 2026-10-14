@@ -1,7 +1,7 @@
 ---
 type: GlossaryTerm
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/glossary/crosswalk
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/glossary/crosswalk
 title: Crosswalk
 definition: A machine-generated mapping of equivalent concepts between frameworks.
 description: A generated mapping of equivalent concepts across two taxonomies, replacing hand-built spreadsheet crosswalks.
@@ -13,9 +13,9 @@ generated:
   by: process:ktl-librarian
   at: "2026-09-25T20:31:05Z"
 definedBy:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 relatedTo:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/nist-ai-rmf-crosswalks
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/nist-ai-rmf-crosswalks
 verified:
 - by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"

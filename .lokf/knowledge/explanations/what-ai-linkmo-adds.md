@@ -1,7 +1,7 @@
 ---
 type: Explanation
 genre: explanation
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/explanations/what-ai-linkmo-adds
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/explanations/what-ai-linkmo-adds
 title: What AI-LinkMO adds to AI Atlas Nexus
 description: AI-LinkMO is a workshop over IBM AI Atlas Nexus - it adds doors, encodings and checks but no ontology of its own, and its governance records carry no provenance yet.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/for-the-curious.md
@@ -13,10 +13,10 @@ generated:
   at: "2026-09-25T20:32:51Z"
 status: draft
 references:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 relatedTo:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/ibm
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/explanations/why-linked-ai-governance
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/ibm
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/explanations/why-linked-ai-governance
 verified:
 - by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"

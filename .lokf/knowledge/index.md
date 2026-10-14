@@ -1,14 +1,14 @@
 ---
 lokf_version: "0.2"
 okf_version: "0.2"
-base_iri: https://github.com/noelmcloughlin/ai-linkmo/knowledge/
+base_iri: https://noelmcloughlin.github.io/ai-linkmo/knowledge/
 context: https://w3id.org/lokf/context.jsonld
 title: AI-LinkMO Knowledge Bundle
 description: A reference implementation of operational AI governance, demonstrating four DevSecOps-ready access patterns (CLI, FastAPI, Svelte web UI, and graph database) over open AI-governance data.
 license: https://creativecommons.org/licenses/by/4.0/
 publisher:
   type: Person
-  id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/noel-mcloughlin
+  id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/noel-mcloughlin
   name: Noel McLoughlin
 ---
 
