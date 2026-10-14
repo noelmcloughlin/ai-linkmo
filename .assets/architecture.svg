@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 985" width="1600" height="985" role="img" aria-labelledby="t d">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 840" width="1600" height="840" role="img" aria-labelledby="t d">
   <title id="t">AI-LinkMO architecture</title>
-  <desc id="d">Sources in (IBM AI Atlas Nexus ontology and data, nine bring-your-own-data frameworks), one linked model in lib/ (exposure view, library or DuckDB store, generated artefacts), four doors out (CLI, FastAPI, Svelte web UI, Neo4j) plus Datasette.</desc>
+  <desc id="d">Sources (IBM AI Atlas Nexus ontology and data, nine bring-your-own-data frameworks) feed one linked model in lib/ (exposure view, library or DuckDB store, generated artefacts), which serves four doors: CLI, FastAPI, Svelte web UI and Neo4j, plus Datasette.</desc>
   <defs>
     <style>
       :root{--bg:#ffffff;--ink:#1f2328;--muted:#57606a;--line:#6e7781;
@@ -10,10 +10,12 @@
         --src:#0f2240;--srcS:#6ea0ff;--mod:#2d220b;--modS:#e3b341;--door:#0f2a1b;--doorS:#56d38a;
         --chip:#161b22;--opt:#161b22;--optS:#6e7681;--warn:#ff7b72}}
       text{font-family:Inter,"Segoe UI",Helvetica,Arial,sans-serif;fill:var(--ink)}
-      .h1{font-size:30px;font-weight:700}.sub{font-size:16px;fill:var(--muted)}
+      .h1{font-size:30px;font-weight:700}.sub{font-size:17px;fill:var(--muted)}
       .col{font-size:15px;font-weight:700;letter-spacing:.08em;fill:var(--muted)}
       .pt{font-size:17px;font-weight:700}.bt{font-size:15px;font-weight:700}
-      .b{font-size:13px}.m{font-size:12.5px;fill:var(--muted)}.mono{font-family:"JetBrains Mono",Menlo,Consolas,monospace;font-size:12px}
+      .b{font-size:13.5px}.m{font-size:12.5px;fill:var(--muted)}
+      .mono{font-family:"JetBrains Mono",Menlo,Consolas,monospace;font-size:12.5px}
+      .tag{font-family:"JetBrains Mono",Menlo,Consolas,monospace;font-size:12.5px;fill:var(--muted)}
       .src{fill:var(--src);stroke:var(--srcS);stroke-width:1.5}
       .mod{fill:var(--mod);stroke:var(--modS);stroke-width:1.5}
       .door{fill:var(--door);stroke:var(--doorS);stroke-width:1.5}
@@ -22,173 +24,150 @@
       .a{fill:none;stroke:var(--line);stroke-width:1.8;marker-end:url(#arr)}
       .ad{fill:none;stroke:var(--line);stroke-width:1.6;stroke-dasharray:5 4;marker-end:url(#arr)}
       .al{font-size:11.5px;fill:var(--muted);font-style:italic}
-      .warn{fill:var(--warn);font-size:12.5px;font-weight:600}
+      .warn{fill:var(--warn);font-size:13px;font-weight:600}
     </style>
     <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="var(--line)"/>
     </marker>
   </defs>
 
-  <rect width="1600" height="985" fill="var(--bg)"/>
+  <rect width="1600" height="840" fill="var(--bg)"/>
 
   <!-- Title -->
   <text x="40" y="52" class="h1">AI-LinkMO architecture</text>
-  <text x="40" y="80" class="sub">Regulation in ⟹ auditable, queryable AI governance out. One LinkML model; every door is generated from the same schema, so an identifier means the same thing everywhere.</text>
+  <text x="40" y="82" class="sub">Regulation in ⟹ auditable, queryable AI governance out.</text>
 
   <!-- Column headers -->
-  <text x="40" y="122" class="col">1 · SOURCES IN</text>
-  <text x="540" y="122" class="col">2 · ONE LINKED MODEL  (lib/)</text>
-  <text x="1120" y="122" class="col">3 · DOORS OUT</text>
+  <text x="40" y="124" class="col">SOURCES</text>
+  <text x="540" y="124" class="col">ONE LINKED MODEL · lib/</text>
+  <text x="1120" y="124" class="col">FOUR DOORS</text>
 
-  <!-- ===== Column 1: sources ===== -->
-  <rect x="40" y="136" width="440" height="318" rx="12" class="src"/>
-  <text x="60" y="164" class="pt">IBM AI Atlas Nexus</text>
-  <text x="222" y="164" class="m">upstream · ai-atlas-nexus package</text>
+  <!-- ===== Sources ===== -->
+  <rect x="40" y="138" width="440" height="230" rx="12" class="src"/>
+  <text x="60" y="166" class="pt">IBM AI Atlas Nexus</text>
+  <text x="226" y="166" class="tag">upstream package</text>
 
-  <rect x="60" y="180" width="400" height="84" rx="8" class="chip"/>
-  <text x="76" y="204" class="bt">AI Risk Ontology (LinkML schema)</text>
-  <text x="76" y="226" class="b">risks · controls (actions) · obligations · taxonomies</text>
-  <text x="76" y="246" class="b">models · evaluations · incidents</text>
+  <rect x="60" y="182" width="400" height="76" rx="8" class="chip"/>
+  <text x="76" y="206" class="bt">AI Risk Ontology · LinkML</text>
+  <text x="76" y="228" class="b">risks · controls · obligations · taxonomies</text>
+  <text x="76" y="247" class="b">models · evaluations · incidents</text>
 
-  <rect x="60" y="276" width="400" height="74" rx="8" class="chip"/>
-  <text x="76" y="300" class="bt">Packaged risk data</text>
-  <text x="76" y="322" class="b">IBM AI Risk Atlas, public taxonomies</text>
-  <text x="76" y="340" class="b">and the relationships between them</text>
+  <rect x="60" y="270" width="400" height="56" rx="8" class="chip"/>
+  <text x="76" y="294" class="bt">Packaged risk data</text>
+  <text x="76" y="314" class="b">IBM AI Risk Atlas + public taxonomies</text>
 
-  <rect x="60" y="362" width="400" height="74" rx="8" class="chip"/>
-  <text x="76" y="386" class="bt">Published Cypher export</text>
-  <text x="76" y="408" class="b">graph_export/…/ai-risk-ontology.cypher</text>
-  <text x="76" y="426" class="m">pinned to the installed release tag</text>
+  <text x="60" y="350" class="m">+ Cypher export, fetched per release</text>
 
-  <rect x="40" y="474" width="440" height="256" rx="12" class="src"/>
-  <text x="60" y="502" class="pt">Bring your own data</text>
-  <text x="240" y="502" class="mono" fill="var(--muted)">byo/data/*.yaml</text>
-  <text x="60" y="524" class="m">Nine frameworks encoded in the ontology's own classes:</text>
-  <g class="b">
-    <rect x="60" y="536" width="126" height="34" rx="6" class="chip"/><text x="123" y="558" text-anchor="middle" class="b">NIST AI 600-1</text>
-    <rect x="197" y="536" width="126" height="34" rx="6" class="chip"/><text x="260" y="558" text-anchor="middle" class="b">EU AI Act</text>
-    <rect x="334" y="536" width="126" height="34" rx="6" class="chip"/><text x="397" y="558" text-anchor="middle" class="b">ISO/IEC 42001</text>
-    <rect x="60" y="578" width="126" height="34" rx="6" class="chip"/><text x="123" y="600" text-anchor="middle" class="b">FINOS AIGF</text>
-    <rect x="197" y="578" width="126" height="34" rx="6" class="chip"/><text x="260" y="600" text-anchor="middle" class="b">OWASP LLM 10</text>
-    <rect x="334" y="578" width="126" height="34" rx="6" class="chip"/><text x="397" y="600" text-anchor="middle" class="b">OWASP ML 10</text>
-    <rect x="60" y="620" width="126" height="34" rx="6" class="chip"/><text x="123" y="642" text-anchor="middle" class="b">SR 11-7</text>
-    <rect x="197" y="620" width="126" height="34" rx="6" class="chip"/><text x="260" y="642" text-anchor="middle" class="b">FFIEC IT</text>
-    <rect x="334" y="620" width="126" height="34" rx="6" class="chip"/><text x="397" y="642" text-anchor="middle" class="b">NIST SP 800-53</text>
-  </g>
-  <text x="60" y="682" class="b">+ your own schema-compliant taxonomy YAML</text>
-  <text x="60" y="702" class="m">opt in per query: --byod / ?byod=true</text>
-  <text x="60" y="720" class="m">written back by the UI's curate mode (PUT /byo)</text>
+  <rect x="40" y="388" width="440" height="272" rx="12" class="src"/>
+  <text x="60" y="416" class="pt">Bring your own data</text>
+  <text x="240" y="416" class="tag">byo/data/</text>
+  <rect x="60" y="432" width="126" height="34" rx="6" class="chip"/><text x="123" y="454" text-anchor="middle" class="b">NIST AI 600-1</text>
+  <rect x="197" y="432" width="126" height="34" rx="6" class="chip"/><text x="260" y="454" text-anchor="middle" class="b">EU AI Act</text>
+  <rect x="334" y="432" width="126" height="34" rx="6" class="chip"/><text x="397" y="454" text-anchor="middle" class="b">ISO/IEC 42001</text>
+  <rect x="60" y="474" width="126" height="34" rx="6" class="chip"/><text x="123" y="496" text-anchor="middle" class="b">FINOS AIGF</text>
+  <rect x="197" y="474" width="126" height="34" rx="6" class="chip"/><text x="260" y="496" text-anchor="middle" class="b">OWASP LLM 10</text>
+  <rect x="334" y="474" width="126" height="34" rx="6" class="chip"/><text x="397" y="496" text-anchor="middle" class="b">OWASP ML 10</text>
+  <rect x="60" y="516" width="126" height="34" rx="6" class="chip"/><text x="123" y="538" text-anchor="middle" class="b">SR 11-7</text>
+  <rect x="197" y="516" width="126" height="34" rx="6" class="chip"/><text x="260" y="538" text-anchor="middle" class="b">FFIEC IT</text>
+  <rect x="334" y="516" width="126" height="34" rx="6" class="chip"/><text x="397" y="538" text-anchor="middle" class="b">NIST SP 800-53</text>
+  <text x="60" y="604" class="b">+ your own taxonomy YAML</text>
+  <text x="60" y="628" class="m">opt in with --byod · edit in the UI's curate mode</text>
 
-  <!-- ===== Column 2: model ===== -->
-  <rect x="540" y="136" width="520" height="594" rx="12" class="mod"/>
+  <!-- ===== Linked model ===== -->
+  <rect x="540" y="138" width="520" height="522" rx="12" class="mod"/>
 
-  <rect x="560" y="156" width="480" height="104" rx="8" class="chip"/>
-  <text x="576" y="180" class="bt">Exposure view</text>
-  <text x="694" y="180" class="mono" fill="var(--muted)">lib/api/exposure.py</text>
-  <text x="576" y="202" class="b"><tspan class="mono">api.yaml</tspan> (which classes + hand-written ops)  ⨝  schema slots</text>
-  <text x="576" y="222" class="b">→ one route and one CLI command per class,</text>
-  <text x="576" y="242" class="b">   one filter per slot; enums enforced</text>
+  <rect x="560" y="158" width="480" height="84" rx="8" class="chip"/>
+  <text x="576" y="182" class="bt">Exposure view</text>
+  <text x="692" y="182" class="tag">exposure.py</text>
+  <text x="576" y="206" class="b"><tspan class="mono">api.yaml</tspan> ⨝ schema slots</text>
+  <text x="576" y="228" class="b">→ one route, one CLI command, one filter per slot</text>
 
-  <text x="560" y="292" class="m">data source:  AI_LINKMO_DATA_SOURCE = auto | store | library</text>
-  <rect x="560" y="302" width="232" height="128" rx="8" class="chip"/>
-  <text x="574" y="326" class="bt">AIAtlasNexus library</text>
-  <text x="574" y="348" class="b">in process; loads schema</text>
-  <text x="574" y="366" class="b">+ data (+ BYOD)</text>
-  <text x="574" y="388" class="m">related lookups, crosswalks,</text>
-  <text x="574" y="406" class="m">inference, SPARQL / SHACL</text>
+  <text x="560" y="268" class="m">one data source, picked by AI_LINKMO_DATA_SOURCE</text>
+  <rect x="560" y="278" width="232" height="86" rx="8" class="chip"/>
+  <text x="574" y="302" class="bt">AIAtlasNexus library</text>
+  <text x="574" y="324" class="b">in process</text>
+  <text x="574" y="344" class="m">lookups · crosswalks · inference</text>
 
-  <rect x="808" y="302" width="232" height="128" rx="8" class="chip"/>
-  <text x="822" y="326" class="bt">DuckDB record store</text>
-  <text x="822" y="348" class="b">linkml-store, one</text>
-  <text x="822" y="366" class="b">collection per class</text>
-  <text x="822" y="388" class="m">trigram search index;</text>
-  <text x="822" y="406" class="m">just load-store · index-store</text>
+  <rect x="808" y="278" width="232" height="86" rx="8" class="chip"/>
+  <text x="822" y="302" class="bt">DuckDB record store</text>
+  <text x="822" y="324" class="b">via linkml-store</text>
+  <text x="822" y="344" class="m">fast listings · trigram search</text>
 
-  <rect x="560" y="450" width="480" height="262" rx="8" class="chip"/>
-  <text x="576" y="474" class="bt">Generated artefacts</text>
-  <text x="732" y="474" class="m">just recipes · ✓ = committed and CI-checked</text>
-  <g>
-    <text x="576" y="504" class="mono">docs/openapi.json</text><text x="800" y="504" class="m">gen-openapi ✓</text>
-    <text x="576" y="530" class="mono">frontend/…/entities.json</text><text x="800" y="530" class="m">gen-ui-config ✓</text>
-    <text x="576" y="556" class="mono">graph/*.yaml, crosswalk CSVs</text><text x="800" y="556" class="m">./ai graph, crosswalk --export</text>
-    <text x="576" y="582" class="mono">graph/cypher/*.cypher</text><text x="800" y="582" class="m">fetch-cypher</text>
-    <text x="576" y="608" class="mono">lib/browse/*.sqlite</text><text x="800" y="608" class="m">build-browse (gen-sqltables)</text>
-    <text x="576" y="634" class="mono">docs/elements/</text><text x="800" y="634" class="m">gen-doc (schema pages)</text>
-  </g>
-  <line x1="576" y1="652" x2="1024" y2="652" stroke="var(--line)" stroke-width="0.6"/>
-  <text x="576" y="676" class="m">Drift checks: CLI ≡ API surface · openapi.json ≡ server ·</text>
-  <text x="576" y="696" class="m">entities.json ≡ api.yaml · CLI examples run as tests</text>
+  <rect x="560" y="384" width="480" height="256" rx="8" class="chip"/>
+  <text x="576" y="408" class="bt">Generated artefacts</text>
+  <text x="742" y="408" class="m">by just · ✓ committed</text>
+  <text x="576" y="438" class="mono">openapi.json ✓</text><text x="820" y="438" class="m">API contract</text>
+  <text x="576" y="466" class="mono">entities.json ✓</text><text x="820" y="466" class="m">UI entity list</text>
+  <text x="576" y="494" class="mono">crosswalk CSVs</text><text x="820" y="494" class="m">framework ↔ framework</text>
+  <text x="576" y="522" class="mono">ai-risk-ontology.cypher</text><text x="820" y="522" class="m">graph import</text>
+  <text x="576" y="550" class="mono">atlas + byod .sqlite</text><text x="820" y="550" class="m">browse tables</text>
+  <line x1="576" y1="572" x2="1024" y2="572" stroke="var(--line)" stroke-width="0.6"/>
+  <text x="576" y="598" class="m">CI keeps the doors in step: CLI ≡ API · contract ≡ server</text>
+  <text x="576" y="618" class="m">UI list ≡ api.yaml · every CLI example runs as a test</text>
 
-  <!-- ===== Column 3: doors ===== -->
-  <rect x="1120" y="136" width="440" height="108" rx="12" class="door"/>
-  <text x="1140" y="164" class="pt">CLI</text><text x="1180" y="164" class="mono" fill="var(--muted)">./ai  (lib/cli)</text>
-  <text x="1140" y="188" class="b">fastCLI → API (default) · slowCLI --mode local, offline</text>
-  <text x="1140" y="208" class="b">risk, control, crosswalk, search, graph, byo …</text>
-  <text x="1140" y="232" class="m">Engineers · CI/CD gates</text>
+  <!-- ===== Doors ===== -->
+  <rect x="1120" y="138" width="440" height="94" rx="12" class="door"/>
+  <text x="1140" y="166" class="pt">CLI</text><text x="1180" y="166" class="tag">./ai</text>
+  <text x="1140" y="190" class="b">via the API by default · --mode local runs offline</text>
+  <text x="1140" y="214" class="m">Engineers · CI/CD</text>
 
-  <rect x="1120" y="274" width="440" height="108" rx="12" class="door"/>
-  <text x="1140" y="302" class="pt">FastAPI backend</text><text x="1290" y="302" class="mono" fill="var(--muted)">:8000  (lib/api)</text>
-  <text x="1140" y="326" class="b">one GET per class + /crosswalk /graph /search /byo</text>
-  <text x="1140" y="346" class="b">OpenAPI 3.1 at /openapi.json · Swagger, ReDoc, Scalar</text>
-  <text x="1140" y="370" class="m">System integrators · GRC tools</text>
+  <rect x="1120" y="256" width="440" height="94" rx="12" class="door"/>
+  <text x="1140" y="284" class="pt">FastAPI backend</text><text x="1286" y="284" class="tag">:8000</text>
+  <text x="1140" y="308" class="b">one GET per class · OpenAPI 3.1 contract</text>
+  <text x="1140" y="332" class="m">Integrators · GRC tools</text>
 
-  <rect x="1120" y="412" width="440" height="108" rx="12" class="door"/>
-  <text x="1140" y="440" class="pt">Svelte web UI</text><text x="1272" y="440" class="mono" fill="var(--muted)">:5173  (lib/frontend)</text>
-  <text x="1140" y="464" class="b">record viewer, persistent identifiers, personas</text>
-  <text x="1140" y="484" class="b">curate mode: JSON-Schema forms → PUT /byo</text>
-  <text x="1140" y="508" class="m">Risk, compliance and business stakeholders</text>
+  <rect x="1120" y="374" width="440" height="94" rx="12" class="door"/>
+  <text x="1140" y="402" class="pt">Svelte web UI</text><text x="1268" y="402" class="tag">:5173</text>
+  <text x="1140" y="426" class="b">browse records · curate your own</text>
+  <text x="1140" y="450" class="m">Risk and compliance teams</text>
 
-  <rect x="1120" y="550" width="440" height="100" rx="12" class="door"/>
-  <text x="1140" y="578" class="pt">Neo4j graph</text><text x="1258" y="578" class="mono" fill="var(--muted)">:7474  (container)</text>
-  <text x="1140" y="602" class="b">cypher-shell import; cross-taxonomy queries</text>
-  <text x="1140" y="622" class="b">packaged data only — BYOD not in the graph</text>
-  <text x="1140" y="640" class="m">Analysts · data scientists</text>
+  <rect x="1120" y="492" width="440" height="94" rx="12" class="door"/>
+  <text x="1140" y="520" class="pt">Neo4j graph</text><text x="1252" y="520" class="tag">:7474</text>
+  <text x="1140" y="544" class="b">cross-taxonomy queries · packaged data only</text>
+  <text x="1140" y="568" class="m">Analysts</text>
 
-  <rect x="1120" y="666" width="440" height="64" rx="12" class="opt"/>
-  <text x="1140" y="692" class="bt">Datasette browse</text><text x="1290" y="692" class="mono" fill="var(--muted)">:8001  (draft)</text>
-  <text x="1140" y="714" class="m">facets, search, JSON/CSV export over atlas + byod SQLite</text>
+  <rect x="1120" y="606" width="440" height="54" rx="12" class="opt"/>
+  <text x="1140" y="639" class="bt">Datasette</text><text x="1222" y="639" class="tag">:8001</text>
+  <text x="1280" y="639" class="m">facet, search, export · draft</text>
 
   <!-- ===== Arrows: sources → model ===== -->
-  <path class="a" d="M460,212 H510 V208 H560"/>
-  <text x="486" y="200" class="al">slots</text>
-  <path class="a" d="M460,232 H500 V340 H560"/>
-  <path class="a" d="M460,313 H490 V372 H560"/>
-  <path class="ad" d="M480,640 H526 V418 H560"/>
-  <text x="484" y="632" class="al">--byod</text>
-  <path class="a" d="M460,399 H502 V582 H560"/>
+  <path class="a" d="M460,210 H510 V199 H560"/>
+  <text x="488" y="190" class="al">schema</text>
+  <path class="a" d="M460,236 H498 V308 H560"/>
+  <path class="a" d="M460,298 H488 V334 H560"/>
+  <path class="ad" d="M480,520 H522 V352 H560"/>
+  <text x="484" y="540" class="al">--byod</text>
 
   <!-- ===== Arrows: model → doors ===== -->
-  <path class="a" d="M1040,196 H1120"/>
-  <text x="1070" y="188" class="al">view</text>
-  <path class="a" d="M1040,236 H1080 V300 H1120"/>
-  <path class="a" d="M1040,352 H1120"/>
-  <text x="1066" y="344" class="al">records</text>
-  <path class="a" d="M1040,530 H1080 V470 H1120"/>
-    <path class="a" d="M1040,582 H1120"/>
-  <text x="1068" y="574" class="al">import</text>
-  <path class="a" d="M1040,608 H1090 V698 H1120"/>
+  <path class="a" d="M1040,186 H1120"/>
+  <text x="1066" y="178" class="al">view</text>
+  <path class="a" d="M1040,224 H1080 V286 H1120"/>
+  <path class="a" d="M1040,320 H1120"/>
+  <text x="1062" y="312" class="al">records</text>
+  <path class="a" d="M1040,466 H1120"/>
+  <text x="1062" y="458" class="al">entities</text>
+  <path class="a" d="M1040,522 H1120"/>
+  <text x="1064" y="514" class="al">import</text>
+  <path class="a" d="M1040,550 H1088 V633 H1120"/>
 
-  <!-- door ↔ door -->
-  <path class="a" d="M1500,244 V274"/>
-  <text x="1508" y="263" class="al">HTTP</text>
-  <path class="a" d="M1500,412 V382"/>
-  <text x="1508" y="401" class="al">Vite proxy</text>
+  <!-- door → door -->
+  <path class="a" d="M1500,232 V256"/>
+  <text x="1508" y="249" class="al">HTTP</text>
+  <path class="a" d="M1500,374 V350"/>
+  <text x="1508" y="367" class="al">proxy</text>
 
   <!-- ===== Bottom band ===== -->
-  <rect x="40" y="762" width="700" height="132" rx="12" class="opt"/>
-  <text x="60" y="790" class="bt">Optional · on infrastructure you run</text>
-  <text x="60" y="816" class="b">LLM risk inference: /inference ↔ OpenAI-compatible endpoint (e.g. vLLM serving Granite)</text>
-  <text x="60" y="840" class="b">ARES RAG evaluation: /ares — extension waits on an upstream pull request</text>
-  <text x="60" y="864" class="b">Roadmap: policy-document → risk-ID mapping (asago) feeding the model</text>
-  <text x="60" y="884" class="m">Not yet: provenance on records — who checked an encoding, against which edition</text>
+  <rect x="40" y="690" width="700" height="96" rx="12" class="opt"/>
+  <text x="60" y="718" class="bt">Optional · your infrastructure</text>
+  <text x="60" y="744" class="b">LLM risk inference (e.g. vLLM) · ARES evaluation (pending upstream)</text>
+  <text x="60" y="768" class="m">Roadmap: policy → risk mapping · provenance on records</text>
 
-  <rect x="770" y="762" width="790" height="132" rx="12" class="chip"/>
-  <text x="790" y="790" class="bt">Reading the diagram</text>
-  <rect x="790" y="806" width="22" height="14" rx="3" class="src"/><text x="822" y="818" class="b">sources: upstream package + your encodings, no ontology of AI-LinkMO's own</text>
-  <rect x="790" y="830" width="22" height="14" rx="3" class="mod"/><text x="822" y="842" class="b">the workshop in lib/: one exposure view, two interchangeable data sources</text>
-  <rect x="790" y="854" width="22" height="14" rx="3" class="door"/><text x="822" y="866" class="b">the four DevSecOps doors · dashed = optional or draft</text>
-  <text x="790" y="886" class="warn">Demo: keep on localhost — write endpoints (PUT /byo) are unauthenticated.</text>
+  <rect x="770" y="690" width="790" height="96" rx="12" class="chip"/>
+  <rect x="790" y="709" width="22" height="14" rx="3" class="src"/><text x="820" y="721" class="b">Sources</text>
+  <rect x="900" y="709" width="22" height="14" rx="3" class="mod"/><text x="930" y="721" class="b">Linked model</text>
+  <rect x="1052" y="709" width="22" height="14" rx="3" class="door"/><text x="1082" y="721" class="b">Doors</text>
+  <rect x="1150" y="709" width="22" height="14" rx="3" class="opt"/><text x="1180" y="721" class="b">Optional or draft</text>
+  <text x="790" y="756" class="warn">Demo: keep on localhost. Write endpoints are unauthenticated.</text>
 
-  <text x="40" y="940" class="m">Upstream: IBM AI Atlas Nexus (AI Risk Ontology, risk data, Cypher export). Frameworks and their authors are credited in NOTICE.</text>
-  <text x="40" y="962" class="m">Source: docs/architecture.md, docs/repository-layout.md, .lokf/knowledge/services/*. Diagram source: .assets/architecture.svg (Apache-2.0).</text>
+  <text x="40" y="818" class="m">Built on IBM AI Atlas Nexus. Framework authors are credited in NOTICE. Apache-2.0.</text>
 </svg>
