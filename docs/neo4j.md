@@ -1,6 +1,6 @@
 # Load the graph into Neo4j
 
-Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. These steps fetch the Cypher export that ai-atlas-nexus publishes, start Neo4j in a container, load the file, and open it in the browser. They need the README's [Install](../README.md#install) step done, and `podman` or `docker`; the flags below are the same for both.
+Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. These steps fetch the Cypher export that ai-atlas-nexus publishes, start Neo4j in a container, load the file, and open it in the browser. They need the [Install](install.md#install) step done, and `podman` or `docker`; the flags below are the same for both.
 
 ## Where the Cypher comes from
 
@@ -47,7 +47,7 @@ A second run reads those lines and downloads again only when the installed versi
 
 ## Known defects in the upstream artefact
 
-These are upstream's to fix, and the owner has reported them with a fix on a branch of IBM/ai-atlas-nexus; a newer tag will carry the fix once it is merged, and `just fetch-cypher` will pick it up when the installed package moves to that version. Nothing here works around them.
+These are upstream's to fix. The owner has reported them with a fix on a branch of IBM/ai-atlas-nexus. A newer tag will carry the fix once it is merged, and `just fetch-cypher` will pick it up when the installed package moves to that version. Nothing here works around them.
 
 - In the owner's count against upstream's current artefact, 3,338 of 9,835 edge statements match no node. Edges point at a slot's declared range label rather than the node's actual label, at enum values (31 edges to `AdapterType`, 129 to `AIUC1EvidenceCategory`) for which no node is ever created, and at six identifiers with no node at all. `cypher-shell` accepts the statements; the `MATCH` finds nothing and the edge is not created.
 - Multivalued values are written as Python list representations in a string, such as `"['a', 'b']"`, rather than as Cypher lists.

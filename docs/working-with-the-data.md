@@ -1,6 +1,6 @@
 # Working with the data: bring your own, crosswalk, search, browse, graph
 
-[The README's Quick start](../README.md#quick-start) gets the API, the web UI and the CLI running. These are the things to do next with the data.
+[The quick start](install.md#quick-start) gets the API, the web UI and the CLI running. These are the things to do next with the data.
 
 ## Bring your own data
 
@@ -25,7 +25,7 @@ A crosswalk is computed from the data, not kept by hand in a spreadsheet. That i
 
 ## Search and dumps
 
-The store has a text index. `just load-store` builds the store and `just index-store` builds the index, a trigram index over each record's id, name and description kept in the same DuckDB files, in about half a minute for the packaged data and one minute for the set with your files. Then:
+The store has a text index. `just load-store` builds the store, and `just index-store` builds the index: a trigram index over each record's id, name and description, kept in the same DuckDB files. The index takes about half a minute to build for the packaged data and one minute for the set with your files. Then:
 
 ```bash
 ./ai search --q 'toxic output' --scope risk

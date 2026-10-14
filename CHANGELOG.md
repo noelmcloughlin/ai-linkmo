@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Changed
+
+- **The README is a doorway, in the style of Knowledge Trust Ladder's.** It keeps the couplet, the tagline, the opening paragraph and the agents note, and links the quick start, the architecture page and the caveats. The catalogue story, the four doors, where the project sits and the credits moved to `docs/architecture.md`, and the install and quick start steps to `docs/install.md`. No application change.
+
 ## [0.2.2] - 2026-10-14
 
 ### Security

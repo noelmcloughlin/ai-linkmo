@@ -1,6 +1,6 @@
 # Install notes: compilers, CUDA, corporate indexes
 
-The README's [Install](../README.md#install) step (`uv sync --extra test`) is enough on most machines. These notes cover the cases where it is not.
+The [Install](install.md#install) step (`uv sync --extra test`) is enough on most machines. These notes cover the cases where it is not.
 
 ## Red Hat hosts with an older gcc
 
@@ -23,7 +23,7 @@ MAX_JOBS=4 UV_HTTP_TIMEOUT=60s TORCH_CUDA_ARCH_LIST="8.6" uv sync --extra test  
 
 ## Regenerating the web UI's schema
 
-The web UI ships a JSON Schema derived from the ontology. If the `ai-atlas-nexus` package has been upgraded (or you are unsure), rebuild the schema. The path below is version-agnostic:
+The web UI includes a JSON Schema derived from the ontology. If the `ai-atlas-nexus` package has been upgraded (or you are unsure), rebuild the schema. The path below is version-agnostic:
 
 ```bash
 SCHEMA="$(uv run python -c 'import ai_atlas_nexus, pathlib; print(pathlib.Path(ai_atlas_nexus.__file__).parent / "ai_risk_ontology" / "schema" / "ai-risk-ontology.yaml")')"
