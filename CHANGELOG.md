@@ -6,6 +6,8 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-10-14
+
 ### Security
 
 - **The sidecar copies, the website's copies and the skills pin match `v0.41.0`.** The scheduled librarian takes an agent that wants its prompt somewhere other than after `-p`, named by the repository variable `AGENT_PROMPT_FLAG`. It writes its patch with the agent's own file tool, so an agent refused a shell write no longer gives up. Both came with the `v0.40.0` copies, which 0.3.1 included without an entry. The website's copies show the schema's pages under a Schema topic and draw their class diagrams, and its workflow also runs weekly and on a change to a justfile, a `pyproject.toml` or a `uv.lock`. No application change.
