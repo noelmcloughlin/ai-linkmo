@@ -1,6 +1,6 @@
 # Working with the data: bring your own, crosswalk, search, browse, graph
 
-[The README's Quick start](../README.md#quick-start) gets the API, the web UI and the CLI running. These are the things to do next with the data.
+[The quick start](install.md#quick-start) gets the API, the web UI and the CLI running. These are the things to do next with the data.
 
 ## Bring your own data
 

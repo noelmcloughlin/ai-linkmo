@@ -1,6 +1,6 @@
 # Install notes: compilers, CUDA, corporate indexes
 
-The README's [Install](../README.md#install) step (`uv sync --extra test`) is enough on most machines. These notes cover the cases where it is not.
+The [Install](install.md#install) step (`uv sync --extra test`) is enough on most machines. These notes cover the cases where it is not.
 
 ## Red Hat hosts with an older gcc
 

@@ -1,6 +1,6 @@
 # For the curious: what this leaves out, and where it could go
 
-[The README](../README.md) says everything you need to run AI-LinkMO. This page is for anyone who wants to go further: what this repository adds over its upstream and what it does not add yet, two roadmap directions, and how to build on the ontology or run the parts that need your own infrastructure.
+[Install](install.md) says everything you need to run AI-LinkMO. This page is for anyone who wants to go further: what this repository adds over its upstream and what it does not add yet, two roadmap directions, and how to build on the ontology or run the parts that need your own infrastructure.
 
 ## Where this sits
 

@@ -1,6 +1,6 @@
 # Load the graph into Neo4j
 
-Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. These steps fetch the Cypher export that ai-atlas-nexus publishes, start Neo4j in a container, load the file, and open it in the browser. They need the README's [Install](../README.md#install) step done, and `podman` or `docker`; the flags below are the same for both.
+Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. These steps fetch the Cypher export that ai-atlas-nexus publishes, start Neo4j in a container, load the file, and open it in the browser. They need the [Install](install.md#install) step done, and `podman` or `docker`; the flags below are the same for both.
 
 ## Where the Cypher comes from
 

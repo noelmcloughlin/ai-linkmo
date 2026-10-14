@@ -1,6 +1,6 @@
 # Key concepts, in plain English
 
-[The README](../README.md) shows the four doors. These are the words they share. A term means the same thing at every door, because every door is generated from the same [ontology](https://ibm.github.io/ai-atlas-nexus/ontology/).
+[The architecture page](architecture.md#one-model-four-ways-in) shows the four doors. These are the words they share. A term means the same thing at every door, because every door is generated from the same [ontology](https://ibm.github.io/ai-atlas-nexus/ontology/).
 
 | Term | What it means |
 | :--- | :--- |

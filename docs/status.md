@@ -1,6 +1,6 @@
 # Status and caveats
 
-[The README](../README.md#status-and-caveats) gives the short version. This is the full list, kept in the present tense and revised as each item changes.
+[The architecture page](architecture.md#status-and-caveats) gives the short version. This is the full list, kept in the present tense and revised as each item changes.
 
 - **This is a demo.** The API, the web UI and the CLI will all be reworked; treat their shapes as illustrative, not as a contract. The API's current contract is the server's `/openapi.json`, generated from the ontology schema.
 - **Keep it on localhost.** The write endpoints are unauthenticated, the web UI's login is a persona picker, and `graph/` is regenerable output that the export commands rewrite in place (the YAML and crosswalk CSVs are committed, the fetched Cypher is not). [SECURITY.md](../SECURITY.md) lists each limitation and what is planned.
