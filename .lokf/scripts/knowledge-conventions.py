@@ -163,9 +163,26 @@ def moment(value) -> str:
     return ""
 
 
-def claims(frontmatter: dict, body: str):
-    """What a person confirms: the frontmatter without NOT_CLAIMS, and the body without its open questions and its lokf:related block, with blank lines and trailing spaces evened out."""
+def under(value, base: str):
+    """A value with each IRI under `base` written as the path after it, in every string it holds."""
+    if isinstance(value, str):
+        return value.replace(base, "<base_iri>/")
+    if isinstance(value, list):
+        return [under(v, base) for v in value]
+    if isinstance(value, dict):
+        return {k: under(v, base) for k, v in value.items()}
+    return value
+
+
+def claims(frontmatter: dict, body: str, base: str = ""):
+    """What a person confirms: the frontmatter without NOT_CLAIMS, and the body without its open questions and its lokf:related block, with blank lines and trailing spaces evened out.
+
+    With a `base`, each IRI under it counts as its path after it, so a
+    concept that moved with the bundle's `base_iri` still says the same.
+    """
     kept = {k: v for k, v in frontmatter.items() if k not in NOT_CLAIMS}
+    if base:
+        kept, body = under(kept, base), under(body, base)
     if isinstance(kept.get("sources"), list):  # a source's usage_count is a usage signal too
         kept["sources"] = [{k: v for k, v in s.items() if k != "usage_count"} if isinstance(s, dict) else s for s in kept["sources"]]
     out: list[str] = []
@@ -196,14 +213,23 @@ def git(cwd: Path, *args: str) -> str | None:
     return done.stdout if done.returncode == 0 else None
 
 
-def unstamped_edit(path: Path, frontmatter: dict, body: str) -> str | None:
+def base_iri(text: str | None) -> str:
+    """The `base_iri` in the frontmatter of a bundle's root index.md, or ''."""
+    found = parsed(text) if text else None
+    value = found[0].get("base_iri") if found else None
+    return value if isinstance(value, str) else ""
+
+
+def unstamped_edit(path: Path, frontmatter: dict, body: str, bundle: Path) -> str | None:
     """Rule 13: a concept that reads as confirmed by a person still holds the claims they confirmed.
 
     The text they confirmed is the concept at the newest commit that recorded
     the time of its latest confirmation. Any later commit can only be an
     edit after it, so the rule can miss one but never flags a concept that
     person saw. Outside git, or before that commit exists, there is nothing
-    to compare and nothing is said.
+    to compare and nothing is said. A move of the bundle's `base_iri` is no
+    edit: the ids and relation targets it carries along are compared by
+    their paths under the base each commit held.
     """
     if frontmatter.get("status") == "deprecated":
         return None
@@ -236,6 +262,12 @@ def unstamped_edit(path: Path, frontmatter: dict, body: str) -> str | None:
         return None
     if not isinstance(frontmatter_then, dict) or claims(frontmatter_then, split[1]) == claims(frontmatter, body):
         return None
+    index = bundle.resolve() / "index.md"
+    base_now = base_iri(index.read_text(encoding="utf-8", errors="replace")) if index.is_file() else ""
+    base_then = base_iri(git(index.parent, "show", f"{commit}:./index.md"))
+    if base_now and base_then and base_now != base_then:
+        if claims(frontmatter_then, split[1], base_then) == claims(frontmatter, body, base_now):
+            return None
     return (
         f"{path}: changed since {by} confirmed it ({confirmed_at[:10]}, in {commit[:7]}), and `generated` was not "
         "restamped, so it still reads as confirmed - knowledge-apply.sh restamps every change it writes; by hand, "
@@ -334,7 +366,7 @@ def index_bullets(index: Path, cache: dict[Path, dict[str, tuple[str, str]]]) ->
     return cache[index]
 
 
-def check_file(path: Path, ids: dict[str, list[Path]], entries: dict[Path, tuple[str, str]]) -> list[str]:
+def check_file(path: Path, bundle: Path, ids: dict[str, list[Path]], entries: dict[Path, tuple[str, str]]) -> list[str]:
     findings: list[str] = []
     raw = path.read_bytes()
     if raw.startswith(b"\xef\xbb\xbf"):
@@ -413,7 +445,7 @@ def check_file(path: Path, ids: dict[str, list[Path]], entries: dict[Path, tuple
 
     # 13. a concept that reads as confirmed by a person still says what that
     #     person confirmed: an edit since then restamps `generated`.
-    finding = unstamped_edit(path, frontmatter, body)
+    finding = unstamped_edit(path, frontmatter, body, bundle)
     if finding:
         findings.append(finding)
 
@@ -438,7 +470,7 @@ def main(argv: list[str]) -> int:
     for path in sorted(bundle.rglob("*.md")):
         if ".obsidian" in path.parts or path.name in RESERVED:
             continue
-        findings.extend(check_file(path, ids, entries))
+        findings.extend(check_file(path, bundle, ids, entries))
 
     # 12. an index bullet that names a concept says what the concept says. A
     #     reader chooses from the index before opening anything, so a bullet

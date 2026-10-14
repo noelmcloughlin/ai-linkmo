@@ -1013,7 +1013,7 @@ function writeBrowse() {
     return [
       `## ${about.title ? plain(String(about.title)) : name}`,
       ...(about.description ? [plain(String(about.description))] : []),
-      `<p class="ktl-browse not-content"><a class="ktl-button ktl-button--primary" href="${lite}">Open in Datasette Lite</a> <a class="ktl-button" href="${BASE}/browse/${file}" download>Download ${file}</a> <span class="ktl-browse__size">${size}</span></p>`,
+      `<p class="ktl-browse not-content"><a class="ktl-button ktl-button--primary" href="${lite}" target="_blank" rel="noopener">Open in Datasette Lite</a> <a class="ktl-button" href="${BASE}/browse/${file}" download>Download ${file}</a> <span class="ktl-browse__size">${size}</span></p>`,
     ].join("\n\n");
   });
   const count = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"][databases.length] ?? databases.length;
