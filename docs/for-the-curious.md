@@ -43,7 +43,7 @@ The first kind could be added in three places. One is the ontology. Another is t
 
 ## Curate your own open data
 
-Open data is curated the way open source is: in public, by a community, one contribution at a time, and the datasets, benchmarks and mitigations here are open to that. Learn the basics of [LinkML](https://linkml.io/linkml/intro/overview.html) and its metamodel before you curate the model. It comes with a controlled vocabulary of terms, and a few basic components go a long way.
+The datasets, benchmarks and mitigations here are open to contribution, in public and one change at a time. Learn the basics of [LinkML](https://linkml.io/linkml/intro/overview.html) and its metamodel before you curate the model.
 
 ## Build Python applications on it
 

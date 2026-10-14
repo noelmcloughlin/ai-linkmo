@@ -17,7 +17,7 @@ Pass `--byod` to any `./ai` command to query your files alongside the packaged d
 
 ## Crosswalk
 
-A crosswalk is computed from the data, not kept by hand in a spreadsheet. That is where linked data pays off for a compliance team. The `./ai` command maps the risks in one taxonomy onto another, finds the related risks, and shows a subset of the risk content as a pandas dataframe:
+A crosswalk is computed from the data, not kept by hand in a spreadsheet. The `./ai` command maps the risks in one taxonomy onto another, finds the related risks, and shows a subset of the risk content as a pandas dataframe:
 
 ```bash
 ./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod
@@ -58,7 +58,7 @@ A database's front page takes two or three seconds, since Datasette looks at eac
 
 ## Graph database
 
-Governance data is a graph: risks relate to controls, controls implement obligations, obligations trace to frameworks. The project generates no Cypher of its own; one command fetches the Cypher export that ai-atlas-nexus publishes, at the release tag of the installed package:
+The project generates no Cypher of its own; one command fetches the Cypher export that ai-atlas-nexus publishes, at the release tag of the installed package:
 
 ```bash
 just fetch-cypher

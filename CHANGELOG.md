@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Changed
+
+- **Four docs pages lose their dead sentences.** The crosswalk, graph, contribution and status paragraphs say the fact and stop. No application change.
+
 ## [0.3.0] - 2026-10-14
 
 ### Added
