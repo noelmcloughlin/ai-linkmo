@@ -20,7 +20,7 @@ The knowledge already exists; it is in the frameworks. What is missing is the ca
 
 ## One model, four ways in
 
-AI-LinkMO closes that gap with **one linked data model**, a LinkML ontology of risks, controls, obligations, taxonomies, models, evaluations and incidents, exposed through **four DevSecOps-ready access patterns**. Every stakeholder gets the same single source of truth in the form they can use:
+AI-LinkMO closes that gap with **one linked data model**, a LinkML ontology of risks, controls, obligations, taxonomies, models, evaluations and incidents, exposed through **four DevSecOps-ready access patterns**. Every stakeholder gets the same model in the form they can use:
 
 | Access pattern | Who it serves | What you get |
 | :--- | :--- | :--- |
