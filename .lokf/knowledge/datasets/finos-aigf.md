@@ -6,16 +6,16 @@ title: FINOS AI Governance Framework dataset
 description: Risk register, mitigation catalogue and use-case library of the FINOS AI Governance Framework, encoded as ai-atlas-nexus knowledge_graph YAML.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/byo/data/finos-aigf.yaml
 tags:
-  - byod
-  - ai-governance
+- byod
+- ai-governance
 timestamp: "2026-08-12T00:00:00Z"
 derivedFrom:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/finos-aigf
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/finos-aigf
 source:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:33:34Z"
+- by: process:ktl-librarian
+  at: "2026-10-14T02:10:40Z"
 ---
 
 # Overview

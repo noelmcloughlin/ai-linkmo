@@ -4,26 +4,29 @@ genre: explanation
 id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/explanations/why-linked-ai-governance
 title: Why linked AI governance
 description: Why AI-LinkMO models governance as linked data behind four access patterns - the framework-fragmentation problem it answers, and why one shared ontology is what makes traceability auditable.
-resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/README.md
+resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/architecture.md
 tags:
-  - rationale
-  - ai-governance
+- rationale
+- ai-governance
 timestamp: "2026-08-12T00:00:00Z"
 about:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/cli
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/fastapi-backend
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/web-ui
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/graph-db
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/cli
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/fastapi-backend
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/web-ui
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/graph-db
 references:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:32:51Z"
+- by: process:ktl-librarian
+  at: "2026-09-25T20:32:51Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-10-14T02:10:40Z"
 ---
 
 # Why linked AI governance
 
-The other concepts in this bundle describe *what* AI-LinkMO is made of. This one records *why* it is shaped that way - the reasoning the root `README.md` opens with, which the mechanical descriptions do not carry.
+The other concepts in this bundle describe *what* AI-LinkMO is made of. This one records *why* it is shaped that way - the reasoning `docs/architecture.md` opens with, which the mechanical descriptions do not carry.
 
 ## The problem: governance trapped in documents
 

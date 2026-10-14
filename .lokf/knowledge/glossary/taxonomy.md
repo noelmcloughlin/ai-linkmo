@@ -7,16 +7,16 @@ definition: A framework's catalogue of risks or controls - for example NIST AI R
 description: A framework's catalogue of risks/controls; the unit each BYOD data file and each `--isDefinedByTaxonomy` query is scoped to.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/key-concepts.md
 tags:
-  - glossary
-  - ontology
+- glossary
+- ontology
 generated:
   by: process:ktl-librarian
   at: "2026-09-25T20:31:05Z"
 definedBy:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:31:05Z"
+- by: process:ktl-librarian
+  at: "2026-10-14T02:10:40Z"
 ---
 
 # Taxonomy

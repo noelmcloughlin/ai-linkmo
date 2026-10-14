@@ -24,6 +24,7 @@ The four access patterns ([index](services/index.md)):
 * [FastAPI Backend](services/fastapi-backend.md) - REST API serving AI governance data to the CLI, web UI, and external GRC tooling; endpoints are generated dynamically from the OpenAPI specification.
 * [Svelte Web UI](services/web-ui.md) - Vite + Svelte 5 single-page application for exploring AI governance data through the FastAPI backend, aimed at non-technical stakeholders.
 * [Neo4j Graph Database](services/graph-db.md) - Graph-database access pattern - the exported knowledge graph is loaded into Neo4j via Cypher for relationship analysis and regulatory crosswalks.
+* [Datasette browse UI](services/datasette-browse.md) - Datasette over two SQLite databases built from the schema's gen-sqltables tables, packaged and bring-your-own data, served on port 8001 with schema-derived descriptions, facets, search and JSON and CSV exports.
 
 ## Datasets
 
@@ -32,6 +33,7 @@ Graph artifacts and BYOD framework encodings ([index](datasets/index.md)):
 * [Knowledge-graph export (YAML + Cypher)](datasets/knowledge-graph-export.md) - Export of the AI risk knowledge graph - as ontology YAML (upstream ai-atlas-nexus data plus BYOD files) and as Cypher for Neo4j import (packaged data only).
 * [NIST AI RMF crosswalks](datasets/nist-ai-rmf-crosswalks.md) - CSV crosswalks mapping NIST AI RMF risks to the FINOS AIGF, the IBM Risk Atlas, and a demo institutional (acme) risk taxonomy.
 * [FINOS AIGF](datasets/finos-aigf.md), [EU AI Act](datasets/eu-ai-act.md), [FFIEC IT Handbook](datasets/ffiec-it-handbook.md), [ISO/IEC 42001](datasets/iso-42001.md), [NIST AI 600-1](datasets/nist-ai-600-1.md), [NIST SP 800-53 r5](datasets/nist-sp-800-53-r5.md), [OWASP LLM Top 10](datasets/owasp-llm-top-10.md), [OWASP ML Top 10](datasets/owasp-ml-top-10.md), [SR 11-7](datasets/sr-11-7.md)
+* [DuckDB record store](datasets/record-store.md) - The packaged and bring-your-own records loaded through linkml-store into DuckDB, one collection per concrete class, which the API's class listings read once built, with a trigram search index and YAML dumps.
 
 ## References
 
@@ -43,7 +45,7 @@ The external authorities the data encodes ([index](references/index.md)): [AI Ri
 
 * [Knowledge sources map](playbooks/knowledge-sources.md) - The librarian's scrape map - every repository location and external URL this bundle derives concepts from, and how to re-verify each on a refresh run.
 * [Install and run AI-LinkMO](playbooks/install-and-run.md) - How to build the environment and start each of the four access patterns - CLI, FastAPI backend, Svelte web UI, and Neo4j graph database.
-* [Bring your own data (BYOD)](playbooks/bring-your-own-data.md) - How to add institutional governance data - schema-compliant YAML dropped into byo/data/ is picked up by the CLI, API and web UI with --byod, and by the YAML graph export, but not the Cypher export.
+* [Bring your own data (BYOD)](playbooks/bring-your-own-data.md) - How to add institutional governance data: schema-compliant YAML dropped into byo/data/ is picked up by the CLI, API and web UI with --byod, and by the YAML graph export, the store and the browse UI; the Cypher export refuses --byod.
 
 ## Glossary
 

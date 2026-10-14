@@ -6,18 +6,18 @@ title: FFIEC IT Handbook dataset
 description: FFIEC Information Technology Examination Handbook encoded as a taxonomy with group rows per booklet and documentation rows per section.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/byo/data/ffiec_it_handbook.yaml
 tags:
-  - byod
-  - ai-governance
+- byod
+- ai-governance
 generated:
   by: process:ktl-librarian
   at: "2026-08-28T00:00:00Z"
 derivedFrom:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ffiec-it-handbook
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ffiec-it-handbook
 source:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:33:34Z"
+- by: process:ktl-librarian
+  at: "2026-10-14T02:10:40Z"
 ---
 
 # Overview

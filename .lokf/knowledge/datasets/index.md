@@ -16,3 +16,4 @@ BYOD framework encodings (`byo/data/*.yaml`, built from the FINOS AIGF repositor
 * [OWASP Top 10 for LLM Applications dataset](owasp-llm-top-10.md)
 * [OWASP ML Security Top 10 dataset](owasp-ml-top-10.md)
 * [SR 11-7 model risk management dataset](sr-11-7.md)
+* [DuckDB record store](record-store.md) - The packaged and bring-your-own records loaded through linkml-store into DuckDB, one collection per concrete class, which the API's class listings read once built, with a trigram search index and YAML dumps.
