@@ -5,7 +5,10 @@ This page explains why AI governance needs a catalogue, what the four doors into
  **One linked model, four ways in: a risk identifier means the same thing in a terminal, a pipeline, a browser and a graph query.**
 
 <p align="center">
-  <img src="../.assets/architecture.svg" alt="AI-LinkMO architecture: IBM AI Atlas Nexus ontology and data plus nine bring-your-own-data frameworks feed one exposure view and data plane in lib/, which serve four doors: CLI, FastAPI, Svelte web UI and Neo4j, plus Datasette" width="900" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../.assets/architecture-dark.svg">
+    <img src="../.assets/architecture.svg" alt="AI-LinkMO architecture: IBM AI Atlas Nexus ontology and data plus nine bring-your-own-data frameworks feed one exposure view and data plane in lib/, which serve four doors: CLI, FastAPI, Svelte web UI and Neo4j, plus Datasette" width="900" />
+  </picture>
 </p>
 
 ## Why governance needs a catalogue
