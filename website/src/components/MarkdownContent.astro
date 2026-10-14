@@ -1,0 +1,13 @@
+---
+// Renders Starlight's Markdown body through starlight-image-zoom's own
+// override, which a site that overrides this component must keep. On a page
+// the sync marked as having a mermaid diagram, it adds the script that draws
+// it.
+import Default from "starlight-image-zoom/overrides/MarkdownContent.astro";
+import Mermaid from "./Mermaid.astro";
+
+const { entry } = Astro.locals.starlightRoute;
+---
+
+<Default><slot /></Default>
+{entry.data.ktlMermaid && <Mermaid />}
