@@ -4,7 +4,7 @@ This folder builds the site that the Knowledge website workflow publishes to Git
 
 - each concept in `.lokf/knowledge/` becomes a page under `knowledge/`, with its trust label from `knowledge-report.sh`, its sources and its typed relations both ways;
 - the four files `lokf export` writes are served under `knowledge/`, beside each concept's own Markdown file and its JSON-LD;
-- the README becomes the home page, each page under `docs/` a page under `docs/`, and `CHANGELOG.md` a page per release under `changelog/`, which search leaves out. `site.config.mjs` says which of these the site shows and where each sits in the sidebar. The commit that promotes a release's changelog skips CI, so its page appears with the next build, or when the workflow is run by hand;
+- the README becomes the home page, each page under `docs/` a page under `docs/`, and `CHANGELOG.md` a page per release under `changelog/`, which search leaves out. `site.config.mjs` says which of these the site shows and where each sits in the sidebar. The commit that promotes a release's changelog skips CI, so its page appears with the next build: the workflow's weekly run at the latest, or a run by hand;
 - the LinkML schema's pages, which `gen-doc` writes, become a page each under `schema/`, with their class diagrams drawn in the browser;
 - SQLite databases, when `site.config.mjs` names their folder, are served under `browse/` with a page that opens each in Datasette Lite. Neither this folder nor the schema's is committed, so the sync runs the command that builds each when it is missing.
 
