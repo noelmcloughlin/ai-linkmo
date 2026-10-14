@@ -7,7 +7,9 @@
 # on the scheduled run, set the `KNOWLEDGE_LIBRARIAN_ENABLED` repository
 # variable to "true". Then set `AGENT_CLI` (repo variable or secret) to the
 # command that runs your coding agent non-interactively, for example the GitHub
-# Copilot CLI or an internal agent runner that accepts a prompt on `-p`/stdin.
+# Copilot CLI, Claude Code or an internal agent runner. The prompt follows
+# `-p` unless AGENT_PROMPT_FLAG names another flag, or `arg` for an agent that
+# takes the prompt as its last argument.
 #
 # CONTRACT (the workflow relies on this):
 #   - The agent WRITES one file, .lokf/patch.yaml, and nothing else. After it
@@ -33,6 +35,9 @@
 #
 # Inputs (env):
 #   AGENT_CLI           command that runs the agent given a prompt via -p "<prompt>"
+#   AGENT_PROMPT_FLAG   optional: the flag the prompt follows, -p by default,
+#                       or the word arg when the agent takes the prompt as a
+#                       bare last argument, as `codex exec` does
 #   AGENT_API_KEY       optional: the agent's API key or token, from a secret
 #   AGENT_API_KEY_ENV   the name the agent reads that key from, such as
 #                       ANTHROPIC_API_KEY; required when AGENT_API_KEY is set
@@ -131,6 +136,16 @@ if [ -n "$agent_key" ] || [ -n "$key_name" ]; then
   fi
 fi
 
+# How the prompt reaches the agent. Most agent CLIs take it after -p (Claude
+# Code, Copilot CLI, Gemini CLI); some take it as the last argument and give
+# -p another meaning (codex exec). Only a short flag, a long flag or the word
+# arg is accepted, so the variable can add nothing but the prompt's position.
+prompt_flag="${AGENT_PROMPT_FLAG:--p}"
+if ! [[ "$prompt_flag" =~ ^(-[A-Za-z]|--[a-z][a-z0-9-]*|arg)$ ]]; then
+  echo "knowledge-librarian: AGENT_PROMPT_FLAG '$prompt_flag' is refused: use a flag such as -p or --prompt, or the word arg for an agent that takes the prompt as its last argument" >&2
+  exit 2
+fi
+
 # Build the prompt. The agent should follow the skill verbatim, write only
 # .lokf/patch.yaml, and make no VCS operations.
 # The heredoc is unquoted so $skill expands. So any backtick in the text MUST
@@ -156,7 +171,11 @@ Task (Karpathy rule - continuous small corrections, not a rewrite):
      administrative no-op runs.
   3. Write every change as an operation in .lokf/patch.yaml, in the shape
      "bash .lokf/scripts/knowledge-apply.sh --format" prints, and check it
-     with "bash .lokf/scripts/knowledge-apply.sh --dry-run". Do NOT edit any
+     with "bash .lokf/scripts/knowledge-apply.sh --dry-run". Create and edit
+     that file with your own file-writing tool, never with a shell redirect,
+     a heredoc or a script. An unattended run may deny a shell command that
+     writes, and a denied shell write does not mean the file cannot be
+     written. Do NOT edit any
      file under .lokf/knowledge/, .lokf/feedback.md or .lokf/questions.md
      yourself, do NOT run the apply script without --dry-run, and do NOT run
      git, open PRs, or touch any other path: this wrapper applies the file
@@ -198,6 +217,16 @@ if [ "${#agent_cmd[@]}" -eq 0 ]; then
   echo "knowledge-librarian: AGENT_CLI has no command after parsing" >&2
   exit 2
 fi
+
+# Become the agent, with the given prompt where AGENT_PROMPT_FLAG says it
+# goes. Called with exec from a subshell, so only that subshell's environment
+# carries the key.
+run_agent() {
+  if [ "$prompt_flag" = arg ]; then
+    exec "${agent_cmd[@]}" "$1"
+  fi
+  exec "${agent_cmd[@]}" "$prompt_flag" "$1"
+}
 
 # Defence in depth: the prompt asks the agent to write only the patch file, but
 # nothing forces it. Record paths already dirty outside the bundle (for example
@@ -290,7 +319,7 @@ score_retrieval() {
   (
     cd "$scratch" || exit 1
     if [ -n "$key_name" ]; then export "$key_name=$agent_key"; fi
-    exec "${agent_cmd[@]}" -p "$prompt"
+    run_agent "$prompt"
   ) > "$scratch/reply" 2>/dev/null || true
   restore_git_state
   if [ -n "${KNOWLEDGE_HANDOFF_OUT:-}" ]; then
@@ -371,7 +400,7 @@ main() {
   # appears in a process's argument list.
   (
     if [ -n "$key_name" ]; then export "$key_name=$agent_key"; fi
-    exec "${agent_cmd[@]}" -p "$prompt"
+    run_agent "$prompt"
   )
 
   # Restore before the checks below read git, not only at exit.
