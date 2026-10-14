@@ -1,6 +1,6 @@
 # For the curious: what this leaves out, and where it could go
 
-[Install](install.md) says everything you need to run AI-LinkMO. This page is for anyone who wants to go further: what this repository adds over its upstream and what it does not add yet, two roadmap directions, and how to build on the ontology or run the parts that need your own infrastructure.
+[Install](install.md) says everything you need to run AI-LinkMO. This page is for anyone who wants to go further. It says what this repository adds over its upstream and what it does not add yet, gives two roadmap directions, and says how to build on the ontology or run the parts that need your own infrastructure.
 
 ## Where this sits
 
@@ -8,7 +8,7 @@ AI-LinkMO's family is [IBM AI Atlas Nexus](https://ibm.github.io/ai-atlas-nexus/
 
 - **The AI Risk Ontology**, a [LinkML](https://linkml.io/) schema of risks, controls, obligations, taxonomies, models, evaluations and incidents. Every CLI command, API route, UI form and graph label here is generated from it, which is why one identifier means the same thing at every door.
 - **The packaged risk data**: the IBM AI Risk Atlas, the public taxonomies packaged with it, and the relationships between them. The related-risk, related-control and related-incident lookups, and so the crosswalk, walk those relationships through the `ai-atlas-nexus` library; the LLM inference path calls its risk identification.
-- **The toolchain**: the library that loads the ontology and the data, and LinkML's generators, which produce the JSON Schema the web UI ships.
+- **The toolchain**: the library that loads the ontology and the data, and LinkML's generators, which produce the JSON Schema the web UI includes.
 
 This repository is a workshop that runs over them. It adds doors, encodings and checks, and no ontology of its own:
 
@@ -39,7 +39,7 @@ Where provenance belongs, in the ontology or elsewhere, is the second roadmap it
 
 The AI Risk Ontology says what a risk, a control or an obligation *is*. It does not yet say what a provenance record looks like: who encoded a record, from which edition of a framework, who confirmed it, when to look again. Nor does it say what an AI step did at run time. [finos/fluxnova-ai#40](https://github.com/finos/fluxnova-ai/issues/40) sketches the second kind: context records for agents, models, tools and datasets, and runtime records for model invocations, tool calls and evaluation results, aligned to W3C PROV.
 
-The first kind could land in three places: in the ontology; in the [OKF specification](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md), whose v0.2 defines `generated`, `verified`, `status` and `stale_after` for documents, and an *attested computation* for a tool's receipted result; or in a project such as [asago.ai](https://asago.ai/). That is something to investigate, not something this page decides.
+The first kind could be added in three places. One is the ontology. Another is the [OKF specification](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md), whose v0.2 defines `generated`, `verified`, `status` and `stale_after` for documents, and an *attested computation* for a tool's receipted result. A third is a project such as [asago.ai](https://asago.ai/). That is something to investigate, not something this page decides.
 
 ## Curate your own open data
 

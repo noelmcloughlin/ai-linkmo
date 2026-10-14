@@ -29,7 +29,7 @@ AI-LinkMO closes that gap with **one linked data model**, a LinkML ontology of r
 | **Svelte Web UI** | Risk, compliance and business stakeholders | Point-and-click exploration with persistent identifiers, no coding required |
 | **Graph Database (Neo4j)** | Analysts, data scientists | Relationship analysis and regulatory crosswalks as a queryable graph |
 
-Every door is generated from [the same ontology](https://ibm.github.io/ai-atlas-nexus/ontology/): the CLI, the API, the web UI and the schema. That is why a risk identifier means the same thing everywhere, and why the traceability is auditable. The couplet at the top is the shape of the work: *search out* the frameworks; show *no favour* among them, with one ontology and one identifier for each thing; *consult* them against each other, which is what a crosswalk is; *then act*, from a terminal, a pipeline, a browser or a graph query.
+Every door is generated from [the same ontology](https://ibm.github.io/ai-atlas-nexus/ontology/): the CLI, the API, the web UI and the schema. That is why a risk identifier means the same thing everywhere, and why the traceability is auditable. The couplet at the top is the shape of the work. *Search out* the frameworks. Show *no favour* among them, with one ontology and one identifier for each thing. *Consult* them against each other, which is what a crosswalk is. *Then act*, from a terminal, a pipeline, a browser or a graph query.
 
 ## What it looks like
 
