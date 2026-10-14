@@ -198,8 +198,8 @@ jobs:
         if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.39.0 # the one pin; point your docs here instead of repeating it
-          TRUST_LADDER_SKILLS_SHA: bb9d8bb11615374f59e348905ff68693d2e3bff3 # the commit that tag names
+          TRUST_LADDER_SKILLS_REF: v0.40.0 # the one pin; point your docs here instead of repeating it
+          TRUST_LADDER_SKILLS_SHA: fe18f53fdd11865f843429f9a690d77c967613dc # the commit that tag names
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -216,7 +216,9 @@ jobs:
           echo "Installed ktl-librarian@$TRUST_LADDER_SKILLS_REF ($TRUST_LADDER_SKILLS_SHA)"
 
       # Both agent commands the sidecar documents run through npx, and Copilot
-      # CLI needs Node 22 or newer, which a runner image does not promise.
+      # CLI needs Node 22 or newer, which a runner image does not promise. An
+      # agent installed another way needs a step of its own here, before the
+      # wrapper runs; the job already has git, bash, uv and Python.
       - name: Set up Node for the agent
         if: vars.KNOWLEDGE_LIBRARIAN_ENABLED == 'true'
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
@@ -231,7 +233,9 @@ jobs:
       #   1. Set KNOWLEDGE_LIBRARIAN_ENABLED to "true" to turn on the run.
       #      Anything else (or unset) leaves this step skipped, a safe no-op.
       #   2. Set AGENT_CLI to your non-interactive agent command; the wrapper
-      #      appends -p "<prompt>". It splits the value on whitespace and
+      #      appends -p "<prompt>", or follows AGENT_PROMPT_FLAG: another
+      #      flag, or "arg" for an agent that takes the prompt as its last
+      #      argument. It splits the value on whitespace and
       #      honours no quotes, so no flag value may contain a space. Keep the
       #      credential out of it. If the command must embed one, make
       #      AGENT_CLI a *secret* instead: secrets are masked in logs, `vars.`
@@ -284,6 +288,7 @@ jobs:
         if: vars.KNOWLEDGE_LIBRARIAN_ENABLED == 'true'
         env:
           AGENT_CLI: ${{ vars.AGENT_CLI || secrets.AGENT_CLI }}
+          AGENT_PROMPT_FLAG: ${{ vars.AGENT_PROMPT_FLAG }}
           KNOWLEDGE_DECLINED: ${{ runner.temp }}/declined.txt
           AGENT_API_KEY: ${{ vars.AGENT_USE_JOB_TOKEN == 'true' && github.token || secrets.AGENT_API_KEY }}
           AGENT_API_KEY_ENV: ${{ vars.AGENT_API_KEY_ENV }}

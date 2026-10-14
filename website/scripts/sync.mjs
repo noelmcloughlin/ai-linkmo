@@ -661,13 +661,7 @@ function writeHome() {
     body = takeTitle(index).body.trim().split(/\n(?=# )/)[0];
   }
   const tagline = homeTagline();
-  const actions = (
-    HOME.actions ?? [
-      { text: "Browse the bundle", link: "/knowledge/", icon: "right-arrow" },
-      { text: "Bundle health", link: "/health/", variant: "secondary" },
-      { text: "Knowledge graph", link: "/graph/", variant: "secondary" },
-    ]
-  ).map((a) => ({ ...a, link: a.link.startsWith("/") ? BASE + a.link : a.link }));
+  const actions = HOME.actions.map((a) => ({ ...a, link: a.link.startsWith("/") ? BASE + a.link : a.link }));
   page(
     resolve(CONTENT, "index.md"),
     {
