@@ -23,4 +23,4 @@ verified:
 
 The graph door is the exception. `./ai graph --export --byod` writes the merged YAML graph including your files, but the Cypher export is built upstream from the packaged ontology, so `./ai graph cypher --export --byod` is refused with a 400 rather than leaving your files out silently. `just load-store` and `just build-browse` load your files into a database of their own beside the packaged data.
 
-The nine shipped `byo/data/*.yaml` files (FINOS AIGF plus eight framework encodings) are worked examples of this pattern - each has a `datasets/` concept in this bundle. Retired examples live in `byo/olddata/`.
+The nine `byo/data/*.yaml` files in the repository (FINOS AIGF plus eight framework encodings) are worked examples of this pattern, and each has a `datasets/` concept in this bundle. Retired examples live in `byo/olddata/`.

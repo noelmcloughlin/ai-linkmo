@@ -2,6 +2,7 @@
 
 ## 2026-10-14
 
+* **Prose**: reworded 10 concept bodies in plain English. No fact, link, number or frontmatter changed.
 * **Removal**: DuckDB record store, recreated in the same run without a key a Dataset does not take.
 * **Added**: DuckDB record store, from `https://github.com/noelmcloughlin/ai-linkmo/tree/main/lib/store`.
 * **Changed**: DuckDB record store cites `docs/working-with-the-data.md` under `sources`, since a Dataset takes no `documentation` key.

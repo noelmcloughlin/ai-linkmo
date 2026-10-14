@@ -23,4 +23,4 @@ verified:
 
 A **control** (or **action**) is something you do or deploy to detect or mitigate a [risk](risk.md).
 
-The key-concepts page introduces the two together as the mitigation side of the model; the ontology and API keep them as separate entities, served by the `/control` and `/action` endpoints (`./ai control`, `./ai action`). Controls link back to the risks they address - `./ai control --related --hasRelatedRisk atlas-toxic-output` answers "which controls mitigate toxic output?".
+The key-concepts page introduces the two together as the mitigation side of the model; the ontology and API keep them as separate entities, served by the `/control` and `/action` endpoints (`./ai control`, `./ai action`). Controls link back to the risks they address: `./ai control --related --hasRelatedRisk atlas-toxic-output` answers "which controls mitigate toxic output?".

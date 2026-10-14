@@ -25,4 +25,4 @@ verified:
 
 A **crosswalk** is a machine-generated mapping of equivalent concepts *between* frameworks.
 
-It is the direct answer to the manual-mapping problem: instead of analysts maintaining spreadsheets, `./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod` generates the mapping from the linked data, and the `/crosswalk` endpoint serves it. Mappings are graded by strength (exact, close, broad, narrow, related). The exported results ship as the [NIST AI RMF crosswalks](../datasets/nist-ai-rmf-crosswalks.md) CSVs.
+It is the direct answer to the manual-mapping problem: instead of analysts maintaining spreadsheets, `./ai crosswalk --isDefinedByTaxonomy nist-ai-rmf --isDefinedByTaxonomy2 finos-aigf --export --byod` generates the mapping from the linked data, and the `/crosswalk` endpoint serves it. Mappings are graded by strength (exact, close, broad, narrow, related). The exported results are included as the [NIST AI RMF crosswalks](../datasets/nist-ai-rmf-crosswalks.md) CSVs.

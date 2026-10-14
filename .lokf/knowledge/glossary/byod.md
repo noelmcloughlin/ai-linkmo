@@ -24,4 +24,4 @@ verified:
 
 **BYOD** is your internal policies encoded in the same schema as the public frameworks, so they are queryable alongside them.
 
-Mechanically it is a schema-compliant YAML file dropped into `byo/data/`; every access pattern then picks it up through its `--byod` flag or curation mode (`lib/api/api.yaml` declares it as the `byod` query parameter). The nine shipped framework encodings are themselves worked BYOD examples. See the [BYOD playbook](../playbooks/bring-your-own-data.md) for the procedure.
+Mechanically it is a schema-compliant YAML file dropped into `byo/data/`; every access pattern then picks it up through its `--byod` flag or curation mode (`lib/api/api.yaml` declares it as the `byod` query parameter). The nine framework encodings included in the repository are themselves worked BYOD examples. See the [BYOD playbook](../playbooks/bring-your-own-data.md) for the procedure.
