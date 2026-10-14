@@ -1,7 +1,7 @@
 ---
 type: Reference
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/owasp-ml-top-10
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/owasp-ml-top-10
 title: OWASP ML Security Top 10
 description: The OWASP Machine Learning Security Top 10 risks.
 resource: https://owasp.org/www-project-machine-learning-security-top-10/

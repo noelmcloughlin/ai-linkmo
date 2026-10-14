@@ -1,7 +1,7 @@
 ---
 type: GlossaryTerm
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/glossary/byod
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/glossary/byod
 title: Bring Your Own Data
 abbreviation: BYOD
 definition: Your internal policies encoded in the same schema, queryable alongside the open data.
@@ -14,7 +14,7 @@ generated:
   by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"
 relatedTo:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/playbooks/bring-your-own-data
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/playbooks/bring-your-own-data
 verified:
 - by: process:ktl-librarian
   at: "2026-09-25T20:31:05Z"

@@ -1,7 +1,7 @@
 ---
 type: Playbook
 genre: how-to
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/playbooks/install-and-run
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/playbooks/install-and-run
 title: Install and run AI-LinkMO
 description: How to build the environment and start each of the four access patterns - CLI, FastAPI backend, Svelte web UI, and Neo4j graph database.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/README.md
@@ -18,10 +18,10 @@ sources:
 - resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/lib/test/README.md
   title: Test suite README
 about:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/cli
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/fastapi-backend
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/web-ui
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/graph-db
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/cli
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/web-ui
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/graph-db
 verified:
 - by: process:ktl-librarian
   at: "2026-09-25T20:31:36Z"

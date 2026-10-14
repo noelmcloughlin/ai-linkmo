@@ -1,7 +1,7 @@
 ---
 type: GlossaryTerm
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/glossary/control-action
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/glossary/control-action
 title: Control / Action
 definition: Something you do or deploy to detect or mitigate a risk.
 description: The mitigation side of the model - what an organisation does or deploys against a risk; served by the /control and /action endpoints.
@@ -13,7 +13,7 @@ generated:
   by: process:ktl-librarian
   at: "2026-09-25T20:31:05Z"
 definedBy:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
 - by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"

@@ -1,7 +1,7 @@
 ---
 type: Dataset
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/nist-ai-600-1
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/nist-ai-600-1
 title: NIST AI 600-1 GenAI profile dataset
 description: NIST AI 600-1 (Generative AI Profile of the AI Risk Management Framework) encoded as a risk taxonomy.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/byo/data/nist_ai_600_1.yaml
@@ -10,9 +10,9 @@ tags:
 - ai-governance
 timestamp: "2026-08-12T00:00:00Z"
 derivedFrom:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/nist-ai-600-1
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/nist-ai-600-1
 source:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/finos
 verified:
 - by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"

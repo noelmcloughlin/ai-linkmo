@@ -1,7 +1,7 @@
 ---
 type: GlossaryTerm
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/glossary/obligation
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/glossary/obligation
 title: Obligation
 definition: A requirement a framework imposes, with evidence categories describing how you prove it.
 description: A framework-imposed requirement together with the evidence categories that demonstrate compliance; served by the /obligation endpoint.
@@ -13,7 +13,7 @@ generated:
   by: process:ktl-librarian
   at: "2026-09-25T20:31:05Z"
 definedBy:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
 - by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"

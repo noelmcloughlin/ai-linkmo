@@ -1,7 +1,7 @@
 ---
 type: Playbook
 genre: how-to
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/playbooks/bring-your-own-data
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/playbooks/bring-your-own-data
 title: Bring your own data (BYOD)
 description: "How to add institutional governance data: schema-compliant YAML dropped into byo/data/ is picked up by the CLI, API and web UI with --byod, and by the YAML graph export, the store and the browse UI; the Cypher export refuses --byod."
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/working-with-the-data.md
@@ -9,7 +9,7 @@ generated:
   by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"
 references:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
 - by: process:ktl-librarian
   at: "2026-09-25T20:31:36Z"

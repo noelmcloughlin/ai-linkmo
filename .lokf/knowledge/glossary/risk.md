@@ -1,7 +1,7 @@
 ---
 type: GlossaryTerm
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/glossary/risk
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/glossary/risk
 title: Risk
 definition: A named, identified harm - for example `atlas-toxic-output` or `nist-confabulation`.
 description: A named, identified harm carrying a persistent identifier, defined by one taxonomy and mappable to equivalents in others.
@@ -13,7 +13,7 @@ generated:
   by: process:ktl-librarian
   at: "2026-09-25T20:31:05Z"
 definedBy:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
 - by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"

@@ -1,7 +1,7 @@
 ---
 type: Dataset
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/eu-ai-act
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/eu-ai-act
 title: EU AI Act requirements dataset
 description: Regulation (EU) 2024/1689 (EU Artificial Intelligence Act) encoded as a taxonomy with one requirement row per article.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/byo/data/eu_ai_act.yaml
@@ -12,9 +12,9 @@ generated:
   by: process:ktl-librarian
   at: "2026-08-28T00:00:00Z"
 derivedFrom:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/eu-ai-act
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/eu-ai-act
 source:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/finos
 verified:
 - by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"

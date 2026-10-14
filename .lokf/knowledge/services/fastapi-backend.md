@@ -1,7 +1,7 @@
 ---
 type: Service
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/fastapi-backend
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
 title: FastAPI Backend
 description: REST API serving AI governance data to the CLI, web UI, and external GRC tooling; endpoints are generated dynamically from the OpenAPI specification.
 endpoint: http://localhost:8000
@@ -13,9 +13,9 @@ tags:
 - integration
 timestamp: "2026-08-12T00:00:00Z"
 references:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 dependsOn:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/finos-aigf
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/finos-aigf
 verified:
 - by: process:ktl-librarian
   at: "2026-09-25T20:33:34Z"

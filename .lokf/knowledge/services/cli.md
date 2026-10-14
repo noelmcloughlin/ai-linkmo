@@ -1,7 +1,7 @@
 ---
 type: Service
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/cli
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/cli
 title: AI-LinkMO CLI
 description: Command-line tool (./ai) for querying AI governance data - risks, taxonomies, controls, models, evaluations, crosswalks - built dynamically from the OpenAPI specification.
 resource: https://github.com/noelmcloughlin/ai-linkmo/tree/main/lib/cli
@@ -14,9 +14,9 @@ generated:
   by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"
 dependsOn:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/services/fastapi-backend
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
 references:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
 - by: process:ktl-librarian
   at: "2026-09-25T20:31:56Z"

@@ -1,6 +1,6 @@
 ---
 type: Dataset
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/record-store
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/record-store
 genre: reference
 title: DuckDB record store
 description: The packaged and bring-your-own records loaded through linkml-store into DuckDB, one collection per concrete class, which the API's class listings read once built, with a trigram search index and YAML dumps.
@@ -10,7 +10,7 @@ tags:
 - duckdb
 - search
 derivedFrom:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 sources:
 - resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/working-with-the-data.md
 generated:

@@ -1,7 +1,7 @@
 ---
 type: Dataset
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/ffiec-it-handbook
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/ffiec-it-handbook
 title: FFIEC IT Handbook dataset
 description: FFIEC Information Technology Examination Handbook encoded as a taxonomy with group rows per booklet and documentation rows per section.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/byo/data/ffiec_it_handbook.yaml
@@ -12,9 +12,9 @@ generated:
   by: process:ktl-librarian
   at: "2026-08-28T00:00:00Z"
 derivedFrom:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ffiec-it-handbook
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ffiec-it-handbook
 source:
-- https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/finos
 verified:
 - by: process:ktl-librarian
   at: "2026-10-14T02:10:40Z"
