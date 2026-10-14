@@ -198,8 +198,8 @@ jobs:
         if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.38.2 # the one pin; point your docs here instead of repeating it
-          TRUST_LADDER_SKILLS_SHA: 849187d49a7cee409108e13d3d01617ad10df2be # the commit that tag names
+          TRUST_LADDER_SKILLS_REF: v0.39.0 # the one pin; point your docs here instead of repeating it
+          TRUST_LADDER_SKILLS_SHA: bb9d8bb11615374f59e348905ff68693d2e3bff3 # the commit that tag names
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -223,7 +223,9 @@ jobs:
         with:
           node-version: "22"
 
-      # Set this up under Settings -> Secrets and variables -> Actions. The
+      # Set this up under Settings -> Secrets and variables -> Actions, as
+      # repository variables and secrets: this job names no environment, so it
+      # never sees an environment's. The
       # sidecar's references/automation.md gives the full commands for Copilot
       # CLI and for Claude Code.
       #   1. Set KNOWLEDGE_LIBRARIAN_ENABLED to "true" to turn on the run.

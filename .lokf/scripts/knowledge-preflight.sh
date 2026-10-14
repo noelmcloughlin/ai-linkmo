@@ -209,7 +209,7 @@ fi
 found=""; templates=""
 for dir in .claude/skills .github/skills .agents/skills skills; do
   here=""
-  for s in ktl-sidecar ktl-librarian ktl-curator ktl-docent ktl-prose; do
+  for s in ktl-sidecar ktl-librarian ktl-curator ktl-docent ktl-prose ktl-website; do
     [ -f "$root/$dir/$s/SKILL.md" ] && here="$here ${s#ktl-}"
   done
   [ -n "$here" ] && found="${found}${found:+; }$dir:$here"
@@ -222,7 +222,7 @@ for dir in skills .claude/skills .github/skills .agents/skills; do
 done
 if [ -n "$found" ]; then
   ok skills "$found"
-  for s in ktl-sidecar ktl-librarian ktl-curator ktl-docent ktl-prose; do
+  for s in ktl-sidecar ktl-librarian ktl-curator ktl-docent ktl-prose ktl-website; do
     first=""
     for dir in .claude/skills .github/skills .agents/skills skills; do
       [ -d "$root/$dir/$s" ] || continue
