@@ -56,6 +56,19 @@ export const CHANGELOG = "auto";
 //   export const PAGES = [{ slug: "simple", source: "docs/overview.en-simple.md", label: "In short" }];
 export const PAGES = [];
 
+// The LinkML schema's pages, which gen-doc writes, under a Schema topic: a
+// folder, and the command that writes it, which the sync runs when the
+// folder is missing. "auto" takes the first of the root, a linkmo project
+// and .linkml/ whose justfile has a gen-doc recipe; null shows no schema.
+//   export const SCHEMA = { dir: "docs/elements", build: "just gen-doc" };
+export const SCHEMA = "auto";
+
+// The data: a folder of SQLite databases and their Datasette metadata, served
+// under /browse/ with a page that opens each in Datasette Lite, and the
+// command that writes it. The databases go on the public site, so it is null
+// until set; "auto" takes a linkmo project's browse/ folder.
+export const BROWSE = { dir: "lib/browse/data", build: "just build-browse" };
+
 // The home page: its source, from the file's `# ` title down ("auto" takes
 // the README when it has one, else the bundle's own introduction); the
 // tagline under the title (a string, { boldLineOf: <file> } for the first

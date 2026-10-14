@@ -52,9 +52,11 @@ The tables follow the schema. LinkML's `gen-sqltables` generator makes one table
 
 A database's front page takes two or three seconds, since Datasette looks at each of its few hundred tables; table and row pages answer at once.
 
+The [website](https://noelmcloughlin.github.io/ai-linkmo/) serves both databases on its *Browse the data* page, which opens each in Datasette Lite, Datasette running in your browser.
+
 ## The schema's pages, with examples
 
-`just gen-doc` writes the schema's pages to `docs/elements` with LinkML's `gen-doc`, one page per class, slot, enum and type. Each class page has an *Examples* section with a record from the data: for every concrete class that has records, the record whose identifier sorts first. `just gen-examples`, which `just gen-doc` runs first, writes those examples to `docs/elements/examples` and validates each against its class, and the recipe stops if one fails. Abstract classes get no example, although the data holds a few records of `Certification`, `Group` and `Taxonomy`. Nothing under `docs/elements` is committed.
+`just gen-doc` writes the schema's pages to `docs/elements` with LinkML's `gen-doc`, one page per class, slot, enum and type. Each class page has an *Examples* section with a record from the data: for every concrete class that has records, the record whose identifier sorts first. `just gen-examples`, which `just gen-doc` runs first, writes those examples to `docs/elements/examples` and validates each against its class, and the recipe stops if one fails. Abstract classes get no example, although the data holds a few records of `Certification`, `Group` and `Taxonomy`. Nothing under `docs/elements` is committed. The website builds the pages the same way and shows them under its *Schema* topic, each class diagram drawn.
 
 ## Graph database
 

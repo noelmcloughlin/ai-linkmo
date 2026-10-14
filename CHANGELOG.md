@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Added
+
+- **The website serves the data to browse in Datasette Lite.** The two databases `just build-browse` writes sit under *Browse the data*, and the site's build runs the recipe. No application change.
+
 ## [0.3.2] - 2026-10-14
 
 ### Security
