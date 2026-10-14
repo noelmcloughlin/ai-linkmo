@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Added
+
+- **A website for the knowledge bundle, in `website/`, laid down by the ktl-website skill.** Each concept has a page with its trust label, beside a health page, the knowledge graph and search by trust and type. The four files `lokf export` writes are served under `/knowledge/`, and the README, the docs pages and this changelog become pages too. `knowledge-website.yaml` builds it on every pull request and publishes it to GitHub Pages once `KNOWLEDGE_WEBSITE_ENABLED` is `true`.
+
 ### Changed
 
 - **The README is a doorway, in the style of Knowledge Trust Ladder's.** It keeps the couplet, the tagline, the opening paragraph and the agents note, and links the quick start, the architecture page and the caveats. The catalogue story, the four doors, where the project sits and the credits moved to `docs/architecture.md`, and the install and quick start steps to `docs/install.md`. No application change.
