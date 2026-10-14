@@ -15,7 +15,6 @@ lib/test/               pytest suite; its API-mode CLI cases are the documented 
 graph/                  the exported ontology and crosswalk CSVs; cypher/ receives the fetched Neo4j export, not committed
 byo/data/               nine governance frameworks encoded for the AI Risk Ontology
 byo/notes/EXAMPLES.md   a scripted walk through all four access patterns
-byo/images/             screenshots of each door, and the architecture diagram
 docs/
   openapi.json              the API contract, written by `just gen-openapi` and checked against the server
   elements/                 the schema's pages, one example on each class page, written by `just gen-doc`, not committed
@@ -29,6 +28,7 @@ docs/
   status.md                 status and caveats, the full list
   releasing.md              how this repository releases
   repository-layout.md      this page
+.assets/                screenshots of each door, the architecture diagram, and the logos
 .lokf/                  the sidecar: this repository's own knowledge bundle (knowledge/) and its tooling
 knowledge_bundle        -> .lokf/knowledge, the bundle under a visible name, for folder pickers and Obsidian
 .github/workflows/      tests, lint, the knowledge-bundle gates, releases

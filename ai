@@ -17,7 +17,7 @@ fi
 
 ## logo
 if [ ! -f "lib/frontend/static/mylogo.png" ]; then
-    cp byo/images/mylogo.png lib/frontend/static/mylogo.png 2>/dev/null || true
+    cp .assets/mylogo.png lib/frontend/static/mylogo.png 2>/dev/null || true
 fi
 
 # Check if arguments are provided

@@ -5,7 +5,7 @@ This page explains why AI governance needs a catalogue, what the four doors into
  **One linked model, four ways in: a risk identifier means the same thing in a terminal, a pipeline, a browser and a graph query.**
 
 <p align="center">
-  <img src="../byo/images/architecture.png" alt="Architecture: sources in, one linked model, four access patterns out" width="720" />
+  <img src="../.assets/architecture.png" alt="Architecture: sources in, one linked model, four access patterns out" width="720" />
 </p>
 
 ## Why governance needs a catalogue
@@ -39,7 +39,7 @@ Every door is generated from [the same ontology](https://ibm.github.io/ai-atlas-
 - *"Add our internal AI policy taxonomy alongside the public ones"* → drop a schema-compliant YAML file into [./byo/data](../byo/data) ([Bring your own data](working-with-the-data.md#bring-your-own-data))
 - *"Walk me through all four, with a real incident"* → [byo/notes/EXAMPLES.md](../byo/notes/EXAMPLES.md), a scripted demo that traces a leaked-prompt incident to its risks and controls and ends in a CI gate
 
-The words those commands use, taxonomy, risk, control, obligation, crosswalk, are defined in [docs/key-concepts.md](key-concepts.md). Screenshots of each door are in [byo/images/](../byo/images/).
+The words those commands use, taxonomy, risk, control, obligation, crosswalk, are defined in [docs/key-concepts.md](key-concepts.md). Screenshots of each door are in [.assets/](../.assets/).
 
 ## Where this sits
 
