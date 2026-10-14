@@ -13,7 +13,9 @@ name: Knowledge Release
 #                       starting it by hand is the decision to publish.
 #
 #   release published   runs only once the KNOWLEDGE_RELEASE_ENABLED
-#                       repository variable is "true". Unset, every release
+#                       repository variable is "true" (Repository variables,
+#                       not an environment's, which this job's `if:` cannot
+#                       see). Unset, every release
 #                       shows this run as skipped, so the workflow is inert
 #                       until someone turns it on.
 #

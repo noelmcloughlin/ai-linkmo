@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Security
+
+- **The sidecar copies and the skills pin match `v0.39.0`.** The preflight looks for ktl-website among the installed skills. The librarian and release workflows say their variables go under Repository variables, never on an environment, which neither job can read, and the scheduled librarian installs a ktl-librarian whose setup page says the same. No application change.
+
 ## [0.2.1] - 2026-10-13
 
 ### Security
