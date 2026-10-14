@@ -32,7 +32,7 @@ export const CUSTOM_DOMAIN = null;
 // (the light one again when left out) and a favicon (the light logo when it
 // is an SVG, else the site's own ladder mark). null shows the title as text.
 //   export const LOGO = { light: ".assets/logo.svg", dark: ".assets/logo-dark.svg" };
-export const LOGO = { light: "lib/frontend/static/mylogo.png", favicon: "lib/frontend/static/mylogo.png" };
+export const LOGO = { light: ".assets/knowledge-trust-ladder-logo.svg", dark: ".assets/knowledge-trust-ladder-logo-dark.svg" };
 
 // The folder of figures the README and the docs pages show, served under
 // /assets/. "auto" takes .assets/ when there is one.
