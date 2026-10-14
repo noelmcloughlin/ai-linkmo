@@ -1,5 +1,24 @@
 # Change Log
 
+## 2026-10-14
+
+* **Prose**: reworded 10 concept bodies in plain English. No fact, link, number or frontmatter changed.
+* **Removal**: DuckDB record store, recreated in the same run without a key a Dataset does not take.
+* **Added**: DuckDB record store, from `https://github.com/noelmcloughlin/ai-linkmo/tree/main/lib/store`.
+* **Changed**: DuckDB record store cites `docs/working-with-the-data.md` under `sources`, since a Dataset takes no `documentation` key.
+* **Changed**: AI-LinkMO CLI rewritten for the CLI generated from `lib/api/api.yaml` and the schema since #57; it said the CLI read `lib/api/openapi.yaml`, which is gone.
+* **Changed**: FastAPI Backend rewritten for the kernel that registers endpoints from `lib/api/api.yaml` and the schema since #57; `server_dynamic.py` and `openapi.yaml` are gone, and the listings can read the DuckDB store.
+* **Changed**: Svelte Web UI says the entity list and the record form are generated, from `lib/api/api.yaml` and the JSON Schema, as `lib/frontend/README.md` says since #57.
+* **Changed**: Neo4j Graph Database says the Cypher is fetched from ai-atlas-nexus with `just fetch-cypher`, not generated here, and that `--byod` is refused, as `docs/neo4j.md` says since #57.
+* **Changed**: Knowledge-graph export says the Cypher distribution is ai-atlas-nexus's own, fetched at the installed version's tag, since #57 removed `graph/cypher/export.py`.
+* **Changed**: Install and run now derives from `docs/install.md`, where #62 moved the README's install steps; the graph step fetches the Cypher, and a step for the store, search and Datasette is added.
+* **Changed**: Bring your own data says the Cypher export refuses `--byod` and that the store and browse UI load your files, as `docs/working-with-the-data.md` says since #57.
+* **Changed**: Why linked AI governance now cites `docs/architecture.md`, where #62 moved the README's two sections; the argument is unchanged.
+* **Changed**: BYOD names `lib/api/api.yaml` for the `byod` parameter, since `openapi.yaml` was removed in #57.
+* **Added**: DuckDB record store, from `lib/store/`, the justfile and `docs/working-with-the-data.md`; #57 added it and no concept covered it.
+* **Added**: Datasette browse UI, from `lib/browse/`, the justfile and `docs/working-with-the-data.md`; #57 added it and no concept covered it.
+* **Changed**: the source map follows #57 and #62: the API and CLI rows name `lib/api/api.yaml` and `exposure.py`, the graph row the fetched Cypher, the install and rationale rows `docs/install.md` and `docs/architecture.md`; rows added for the store and the browse UI, and `website/` and `docs/elements` left out on purpose.
+
 ## 2026-09-25
 
 * **Glossary follows the README split**: the six terms now cite `docs/key-concepts.md`, where the table moved, and `glossary/incident` and `glossary/evaluation` are new drafts for the two rows the table gained, each checked against its endpoint and an example id in the packaged data.

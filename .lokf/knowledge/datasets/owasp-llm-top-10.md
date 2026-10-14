@@ -6,16 +6,16 @@ title: OWASP Top 10 for LLM Applications dataset
 description: OWASP Top 10 for Large Language Model Applications encoded as a risk taxonomy.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/byo/data/owasp_llm_top_10.yaml
 tags:
-  - byod
-  - ai-governance
+- byod
+- ai-governance
 timestamp: "2026-08-12T00:00:00Z"
 derivedFrom:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/owasp-llm-top-10
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/owasp-llm-top-10
 source:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:33:34Z"
+- by: process:ktl-librarian
+  at: "2026-10-14T02:10:40Z"
 ---
 
 # Overview

@@ -6,3 +6,4 @@ The four AI-LinkMO access patterns:
 * [FastAPI Backend](fastapi-backend.md) - REST API serving AI governance data to the CLI, web UI, and external GRC tooling; endpoints are generated dynamically from the OpenAPI specification.
 * [Svelte Web UI](web-ui.md) - Vite + Svelte 5 single-page application for exploring AI governance data through the FastAPI backend, aimed at non-technical stakeholders.
 * [Neo4j Graph Database](graph-db.md) - Graph-database access pattern - the exported knowledge graph is loaded into Neo4j via Cypher for relationship analysis and regulatory crosswalks.
+* [Datasette browse UI](datasette-browse.md) - Datasette over two SQLite databases built from the schema's gen-sqltables tables, packaged and bring-your-own data, served on port 8001 with schema-derived descriptions, facets, search and JSON and CSV exports.

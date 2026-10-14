@@ -7,16 +7,19 @@ definition: A realised risk, something that happened, linked back to the risks i
 description: A documented occurrence of a risk, carrying its source and linked back to the risks it demonstrates; served by the /incident endpoint.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/key-concepts.md
 tags:
-  - glossary
-  - ontology
+- glossary
+- ontology
 generated:
   by: process:ktl-librarian
   at: "2026-09-25T20:31:05Z"
 status: draft
 definedBy:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
 relatedTo:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/glossary/risk
+- https://github.com/noelmcloughlin/ai-linkmo/knowledge/glossary/risk
+verified:
+- by: process:ktl-librarian
+  at: "2026-10-14T02:10:40Z"
 ---
 
 # Incident
