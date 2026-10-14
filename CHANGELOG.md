@@ -6,6 +6,8 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-14
+
 ### Security
 
 - **The sidecar copies and the skills pin match `v0.42.0`.** <what the release changed in the copies, from its changelog>. No plugin change.
