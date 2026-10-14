@@ -32,4 +32,4 @@ uv run gen-json-schema --stacktrace --preserve-names --mergeimports "$SCHEMA" > 
 
 ## The two logos
 
-`lib/frontend/static/mylogo.png` is the logo the web UI serves; replace it to rebrand the UI. `byo/images/mylogo.png` is the example logo for a bring-your-own-data identity, and the UI does not read it.
+`lib/frontend/static/mylogo.png` is the logo the web UI serves; replace it to rebrand the UI. `.assets/mylogo.png` is the example logo for a bring-your-own-data identity, and the UI does not read it.

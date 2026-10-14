@@ -36,7 +36,7 @@ export const LOGO = { light: ".assets/knowledge-trust-ladder-logo.svg", dark: ".
 
 // The folder of figures the README and the docs pages show, served under
 // /assets/. "auto" takes .assets/ when there is one.
-export const ASSETS = "byo/images";
+export const ASSETS = "auto";
 
 // The docs pages: a folder, and the sidebar groups its pages sit in, each
 // page named by its path under the folder without .md. With no groups, every

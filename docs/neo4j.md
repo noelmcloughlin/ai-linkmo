@@ -39,7 +39,7 @@ A second run reads those lines and downloads again only when the installed versi
    :source /examples/ai-risk-ontology.cypher
    ```
 
-4. **Look at it.** Open the [Neo4j Browser](http://localhost:7474/browser/), log in as `neo4j` with your password, and run `CALL db.schema.visualization()`. [byo/images/neo4j.png](../byo/images/neo4j.png) shows what to expect.
+4. **Look at it.** Open the [Neo4j Browser](http://localhost:7474/browser/), log in as `neo4j` with your password, and run `CALL db.schema.visualization()`. [.assets/neo4j.png](../.assets/neo4j.png) shows what to expect.
 
 ## What the file does not contain
 

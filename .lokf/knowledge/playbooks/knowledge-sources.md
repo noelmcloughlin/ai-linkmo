@@ -7,7 +7,7 @@ description: The librarian's scrape map - every repository location and external
 resource: https://github.com/noelmcloughlin/ai-linkmo
 generated:
   by: process:ktl-librarian
-  at: "2026-10-14T02:10:40Z"
+  at: "2026-10-14T16:40:33Z"
 verified:
 - by: process:ktl-librarian
   at: "2026-09-25T20:33:14Z"
@@ -44,7 +44,7 @@ Bootstrap discovery ran 2026-07-13; first steady-state refresh also ran 2026-07-
 
 Not knowledge sources (consciously excluded):
 
-- `lib/test/` internals and `byo/images/`.
+- `lib/test/` internals and `.assets/`, the screenshots and logos.
 - `.claude/`, `.agents/` and `skills-lock.json`: skill tooling, not project knowledge.
 - `lib/frontend/STATUS.md`: transient dev notes.
 - The `.lokf/` sidecar itself, including its automation workflows (`.github/workflows/knowledge-*.yaml`).
