@@ -9,8 +9,9 @@ import { docsSchema } from "@astrojs/starlight/schema";
 import { changelogs } from "./generated/changelogs";
 
 // scripts/sync.mjs writes every page under src/content/docs/. The extra keys
-// say which repository file a page was rendered from, and carry what a
-// concept page shows above its body.
+// say which repository file a page was rendered from, whether it has a
+// mermaid diagram to draw, and carry what a concept page shows above its
+// body.
 const tone = z.enum(["person", "edited", "automation", "nobody", "retired"]);
 // A link to a concept carries its tone, which the neighbourhood map colours.
 const link = z.object({ text: z.string(), href: z.string(), tone: tone.optional() });
@@ -42,6 +43,7 @@ export const collections = {
       extend: z.object({
         ktlSource: z.string().optional(),
         ktlShiftHeadings: z.boolean().optional(),
+        ktlMermaid: z.boolean().optional(),
         lokf: concept.optional(),
       }),
     }),

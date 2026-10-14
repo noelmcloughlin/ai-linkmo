@@ -94,6 +94,35 @@
   margin-top: 0.3rem;
 }
 
+/* The data page's two links per database, as buttons: Datasette Lite in the
+   accent, the download beside it, and the file's size. */
+.ktl-browse {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-block: 1rem;
+}
+.ktl-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4375rem 1.125rem;
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 999rem;
+  color: var(--sl-color-white);
+  font-size: var(--sl-text-sm);
+  text-decoration: none;
+}
+.ktl-button--primary {
+  background: var(--sl-color-text-accent);
+  border-color: var(--sl-color-text-accent);
+  color: var(--sl-color-black);
+}
+.ktl-browse__size {
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-sm);
+}
+
 /* The hero logo at the size it was drawn for, not a poster. */
 .hero > img {
   max-width: 11rem;

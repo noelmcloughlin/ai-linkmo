@@ -1,10 +1,14 @@
 name: Knowledge website
 
 # Builds the site in website/ from the knowledge bundle, the README, docs/,
-# the figures and the changelog, and publishes the default branch's build to
+# the figures, the changelog and, when site.config.mjs shows them, the LinkML
+# schema's pages and the data, and publishes the default branch's build to
 # GitHub Pages. A pull request that touches any of them gets the same build,
-# link check included, and no deployment. website/README.md says what each
-# page is built from; the ktl-website skill laid both down.
+# link check included, and no deployment. A weekly run rebuilds the site
+# from the default branch. It catches what no push to the paths below brings:
+# a schema or data change elsewhere, and the changelog's promotion, whose
+# commit skips CI. website/README.md says what each page is built from; the
+# ktl-website skill installed both.
 #
 # Two jobs, for least privilege. `build` runs the third-party packages, npm's
 # and the lokf toolkit's, under a read-only token. `deploy` runs nothing but
@@ -30,6 +34,11 @@ on:
       - ".assets/**"
       - "CHANGELOG.md"
       - "llms.txt"
+      - ".linkml/**"
+      - "**/[Jj]ustfile"
+      - "**/.justfile"
+      - "**/pyproject.toml"
+      - "**/uv.lock"
       - ".github/workflows/knowledge-website.yaml"
   pull_request:
     paths:
@@ -41,7 +50,14 @@ on:
       - ".assets/**"
       - "CHANGELOG.md"
       - "llms.txt"
+      - ".linkml/**"
+      - "**/[Jj]ustfile"
+      - "**/.justfile"
+      - "**/pyproject.toml"
+      - "**/uv.lock"
       - ".github/workflows/knowledge-website.yaml"
+  schedule:
+    - cron: "23 5 * * 1" # Mondays at 05:23 UTC
   workflow_dispatch:
 
 permissions: {} # deny by default; each job requests only the scopes it needs
@@ -78,6 +94,11 @@ jobs:
         with:
           enable-cache: true
           cache-dependency-glob: .lokf/uv.lock
+          # The downloaded wheels are pruned before the cache is saved. A
+          # schema or data command builds the project's own environment in
+          # the same cache, gigabytes for a project with machine-learning
+          # packages, and a repository's caches share 10 GB.
+          prune-cache: true
 
       - name: Install the lokf toolkit the sidecar pins
         run: uv sync --locked
@@ -89,6 +110,18 @@ jobs:
           node-version: 24
           cache: npm
           cache-dependency-path: website/package-lock.json
+
+      # A schema or a data folder that site.config.mjs shows is written by
+      # its own command, which the sync runs when the folder is missing, as it
+      # always is here. A LinkML project's commands are recipes for just, a
+      # command runner the runner image lacks. setup-uv puts the tool
+      # directory on PATH on Windows only, so the step adds it.
+      - name: Install just, when the site builds a folder with it
+        run: |
+          if node website/scripts/config.mjs | grep -q '"build": "just '; then
+            uv tool install rust-just==1.47.0
+            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fi
 
       # `build` runs the sync first and the link check after.
       - name: Build the site and check its links
@@ -103,7 +136,9 @@ jobs:
 
   deploy:
     name: Deploy to GitHub Pages
-    if: vars.KNOWLEDGE_WEBSITE_ENABLED == 'true' && github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    # A scheduled run is always the default branch's, and its event carries
+    # no repository to compare the branch with, so it is let through by name.
+    if: vars.KNOWLEDGE_WEBSITE_ENABLED == 'true' && (github.event_name == 'schedule' || (github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)))
     needs: build
     runs-on: ubuntu-latest
     permissions:

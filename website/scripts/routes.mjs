@@ -2,12 +2,23 @@
 // use this, so a link means the same page wherever it is written.
 import { statSync } from "node:fs";
 import { posix, resolve } from "node:path";
-import { ASSETS, BASE, DOCS, HOME, PAGES, REF, REPO_ROOT, REPO_URL, docsPages } from "./config.mjs";
+import { ASSETS, BASE, DOCS, HOME, PAGES, REF, REPO_ROOT, REPO_URL, SCHEMA, docsPages, schemaPages } from "./config.mjs";
 
 const ABSOLUTE = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i;
 // The docs pages the site renders: a link to any other file under the docs
 // folder goes to the repository.
 const DOC_PAGES = new Set(docsPages());
+// The schema's pages, read the first time a link needs them after the folder
+// exists, since the sync builds the folder after this module loads.
+let schemaNames = null;
+function isSchemaPage(name) {
+  if (!schemaNames) {
+    const pages = schemaPages();
+    if (pages.length === 0) return false;
+    schemaNames = new Set(pages.map((p) => p.name));
+  }
+  return schemaNames.has(name);
+}
 
 function isDirectory(repoPath) {
   try {
@@ -25,6 +36,11 @@ export function route(repoPath) {
   if (extra) return `${BASE}/${extra.slug}/`;
   if (p === ".lokf/knowledge" || p === ".lokf/knowledge/index.md") return `${BASE}/knowledge/`;
   if (ASSETS && p === ASSETS) return `${REPO_URL}/tree/${REF}/${ASSETS}`;
+  if (SCHEMA && (p === SCHEMA.dir || p === `${SCHEMA.dir}/index.md`)) return `${BASE}/schema/`;
+  if (SCHEMA && p.startsWith(`${SCHEMA.dir}/`) && p.endsWith(".md")) {
+    const name = p.slice(SCHEMA.dir.length + 1, -3);
+    if (isSchemaPage(name)) return `${BASE}/schema/${name}/`;
+  }
   if (DOCS && p.startsWith(`${DOCS.dir}/`) && p.endsWith(".md")) {
     const name = p.slice(DOCS.dir.length + 1, -3);
     if (DOC_PAGES.has(name)) return `${BASE}/docs/${name}/`;
