@@ -56,6 +56,20 @@ h1#_top,
   padding-bottom: 0.2em;
 }
 
+/* The reading levels of a page that has a retelling, under the title. */
+.ktl-levels {
+  margin-top: 0.75rem;
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-sm);
+}
+.ktl-levels > * + * {
+  margin-inline-start: 0.4rem;
+}
+.ktl-levels b {
+  color: var(--sl-color-white);
+  font-weight: 600;
+}
+
 /* The record, as a catalogue card. */
 .ktl-card {
   margin-top: 1.25rem;
@@ -171,6 +185,49 @@ h1#_top,
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 1rem;
+}
+
+/* A concept link's preview: a small card beside the link while the pointer
+   or the focus rests on it. It is a popover, drawn above everything, and
+   src/components/ConceptPreviews.astro places it; the z-index is for a
+   browser without popovers, under the site's header. */
+.ktl-preview {
+  position: fixed;
+  inset: auto;
+  z-index: 9;
+  width: min(22rem, calc(100vw - 1rem));
+  margin: 0;
+  padding: 0.6rem 0.9rem 0.7rem;
+  background: var(--ktl-card-bg);
+  color: var(--sl-color-text);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.45rem;
+  box-shadow: var(--sl-shadow-md);
+  font-size: var(--sl-text-sm);
+  line-height: 1.5;
+}
+.ktl-preview p {
+  margin: 0;
+}
+.ktl-preview__head {
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ktl-preview__title {
+  font-family: var(--ktl-font-display);
+  font-size: var(--sl-text-lg);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--sl-color-white);
+}
+.ktl-preview .ktl-label {
+  margin: 0.35rem 0 0.45rem;
+  font-size: var(--sl-text-xs);
+}
+.ktl-preview__definition {
+  color: var(--sl-color-gray-2);
 }
 @media (max-width: 40rem) {
   .ktl-card__more dl {

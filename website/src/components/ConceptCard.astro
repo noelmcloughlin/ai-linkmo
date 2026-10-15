@@ -132,13 +132,22 @@ const checker = lastCheck && actor(lastCheck.by);
           </dd>
         </>
       )}
+      <dt>Graph</dt>
+      <dd><a href={concept.graph}>Open this concept in the knowledge graph</a></dd>
       <dt>IRI</dt>
       <dd><code class="ktl-card__iri">{concept.iri}</code></dd>
+      {concept.licence && (
+        <>
+          <dt>Licence</dt>
+          <dd>{concept.licence.href ? <a href={concept.licence.href} rel="license">{concept.licence.text}</a> : concept.licence.text}</dd>
+        </>
+      )}
       <dt>Files</dt>
       <dd class="ktl-card__files">
         <a href={concept.files.markdown}>Markdown</a>
         <a href={concept.files.jsonld}>JSON-LD</a>
         <a href={concept.files.github}>Source on GitHub</a>
+        <a href={concept.files.history}>History on GitHub</a>
       </dd>
     </dl>
   </details>

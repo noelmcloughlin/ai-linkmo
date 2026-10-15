@@ -7,7 +7,9 @@
 // Adapted from web/src/components/KnowledgeGraph.astro in the LOKF toolkit
 // (https://github.com/nicholsn/lokf), Apache-2.0, Copyright 2026 Nolan
 // Nichols; see ../../NOTICE. Changed here: the graph is read from
-// knowledge/graph.json, and a node's details link to its concept page.
+// knowledge/graph.json, a node's details link to its concept page, and the
+// address names the open node's concept as `?concept=<id>`, so a concept
+// page can link to the graph opened on it and a reader can share the view.
 ---
 
 <div
@@ -108,6 +110,7 @@
 
     const fg = themeColor("--sl-color-text", "#333");
     const line = themeColor("--sl-color-gray-3", "#888");
+    const accent = themeColor("--sl-color-text-accent", "#2e7d4f");
 
     const cy = cytoscape({
       container: mount,
@@ -156,6 +159,7 @@
             "text-rotation": "autorotate",
           },
         },
+        { selector: "node:selected", style: { "border-width": 3, "border-color": accent } },
         { selector: ".dim", style: { opacity: 0.15 } },
         { selector: ".hidden", style: { display: "none" } },
       ],
@@ -212,8 +216,15 @@
     const set = (sel: string, text: string) => {
       (root.querySelector(sel) as HTMLElement).textContent = text;
     };
-    cy.on("tap", "node", (evt) => {
-      const d = evt.target.data();
+    // The explorer reads no other parameter, and the id keeps its slashes,
+    // as a concept page's link writes it.
+    const withConcept = (id: string | null) => {
+      const url = new URL(location.href);
+      url.search = id ? `?concept=${encodeURIComponent(id).replace(/%2F/g, "/")}` : "";
+      history.replaceState(history.state, "", url);
+    };
+    function show(node: cytoscape.NodeSingular) {
+      const d = node.data();
       set(".lokf-graph__detail-title", d.label);
       set(".lokf-graph__detail-type", d.type);
       // OKF v0.2 trust signals: "human-reviewed · stable" (+ " · stale").
@@ -238,16 +249,58 @@
         link.hidden = true;
       }
       detail.hidden = false;
+      cy.nodes().unselect();
+      node.select();
+      withConcept(d.concept_id || null);
+    }
+    const close = () => {
+      detail.hidden = true;
+      cy.nodes().unselect();
+      withConcept(null);
+    };
+    cy.on("tap", "node", (evt) => show(evt.target));
+    // A tap on the stage itself, not a drag, closes the details, so the
+    // address names a concept only while its details are open.
+    cy.on("tap", (evt) => {
+      if (evt.target === cy && !detail.hidden) close();
     });
-    (root.querySelector(".lokf-graph__close") as HTMLElement).addEventListener(
-      "click",
-      () => (detail.hidden = true),
-    );
+    (root.querySelector(".lokf-graph__close") as HTMLElement).addEventListener("click", close);
 
     // Zoom to fit once the force layout settles (fcose fits too, but a re-fit
     // after the container has its final size avoids the "too zoomed in" start).
+    // The layout does not animate, so it has stopped before the constructor
+    // returns, and an event handler added now would never run; cy.ready runs
+    // its callback at once when the graph is ready.
     const fit = () => cy.fit(undefined, 45);
-    cy.one("layoutstop", () => requestAnimationFrame(fit));
+    cy.ready(() =>
+      requestAnimationFrame(() => {
+        fit();
+        const wanted = new URLSearchParams(location.search).get("concept");
+        const node = cy.nodes().filter((n) => !!wanted && n.data("concept_id") === wanted);
+        if (node.nonempty()) focus(node.first());
+      }),
+    );
+
+    // A concept named in the address opens with its details, and with its
+    // neighbours in the part of the stage the details panel leaves free, when
+    // that is most of it. The stage scrolls into view, since the filters above
+    // it fill in only once the graph has loaded.
+    function focus(node: cytoscape.NodeSingular) {
+      show(node);
+      const covered = detail.offsetWidth + 16;
+      const w = mount.clientWidth - covered > mount.clientWidth / 2 ? mount.clientWidth - covered : mount.clientWidth;
+      const h = mount.clientHeight;
+      const box = node.closedNeighborhood().boundingBox();
+      const zoom = Math.min(
+        cy.maxZoom(),
+        Math.max(cy.minZoom(), Math.min((w - 80) / Math.max(box.w, 1), (h - 80) / Math.max(box.h, 1))),
+      );
+      cy.viewport({
+        zoom,
+        pan: { x: w / 2 - (box.x1 + box.w / 2) * zoom, y: h / 2 - (box.y1 + box.h / 2) * zoom },
+      });
+      root.querySelector(".lokf-graph__stage")!.scrollIntoView({ block: "start" });
+    }
 
     // Toolbar: fit + a full-screen graph browser (the whole explorer — search,
     // filters, and graph — fills the viewport).

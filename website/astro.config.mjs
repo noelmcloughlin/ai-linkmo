@@ -117,6 +117,19 @@ export default defineConfig({
         : {}),
       ...(FAVICON === "/favicon.svg" ? {} : { favicon: FAVICON }),
       social: [{ icon: "github", label: "GitHub", href: REPO_URL }],
+      // Every page names the bundle log's feed, which the sync writes, so a
+      // feed reader given any of the site's addresses finds it.
+      head: [
+        {
+          tag: "link",
+          attrs: {
+            rel: "alternate",
+            type: "application/atom+xml",
+            title: `${TITLE}: bundle log`,
+            href: `${BASE}/knowledge/log.xml`,
+          },
+        },
+      ],
       // The two typefaces are self-hosted, so no page calls a font service.
       // custom.css comes last and is the host's own: a rule there wins.
       customCss: [

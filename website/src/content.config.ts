@@ -10,8 +10,9 @@ import { changelogs } from "./generated/changelogs";
 
 // scripts/sync.mjs writes every page under src/content/docs/. The extra keys
 // say which repository file a page was rendered from, whether it has a
-// mermaid diagram to draw, and carry what a concept page shows above its
-// body.
+// mermaid diagram to draw, the reading levels of a page that has a retelling
+// (the page's own level has no link), and carry what a concept page shows
+// above its body.
 const tone = z.enum(["person", "edited", "automation", "nobody", "retired"]);
 // A link to a concept carries its tone, which the neighbourhood map colours.
 const link = z.object({ text: z.string(), href: z.string(), tone: tone.optional() });
@@ -32,7 +33,9 @@ const concept = z.object({
   sources: z.array(link).default([]),
   relations: z.array(z.object({ name: z.string(), targets: z.array(link) })).default([]),
   incoming: z.array(z.object({ name: z.string(), from: link })).default([]),
-  files: z.object({ markdown: z.string(), jsonld: z.string(), github: z.string() }),
+  licence: z.object({ text: z.string(), href: z.string().optional() }).optional(),
+  graph: z.string(),
+  files: z.object({ markdown: z.string(), jsonld: z.string(), github: z.string(), history: z.string() }),
 });
 
 export const collections = {
@@ -44,6 +47,7 @@ export const collections = {
         ktlSource: z.string().optional(),
         ktlShiftHeadings: z.boolean().optional(),
         ktlMermaid: z.boolean().optional(),
+        ktlLevels: z.array(z.object({ label: z.string(), href: z.string().optional() })).optional(),
         lokf: concept.optional(),
       }),
     }),
