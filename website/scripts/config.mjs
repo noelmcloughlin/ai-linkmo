@@ -131,10 +131,23 @@ export const CHANGELOG = (() => {
   return fail(`${file} has no "## [version] - YYYY-MM-DD" heading, which a release page needs`);
 })();
 
+// The tag a release carries, with {version} for its number, so that a
+// release page can link the repository and the bundle as they stood at the
+// release. null links nothing.
+export const RELEASE_TAG = (() => {
+  const value = given.RELEASE_TAG === undefined ? "v{version}" : given.RELEASE_TAG;
+  if (value === null) return null;
+  if (typeof value !== "string" || !value.includes("{version}")) fail("RELEASE_TAG must hold {version}, such as \"v{version}\", or be null");
+  return value;
+})();
+
 export const PAGES = (given.PAGES ?? []).map((p) => {
   if (!p.slug || !p.source) fail("each PAGES entry needs a slug and a source");
   if (!isFile(p.source)) fail(`PAGES names ${p.source}, which is not in the repository`);
-  return { slug: p.slug, source: p.source, label: p.label ?? p.slug };
+  if (p.retells && !isFile(p.retells)) fail(`PAGES names ${p.retells}, which ${p.source} retells, and it is not in the repository`);
+  // A retelling's level is the words a reader chooses it by, its label unless given.
+  const label = p.label ?? p.slug;
+  return { slug: p.slug, source: p.source, label, retells: p.retells ?? null, level: p.level ?? label };
 });
 
 // ---- the schema's pages and the data, which the repository's commands build --
@@ -407,6 +420,6 @@ export function browseFiles() {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const settled = { REPO, SITE, BASE, TITLE, DESCRIPTION, BRANCH, CUSTOM_DOMAIN, REF, LOGO, ASSETS, DOCS, CHANGELOG, PAGES, HOME, SCHEMA, BROWSE };
+  const settled = { REPO, SITE, BASE, TITLE, DESCRIPTION, BRANCH, CUSTOM_DOMAIN, REF, LOGO, ASSETS, DOCS, CHANGELOG, RELEASE_TAG, PAGES, HOME, SCHEMA, BROWSE };
   console.log(JSON.stringify({ ...settled, docsPages: docsPages(), bundleGroups: bundleGroups() }, null, 2));
 }

@@ -105,6 +105,7 @@ const placed = points.map((p, i) => {
       </svg>
       <p class="ktl-hood__key">Arrows point out to the concepts this one names; dashed ones come in from concepts that name it.</p>
       {more > 0 && <p class="ktl-hood__key">{more} more are in the record.</p>}
+      <p class="ktl-hood__key"><a href={concept.graph}>Open it in the knowledge graph</a></p>
     </section>
   )
 }

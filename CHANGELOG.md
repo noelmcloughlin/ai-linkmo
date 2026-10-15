@@ -6,11 +6,15 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Security
+
+- **The website's copies and the skills pin match `v0.43.0`.** The site serves the whole bundle as `llms-full.txt`, the bundle log as an Atom feed, and each docs page as Markdown beside it. A concept page links its history and licence and opens the knowledge graph on the concept, and a link to a concept previews it on hover and on focus. A release page links the repository, the docs and the bundle at the release's tag, and a page and its retelling offer each other as reading levels. No application change.
+
 ## [0.4.1] - 2026-10-14
 
 ### Security
 
-- **The sidecar copies and the skills pin match `v0.42.0`.** <what the release changed in the copies, from its changelog>. No plugin change.
+- **The sidecar copies, the website's copies and the skills pin match `v0.42.0`.** Conventions rule 13 no longer reads a move of the bundle's `base_iri` as an edit of every confirmed concept, and a data page opens Datasette Lite in a new tab. No application change.
 
 ## [0.4.0] - 2026-10-14
 

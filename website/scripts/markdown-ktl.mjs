@@ -14,10 +14,13 @@
 import { BASE } from "./config.mjs";
 import { rewriteHtml, rewriteUrl } from "./routes.mjs";
 
-const WIKILINK = /\[\[([^\]|#]+)(#[^\]|]*)?(?:\|([^\]]+))?\]\]/g;
+// Both are shared with the sync, which resolves a concept's wikilinks the
+// same way where it writes the bundle in full.
+export const WIKILINK = /\[\[([^\]|#]+)(#[^\]|]*)?(?:\|([^\]]+))?\]\]/g;
 const escapeHtml = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-function resolveWikilink(name, selfId, ids) {
+/** The one concept a wikilink names, by its whole path or its last segment, or null. */
+export function resolveWikilink(name, selfId, ids) {
   const want = name.trim().replace(/\.md$/, "");
   const hits = ids.filter((id) => id !== selfId && (id === want || id.endsWith("/" + want)));
   return hits.length === 1 ? hits[0] : null;

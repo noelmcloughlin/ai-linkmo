@@ -8,10 +8,13 @@
 //                      health.json, the numbers the health page charts;
 //                      changelogs.ts, the releases collection or none; and
 //                      CHANGELOG.md, which the releases section reads
-//   public/            the figures, llms.txt, the favicon, the databases
-//                      under browse/, and under knowledge/ the four files
-//                      `lokf export` writes, every bundle file as it is in
-//                      the repository, and each concept's JSON-LD
+//   public/            the figures, llms.txt, llms-full.txt, the favicon,
+//                      the databases under browse/, the home page, each
+//                      docs page and each extra page as Markdown beside its
+//                      page, and under knowledge/ the four files `lokf
+//                      export` writes, every bundle file as it is in the
+//                      repository, each concept's JSON-LD, and log.xml, the
+//                      bundle log as a feed
 //
 // It runs two programs the repository already has: the lokf toolkit's
 // `export`, from the sidecar's own environment, and knowledge-report.sh,
@@ -21,6 +24,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, extname, relative, resolve } from "node:path";
+import { markdownToHtml } from "satteri";
 import { parse as parseYaml } from "yaml";
 import {
   ASSETS,
@@ -37,9 +41,11 @@ import {
   LOGO_FILES,
   PAGES,
   REF,
+  RELEASE_TAG,
   REPO_ROOT,
   REPO_URL,
   SCHEMA,
+  SITE,
   SITE_URL,
   SITE_DIR,
   TITLE,
@@ -50,6 +56,7 @@ import {
   groupLabel,
   schemaPages,
 } from "./config.mjs";
+import { WIKILINK, resolveWikilink } from "./markdown-ktl.mjs";
 import { rewriteUrl, route } from "./routes.mjs";
 
 const CONTENT = resolve(SITE_DIR, "src", "content", "docs");
@@ -57,6 +64,9 @@ const GENERATED = resolve(SITE_DIR, "src", "generated");
 const PUBLIC = resolve(SITE_DIR, "public");
 const PUBLIC_KNOWLEDGE = resolve(PUBLIC, "knowledge");
 const REPORT = resolve(REPO_ROOT, ".lokf", "scripts", "knowledge-report.sh");
+// The bundle log's feed holds the log's newest days, a day to an entry; the
+// log page holds them all.
+const FEED_DAYS = 20;
 
 const read = (path) => readFileSync(path, "utf8");
 const repoFile = (rel) => read(resolve(REPO_ROOT, rel));
@@ -83,11 +93,11 @@ function page(path, frontmatter, body) {
 // Markdown helpers. Each one leaves fenced code alone.
 // ---------------------------------------------------------------------------
 
-/** Call fn(line) on every line outside a fenced code block; fn returns the replacement line(s). */
+/** Call fn(line, index) on every line outside a fenced code block; fn returns the replacement line(s). */
 function mapProse(text, fn) {
   const out = [];
   let fence = null;
-  for (const line of text.split("\n")) {
+  text.split("\n").forEach((line, index) => {
     const m = line.match(/^\s*(`{3,}|~{3,})/);
     if (fence) {
       if (m && m[1][0] === fence[0] && m[1].length >= fence.length) fence = null;
@@ -96,11 +106,11 @@ function mapProse(text, fn) {
       fence = m[1];
       out.push(line);
     } else {
-      const r = fn(line);
+      const r = fn(line, index);
       if (Array.isArray(r)) out.push(...r);
       else if (r !== null) out.push(r);
     }
-  }
+  });
   return out.join("\n");
 }
 
@@ -214,21 +224,9 @@ function asidesInProse(text) {
 }
 
 /**
- * A figure's dark version on the site. A page's `<picture>` names the
- * `-dimmed` set, which suits GitHub's dark theme; the site's dark theme takes
- * the `-dark` set beside it in the figures folder, drawn on a dark ground.
- */
-function darkFigure(src) {
-  const name = src.match(/([^/]+)-dimmed\.svg$/)?.[1];
-  return ASSETS && name && existsSync(resolve(REPO_ROOT, ASSETS, `${name}-dark.svg`))
-    ? src.replace(/-dimmed\.svg$/, "-dark.svg")
-    : src;
-}
-
-/**
- * A `<picture>` that swaps in a dimmed figure for a dark system theme becomes
- * two images, one shown in each of Starlight's themes, so the figure follows
- * the site's theme switch rather than the system's. The theme's class goes
+ * A `<picture>` with a source for a dark system theme becomes two images,
+ * one shown in each of Starlight's themes, so the figure follows the site's
+ * theme switch rather than the system's. The theme's class goes
  * on a wrapper, so the zoom button image zoom adds beside each image is
  * hidden with it, and a keyboard or a screen reader meets one per figure.
  */
@@ -238,7 +236,7 @@ function picturesToThemedImages(body) {
     const img = inner.match(/<img\b([^>]*?)\s*\/?>/);
     if (!dark || !img) return whole;
     const attrs = img[1].replace(/\s+class="[^"]*"/, "");
-    const darkAttrs = attrs.replace(/\bsrc="[^"]*"/, `src="${darkFigure(dark[1])}"`);
+    const darkAttrs = attrs.replace(/\bsrc="[^"]*"/, `src="${dark[1]}"`);
     return `<span class="dark:sl-hidden"><img${attrs} /></span><span class="light:sl-hidden"><img${darkAttrs} /></span>`;
   });
 }
@@ -304,6 +302,22 @@ function toneOf(label) {
 // The ladder, top first; src/trust.ts words each state in the same order.
 const TONE_ORDER = ["person", "edited", "automation", "nobody", "retired"];
 
+/**
+ * Whom a concept is retold for, as words: its `audience` field, or an
+ * `audience-` tag, where `audience-13-18` reads "Ages 13 to 18" and
+ * `audience-beginners` reads "Beginners". Null for a concept written for
+ * everyone.
+ */
+function audienceOf(data) {
+  if (data.audience) return [].concat(data.audience).map(String).join(", ");
+  const tag = (Array.isArray(data.tags) ? data.tags : []).map(String).find((t) => t.startsWith("audience-"));
+  if (!tag) return null;
+  const ages = tag.match(/^audience-(\d+)-(\d+)$/);
+  if (ages) return `Ages ${ages[1]} to ${ages[2]}`;
+  const words = tag.slice("audience-".length).replace(/[-_]+/g, " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 /** A relation slot's name as words, so derivedFrom reads "Derived from". */
 function slotName(slot) {
   const words = slot.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ").toLowerCase();
@@ -319,6 +333,26 @@ function githubFile(repoPath) {
   }
   return `${REPO_URL}/${kind}/${REF}/${repoPath}`;
 }
+
+// A licence as the site names it: a Creative Commons or SPDX address by its
+// short name, an `spdx:` CURIE by its identifier with the address that
+// resolves it, and any other value as it is written, linked when it is an
+// address.
+function licenceOf(value) {
+  const licence = String(value);
+  const cc = licence.match(/creativecommons\.org\/licenses\/([a-z-]+)\/(\d\.\d)/i);
+  if (cc) return { text: `CC ${cc[1].toUpperCase()} ${cc[2]}`, href: licence };
+  if (/creativecommons\.org\/publicdomain\/zero\/1\.0/i.test(licence)) return { text: "CC0 1.0", href: licence };
+  const spdx = licence.match(/^(?:https?:\/\/spdx\.org\/licenses\/|spdx:)([^/]+?)(?:\.html)?\/?$/i);
+  if (spdx) return { text: spdx[1], href: `https://spdx.org/licenses/${spdx[1]}` };
+  return /^https?:\/\//.test(licence) ? { text: licence, href: licence } : { text: licence };
+}
+
+// A licence in Markdown: its name, linked to its address when it has one.
+const licenceMd = (value) => {
+  const l = licenceOf(value);
+  return l.href ? `[${l.text}](${l.href})` : l.text;
+};
 
 // The page head carries the concept as JSON-LD. Escaping <, > and & keeps a
 // field value such as "</script>" from ending the block; \uXXXX is still JSON.
@@ -362,6 +396,8 @@ function buildConcepts(exported, labels) {
       .map(String);
     if (sources.length === 0 && c.data.resource) sources.push(String(c.data.resource));
     const event = (e) => ({ by: String(e.by ?? ""), at: String(e.at ?? ""), ...(e.note ? { note: String(e.note) } : {}) });
+    // A concept takes the bundle's licence unless it declares its own.
+    const licence = c.data.license ?? root.license;
 
     c.record = {
       id: c.id,
@@ -393,17 +429,65 @@ function buildConcepts(exported, labels) {
         .filter((e) => e.target === c.iri && byIri.has(e.source))
         .map((e) => ({ name: slotName(e.slot ?? e.predicate).toLowerCase(), from: linkTo(e.source) }))
         .sort((a, b) => a.from.text.localeCompare(b.from.text)),
+      ...(licence ? { licence: licenceOf(licence) } : {}),
+      // The graph explorer opened on this concept; the id keeps its slashes.
+      graph: `${BASE}/graph/?concept=${encodeURIComponent(c.id).replace(/%2F/g, "/")}`,
       files: {
         markdown: `${BASE}/knowledge/${c.id}.md`,
         jsonld: `${BASE}/knowledge/${c.id}.jsonld`,
         github: githubFile(`.lokf/knowledge/${c.id}.md`),
+        // Every commit that changed the file, up to the one the site was built from.
+        history: `${REPO_URL}/commits/${REF}/.lokf/knowledge/${c.id}.md`,
       },
     };
 
     const doc = docs.get(c.iri);
     c.jsonld = doc ? { "@context": context, ...doc } : null;
+
+    // A retelling for an audience names its audience, and `derivedFrom`
+    // names the one concept it retells.
+    c.audience = audienceOf(c.data);
+    const derived = [].concat(c.data.derivedFrom ?? []).map((iri) => byIri.get(String(iri))).filter(Boolean);
+    c.retells = c.audience && derived.length === 1 ? derived[0] : null;
   }
   return { concepts, root, context };
+}
+
+// The reading levels of each page that has a retelling, by the page's site
+// path, found before the pages are written: the page as Full, then each
+// retelling by its audience. The same list sits on the page and on each of
+// its retellings, so a reader can move between them from either.
+let readingLevels = new Map();
+
+function findReadingLevels(concepts) {
+  const retellings = [];
+  for (const p of PAGES) {
+    if (!p.retells) continue;
+    const of = route(p.retells);
+    if (/^https?:/.test(of)) throw new Error(`site.config.mjs PAGES: ${p.source} retells ${p.retells}, which has no page on this site`);
+    retellings.push({ of, href: `${BASE}/${p.slug}/`, level: p.level });
+  }
+  for (const c of concepts) {
+    if (c.retells) retellings.push({ of: `${BASE}/knowledge/${c.retells.id}/`, href: `${BASE}/knowledge/${c.id}/`, level: c.audience });
+  }
+  const levels = new Map();
+  for (const of of new Set(retellings.map((r) => r.of))) {
+    const list = [
+      { label: "Full", href: of },
+      ...retellings
+        .filter((r) => r.of === of)
+        .sort((a, b) => a.level.localeCompare(b.level))
+        .map((r) => ({ label: r.level, href: r.href })),
+    ];
+    for (const { href } of list) levels.set(href, list);
+  }
+  return levels;
+}
+
+/** The `ktlLevels` frontmatter of the page at `path`, its own level unlinked, or nothing. */
+function levelsOf(path) {
+  const list = readingLevels.get(path);
+  return list ? { ktlLevels: list.map((l) => (l.href === path ? { label: l.label } : l)) } : {};
 }
 
 // ---------------------------------------------------------------------------
@@ -423,6 +507,7 @@ function writeConceptPages(concepts) {
     const order = byGroup.get(c.record.group).indexOf(c) + 1;
     const head = [
       { tag: "link", attrs: { rel: "alternate", type: "text/markdown", href: c.record.files.markdown } },
+      ...(c.record.licence?.href ? [{ tag: "link", attrs: { rel: "license", href: c.record.licence.href } }] : []),
     ];
     if (c.jsonld) {
       const { body: _body, ...summary } = c.jsonld;
@@ -447,6 +532,7 @@ function writeConceptPages(concepts) {
         sidebar: { order, attrs: { "data-ktl-tone": c.tone, title: c.label } },
         head,
         lokf: c.record,
+        ...levelsOf(`${BASE}/knowledge/${c.id}/`),
       },
       c.body,
     );
@@ -455,6 +541,33 @@ function writeConceptPages(concepts) {
 }
 
 const labelSpan = (c) => `<span class="ktl-label ktl-label--${c.tone}">${c.label}</span>`;
+
+/**
+ * What a link to a concept shows before the reader follows it: the title,
+ * the type, the trust label and the definition, by concept id, for
+ * src/components/ConceptPreviews.astro to read. The definition keeps its
+ * code spans, as the card shows them; the description stands in without one.
+ */
+function writePreviews(concepts) {
+  const previews = Object.fromEntries(
+    [...concepts]
+      .sort((a, b) => a.id.localeCompare(b.id))
+      .map((c) => {
+        const definition = c.data.definition ?? c.data.description;
+        return [
+          c.id,
+          {
+            title: c.title,
+            type: slotName(c.record.type),
+            label: c.label,
+            tone: c.tone,
+            ...(definition ? { definition: String(definition) } : {}),
+          },
+        ];
+      }),
+  );
+  write(resolve(PUBLIC_KNOWLEDGE, "previews.json"), JSON.stringify(previews) + "\n");
+}
 
 function writeGroupPages(byGroup) {
   for (const group of bundleGroups()) {
@@ -489,7 +602,7 @@ function writeOverview(root, concepts, health) {
   const { body: rest } = takeTitle(body);
   const [intro, ...after] = rest.trim().split(/\n(?=# )/);
   const k = `${BASE}/knowledge`;
-  const license = root.license ? `[${root.license}](${root.license})` : "not stated";
+  const license = root.license ? licenceMd(root.license) : "not stated";
   const publisher = root.publisher?.name ?? root.publisher?.id ?? "not stated";
   const facts = [
     "| The root file declares | |",
@@ -509,6 +622,8 @@ function writeOverview(root, concepts, health) {
     `- [graph.json](${k}/graph.json): the typed relations as cytoscape.js elements, which the [knowledge graph](${BASE}/graph/) draws.`,
     `- [datasets.jsonld](${k}/datasets.jsonld): a schema.org Dataset description for each Dataset or Table concept.`,
     `- [index.md](${k}/index.md): the bundle's root file, which declares the header above.`,
+    `- [log.xml](${k}/log.xml): the [bundle log](${k}/log/) as an Atom feed, its newest ${FEED_DAYS} days.`,
+    `- [previews.json](${k}/previews.json): each concept's title, type, trust label and definition, which a link to the concept shows before it is followed.`,
     `- Each concept page links the concept's own Markdown file and its JSON-LD, at the concept's path with \`.md\` or \`.jsonld\` added.`,
     ...(existsSync(resolve(REPO_ROOT, ".github", "workflows", "knowledge-release.yaml"))
       ? [`- The bundle as it stood at each release is a zip on the [releases page](${REPO_URL}/releases).`]
@@ -550,8 +665,146 @@ function writeLog() {
       ktlShiftHeadings: hasH1(rest),
       editUrl: false,
     },
-    rest,
+    `A feed reader can follow this log: [log.xml](${BASE}/knowledge/log.xml) holds its newest ${FEED_DAYS} days.\n\n${rest}`,
   );
+}
+
+const isoTime = (seconds) => new Date(seconds * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+
+/**
+ * The commit time of each line of the log, line number to time, as git
+ * blame reports it. A line changed in the working tree is dated now. The map
+ * is empty without git, or for a log not yet committed.
+ */
+function logLineTimes() {
+  const times = new Map();
+  try {
+    const log = relative(REPO_ROOT, resolve(BUNDLE_DIR, "log.md")).replaceAll("\\", "/");
+    const out = execFileSync("git", ["-C", REPO_ROOT, "blame", "--porcelain", "--", log], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      maxBuffer: 256 * 1024 * 1024,
+    });
+    // Each line opens with its commit and its number; the commit's details
+    // follow the first line it owns, and a tab opens the line's own text.
+    const bySha = new Map();
+    let sha = null;
+    let line = 0;
+    for (const row of out.split("\n")) {
+      const head = row.match(/^([0-9a-f]{40}) \d+ (\d+)/);
+      if (head) [sha, line] = [head[1], Number(head[2])];
+      else if (row.startsWith("committer-time ")) bySha.set(sha, isoTime(Number(row.slice("committer-time ".length))));
+      else if (row.startsWith("\t") && bySha.has(sha)) times.set(line, bySha.get(sha));
+    }
+  } catch {
+    /* no git: each day is dated at its midnight, with no published time */
+  }
+  return times;
+}
+
+// XML allows no control character but tab and the two line ends, so one in
+// the log is dropped rather than left to break the whole feed.
+const xml = (text) =>
+  String(text)
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+/**
+ * The bundle log as an Atom feed, so a reader can follow what changed without
+ * watching the repository. Each `## YYYY-MM-DD` section the pen writes is an
+ * entry, titled with the kinds of change it holds, which are its categories
+ * too, and rendered as the page renders it. Git dates it: published when its
+ * first line was committed, updated when its newest was, so a correction to
+ * an old day reaches a reader too. An entry's id is the bundle's `base_iri`
+ * with `log#` and the date, the identity that outlives a move of the site.
+ */
+async function writeLogFeed(root) {
+  const text = read(resolve(BUNDLE_DIR, "log.md"));
+  const { body } = splitFrontmatter(text);
+  // The file's number for the body's first line, which git blame counts from.
+  const first = text.slice(0, text.length - body.length).split("\n").length;
+  // The day headings, outside fenced code, by line; a `#` or another `##`
+  // heading ends a day.
+  const headings = new Map();
+  mapProse(body, (line, index) => {
+    const m = line.match(/^(#{1,2}) (.*?)\s*$/);
+    if (m) headings.set(index, m[1] === "##" && /^\d{4}-\d{2}-\d{2}$/.test(m[2]) ? m[2] : null);
+    return line;
+  });
+  // A date written twice is still one day, since an entry's id is its date.
+  // Blank lines are left undated: a diff may credit one to an older commit.
+  const byDate = new Map();
+  let day = null;
+  body.split("\n").forEach((line, index) => {
+    if (headings.has(index)) {
+      const date = headings.get(index);
+      if (date && !byDate.has(date)) byDate.set(date, { date, lines: [], numbers: [] });
+      day = date ? byDate.get(date) : null;
+      if (day) day.numbers.push(first + index);
+    } else if (day) {
+      day.lines.push(line);
+      if (line.trim()) day.numbers.push(first + index);
+    }
+  });
+  const days = [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date)).slice(0, FEED_DAYS);
+  const times = logLineTimes();
+  const span = (d) => {
+    const at = d.numbers.map((n) => times.get(n)).filter(Boolean).sort();
+    return { published: at[0], updated: at.at(-1) ?? `${d.date}T00:00:00Z` };
+  };
+  const log = `${SITE_URL}/knowledge/log/`;
+  const feedId = `${String(root.base_iri ?? `${SITE_URL}/knowledge/`).replace(/\/?$/, "/")}log`;
+
+  const entries = [];
+  let newest = "1970-01-01T00:00:00Z";
+  for (const d of days) {
+    const text = d.lines.join("\n").trim();
+    const kinds = new Map();
+    for (const m of text.matchAll(/^[*-] \*\*([^*]+)\*\*:/gm)) kinds.set(m[1], (kinds.get(m[1]) ?? 0) + 1);
+    const title = [d.date, ...[...kinds].sort((a, b) => b[1] - a[1]).map(([kind, n]) => `${kind}: ${n}`)].join(" · ");
+    const { html } = await markdownToHtml(text);
+    const content = html.replace(
+      /(<(?:a|img)\b[^>]*?\s(?:href|src)=")([^"]*)"/g,
+      (_, before, url) => `${before}${absoluteUrl(".lokf/knowledge/log.md", log, url)}"`,
+    );
+    const { published, updated } = span(d);
+    if (updated > newest) newest = updated;
+    entries.push(
+      [
+        "  <entry>",
+        `    <title>${xml(title)}</title>`,
+        `    <link rel="alternate" type="text/html" href="${xml(`${log}#${d.date}`)}"/>`,
+        `    <id>${xml(`${feedId}#${d.date}`)}</id>`,
+        ...(published ? [`    <published>${published}</published>`] : []),
+        `    <updated>${updated}</updated>`,
+        ...[...kinds.keys()].map((kind) => `    <category term="${xml(kind)}"/>`),
+        `    <content type="html">${xml(content)}</content>`,
+        "  </entry>",
+      ].join("\n"),
+    );
+  }
+  const licence = root.license ? licenceOf(root.license) : null;
+  const lines = [
+    '<?xml version="1.0" encoding="utf-8"?>',
+    '<feed xmlns="http://www.w3.org/2005/Atom">',
+    `  <title>${xml(`${TITLE}: bundle log`)}</title>`,
+    "  <subtitle>What changed in the knowledge bundle, a day to an entry, newest first.</subtitle>",
+    `  <link rel="self" type="application/atom+xml" href="${xml(`${SITE_URL}/knowledge/log.xml`)}"/>`,
+    `  <link rel="alternate" type="text/html" href="${xml(log)}"/>`,
+    `  <link rel="alternate" type="text/markdown" href="${xml(`${SITE_URL}/knowledge/log.md`)}"/>`,
+    `  <id>${xml(feedId)}</id>`,
+    `  <updated>${newest}</updated>`,
+    `  <author><name>${xml(root.publisher?.name ?? TITLE)}</name></author>`,
+    ...(licence ? [`  <rights>${xml(licence.text)}</rights>`] : []),
+    ...(licence?.href ? [`  <link rel="license" href="${xml(licence.href)}"/>`] : []),
+    ...entries,
+    "</feed>",
+    "",
+  ];
+  write(resolve(PUBLIC_KNOWLEDGE, "log.xml"), lines.join("\n"));
 }
 
 // The health page is an Astro page, src/pages/health.astro, which charts
@@ -608,6 +861,7 @@ function writeDocs() {
   const order = groups ? groups.flatMap((g) => g.pages) : null;
   docs.sort((a, b) => (order ? order.indexOf(a.name) - order.indexOf(b.name) : a.title.localeCompare(b.title)));
   docs.forEach((d, i) => {
+    d.markdown = writeMarkdown(d.source, `/docs/${d.name}/`);
     page(
       resolve(CONTENT, "docs", `${d.name}.md`),
       {
@@ -619,11 +873,13 @@ function writeDocs() {
         ...(groups ? {} : { sidebar: { order: i + 1 } }),
         ktlSource: d.source,
         editUrl: `${REPO_URL}/edit/${BRANCH}/${d.source}`,
+        head: [markdownAlternate(d.markdown)],
+        ...levelsOf(`${BASE}/docs/${d.name}/`),
       },
       prepare(d.body),
     );
   });
-  return docs.map(({ name, title, description }) => ({ name, title, description }));
+  return docs.map(({ name, title, description, markdown }) => ({ name, title, description, markdown: SITE + markdown }));
 }
 
 /** The text from its first `# ` title down, passing over a `# ` inside fenced code. */
@@ -638,6 +894,24 @@ function fromTitle(text, file) {
     else if (/^# /.test(line)) return lines.slice(i).join("\n");
   }
   throw new Error(`${file} has no '# ' title, and the home page starts at it`);
+}
+
+/** The text from its first `# ` title down, or after its frontmatter when it has no title. */
+const fromTitleOrAll = (text) => (hasH1(text) ? fromTitle(text, "") : splitFrontmatter(text).body);
+
+const markdownAlternate = (href) => ({ tag: "link", attrs: { rel: "alternate", type: "text/markdown", href } });
+
+/**
+ * A page's source as a Markdown file beside the page, at the page's path with
+ * `.md` added, for a reader or a model that wants the words without the
+ * site: the text from its title down, with every link a full address. It
+ * returns the file's site path, which the page's head names as an alternate.
+ */
+function writeMarkdown(source, pagePath) {
+  const path = `${pagePath.replace(/\/$/, "") || "/index"}.md`;
+  const text = absoluteMarkdown(source, SITE_URL + pagePath, fromTitleOrAll(repoFile(source)));
+  write(resolve(PUBLIC, path.slice(1)), text.trim() + "\n");
+  return BASE + path;
 }
 
 /** The tagline under the home page's title: as given, the first line bold throughout of the file named, or the site's description. */
@@ -695,16 +969,19 @@ function writeHome() {
       },
       ktlSource: HOME.source ?? ".lokf/knowledge/index.md",
       editUrl: HOME.source ? `${REPO_URL}/edit/${BRANCH}/${HOME.source}` : false,
+      ...(HOME.source ? { head: [markdownAlternate(writeMarkdown(HOME.source, "/"))] } : {}),
+      ...levelsOf(`${BASE}/`),
     },
     prepare(body),
   );
 }
 
-/** A page per PAGES entry, from its file's title down. */
+/** A page per PAGES entry, from its file's title down; each is returned as llms.txt lists it. */
 function writePages() {
-  for (const extra of PAGES) {
+  return PAGES.map((extra) => {
     const { title, body } = takeTitle(repoFile(extra.source));
     const description = describe(body);
+    const markdown = writeMarkdown(extra.source, `/${extra.slug}/`);
     page(
       resolve(CONTENT, `${extra.slug}.md`),
       {
@@ -712,36 +989,47 @@ function writePages() {
         ...(description ? { description } : {}),
         ktlSource: extra.source,
         editUrl: `${REPO_URL}/edit/${BRANCH}/${extra.source}`,
+        head: [markdownAlternate(markdown)],
+        ...levelsOf(`${BASE}/${extra.slug}/`),
       },
       prepare(body),
     );
-  }
+    // llms.txt names the page by its label, which says what the page is for.
+    return { title: extra.label, description, markdown: SITE + markdown };
+  });
 }
 
-function writeLlmsTxt(docs, concepts) {
-  // The summary is the repository's own llms.txt line when it has one.
+/** The summary under the title: the repository's own llms.txt line when it has one. */
+function llmsSummary() {
   const llms = existsSync(resolve(REPO_ROOT, "llms.txt")) ? repoFile("llms.txt") : "";
-  const summary = (llms.match(/^> (.+)$/m) ?? [, DESCRIPTION])[1];
+  return (llms.match(/^> (.+)$/m) ?? [, DESCRIPTION])[1];
+}
+
+// The bundle's licence, as a sentence for the two text files, or nothing.
+function licenceSentence(root) {
+  if (!root.license) return "";
+  const { text, href } = licenceOf(root.license);
+  return ` The bundle is offered under ${text}${href ? ` (${href})` : ""}.`;
+}
+
+function writeLlmsTxt(docs, extra, concepts, root) {
+  const summary = llmsSummary();
   const inputs = [
     ...(HOME.source ? [HOME.source === "README.md" ? "its README" : `its ${HOME.source}`] : []),
     ...(docs.length ? [`its ${DOCS.dir}/ pages`] : []),
     "its LOKF knowledge bundle",
   ];
   const from = inputs.length > 1 ? `${inputs.slice(0, -1).join(", ")} and ${inputs[inputs.length - 1]}` : inputs[0];
+  const pages = [...docs, ...extra];
   const lines = [
     `# ${TITLE}`,
     "",
     `> ${summary}`,
     "",
-    `This site is built from ${REPO_URL}: ${from}. Each concept below links its own Markdown file, the file as it is in the repository, followed by the label that says how far it has been checked. A concept marked \`status: draft\` has not yet been confirmed by a person; one with a \`human:\` entry under \`verified\` has. Weigh them accordingly.`,
+    `This site is built from ${REPO_URL}: ${from}. Each page below links its own Markdown file: a docs page's text with its links made full addresses, and a concept's file as it is in the repository, followed by the label that says how far it has been checked. A concept marked \`status: draft\` has not yet been confirmed by a person; one with a \`human:\` entry under \`verified\` has. Weigh them accordingly.${licenceSentence(root)}`,
     "",
-    ...(docs.length
-      ? [
-          "## Docs",
-          "",
-          ...docs.map((d) => `- [${d.title}](${SITE_URL}/docs/${d.name}/)${d.description ? `: ${d.description}` : ""}`),
-          "",
-        ]
+    ...(pages.length
+      ? ["## Docs", "", ...pages.map((d) => `- [${d.title}](${d.markdown})${d.description ? `: ${d.description}` : ""}`), ""]
       : []),
     "## Knowledge bundle",
     "",
@@ -751,14 +1039,119 @@ function writeLlmsTxt(docs, concepts) {
     "",
     "## Optional",
     "",
+    `- [The bundle in full](${SITE_URL}/llms-full.txt): every concept's text in one file, each after its label`,
     `- [concepts.jsonld](${SITE_URL}/knowledge/concepts.jsonld): every concept's frontmatter and body under one JSON-LD context`,
     `- [graph.nt](${SITE_URL}/knowledge/graph.nt): the whole bundle as N-Triples`,
     ...(SCHEMA ? [`- [Schema](${SITE_URL}/schema/): the LinkML schema's classes, slots, enumerations and types, a page each`] : []),
     ...(BROWSE ? [`- [Browse the data](${SITE_URL}/browse/): the repository's data as SQLite databases`] : []),
-    `- [${HOME.source === "README.md" ? "README" : "Home"}](${SITE_URL}/): what ${TITLE} is`,
+    `- [${HOME.source === "README.md" ? "README" : "Home"}](${SITE_URL}/${HOME.source ? "index.md" : ""}): what ${TITLE} is`,
     "",
   ];
   write(resolve(PUBLIC, "llms.txt"), lines.join("\n"));
+}
+
+/**
+ * A link written in the file at `fromPath`, as an address that works
+ * anywhere, for text read away from its page: a link to a heading goes to
+ * that heading on `page`.
+ */
+function absoluteUrl(fromPath, page, url) {
+  if (url.startsWith("#")) return page + url;
+  const out = rewriteUrl(fromPath, url);
+  return /^\/(?!\/)/.test(out) ? SITE + out : out;
+}
+
+// A Markdown link's address: bare, or in angle brackets, with a title or
+// none; the brackets and the title are kept.
+const MD_LINK = /\]\((<[^>]*>|[^)\s]+)((?:\s+"[^"]*")?)\)/g;
+// A src, srcset or href attribute in raw HTML, quoted either way.
+const HTML_ATTR = /\b(src|srcset|href)=("([^"]*)"|'([^']*)')/g;
+
+/**
+ * Markdown written in the file at `fromPath` and shown at `page`, as text
+ * read away from the site: every link, image and raw-HTML address becomes a
+ * full one, and in a concept the wikilinks too, since the text has no
+ * address of its own to resolve them against. Fenced code is left as written.
+ */
+function absoluteMarkdown(fromPath, page, text, selfId = null, ids = []) {
+  return mapProse(text, (line) => {
+    const out = line
+      .replace(MD_LINK, (_, url, title) => {
+        const bare = url.startsWith("<") ? url.slice(1, -1) : url;
+        const abs = absoluteUrl(fromPath, page, bare);
+        return `](${url.startsWith("<") ? `<${abs}>` : abs}${title})`;
+      })
+      .replace(HTML_ATTR, (_, attr, _q, dq, sq) => {
+        const value = dq ?? sq;
+        const each = (u) => absoluteUrl(fromPath, page, u);
+        const abs =
+          attr === "srcset"
+            ? value
+                .split(",")
+                .map((part) => {
+                  const [u, ...rest] = part.trim().split(/\s+/);
+                  return [each(u), ...rest].join(" ");
+                })
+                .join(", ")
+            : each(value);
+        return `${attr}="${abs}"`;
+      });
+    if (selfId === null) return out;
+    return out.replace(WIKILINK, (_, name, heading = "", alias) => {
+      const id = resolveWikilink(name, selfId, ids);
+      const text = alias ?? name.trim();
+      return id ? `[${text}](${SITE_URL}/knowledge/${id}/${heading})` : text;
+    });
+  });
+}
+
+/**
+ * The whole bundle in one file, for a model that reads it at once: each
+ * concept's text after its label, its type, its addresses and its sources.
+ * Its headings move under its title and its links become absolute, the
+ * wikilinks too, since the file has no address of its own to resolve them
+ * against.
+ */
+function writeLlmsFullTxt(concepts, root) {
+  const ids = concepts.map((c) => c.id);
+  const entry = (c) => {
+    const levels = [];
+    mapProse(c.body, (line) => {
+      const m = line.match(/^(#{1,6}) /);
+      if (m) levels.push(m[1].length);
+      return line;
+    });
+    const shift = levels.length ? 3 - Math.min(...levels) : 0;
+    const from = `.lokf/knowledge/${c.id}.md`;
+    const page = `${SITE_URL}/knowledge/${c.id}/`;
+    const shifted = mapProse(c.body, (line) => line.replace(/^(#{1,6}) /, (_, h) => "#".repeat(Math.min(6, h.length + shift)) + " "));
+    const body = absoluteMarkdown(from, page, shifted, c.id, ids);
+    const sources = c.record.sources.map((s) => `[${s.text}](${s.href})`);
+    return [
+      `## ${c.title}`,
+      "",
+      `- Label: ${c.label}`,
+      `- Type: ${slotName(c.record.type)}`,
+      `- Address: ${c.iri}`,
+      `- Page: ${page}`,
+      `- Markdown: ${SITE_URL}/knowledge/${c.id}.md`,
+      ...(sources.length ? [`- Sources: ${sources.join(", ")}`] : []),
+      ...(c.data.license ? [`- Licence: ${licenceMd(c.data.license)}`] : []),
+      ...(c.data.definition ? [`- Definition: ${plain(String(c.data.definition))}`] : []),
+      "",
+      body.trim(),
+    ].join("\n");
+  };
+  const lines = [
+    `# ${TITLE}: the knowledge bundle in full`,
+    "",
+    `> ${llmsSummary()}`,
+    "",
+    `Every concept in the knowledge bundle of ${REPO_URL}, as the site at ${SITE_URL}/ shows it. Each one opens with its label, which says how far it has been checked. Only a label that starts "confirmed by a person" means that a named person has confirmed the text as it stands. Weigh the rest accordingly.${licenceSentence(root)}`,
+    "",
+    ...[...concepts].sort((a, b) => a.id.localeCompare(b.id)).map((c) => entry(c) + "\n"),
+  ];
+  write(resolve(PUBLIC, "llms-full.txt"), lines.join("\n"));
 }
 
 /** Every file of the bundle as it is in the repository, so `<concept>.md` sits beside its page. */
@@ -806,19 +1199,48 @@ function writeCollections() {
   write(resolve(GENERATED, "changelogs.ts"), lines.join("\n") + "\n");
 }
 
+/** The repository's tags, as git has them; none without git. */
+function gitTags() {
+  try {
+    const out = execFileSync("git", ["-C", REPO_ROOT, "tag", "--list"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
+    return new Set(out.split("\n").filter(Boolean));
+  } catch {
+    return new Set();
+  }
+}
+
 /**
  * The releases section's copy of the changelog. Its version headings lose
  * their brackets, so each release page is titled with the bare version and
  * starlight-changelogs skips `## Unreleased`, which it knows only unbracketed.
  * Its links to repository files point at their pages, since a release page
- * has no source file for the Markdown plugin to resolve them from.
+ * has no source file for the Markdown plugin to resolve them from. Under the
+ * heading of a release whose tag git has, a line links the repository, the
+ * docs and the bundle at that tag, and the release itself, so a reader can
+ * see each as it stood. A release promoted but not yet tagged, or a tag not
+ * yet fetched, gets no line.
  */
 function writeChangelog() {
-  const text = mapProse(repoFile(CHANGELOG), (line) =>
-    line
+  const tags = RELEASE_TAG ? gitTags() : new Set();
+  const frozen = (version) => {
+    const tag = RELEASE_TAG.replace("{version}", version);
+    if (!tags.has(tag)) return [];
+    const at = `${REPO_URL}/tree/${tag}`;
+    const links = [
+      `[the repository](${at})`,
+      ...(DOCS ? [`[the docs](${at}/${DOCS.dir})`] : []),
+      `[the knowledge bundle](${at}/.lokf/knowledge)`,
+      `[the release](${REPO_URL}/releases/tag/${tag})`,
+    ];
+    return ["", `*As it stood at this release:* ${links.join(" · ")}`];
+  };
+  const text = mapProse(repoFile(CHANGELOG), (line) => {
+    const out = line
       .replace(/^## \[([^\]]+)\]/, "## $1")
-      .replace(/\]\(([^)\s]+)\)/g, (_, url) => `](${rewriteUrl("CHANGELOG.md", url)})`),
-  );
+      .replace(/\]\(([^)\s]+)\)/g, (_, url) => `](${rewriteUrl("CHANGELOG.md", url)})`);
+    const release = line.match(/^## \[([^\]]+)\] - \d{4}-\d{2}-\d{2}/);
+    return release ? [out, ...frozen(release[1])] : out;
+  });
   write(resolve(GENERATED, "CHANGELOG.md"), text);
 }
 
@@ -1051,20 +1473,24 @@ const labels = readLabels();
 const health = report("health");
 const full = report();
 const { concepts, root } = buildConcepts(exported, labels);
+readingLevels = findReadingLevels(concepts);
 
 copyAssets();
 copyBundleFiles();
 const byGroup = writeConceptPages(concepts);
 writeGroupPages(byGroup);
+writePreviews(concepts);
 writeOverview(root, concepts, health);
 writeLog();
+await writeLogFeed(root);
 writeHealth(concepts, health, full);
 const docs = writeDocs();
 writeHome();
-writePages();
+const extra = writePages();
 const schemaCount = writeSchemaPages();
 const databases = writeBrowse();
-writeLlmsTxt(docs, concepts);
+writeLlmsTxt(docs, extra, concepts, root);
+writeLlmsFullTxt(concepts, root);
 writeCollections();
 if (CHANGELOG) writeChangelog();
 
