@@ -5,6 +5,20 @@
 
 bundle := "knowledge"
 
+# A domain schema the validator checks beside LOKF's: a LinkML file that
+# imports the pinned lokf.yaml and adds the host's own classes
+# (ktl-librarian/references/domain-schema.md), as a path relative to this
+# folder: "<slug>.yaml" beside the bundle, or
+# "../.linkml/src/<slug>/schema/<slug>.yaml" in a linkml-sidecar project.
+# Leave it empty for the core vocabulary alone. The two validate recipes run
+# from the schema's directory, because linkml-runtime before 1.12.0 resolves a
+# schema's relative imports from the working directory, and uv.lock may hold
+# such a version. The three workflows run these recipes, so this one line is
+# the whole of the host's wiring.
+schema := ""
+_validate := if schema == "" { "uv run lokf validate" } else { "cd " + quote(parent_directory(justfile_directory() / schema)) + " && uv run --project " + quote(justfile_directory()) + " lokf validate --schema " + quote(file_name(schema)) }
+_bundle := if schema == "" { bundle } else { quote(justfile_directory() / bundle) }
+
 # List available recipes
 default:
     @just --list
@@ -13,12 +27,9 @@ default:
 lokf-install:
     uv sync
 
-# Assemble and validate the knowledge bundle against the LOKF schema.
-# A bundle that extends the vocabulary with a domain schema passes it here as
-# `--schema <slug>.yaml` (and in both workflows' validate steps);
-# see ktl-librarian/references/domain-schema.md for the recipe.
+# Assemble and validate the knowledge bundle against the LOKF schema (and the domain schema `schema` names)
 lokf-validate:
-    uv run lokf validate {{ bundle }}
+    {{ _validate }} {{ _bundle }}
 
 # Project the bundle (or a concept file) to RDF (Turtle) on stdout
 lokf-convert FILE=bundle:
@@ -31,12 +42,11 @@ lokf-serve:
 # Audit: every typed-relation target must resolve to a concept in the bundle.
 # Schema validation alone reads a fabricated or stale IRI as a valid string.
 # --check-refs (lokf 0.8.0+) takes the relation slots from the schema, so
-# reified `relations` entries and a domain schema's own slots are covered too;
-# a host with a domain schema passes `--schema <slug>.yaml` here as well as on
-# lokf-validate. Targets outside base_iri are left alone: `source` and
-# `definedBy` are documented as taking an external resource.
+# reified `relations` entries and a domain schema's own slots are covered too.
+# Targets outside base_iri are left alone: `source` and `definedBy` are
+# documented as taking an external resource.
 lokf-check-refs:
-    uv run lokf validate --check-refs {{ bundle }}
+    {{ _validate }} --check-refs {{ _bundle }}
 
 # The knowledge_bundle doorway: the bundle under an ordinary, visible name at the
 # host root, for folder pickers and file managers that hide dot-folders and, for
