@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Changed
+
+- **The README links the website.** It names the site and its knowledge pages, and the quick start, the architecture page and the status page open there rather than as Markdown files on GitHub. No application change.
+
 ## [0.4.2] - 2026-10-15
 
 ### Security
