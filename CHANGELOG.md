@@ -6,6 +6,8 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-10-15
+
 ### Security
 
 - **The website's copies and the skills pin match `v0.43.0`.** The site serves the whole bundle as `llms-full.txt`, the bundle log as an Atom feed, and each docs page as Markdown beside it. A concept page links its history and licence and opens the knowledge graph on the concept, and a link to a concept previews it on hover and on focus. A release page links the repository, the docs and the bundle at the release's tag, and a page and its retelling offer each other as reading levels. No application change.
