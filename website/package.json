@@ -22,7 +22,7 @@
     "astro-og-canvas": "^0.13.2",
     "cytoscape": "^3.34.3",
     "cytoscape-fcose": "^2.2.0",
-    "mermaid": "^12.1.0",
+    "mermaid": "^12.2.0",
     "satteri": "^0.10.5",
     "sharp": "^0.35.5",
     "starlight-changelogs": "^0.7.0",
