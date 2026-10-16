@@ -2,7 +2,7 @@
 
 This page says what AI-LinkMO needs on the machine, how to install it, and how to start the API, the web UI and the CLI. [Working with the data](working-with-the-data.md) says what to do next.
 
-> **Prefer to ask?** Install the docent skill into any agent you already use (`npx skills add noelmcloughlin/knowledge-trust-ladder --skill ktl-docent --yes`) and ask it about this project, such as *where the EU AI Act encoding comes from, and who checked it*. It answers from this repository's own bundle and says how far each answer has been checked.
+> **Only want to ask?** Install `ktl-docent` into any agent you use, by a route from [the install page](https://w3id.org/ktl/docs/install/), and ask it about this project, such as *where the EU AI Act encoding comes from, and who checked it*. It answers from the bundle and says how far each answer has been checked.
 
 ## Install
 
