@@ -30,6 +30,9 @@ const concept = z.object({
   tags: z.array(z.string()).default([]),
   generated: z.object({ by: z.string(), at: z.string() }).optional(),
   verified: z.array(z.object({ by: z.string(), at: z.string(), note: z.string().optional() })).default([]),
+  // The open questions under the concept's `## Open questions` heading, shown
+  // on the card beside a reopened label.
+  questions: z.array(z.object({ date: z.string(), by: z.string(), text: z.string() })).default([]),
   sources: z.array(link).default([]),
   relations: z.array(z.object({ name: z.string(), targets: z.array(link) })).default([]),
   incoming: z.array(z.object({ name: z.string(), from: link })).default([]),

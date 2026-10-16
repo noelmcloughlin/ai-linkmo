@@ -30,9 +30,13 @@ const inline = (text: string) =>
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/`([^`]+)`/g, "<code>$1</code>");
-// The label's first clause names the rung; a draft, a passed review date or a
-// reader's dispute follows on a line of its own.
-const [rung, ...also] = concept.label.split(/, (?=still a draft|past its review date|a reader disputed this)/);
+// The label's first clause names the rung; a draft, a reopening, a passed
+// review date or a reader's dispute follows on a line of its own. A reopening
+// is a flag, not a rung: the rung stays, and the questions that wait are
+// shown under it.
+const [rung, ...also] = concept.label.split(/, (?=still a draft|reopened|past its review date|a reader disputed this)/);
+const flagged = also.some((a: string) => a.startsWith("reopened"));
+const questions: { date: string; by: string; text: string }[] = concept.questions ?? [];
 const written = concept.generated && actor(concept.generated.by);
 const lastCheck = concept.verified.at(-1);
 const checker = lastCheck && actor(lastCheck.by);
@@ -53,7 +57,17 @@ const checker = lastCheck && actor(lastCheck.by);
       <p class="ktl-card__label" data-pagefind-filter={`Trust:${trustLabel(concept.tone)}`}>
         {rung.charAt(0).toUpperCase() + rung.slice(1)}
       </p>
-      {also.length > 0 && <p class="ktl-card__also">{also.join(", ")}</p>}
+      {also.length > 0 && <p class:list={["ktl-card__also", { "ktl-card__also--flag": flagged }]}>{also.join(", ")}</p>}
+      {questions.length > 0 && (
+        <ul class="ktl-card__questions" aria-label="Open questions">
+          {questions.map((q) => (
+            <li>
+              <span class="ktl-card__kind">{q.date}, <code>{actor(q.by).who}</code>{actor(q.by).kind && ` (${actor(q.by).kind})`}:</span>{" "}
+              <span set:html={inline(q.text)} />
+            </li>
+          ))}
+        </ul>
+      )}
       <p class="ktl-card__when">
         {written && (
           <span>

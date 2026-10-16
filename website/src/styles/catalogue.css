@@ -132,6 +132,20 @@ h1#_top,
 .ktl-card__kind {
   color: var(--sl-color-gray-3);
 }
+/* A reopening is a flag on the rung, in the colour of work that waits. */
+.ktl-card__also--flag {
+  color: var(--ktl-automation-fg);
+  font-weight: 600;
+}
+.ktl-card__questions {
+  margin: 0.2rem 0 0;
+  padding: 0 0 0 1rem;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+}
+.ktl-card__questions li + li {
+  margin-top: 0.15rem;
+}
 .ktl-card__definition {
   margin: 0;
   padding: 0.2rem 1.1rem 0.9rem;

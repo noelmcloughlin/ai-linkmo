@@ -38,7 +38,7 @@ This is the Microsoft 365 Copilot build of the ktl-docent skill from [knowledge-
 | Confirmed by a person | any `verified[].by` starts with `human:` |
 | Checked by automation only | `verified` holds events, none by a `human:` actor |
 | Nobody has checked this yet | no `verified` key, or one with no events |
-| Still a draft | `status: draft` |
+| Still a draft / Reopened | `status: draft` with no `human:` `verified` event / with one: say the confirmation first, then when it was reopened, by whom, and how many questions wait |
 | Edited since a person last confirmed it | `generated.at` is later than the latest `human:` `verified[].at` |
 | Past its review date | `stale_after` is on or before today |
 | Retired | `status: deprecated` |

@@ -146,6 +146,24 @@ function demoteHeadings(body) {
   return mapProse(body, (line) => (/^#{1,5} /.test(line) ? "#" + line : line));
 }
 
+/** The bullets under a `## Open questions` heading, each `- <day>, <actor>: <text>`,
+ *  read as knowledge-report.sh reads them: the heading whole on its line, a
+ *  fenced example skipped. The card shows them beside the trust label, so a
+ *  reader sees why a concept was reopened without scrolling to the foot. */
+function openQuestions(body) {
+  const found = [];
+  let inside = false;
+  mapProse(body, (line) => {
+    if (/^#+ /.test(line)) inside = /^## Open questions\s*$/.test(line);
+    else if (inside) {
+      const m = line.match(/^- (\d{4}-\d{2}-\d{2}), (\S+): (.*)$/);
+      if (m) found.push({ date: m[1], by: m[2], text: m[3] });
+    }
+    return line;
+  });
+  return found;
+}
+
 /** Markdown inline syntax stripped to its words, for titles and descriptions. */
 function plain(md) {
   return md
@@ -412,6 +430,7 @@ function buildConcepts(exported, labels) {
       tags: (Array.isArray(c.data.tags) ? c.data.tags : []).map(String),
       ...(c.data.generated ? { generated: event(c.data.generated) } : {}),
       verified: (Array.isArray(c.data.verified) ? c.data.verified : []).map(event),
+      questions: openQuestions(c.body),
       sources: sources.map((s) => {
         if (/^https?:/.test(s)) return { text: s, href: s };
         const path = s.replace(/^\.(?:\/|$)/, "").replace(/\/$/, "");
