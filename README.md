@@ -8,7 +8,9 @@
 
 AI-LinkMO is a reference implementation of *operational* AI governance. It takes open AI-risk data and turns it from documents you *read* into linked data you can *query, integrate and automate against*. Sources are IBM AI Atlas Nexus, the FINOS AI Governance Framework, NIST AI RMF, the EU AI Act, ISO/IEC 42001, the OWASP Top 10s and more: nine frameworks, each credited in [NOTICE](NOTICE).
 
-The documentation is at [noelmcloughlin.github.io/ai-linkmo](https://noelmcloughlin.github.io/ai-linkmo/), with its [knowledge pages](https://noelmcloughlin.github.io/ai-linkmo/knowledge/). To run it, see [the quick start](https://noelmcloughlin.github.io/ai-linkmo/docs/install/#quick-start).
+The documentation is at [noelmcloughlin.github.io/ai-linkmo](https://noelmcloughlin.github.io/ai-linkmo/), with its [knowledge pages](https://noelmcloughlin.github.io/ai-linkmo/knowledge/).
+
+To run the demo, see [the quick start](https://noelmcloughlin.github.io/ai-linkmo/docs/install/#quick-start).
 
 [The architecture](https://noelmcloughlin.github.io/ai-linkmo/docs/architecture/) says why governance needs a catalogue, what the four doors share, and where this sits.
 
