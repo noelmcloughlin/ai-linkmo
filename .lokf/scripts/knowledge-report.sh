@@ -30,7 +30,12 @@
 #                                since the person confirmed an earlier text
 #   checked by automation only   `verified` holds events, none a person's
 #   nobody has checked this yet  no `verified` event at all
-#   still a draft                `status: draft`
+#   still a draft                `status: draft`, and no person has confirmed it
+#   reopened                     `status: draft` on a concept a person has
+#                                confirmed: a question asked since waits, and
+#                                the label says when and by whom. The rung
+#                                stays, since the confirmation stands as of
+#                                its date
 #   past its review date         `stale_after` is today or earlier
 #   a reader disputed this       a reader's Disagreement that names the
 #                                concept waits in .lokf/feedback.md
@@ -515,13 +520,25 @@ waiting_feedback() {  # the count ktl-curator and knowledge-feedback.sh use; no 
 label_fn='
 function day(t) { return substr(t, 1, 10) }
 function edited() { return $9 > 0 && $7 != "" && $8 != "" && $7 > $8 }
+function who(a) { if (a == "process:ktl-librarian") return "the librarian"; if (a == "process:ktl-curator") return "the curator"; sub(/^(human|process):/, "", a); return a }
+function waits(n) { return n " question" (n == 1 ? " waits" : "s wait") }
+# The reopening: the earliest open question asked on or after the day of the
+# confirmation, else the earliest there is, as "reopened <day> by <who>".
+function reopened(p, n, since,  k, m, f, d, w, i) {
+  if (n == 0) return "reopened"
+  m = split(qlist[p], k, "\n"); d = ""
+  for (i = 1; i <= m; i++) { if (k[i] == "") continue; split(k[i], f, "\t"); if (f[1] >= since && (d == "" || f[1] < d)) { d = f[1]; w = f[2] } }
+  if (d == "") for (i = 1; i <= m; i++) { if (k[i] == "") continue; split(k[i], f, "\t"); if (d == "" || f[1] < d) { d = f[1]; w = f[2] } }
+  return "reopened " d " by " who(w) ": " waits(n)
+}
+$1 == "Q" { qlist[$2] = qlist[$2] $3 "\t" $4 "\n" }
 function label(  s) {
   if ($4 == "deprecated") return "retired"
   if (edited()) s = "edited since a person last confirmed it (confirmed " (day($7) == day($8) ? $8 : day($8)) ", edited " (day($7) == day($8) ? $7 : day($7)) ")"
   else if ($9 > 0) s = "confirmed by a person" ($8 != "" ? ", " day($8) : "") ($15 != "" ? ", against " $15 : "")
   else if ($10 > 0) s = "checked by automation only"
   else s = "nobody has checked this yet"
-  if ($4 == "draft") s = s ", still a draft"
+  if ($4 == "draft") s = s ", " ($9 > 0 ? reopened($2, $12, day($8)) : "still a draft")
   if ($5 != "" && $5 <= today) s = s ", past its review date (" $5 ")"
   return s
 }'
@@ -532,9 +549,9 @@ health() {
   { n++ }
   $4 == "deprecated" { retired++; next }
   { if (edited()) was++; else if ($9 > 0) confirmed++; else if ($10 > 0) auto++; else none++
-    if ($4 == "draft") drafts++
+    if ($4 == "draft") { if ($9 > 0) reop++; else drafts++ }
     if ($5 != "" && $5 <= today) past++ }
-  END { printf "Confirmed by a person: %d of %d · Checked by automation only: %d · Nobody has checked: %d · Drafts: %d · Past review date: %d · Edited since confirmed: %d · Retired: %d\n", confirmed, n, auto, none, drafts, past, was, retired }'
+  END { printf "Confirmed by a person: %d of %d · Checked by automation only: %d · Nobody has checked: %d · Drafts: %d · Reopened: %d · Past review date: %d · Edited since confirmed: %d · Retired: %d\n", confirmed, n, auto, none, drafts, reop, past, was, retired }'
 }
 
 # The concept that replaced a retired one, from the newest **Deprecation**
@@ -737,9 +754,9 @@ ranked() {  # queue | lists
       if (edited()) why = also(why, "edited since a person last confirmed it")
       else if (p in cmoved) why = also(why, "confirmed by a person, and a source moved since")
       if (why != "") g = 1
-      else if ($4 == "draft" && $12 > 0) { g = 2; why = "still a draft, with an open question" }
+      else if ($4 == "draft" && $12 > 0) { g = 2; why = ($9 > 0 ? reopened($2, $12, day($8)) : "still a draft, with an open question") }
       else if ($10 == 0) { g = 3; why = "nobody has checked this yet" ($4 == "draft" ? ", still a draft" : "") }
-      else if ($4 == "draft") { g = 4; why = "still a draft" }
+      else if ($4 == "draft") { g = 4; why = ($9 > 0 ? "reopened" : "still a draft") }
       else if ($9 == 0) { g = 4; why = "checked by automation only" }
       if (!g) continue
       if (relied[p] > 0) why = why "; " relies(relied[p])
