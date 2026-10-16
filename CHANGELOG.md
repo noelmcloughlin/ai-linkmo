@@ -6,6 +6,8 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+## [0.4.5] - 2026-10-16
+
 ### Security
 
 - **The sidecar's toolkit lock takes the patched PyJWT, urllib3, httpx2, httpcore2 and mcp.** It closes the open security alerts on `.lokf/uv.lock`, apart from one PyJWT advisory that has no fixed release yet. The app's own dependencies are unchanged.
