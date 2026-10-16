@@ -77,7 +77,9 @@ for (const name of ["llms.txt", "llms-full.txt", "knowledge/log.xml"]) {
   const file = resolve(DIST, name);
   if (!existsSync(file)) continue;
   files++;
-  for (const m of unescape(readFileSync(file, "utf8")).matchAll(/https?:\/\/[^\s)"<>]+/g)) {
+  // A backtick ends an address too: a concept names one in a code span, as
+  // markdownlint asks, and the span's closing backtick is not part of it.
+  for (const m of unescape(readFileSync(file, "utf8")).matchAll(/https?:\/\/[^\s)"<>`]+/g)) {
     const url = m[0].replace(/[.,;:]+$/, "");
     if (!url.startsWith(SITE_URL + "/")) continue;
     checked++;
