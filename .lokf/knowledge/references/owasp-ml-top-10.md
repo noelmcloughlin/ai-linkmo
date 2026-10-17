@@ -18,4 +18,4 @@ External authority encoded by this repository's data. Canonical source: <https:/
 
 ## Open questions
 
-- 2026-10-17, process:ktl-librarian: https://owasp.org/www-project-machine-learning-security-top-10/ now redirects to https://owasp.org/projects/machine-learning-security-top-10, which answers 404 (checked 2026-10-17). The project page is at https://owasp.org/projects/machine-learning-security-top-ten. `byo/data/owasp_ml_top_10.yaml` still cites the first address, and the source map asks that the two match. Which address should this reference cite?
+- 2026-10-17, process:ktl-librarian: <https://owasp.org/www-project-machine-learning-security-top-10/> now redirects to <https://owasp.org/projects/machine-learning-security-top-10>, which answers 404 (checked 2026-10-17). The project page is at <https://owasp.org/projects/machine-learning-security-top-ten>. `byo/data/owasp_ml_top_10.yaml` still cites the first address, and the source map asks that the two match. Which address should this reference cite?
