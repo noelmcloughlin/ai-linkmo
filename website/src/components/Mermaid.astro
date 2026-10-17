@@ -163,15 +163,4 @@
     margin-bottom: 1rem;
     background: var(--sl-color-bg);
   }
-
-  /* As the figures do on a wide screen beside a table of contents, a diagram
-     grows left into the main pane's spare width, up to 67.5rem. */
-  @media (min-width: 72rem) {
-    [data-has-sidebar][data-has-toc] .sl-markdown-content pre.ktl-mermaid {
-      --ktl-figure-width: min(100cqi - 2 * var(--sl-content-pad-x), 67.5rem);
-      width: var(--ktl-figure-width);
-      max-width: none;
-      margin-inline-start: min(0px, 100% - var(--ktl-figure-width));
-    }
-  }
 </style>

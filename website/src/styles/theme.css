@@ -137,25 +137,9 @@
 
 /* A diagram drawn 720 wide, with text of 9.5 to 14 units, is too small to
    read at that size. Such a diagram carries width="720" in its source page,
-   which marks it apart from the logo, so it fills the text column instead. */
+   which marks it apart from the logo, so it fills the text column instead.
+   The column is its limit on a wide screen too: a click opens the figure at
+   full size through the image zoom, so it need not grow past the text. */
 .sl-markdown-content img[width="720"] {
   width: 100%;
-}
-
-/* On a wide screen with a table of contents, Starlight keeps the text column
-   at 45rem and sets it against the right sidebar, leaving the main pane's
-   spare width on its left. A diagram grows left into that space, up to the
-   67.5rem Starlight gives a page with no sidebar, while the text keeps its
-   line length. */
-@media (min-width: 72rem) {
-  [data-has-sidebar][data-has-toc] .main-pane {
-    container-type: inline-size;
-  }
-
-  [data-has-sidebar][data-has-toc] .sl-markdown-content img[width="720"] {
-    --ktl-figure-width: min(100cqi - 2 * var(--sl-content-pad-x), 67.5rem);
-    width: var(--ktl-figure-width);
-    max-width: none;
-    margin-inline-start: min(0px, 100% - var(--ktl-figure-width));
-  }
 }
