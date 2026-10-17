@@ -2,7 +2,7 @@
 
 [The architecture page](architecture.md#status-and-caveats) gives the short version. This is the full list.
 
-- **This is a demo.** The API, the web UI and the CLI will all be reworked; treat their shapes as illustrative, not as a contract. The API's current contract is the server's `/openapi.json`, generated from the ontology schema.
+- **This is a demo.** The API, the web UI and the CLI will all be reworked. Treat their shapes as illustrative, not as a contract. The API's current contract is the server's `/openapi.json`, generated from the ontology schema.
 - **Keep it on localhost.** The write endpoints are unauthenticated, the web UI's login is a persona picker, and `graph/` is regenerable output that the export commands rewrite in place (the YAML and crosswalk CSVs are committed, the fetched Cypher is not). [SECURITY.md](../SECURITY.md) lists each limitation and what is planned.
 - **Your own data is not in the Cypher export.** The project generates no Cypher; `just fetch-cypher` downloads the artefact ai-atlas-nexus publishes for the installed version, built upstream from the packaged data alone. `--byod` with the Cypher export is refused with a 400, and the [Neo4j walkthrough](neo4j.md) lists the artefact's known upstream defects.
 - **Two encodings are thinner than their type suggests.** `byo/data/eu_ai_act.yaml` is a `RiskTaxonomy` of 308 requirement rows and no risks, so query it as `rule`, not `risk`; `ffiec_it_handbook.yaml` is a `RiskControlGroupTaxonomy` with groups and no controls.

@@ -7,10 +7,10 @@
 AI-LinkMO's family is [IBM AI Atlas Nexus](https://ibm.github.io/ai-atlas-nexus/). Upstream provides three things:
 
 - **The AI Risk Ontology**, a [LinkML](https://linkml.io/) schema of risks, controls, obligations, taxonomies, models, evaluations and incidents. Every CLI command, API route, UI form and graph label here is generated from it, which is why one identifier means the same thing at every door.
-- **The packaged risk data**: the IBM AI Risk Atlas, the public taxonomies packaged with it, and the relationships between them. The related-risk, related-control and related-incident lookups, and so the crosswalk, walk those relationships through the `ai-atlas-nexus` library; the LLM inference path calls its risk identification.
+- **The packaged risk data**: the IBM AI Risk Atlas, the public taxonomies packaged with it, and the relationships between them. The related-risk, related-control and related-incident lookups, and so the crosswalk, follow those relationships through the `ai-atlas-nexus` library. The LLM inference path calls its risk identification.
 - **The toolchain**: the library that loads the ontology and the data, and LinkML's generators, which produce the JSON Schema the web UI includes.
 
-This repository is a workshop that runs over them. It adds doors, encodings and checks, and no ontology of its own:
+This repository is a workshop built on them. It adds doors, encodings and checks, and no ontology of its own:
 
 | Added here | Where |
 | :--- | :--- |
@@ -33,7 +33,7 @@ Where provenance belongs, in the ontology or elsewhere, is the second roadmap it
 
 ## Roadmap: automated policy-to-risk mapping
 
-[asago policy mapper](https://github.com/asago-ai/asago-policy-mapper), part of [asago.ai](https://asago.ai/), an open-source AI safety and governance orchestrator, closes the semantic gap from the other direction. It reads unstructured corporate policy documents and extracts standardized risk identifiers, from *"the model must not provide medical advice"* to `atlas-hallucination` and `nist-ms-2.5`. It would complete the loop if it ran upstream of AI-LinkMO, **policy document → extracted risks → linked model → crosswalks, controls and evidence**: traceability from policy clause to deployed control.
+[asago policy mapper](https://github.com/asago-ai/asago-policy-mapper) closes the semantic gap from the other direction. It is part of [asago.ai](https://asago.ai/), an open-source AI safety and governance orchestrator. It reads unstructured corporate policy documents and extracts standardized risk identifiers, from *"the model must not provide medical advice"* to `atlas-hallucination` and `nist-ms-2.5`. It would complete the loop if it ran upstream of AI-LinkMO, **policy document → extracted risks → linked model → crosswalks, controls and evidence**: traceability from policy clause to deployed control.
 
 ## Roadmap: provenance on governance records
 
@@ -47,11 +47,11 @@ The datasets, benchmarks and mitigations here are open to contribution, in publi
 
 ## Build Python applications on it
 
-The [Python Reference](https://ibm.github.io/ai-atlas-nexus/reference/library_reference/) and the `SchemaView` class in the linkml-runtime let you introspect and manipulate the schema in code ([documentation](https://ibm.github.io/ai-atlas-nexus/examples/notebooks/schema_viewer/)). `./ai schemaview --introspect` is the CLI's window onto the same thing.
+The [Python Reference](https://ibm.github.io/ai-atlas-nexus/reference/library_reference/) and the `SchemaView` class in the linkml-runtime let you introspect and manipulate the schema in code ([documentation](https://ibm.github.io/ai-atlas-nexus/examples/notebooks/schema_viewer/)). `./ai schemaview --introspect` does the same from the CLI.
 
 ## Infer risk dimensions with an LLM, or evaluate with ARES
 
-Both need infrastructure you run yourself: [llm-inferencing.md](llm-inferencing.md).
+Both need infrastructure you run yourself. [llm-inferencing.md](llm-inferencing.md) says how.
 
 ## Research
 

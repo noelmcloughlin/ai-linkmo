@@ -6,7 +6,7 @@ This page says what AI-LinkMO needs on the machine, how to install it, and how t
 
 ## Install
 
-Python 3.11+ and [uv](https://docs.astral.sh/uv/); Node 22 for the web UI.
+AI-LinkMO needs Python 3.11+ and [uv](https://docs.astral.sh/uv/), and Node 22 for the web UI.
 
 ```bash
 uv sync --extra test
@@ -23,7 +23,7 @@ That is the offline CLI, ready to use. If `uv sync` needs to compile anything on
    uv run uvicorn lib.api.server:app --reload
    ```
 
-2. **Start the web UI** in a second terminal ([details](../lib/frontend/README.md)). The login in the top corner is a persona picker for the demo, not authentication. **Curate mode**, which edits records in your own data files, sits behind it.
+2. **Start the web UI** in a second terminal ([details](../lib/frontend/README.md)). The login in the top corner is a persona picker for the demo, not authentication. **Curate mode**, which edits records in your own data files, is reached through it.
 
    ```bash
    cd lib/frontend
@@ -31,11 +31,11 @@ That is the offline CLI, ready to use. If `uv sync` needs to compile anything on
    npm run dev
    ```
 
-3. **Try the CLI** in a third terminal ([details](../lib/cli/README.md)). Every entity type is one command away; [docs/cli-examples.md](cli-examples.md) lists them all.
+3. **Try the CLI** in a third terminal ([details](../lib/cli/README.md)). Each entity type has its own command, and [docs/cli-examples.md](cli-examples.md) lists them all.
 
    ```bash
    ./ai -h
    ./ai risk -h
    ```
 
-From there, bring your own data, compute a crosswalk, search the records, browse them in Datasette, or load the graph into Neo4j: [docs/working-with-the-data.md](working-with-the-data.md).
+[docs/working-with-the-data.md](working-with-the-data.md) says how to go on from there: bring your own data, compute a crosswalk, search the records, browse them in Datasette, or load the graph into Neo4j.

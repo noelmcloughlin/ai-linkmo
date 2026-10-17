@@ -13,4 +13,4 @@
 | **Evaluation** | A benchmark or test that measures a risk or a capability (for example `ai_eval_PopQA`), linked to the datasets and tasks it uses |
 | **BYOD** | Bring Your Own Data: your internal policies encoded in the same schema, queryable alongside the open data |
 
-Every entity type is one CLI command away; [cli-examples.md](cli-examples.md) lists them all. Adding your own records under these terms is [working-with-the-data.md](working-with-the-data.md).
+Each entity type has its own CLI command, and [cli-examples.md](cli-examples.md) lists them all. [working-with-the-data.md](working-with-the-data.md) says how to add your own records under these terms.

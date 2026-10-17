@@ -19,11 +19,11 @@ uv cache clean
 MAX_JOBS=4 UV_HTTP_TIMEOUT=60s TORCH_CUDA_ARCH_LIST="8.6" uv sync --extra test   # be patient
 ```
 
-`MAX_JOBS` bounds parallel compilation; `TORCH_CUDA_ARCH_LIST` should match your GPU. Neither is needed for a CPU-only install from the public index.
+`MAX_JOBS` limits parallel compilation. `TORCH_CUDA_ARCH_LIST` should match your GPU. Neither is needed for a CPU-only install from the public index.
 
 ## Regenerating the web UI's schema
 
-The web UI includes a JSON Schema derived from the ontology. If the `ai-atlas-nexus` package has been upgraded (or you are unsure), rebuild the schema. The path below is version-agnostic:
+The web UI includes a JSON Schema derived from the ontology. If the `ai-atlas-nexus` package has been upgraded (or you are unsure), rebuild the schema. The path below works for any version:
 
 ```bash
 SCHEMA="$(uv run python -c 'import ai_atlas_nexus, pathlib; print(pathlib.Path(ai_atlas_nexus.__file__).parent / "ai_risk_ontology" / "schema" / "ai-risk-ontology.yaml")')"
@@ -32,4 +32,4 @@ uv run gen-json-schema --stacktrace --preserve-names --mergeimports "$SCHEMA" > 
 
 ## The two logos
 
-`lib/frontend/static/mylogo.png` is the logo the web UI serves; replace it to rebrand the UI. `.assets/mylogo.png` is the example logo for a bring-your-own-data identity, and the UI does not read it.
+`lib/frontend/static/mylogo.png` is the logo the web UI serves. Replace it to rebrand the UI. `.assets/mylogo.png` is the example logo for a bring-your-own-data identity, and the UI does not read it.

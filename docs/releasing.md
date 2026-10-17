@@ -8,4 +8,4 @@ This is a demo, and the shapes of the API, the web UI and the CLI will change. T
 
 ## For maintainers
 
-[CONTRIBUTING.md](../CONTRIBUTING.md#releasing-maintainers) has the steps: what to write in the changelog, how to type a commit or a pull-request title so it releases, and the `release` Environment's reviewers. The shared design behind the pipeline, which this repository has in common with [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder) and the two Obsidian plugins, is [that repository's releasing page](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/main/docs/releasing.md).
+[CONTRIBUTING.md](../CONTRIBUTING.md#releasing-maintainers) has the steps: what to write in the changelog, how to type a commit or a pull-request title so it releases, and the `release` Environment's reviewers. [That repository's releasing page](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/main/docs/releasing.md) describes the design behind the pipeline, which this repository shares with [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder) and the two Obsidian plugins.
