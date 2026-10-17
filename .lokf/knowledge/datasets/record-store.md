@@ -12,11 +12,15 @@ tags:
 derivedFrom:
 - https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 sources:
-- resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/working-with-the-data.md
+- resource: docs/working-with-the-data.md
+- resource: lib/store
 generated:
   by: process:ktl-librarian
-  at: "2026-10-14T02:11:03Z"
+  at: "2026-10-17T00:27:17Z"
 status: draft
+verified:
+- by: process:ktl-librarian
+  at: "2026-10-16T23:49:47Z"
 ---
 
 # Overview

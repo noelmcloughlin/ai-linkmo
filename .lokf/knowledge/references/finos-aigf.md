@@ -7,10 +7,13 @@ description: "The FINOS AI Governance Framework: risk register, mitigation catal
 resource: https://air-governance-framework.finos.org/
 timestamp: "2026-08-12T00:00:00Z"
 source:
-  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/finos
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/finos
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:33:34Z"
+- by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
 ---
 
 # FINOS AI Governance Framework

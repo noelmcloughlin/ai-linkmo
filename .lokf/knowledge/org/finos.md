@@ -7,8 +7,11 @@ description: The Fintech Open Source Foundation - publisher of the AI Governance
 resource: https://w3id.org/finos
 timestamp: "2026-08-12T00:00:00Z"
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:33:34Z"
+- by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
 ---
 
 # FINOS

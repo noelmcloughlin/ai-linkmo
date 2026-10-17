@@ -3,8 +3,8 @@ type: Explanation
 genre: explanation
 id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/explanations/why-linked-ai-governance
 title: Why linked AI governance
-description: Why AI-LinkMO models governance as linked data behind four access patterns - the framework-fragmentation problem it answers, and why one shared ontology is what makes traceability auditable.
-resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/architecture.md
+description: "Why AI-LinkMO keeps AI governance as one catalogue of linked data behind four doors (the CLI, the API, the web UI and the graph database): the problems of governance kept in PDFs and spreadsheets, and why one shared ontology makes the traceability auditable."
+resource: docs/architecture.md
 tags:
 - rationale
 - ai-governance
@@ -21,29 +21,41 @@ verified:
   at: "2026-09-25T20:32:51Z"
 generated:
   by: process:ktl-librarian
-  at: "2026-10-14T02:10:40Z"
+  at: "2026-10-17T00:24:57Z"
+sources:
+- resource: docs/architecture.md
+  title: Architecture, Why governance needs a catalogue and One model, four ways in
+- resource: docs/working-with-the-data.md
+  title: Working with the data, Bring your own data
 ---
 
 # Why linked AI governance
 
-The other concepts in this bundle describe *what* AI-LinkMO is made of. This one records *why* it is shaped that way: the reasoning `docs/architecture.md` opens with, which the mechanical descriptions do not carry.
+The other concepts in this bundle describe what AI-LinkMO is made of. This one records why it is shaped that way, as `docs/architecture.md` explains it.
 
-## The problem: governance trapped in documents
+## The problem: governance kept in documents
 
-AI governance mostly lives in PDFs and spreadsheets, and that creates three compounding difficulties:
+AI governance today mostly lives in PDFs and spreadsheets. That causes three problems:
 
-- **Frameworks multiply.** NIST AI RMF, the EU AI Act, ISO/IEC 42001, the FINOS AIGF, the OWASP top-10s, SR 11-7: each brings its own vocabulary for substantially overlapping risks and controls.
-- **Mapping is manual.** Answering *"which of our controls satisfy both NIST and the EU AI Act?"* means analysts hand-building crosswalk spreadsheets: slow, error-prone, and stale the moment a framework updates.
-- **Governance and engineering do not share a language.** Compliance teams work in policy clauses, engineers in pipelines and APIs, and nothing traces a regulatory obligation down to a deployed control.
+- **Frameworks multiply.** NIST AI RMF, the EU AI Act, ISO/IEC 42001, FINOS AIGF, the OWASP LLM Top 10 and SR 11-7 each have their own vocabulary for overlapping risks and controls.
+- **Mapping is manual.** To answer *"which of our controls satisfy both NIST and the EU AI Act?"*, an analyst builds a crosswalk spreadsheet by hand. It is slow to make, and it is stale the moment a framework updates.
+- **Governance and engineering do not share a language.** Compliance teams work in policy clauses, and engineers work in pipelines and APIs. Nothing traces a regulatory obligation to a deployed control.
 
-## The wager: one model, four doors
+The knowledge already exists in the frameworks. What is missing is the catalogue: one model in which a risk, a control and the clause that requires it are each one record with one identifier. With that catalogue, the question above is a query rather than a quarter's work, and the answer is the same whoever asks it and however they ask.
 
-AI-LinkMO's response is to model governance *once* as linked data, with risks, controls, obligations, taxonomies, models, evaluations and incidents in a single LinkML ontology. It then exposes that one model through four access patterns rather than four products. They are the [CLI](../services/cli.md) for engineers and pipelines, the [FastAPI backend](../services/fastapi-backend.md) for integrators and GRC tooling, the [web UI](../services/web-ui.md) for risk and compliance stakeholders, and the [graph database](../services/graph-db.md) for analysts.
+## One model, four doors
 
-The point of the four is *not* redundancy. Each constituency gets the same single source of truth in the form it can actually use, which is what stops governance and engineering from drifting into separate vocabularies again.
+AI-LinkMO closes that gap with one linked data model. The model is a LinkML ontology of risks, controls, obligations, taxonomies, models, evaluations and incidents. AI-LinkMO exposes it through four DevSecOps-ready access patterns, the four doors, so that every stakeholder gets the same model in the form they can use:
 
-## Why the shared ontology is the load-bearing part
+- the [CLI](../services/cli.md), for engineers and CI/CD pipelines;
+- the [FastAPI backend](../services/fastapi-backend.md), for system integrators and GRC tools;
+- the [Svelte web UI](../services/web-ui.md), for risk, compliance and business stakeholders;
+- the [Neo4j graph database](../services/graph-db.md), for analysts and data scientists.
 
-Because CLI, API, frontend and schema are all generated from the [same ontology](../references/ai-risk-ontology.md), a risk identifier means the same thing everywhere it appears. That identity is precisely what makes the traceability *auditable* rather than merely convenient: a [crosswalk](../glossary/crosswalk.md) becomes a mechanical derivation instead of an analyst's judgement call, and an [obligation](../glossary/obligation.md) can be followed to the [control](../glossary/control-action.md) that discharges it.
+## Why the shared ontology matters
 
-It is also why [BYOD](../glossary/byod.md) matters more than it first appears. Institutional policy encoded in the same schema is not a private annex bolted onto public data. It is queryable *alongside* it, on equal terms. That is the only way an organisation's own controls can participate in the same crosswalks as the frameworks it must answer to.
+Every door is generated from the [same ontology](../references/ai-risk-ontology.md): the CLI, the API, the web UI and the schema. That is why a risk identifier means the same thing everywhere, and why the traceability is auditable.
+
+The couplet at the top of the README describes the shape of the work. *Search out* the frameworks. Show *no favour* among them, with one ontology and one identifier for each thing. *Consult* them against each other, which is what a [crosswalk](../glossary/crosswalk.md) is. *Then act*, from a terminal, a pipeline, a browser or a graph query.
+
+[Bring your own data](../glossary/byod.md) extends the same model to an organisation's own policies, taxonomies and controls. They live in the same model as the open frameworks, so one query spans public regulation and private practice.

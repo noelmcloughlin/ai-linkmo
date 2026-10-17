@@ -15,7 +15,12 @@ source:
 - https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/finos
 verified:
 - by: process:ktl-librarian
-  at: "2026-10-14T02:10:40Z"
+  at: "2026-10-17T00:24:57Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-10-17T00:27:17Z"
+sources:
+- resource: byo/data/nist_ai_600_1.yaml
 ---
 
 # Overview

@@ -11,7 +11,7 @@ tags:
 - export
 generated:
   by: process:ktl-librarian
-  at: "2026-10-14T02:10:40Z"
+  at: "2026-10-17T00:27:17Z"
 distribution:
 - access_url: https://github.com/noelmcloughlin/ai-linkmo/blob/main/graph/ai-risk-ontology.yaml
   name: ai-risk-ontology.yaml
@@ -24,6 +24,8 @@ derivedFrom:
 verified:
 - by: process:ktl-librarian
   at: "2026-09-25T20:31:56Z"
+sources:
+- resource: graph
 ---
 
 # Overview
@@ -32,4 +34,4 @@ The knowledge graph has two distributions. `./ai graph --export --byod` writes t
 
 The two differ in scope. The YAML export honours `--byod`. The Cypher export is built upstream from the packaged data only, so `--byod` on it is refused with a 400. The Cypher distribution is what the [Neo4j graph database service](../services/graph-db.md) imports.
 
-Both distributions are regenerable: the YAML from the packaged data and `byo/data/`, the Cypher from upstream's tagged release.
+Both distributions can be rebuilt: the YAML from the packaged data and `byo/data/`, the Cypher from upstream's tagged release.

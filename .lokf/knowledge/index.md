@@ -20,8 +20,8 @@ A [LOKF](https://lokf.nolan-nichols.com) knowledge base for AI-LinkMO. Every Mar
 
 The four access patterns ([index](services/index.md)):
 
-* [AI-LinkMO CLI](services/cli.md) - Command-line tool (./ai) for querying AI governance data - risks, taxonomies, controls, models, evaluations, crosswalks - built dynamically from the OpenAPI specification.
-* [FastAPI Backend](services/fastapi-backend.md) - REST API serving AI governance data to the CLI, web UI, and external GRC tooling; endpoints are generated dynamically from the OpenAPI specification.
+* [AI-LinkMO CLI](services/cli.md) - The command-line tool (`./ai`) for querying AI governance data such as risks, taxonomies, controls, models, evaluations and crosswalks. It has one command per class `lib/api/api.yaml` exposes and one option per slot of that class in the LinkML schema.
+* [FastAPI Backend](services/fastapi-backend.md) - The REST API serving AI governance data to the CLI, the web UI and external GRC tooling. Its endpoints are generated from `lib/api/api.yaml` and the LinkML schema, and its contract is the server's `/openapi.json`.
 * [Svelte Web UI](services/web-ui.md) - Vite + Svelte 5 single-page application for exploring AI governance data through the FastAPI backend, aimed at non-technical stakeholders.
 * [Neo4j Graph Database](services/graph-db.md) - Graph-database access pattern - the exported knowledge graph is loaded into Neo4j via Cypher for relationship analysis and regulatory crosswalks.
 * [Datasette browse UI](services/datasette-browse.md) - Datasette over two SQLite databases built from the schema's gen-sqltables tables, packaged and bring-your-own data, served on port 8001 with schema-derived descriptions, facets, search and JSON and CSV exports.
@@ -43,8 +43,8 @@ The external authorities the data encodes ([index](references/index.md)): [AI Ri
 
 ([index](playbooks/index.md))
 
-* [Knowledge sources map](playbooks/knowledge-sources.md) - The librarian's scrape map - every repository location and external URL this bundle derives concepts from, and how to re-verify each on a refresh run.
-* [Install and run AI-LinkMO](playbooks/install-and-run.md) - How to build the environment and start each of the four access patterns - CLI, FastAPI backend, Svelte web UI, and Neo4j graph database.
+* [Knowledge sources map](playbooks/knowledge-sources.md) - The librarian's scrape map: every repository location and external URL this bundle derives concepts from, and how to re-verify each on a refresh run.
+* [Install and run AI-LinkMO](playbooks/install-and-run.md) - How to install AI-LinkMO and start its four doors (the CLI, the FastAPI backend, the Svelte web UI and the Neo4j graph database), then build the store, search it, browse it in Datasette and run the tests.
 * [Bring your own data (BYOD)](playbooks/bring-your-own-data.md) - How to add institutional governance data: schema-compliant YAML dropped into byo/data/ is picked up by the CLI, API and web UI with --byod, and by the YAML graph export, the store and the browse UI; the Cypher export refuses --byod.
 
 ## Glossary
@@ -55,8 +55,8 @@ The domain vocabulary ([index](glossary/index.md)): [Taxonomy](glossary/taxonomy
 
 ([index](explanations/index.md))
 
-* [Why linked AI governance](explanations/why-linked-ai-governance.md) - Why AI-LinkMO models governance as linked data behind four access patterns - the framework-fragmentation problem it answers, and why one shared ontology is what makes traceability auditable.
-* [What AI-LinkMO adds to AI Atlas Nexus](explanations/what-ai-linkmo-adds.md) - AI-LinkMO is a workshop over IBM AI Atlas Nexus - it adds doors, encodings and checks but no ontology of its own, and its governance records carry no provenance yet.
+* [Why linked AI governance](explanations/why-linked-ai-governance.md) - Why AI-LinkMO keeps AI governance as one catalogue of linked data behind four doors (the CLI, the API, the web UI and the graph database): the problems of governance kept in PDFs and spreadsheets, and why one shared ontology makes the traceability auditable.
+* [What AI-LinkMO adds to AI Atlas Nexus](explanations/what-ai-linkmo-adds.md) - AI-LinkMO is a workshop built on IBM AI Atlas Nexus. It adds doors, encodings and checks but no ontology of its own, and its governance records carry no provenance yet.
 
 ## Organizations
 
