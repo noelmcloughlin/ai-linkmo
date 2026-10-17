@@ -18,7 +18,7 @@ This repository is a workshop built on them. It adds doors, encodings and checks
 | Nine governance frameworks encoded in the ontology's own classes, as bring-your-own-data examples | `byo/data/` |
 | Crosswalks between two taxonomies, on screen and as files | `./ai crosswalk`, `graph/` |
 | A scripted walk through all four doors, ending in a CI gate | `byo/notes/EXAMPLES.md` |
-| Every CLI example run as a test, in API mode and in local mode | `lib/test/` |
+| Most CLI examples run as tests, in API mode and in local mode | `lib/test/` |
 | Curate mode: a person adds, edits or deletes records in their own files through the UI | `PUT /byo` |
 
 ## What it does not add yet: provenance
