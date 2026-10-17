@@ -94,7 +94,7 @@ Open an issue; the templates ask for your OS, Python version, access pattern, an
 - Those steps run behind the `release` GitHub Environment; configure required reviewers on it once, in Settings → Environments, or every qualifying merge ships unattended.
 - Below 1.0.0: the `v0.1.0` baseline tag makes the first real release `0.2.0`, and `.releaserc.json` maps `breaking: true` to `minor`. Still mark breaking changes; they show in the release notes. Reaching 1.0.0 means removing that rule in its own PR.
 - Pull requests to `main` are a convention, not a ruleset, and required status checks are off; either rule would reject the release job's own push ([SECURITY.md](SECURITY.md#repository-hardening) says why). A red check is yours to fix.
-- "Require signed commits" as a branch rule must stay off: the release job commits through the git CLI in a runner, which GitHub does not sign. Signing your own commits is separate and still worth doing; [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/main/docs/signing-commits.md) covers GPG and SSH setup and renewing a GPG key.
+- "Require signed commits" as a branch rule must stay off: the release job commits through the git CLI in a runner, which GitHub does not sign. Signing your own commits is separate and still worth doing; [knowledge-trust-ladder](https://w3id.org/ktl/docs/signing-commits/) covers GPG and SSH setup and renewing a GPG key.
 
 ## License
 
