@@ -260,30 +260,22 @@ if [ -d "$bundle" ] && [ ! -f "$root/.lokf/scripts/knowledge-report.sh" ]; then
 fi
 # A host moves TRUST_LADDER_SKILLS_REF, and the commit beside it, on its own
 # schedule, so a different pin is not drift; every other byte of the
-# librarian workflow still counts.
+# librarian workflow still counts. The installed sidecar's
+# knowledge-sync.manifest says which copies a host may carry, and
+# knowledge-sync.sh keeps each at the release's bytes. The justfile is the
+# host's from its first line, and is not held here.
 unpin() { sed -E -e 's/(TRUST_LADDER_SKILLS_REF: )v[0-9]+\.[0-9]+\.[0-9]+/\1vX.Y.Z/' -e 's/(TRUST_LADDER_SKILLS_SHA: )[0-9a-f]{40}/\1COMMIT/' "$1"; }
-if [ -n "$templates" ] && [ -d "$root/.lokf" ]; then
+if [ -n "$templates" ] && [ -d "$root/.lokf" ] && [ ! -f "$templates/knowledge-sync.manifest" ]; then
+  warn copies "${templates#"$root"/} has no knowledge-sync.manifest, so the installed sidecar predates it and the host's copies were not compared; reinstall the sidecar at the release the librarian workflow pins"
+elif [ -n "$templates" ] && [ -d "$root/.lokf" ]; then
   drift="$script_gaps"
-  for pair in "scripts/knowledge-conventions.sh:.lokf/scripts/knowledge-conventions.sh" \
-              "scripts/knowledge-conventions.py:.lokf/scripts/knowledge-conventions.py" \
-              "scripts/knowledge-librarian.sh:.lokf/scripts/knowledge-librarian.sh" \
-              "scripts/knowledge-preflight.sh:.lokf/scripts/knowledge-preflight.sh" \
-              "scripts/knowledge-provenance.sh:.lokf/scripts/knowledge-provenance.sh" \
-              "scripts/knowledge-feedback.sh:.lokf/scripts/knowledge-feedback.sh" \
-              "scripts/knowledge-apply.sh:.lokf/scripts/knowledge-apply.sh" \
-              "scripts/knowledge-apply.py:.lokf/scripts/knowledge-apply.py" \
-              "scripts/knowledge-report.sh:.lokf/scripts/knowledge-report.sh" \
-              "m365/knowledge-m365.sh:.lokf/m365/knowledge-m365.sh" \
-              "m365/ktl-docent-m365.md:.lokf/m365/ktl-docent-m365.md" \
-              "gitattributes:.lokf/.gitattributes" \
-              "github/knowledge-registrar.yaml:.github/workflows/knowledge-registrar.yaml" \
-              "github/knowledge-librarian.yaml:.github/workflows/knowledge-librarian.yaml" \
-              "github/knowledge-release.yaml:.github/workflows/knowledge-release.yaml"; do
-    src="$templates/${pair%%:*}"; dst="$root/${pair##*:}"
+  while read -r rule template copy _; do
+    [ "$rule" = copy ] || continue
+    src="$templates/$template"; dst="$root/$copy"
     [ -f "$dst" ] || continue
-    [ -f "$src" ] || { drift="${drift}${drift:+, }${pair##*:} (the installed sidecar predates it)"; continue; }
-    cmp -s <(unpin "$src") <(unpin "$dst") || drift="${drift}${drift:+, }${pair##*:}"
-  done
+    [ -f "$src" ] || { drift="${drift}${drift:+, }$copy (the installed sidecar lists it and lacks it)"; continue; }
+    cmp -s <(unpin "$src") <(unpin "$dst") || drift="${drift}${drift:+, }$copy"
+  done < <(sed 's/#.*//' "$templates/knowledge-sync.manifest")
   if [ -z "$drift" ]; then
     ok copies "host copies match the installed sidecar's templates (${templates#"$root"/})"
   else
