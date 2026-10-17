@@ -1,6 +1,6 @@
 # Repository layout
 
-[The README](../README.md) says what AI-LinkMO is for. This is the tree behind it. Three toolchains live here: Python and uv at the root, Node in `lib/frontend/`, and a second uv project in `.lokf/`. [CONTRIBUTING.md](../CONTRIBUTING.md) has the dev setup and the pre-PR checklist.
+[The README](../README.md) says what AI-LinkMO is for. This is the tree behind it. Three toolchains live here: Python and uv at the root, Node in `lib/frontend/`, and a second uv project in `.lokf/`. [CONTRIBUTING.md](../CONTRIBUTING.md) has the development setup and the checklist to run before a pull request.
 
 ```text
 ai                      the CLI entry point (runs lib/cli through uv)
@@ -36,4 +36,4 @@ knowledge_bundle        -> .lokf/knowledge, the bundle under a visible name, for
 
 ## Tests
 
-The test suite runs 101 CLI cases in API mode and in local mode, and starts the API server for you. `uv run pytest lib/test -m "not slow"` is what CI runs, about two minutes; `./scripts/tests.sh` has the narrower modes. The browse tests need the `browse` extra and skip without it, so CI installs it beside `test`. The web UI (`npm run check`, `npm run lint`, `npm test` in `lib/frontend/`) and the bundle (`cd .lokf && just lokf-validate`) have their own gates. [lib/test/README.md](../lib/test/README.md) has the detail.
+The test suite runs 101 CLI cases in API mode and in local mode, and starts the API server for you. CI runs `uv run pytest lib/test -m "not slow"`, which takes about two minutes. `./scripts/tests.sh` has the narrower modes. The browse tests need the `browse` extra and skip without it, so CI installs it beside `test`. The web UI (`npm run check`, `npm run lint`, `npm test` in `lib/frontend/`) and the bundle (`cd .lokf && just lokf-validate`) have their own gates. [lib/test/README.md](../lib/test/README.md) has the detail.

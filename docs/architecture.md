@@ -17,9 +17,9 @@ AI governance today mostly lives in PDFs and spreadsheets:
 
 - **Frameworks multiply.** NIST AI RMF, the EU AI Act, ISO/IEC 42001, FINOS AIGF, the OWASP LLM Top 10, SR 11-7: each has its own vocabulary for overlapping risks and controls.
 - **Mapping is manual.** *Which of our controls satisfy both NIST and the EU AI Act?* Today an analyst answers that with a crosswalk spreadsheet, built by hand, slow to make, and stale the moment a framework updates.
-- **Governance and engineering don't share a language.** Compliance teams work in policy clauses; engineers work in pipelines and APIs. Nothing traces a regulatory obligation to a deployed control.
+- **Governance and engineering don't share a language.** Compliance teams work in policy clauses, and engineers in pipelines and APIs. Nothing traces a regulatory obligation to a deployed control.
 
-The knowledge already exists; it is in the frameworks. What is missing is the catalogue: one model in which a risk, a control and the clause that requires it are each one record with one identifier. Then the question above is a query rather than a quarter's work, and the answer is the same whoever asks it and however they ask.
+The knowledge already exists in the frameworks. What is missing is the catalogue: one model in which a risk, a control and the clause that requires it are each one record with one identifier. Then the question above is a query rather than a quarter's work, and the answer is the same whoever asks it and however they ask.
 
 ## One model, four ways in
 
@@ -42,19 +42,19 @@ Every door is generated from [the same ontology](https://ibm.github.io/ai-atlas-
 - *"Add our internal AI policy taxonomy alongside the public ones"* → drop a schema-compliant YAML file into [./byo/data](../byo/data) ([Bring your own data](working-with-the-data.md#bring-your-own-data))
 - *"Walk me through all four, with a real incident"* → [byo/notes/EXAMPLES.md](../byo/notes/EXAMPLES.md), a scripted demo that traces a leaked-prompt incident to its risks and controls and ends in a CI gate
 
-The words those commands use, taxonomy, risk, control, obligation, crosswalk, are defined in [docs/key-concepts.md](key-concepts.md). Screenshots of each door are in [.assets/](../.assets/).
+[docs/key-concepts.md](key-concepts.md) defines the words those commands use: taxonomy, risk, control, obligation and crosswalk. Screenshots of each door are in [.assets/](../.assets/).
 
 ## Where this sits
 
-AI-LinkMO's family is [IBM AI Atlas Nexus](https://ibm.github.io/ai-atlas-nexus/). Upstream provides the AI Risk Ontology, a [LinkML](https://linkml.io/) schema; the packaged risk data; and the `ai-atlas-nexus` library that loads both. Every door here is generated from that schema. This repository is a workshop that runs over them. It adds doors, encodings and checks, and no ontology of its own. It adds no provenance on the records yet either: nothing says who checked an encoding against the framework's own text. [For the curious](for-the-curious.md#where-this-sits) lists what is added and where, and says why the missing provenance is the auditor's first question.
+AI-LinkMO's family is [IBM AI Atlas Nexus](https://ibm.github.io/ai-atlas-nexus/). Upstream provides the AI Risk Ontology, a [LinkML](https://linkml.io/) schema; the packaged risk data; and the `ai-atlas-nexus` library that loads both. Every door here is generated from that schema. This repository is a workshop built on them. It adds doors, encodings and checks, and no ontology of its own. It adds no provenance on the records yet either: nothing says who checked an encoding against the framework's own text. [For the curious](for-the-curious.md#where-this-sits) lists what is added and where, and says why the missing provenance is the auditor's first question.
 
 ## Status and caveats
 
-This is a demo. The API, the web UI and the CLI will all be reworked, so treat their shapes as illustrative, and the version stays below 1.0.0 until they settle. Keep it on localhost: the write endpoints are unauthenticated. No encoding under `byo/data/` has been checked by a named person against its framework's text. The full list, including what is thinner than its type suggests and what is slow: [docs/status.md](status.md).
+This is a demo. The API, the web UI and the CLI will all be reworked, so treat their shapes as illustrative, and the version stays below 1.0.0 until they settle. Keep it on localhost: the write endpoints are unauthenticated. No encoding under `byo/data/` has been checked by a named person against its framework's text. [docs/status.md](status.md) gives the full list, including what is thinner than its type suggests and what is slow.
 
 ## This repository's own bundle
 
-This repository keeps a LOKF bundle of its own under `.lokf/knowledge/`: documentation about AI-LinkMO, kept the way AI-LinkMO keeps governance data, with one identifier per concept and a source beside every claim. The [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder) skills maintain it on a schedule, it is what the docent answers from, and none of it is part of the product. [CONTRIBUTING.md](../CONTRIBUTING.md#agent-skills-optional---only-for-editing-this-repos-own-lokf-bundle) says which skills editing it takes.
+This repository keeps a LOKF bundle of its own under `.lokf/knowledge/`: documentation about AI-LinkMO, kept the way AI-LinkMO keeps governance data, with one identifier per concept and a source beside every claim. The [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder) skills maintain it on a schedule. It is what the docent answers from, and none of it is part of the product. [CONTRIBUTING.md](../CONTRIBUTING.md#agent-skills-optional---only-for-editing-this-repos-own-lokf-bundle) says which skills you need to edit it.
 
 ## Read on
 

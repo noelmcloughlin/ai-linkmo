@@ -18,7 +18,7 @@ Please report anything that lets a request reach beyond the documented behaviour
 
 ## Supported versions
 
-**No release has been cut yet**, and this project is pre-1.0 by design - see [CONTRIBUTING.md](CONTRIBUTING.md#releasing-maintainers). There is no supported release line and no backporting: fixes land on `main` and ship in the next release.
+This project is pre-1.0 by design - see [CONTRIBUTING.md](CONTRIBUTING.md#releasing-maintainers). There is no supported release line and no backporting: fixes land on `main` and ship in the next release.
 
 ## Running it safely
 

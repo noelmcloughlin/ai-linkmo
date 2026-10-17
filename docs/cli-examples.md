@@ -1,8 +1,8 @@
 # CLI examples: every entity type, one command away
 
-Most of the commands below are test cases in [lib/test/test_cli_examples.py](../lib/test/test_cli_examples.py), run in both API mode and local mode. `--count` prints the number of matches; drop it to see the records. The CLI is generated from the schema and [lib/api/api.yaml](../lib/api/api.yaml), which names the classes it exposes, so `./ai <scope> -h` lists one filter per slot of the class and is always current.
+Most of the commands below are test cases in [lib/test/test_cli_examples.py](../lib/test/test_cli_examples.py), run in both API mode and local mode. `--count` prints the number of matches. Drop it to see the records. The CLI is generated from the schema and [lib/api/api.yaml](../lib/api/api.yaml), which names the classes it exposes, so `./ai <scope> -h` lists one filter per slot of the class and is always current.
 
-A few flags recur. `--byod` adds the bring-your-own-data frameworks under `byo/data/` to the packaged ontology (see [Bring your own data](working-with-the-data.md#bring-your-own-data)). `--related` returns the related records; `--related_ids` returns only their ids. API mode, the default, sends each command through the running API; local mode, `--mode local`, loads the ontology in-process.
+A few flags recur. `--byod` adds the bring-your-own-data frameworks under `byo/data/` to the packaged ontology (see [Bring your own data](working-with-the-data.md#bring-your-own-data)). `--related` returns the related records, and `--related_ids` returns only their ids. API mode, the default, sends each command through the running API. Local mode, `--mode local`, loads the ontology in-process.
 
 ## Taxonomies
 
