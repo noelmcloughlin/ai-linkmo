@@ -3,11 +3,11 @@ type: Playbook
 genre: reference
 id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/playbooks/knowledge-sources
 title: Knowledge sources map
-description: The librarian's scrape map - every repository location and external URL this bundle derives concepts from, and how to re-verify each on a refresh run.
+description: "The librarian's scrape map: every repository location and external URL this bundle derives concepts from, and how to re-verify each on a refresh run."
 resource: https://github.com/noelmcloughlin/ai-linkmo
 generated:
   by: process:ktl-librarian
-  at: "2026-10-14T16:40:33Z"
+  at: "2026-10-16T23:49:47Z"
 verified:
 - by: process:ktl-librarian
   at: "2026-09-25T20:33:14Z"
@@ -15,7 +15,7 @@ verified:
 
 # Knowledge sources
 
-Bootstrap discovery ran 2026-07-13; first steady-state refresh also ran 2026-07-13. Steady-state refresh runs re-verify these sources instead of re-discovering; update this map whenever the repository's knowledge geography changes.
+Bootstrap discovery ran on 2026-07-13, and the first steady-state refresh ran on 2026-07-13 too. Steady-state refresh runs re-verify these sources instead of discovering them again. Update this map whenever the repository's knowledge geography changes.
 
 | Source | Yields | Re-check by |
 |--------|--------|-------------|
@@ -42,7 +42,7 @@ Bootstrap discovery ran 2026-07-13; first steady-state refresh also ran 2026-07-
 | `.github/workflows/` (cli-tests, ui-tests) | test facts inside service concepts, the store's validation ceiling | re-list workflow files |
 | `https://www.federalreserve.gov/supervisionreg/srletters/SR2602.htm` | the supersession note on `references/sr-11-7` | re-read until the curator settles its open question |
 
-Not knowledge sources (consciously excluded):
+These are not knowledge sources, and are left out on purpose:
 
 - `lib/test/` internals and `.assets/`, the screenshots and logos.
 - `.claude/`, `.agents/` and `skills-lock.json`: skill tooling, not project knowledge.
@@ -60,4 +60,4 @@ Also excluded, re-decided 2026-09-25 after the README moved its detail into `doc
 - `docs/status.md`: its caveats are already carried where they apply. The Cypher and BYOD scope is in the graph concepts, the unauthenticated writes in the install playbook, and the reviewer gap in `explanations/what-ai-linkmo-adds`.
 - `docs/releasing.md`, `docs/repository-layout.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AI_COVENANT.md` and `CODE_OF_CONDUCT.md`: the process and governance of the repository, not knowledge of the product.
 - `NOTICE`: framework credits, already carried by the `references/` and `org/` concepts.
-- The README's §What it looks like examples, covered by `services/cli`.
+- The architecture page's §What it looks like examples, covered by `services/cli`.

@@ -7,10 +7,13 @@ description: NIST AI 600-1, the Generative Artificial Intelligence Profile compa
 resource: https://doi.org/10.6028/NIST.AI.600-1
 timestamp: "2026-08-12T00:00:00Z"
 relatedTo:
-  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/nist-ai-rmf
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/nist-ai-rmf
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:33:34Z"
+- by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
 ---
 
 # NIST AI 600-1 (Generative AI Profile)

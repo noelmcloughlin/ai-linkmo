@@ -1,5 +1,74 @@
 # Change Log
 
+## 2026-10-17
+
+* **Changed**: EU AI Act requirements dataset lists `byo/data/eu_ai_act.yaml` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: FFIEC IT Handbook dataset lists `byo/data/ffiec_it_handbook.yaml` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: FINOS AI Governance Framework dataset lists `byo/data/finos-aigf.yaml` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: ISO/IEC 42001 controls dataset lists `byo/data/iso_42001.yaml` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: Knowledge-graph export (YAML + Cypher) lists `graph` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: NIST AI 600-1 GenAI profile dataset lists `byo/data/nist_ai_600_1.yaml` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: NIST AI RMF crosswalks lists `graph` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: NIST SP 800-53 r5 controls dataset lists `byo/data/nist_sp_800_53_r5.yaml` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: OWASP Top 10 for LLM Applications dataset lists `byo/data/owasp_llm_top_10.yaml` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: OWASP ML Security Top 10 dataset lists `byo/data/owasp_ml_top_10.yaml` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: DuckDB record store lists `lib/store` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: SR 11-7 model risk management dataset lists `byo/data/sr_11_7.yaml` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
+* **Changed**: the `resource` of Risk is now the repository path `docs/key-concepts.md`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of Obligation is now the repository path `docs/key-concepts.md`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of Taxonomy is now the repository path `docs/key-concepts.md`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of Evaluation is now the repository path `docs/key-concepts.md`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of Control / Action is now the repository path `docs/key-concepts.md`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of Incident is now the repository path `docs/key-concepts.md`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of Bring Your Own Data is now the repository path `docs/key-concepts.md`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of Crosswalk is now the repository path `docs/key-concepts.md`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of Neo4j Graph Database is now the repository path `graph`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of AI-LinkMO CLI is now the repository path `lib/cli`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of FastAPI Backend is now the repository path `lib/api`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of Datasette browse UI is now the repository path `lib/browse`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` of Svelte Web UI is now the repository path `lib/frontend`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` and the 2 `sources` entries of Why linked AI governance are now repository paths, `docs/architecture.md` first, in place of GitHub addresses, so the work list sees when they move.
+* **Changed**: the `resource` and the 3 `sources` entries of What AI-LinkMO adds to AI Atlas Nexus are now repository paths, `docs/for-the-curious.md` first, in place of GitHub addresses, so the work list sees when they move.
+* **Changed**: the `resource` of Bring your own data (BYOD) is now the repository path `docs/working-with-the-data.md`, in place of its GitHub address, so the work list sees when it moves.
+* **Changed**: the `resource` and the 7 `sources` entries of Install and run AI-LinkMO are now repository paths, `docs/install.md` first, in place of GitHub addresses, so the work list sees when they move.
+* **Changed**: the `sources` entry of DuckDB record store is now the repository path `docs/working-with-the-data.md`, in place of its GitHub address, so the work list sees when it moves. Its `resource` keeps the GitHub address, since `lokf export` reads a path there as a concept id when it writes `datasets.jsonld`.
+* **Provenance**: FINOS AI Governance Framework dataset, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against `byo/data/finos-aigf.yaml` and needed no change.
+* **Provenance**: ISO/IEC 42001 controls dataset, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against `byo/data/iso_42001.yaml` and needed no change.
+* **Provenance**: NIST AI 600-1 GenAI profile dataset, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against `byo/data/nist_ai_600_1.yaml` and needed no change.
+* **Provenance**: NIST SP 800-53 r5 controls dataset, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against `byo/data/nist_sp_800_53_r5.yaml` and needed no change.
+* **Provenance**: OWASP Top 10 for LLM Applications dataset, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against `byo/data/owasp_llm_top_10.yaml` and needed no change.
+* **Provenance**: OWASP ML Security Top 10 dataset, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against `byo/data/owasp_ml_top_10.yaml` and needed no change.
+* **Provenance**: SR 11-7 model risk management dataset, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against `byo/data/sr_11_7.yaml` and needed no change.
+* **Provenance**: NIST AI Risk Management Framework, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against its NIST page and the crosswalk files and needed no change.
+* **Provenance**: NIST AI 600-1 (Generative AI Profile), which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against the publication its DOI resolves to and needed no change.
+* **Provenance**: NIST SP 800-53 Revision 5, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against the publication its DOI resolves to and needed no change.
+* **Provenance**: OWASP Top 10 for LLM Applications, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against genai.owasp.org and needed no change.
+* **Provenance**: FINOS AI Governance Framework, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against the framework's site and `byo/data/finos-aigf.yaml` and needed no change.
+* **Provenance**: EU Artificial Intelligence Act, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against the AI Act Explorer and `byo/data/eu_ai_act.yaml` and needed no change.
+* **Provenance**: ISO/IEC 42001, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against the Internet Archive's copy of its ISO page from 2026-10-06, since iso.org refuses automated reads, and needed no change.
+* **Provenance**: FFIEC IT Examination Handbook, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against the Internet Archive's copy of the handbook's home page from 2026-05-12, since the site refuses automated reads, and needed no change.
+* **Provenance**: The FINOS concept, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against finos.org and the `byo/data/` file headers and needed no change.
+* **Provenance**: The IBM concept, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against the ai-atlas-nexus site and `pyproject.toml` and needed no change.
+* **Provenance**: The Noel McLoughlin concept, which a librarian run created on 2026-08-05, now has a `generated` record in place of the OKF v0.1 `timestamp`. It was re-read today against `pyproject.toml`, `LICENSE` and the GitHub profile and needed no change.
+* **Changed**: NIST AI RMF crosswalks says the IBM Risk Atlas file names its mapping columns `closeMatch` and the like, as its header row does. The `fields` list matches the other two files only. The concept, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`.
+* **Changed**: AI Risk Ontology names the two views its source names, an AI risk view and an AI model view, where it said a System view and a Risk view. The concept, which the librarian wrote at the bootstrap on 2026-07-13, now has a `generated` record in place of the OKF v0.1 `timestamp`.
+* **Open question**: OWASP ML Security Top 10: <https://owasp.org/www-project-machine-learning-security-top-10/> now redirects to <https://owasp.org/projects/machine-learning-security-top-10>, which answers 404 (checked 2026-10-17). The project page is at <https://owasp.org/projects/machine-learning-security-top-ten>. `byo/data/owasp_ml_top_10.yaml` still cites the first address, and the source map asks that the two match. Which address should this reference cite?
+
+## 2026-10-16
+
+* **Prose**: reworded 17 concept bodies in plain English. No fact, link, number or frontmatter changed.
+* **Changed**: What AI-LinkMO adds names what the library loads, which the earlier change today had left two sentences away.
+* **Changed**: BYOD no longer says every access pattern picks up your files. The Cypher export refuses `--byod`, as `docs/neo4j.md` and `docs/working-with-the-data.md` say.
+* **Changed**: Why linked AI governance gets a description that names the four doors, as the README and the architecture page now do, and cites both pages it draws on.
+* **Changed**: Taxonomy says a catalogue of risks and controls, as the table in `docs/key-concepts.md` says, where it said risks or controls.
+* **Rewrite**: Why linked AI governance follows `docs/architecture.md` as it now reads: the missing catalogue, the four doors with the stakeholders the page names, and the couplet. Claims the page does not make were dropped, and `docs/working-with-the-data.md` is cited for the BYOD paragraph.
+* **Changed**: What AI-LinkMO adds says curate mode adds, edits and deletes records and that the lookups follow the packaged relationships through the library, as `docs/for-the-curious.md` says. It now cites its sources, among them `docs/cli-examples.md` for the CLI examples run as tests.
+* **Changed**: Install and run cites `docs/install.md` as its resource, where the README's install steps moved in #62, and lists every page its steps come from. The steps still match those pages.
+* **Changed**: Bring your own data says curate mode adds, edits and deletes records, as `docs/working-with-the-data.md` says.
+* **Changed**: AI-LinkMO CLI no longer says it is built from the OpenAPI specification, which #57 replaced with `lib/api/api.yaml` and the schema, and says the tests run most of the listed commands, as `docs/cli-examples.md` says.
+* **Changed**: FastAPI Backend's documentation link names `lib/api/README.md`, since `lib/api/openapi.yaml` was deleted in #57, and its description no longer says the endpoints come from an OpenAPI specification.
+* **Changed**: the source map places the §What it looks like examples on the architecture page, where #62 moved them from the README.
+
 ## 2026-10-14
 
 * **Changed**: the source map's exclusions name `.assets/`, where the screenshots and logos moved from `byo/images/`.

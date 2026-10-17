@@ -7,8 +7,11 @@ description: NIST Special Publication 800-53 rev. 5 - Security and Privacy Contr
 resource: https://doi.org/10.6028/NIST.SP.800-53r5
 timestamp: "2026-08-12T00:00:00Z"
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:33:34Z"
+- by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
 ---
 
 # NIST SP 800-53 Revision 5
