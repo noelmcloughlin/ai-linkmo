@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026-10-18
+
+* **Changed**: the source map names the three generator scripts beside the rows they serve, the sync's pull request template beside the sidecar, and the repository plumbing and `llms.txt` it leaves out, so every tracked file has a place in it.
+
 ## 2026-10-17
 
 * **Changed**: EU AI Act requirements dataset lists `byo/data/eu_ai_act.yaml` under `sources`, so the work list compares it; `resource` keeps its URL, because `lokf export` reads a relative `resource` as a concept id.
