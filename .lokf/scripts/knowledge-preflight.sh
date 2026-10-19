@@ -285,6 +285,26 @@ elif [ -n "$script_gaps" ]; then
   warn copies "$script_gaps - the ktl-sidecar repair lays it down"
 fi
 
+# ---- ingest ----------------------------------------------------------------
+# A host that mirrors sources from outside the repository has .lokf/ingest.yaml.
+# The script's own status line says how many entries, how many mirrored files
+# and which token names are present; it prints no value. A mirror file the
+# lock names and the disk has lost, or a file the lock does not name, is a
+# warning: a run restores the first, and the second is nobody's. Without the
+# script, the manifest is a wish nothing fulfils.
+if [ -f "$root/.lokf/ingest.yaml" ]; then
+  if [ -f "$root/.lokf/scripts/knowledge-ingest.sh" ]; then
+    status="$(bash "$root/.lokf/scripts/knowledge-ingest.sh" --root "$root" --status 2>/dev/null)" || status=""
+    case "$status" in
+      "ingest: "*"missing from the mirror"*|"ingest: "*"the lock does not name"*) warn ingest "${status#ingest: }" ;;
+      "ingest: "*) info ingest "${status#ingest: }" ;;
+      *) info ingest ".lokf/ingest.yaml is here; its status was not read (no uv, or no python3 with pyyaml)" ;;
+    esac
+  else
+    warn ingest ".lokf/ingest.yaml is here but .lokf/scripts/knowledge-ingest.sh is not, so nothing is mirrored - the ktl-sidecar repair lays it down"
+  fi
+fi
+
 # ---- session ---------------------------------------------------------------
 unattended=""
 for v in CI GITHUB_ACTIONS GITLAB_CI TF_BUILD; do

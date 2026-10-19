@@ -42,9 +42,11 @@
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -58,6 +60,13 @@ INDEX_BULLET = re.compile(r"^\* \[([^\]]*)\]\(([^)]+)\) - (.*)$")
 # The fields the provenance gates read line by line: a concept's id, and the
 # actor, time and revision of each event.
 GATE_FIELDS = {"id", "by", "at", "revision"}
+# Rule 2's one shape for a time: UTC to the second, as `date -u
+# +%Y-%m-%dT%H:%M:%SZ` writes it, and as every writer here does. In it the
+# federation build reads the moment knowledge-report.sh and rule 11 read, and
+# the workspace's stored queries, which compare times as written, put two of
+# them in order. A time in a shape a script cannot read counts there as no
+# time, so a person's event spelt that way would confirm every later edit.
+UTC_TIME = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z")
 # What a person's confirmation does not cover, for rule 13. In the
 # frontmatter these are the trust, lifecycle and usage fields, which record
 # who checked what and when rather than what the concept claims. In the body
@@ -137,17 +146,33 @@ def split_frontmatter(text: str) -> tuple[str, str] | None:
     return None
 
 
-def find_unquoted_at(node, where: str) -> list[str]:
-    findings: list[str] = []
+def find_odd_at(node, where: str) -> list[tuple[str, object]]:
+    """Each `at:` that is not a quoted time in rule 2's shape, with where it sits."""
+    found: list[tuple[str, object]] = []
     if isinstance(node, dict):
         for key, value in node.items():
-            if key == "at" and not isinstance(value, str):
-                findings.append(f"{where}at")
-            findings.extend(find_unquoted_at(value, f"{where}{key}."))
+            if key == "at" and not utc_time(value):
+                found.append((f"{where}at", value))
+            found.extend(find_odd_at(value, f"{where}{key}."))
     elif isinstance(node, list):
         for index, item in enumerate(node):
-            findings.extend(find_unquoted_at(item, f"{where}[{index}]."))
-    return findings
+            found.extend(find_odd_at(item, f"{where}[{index}]."))
+    return found
+
+
+def utc_time(value) -> bool:
+    """A string in rule 2's shape that names a real moment.
+
+    The pattern alone passes 30 February, which the report reads and the
+    build cannot, and 24:00, which only some Pythons read.
+    """
+    if not isinstance(value, str) or not UTC_TIME.fullmatch(value):
+        return False
+    try:
+        datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        return False
+    return True
 
 
 def moment(value) -> str:
@@ -399,10 +424,21 @@ def check_file(path: Path, bundle: Path, ids: dict[str, list[Path]], entries: di
     for what in plain_spellings(fm_text):
         findings.append(f"{path}: frontmatter uses {what} - write it plainly, so the gate reads the event a parser reads")
 
-    # 2. every `at:` quoted: unquoted, YAML resolves it to a datetime, a
-    #    date or a number, and only a string reaches every consumer the same.
-    for where in find_unquoted_at(frontmatter, ""):
-        findings.append(f"{path}: unquoted timestamp at {where}")
+    # 2. every `at:` a quoted time in one shape: unquoted, YAML resolves it to
+    #    a datetime, a date or a number, and only a string reaches every
+    #    consumer the same. In any other shape not every consumer reads it
+    #    alike, as UTC_TIME says. The finding prints the time as JSON writes
+    #    it, so it stays on one line and shows a character no reader would
+    #    see. The fix respells the same moment, since a new time from the
+    #    clock would re-date the event.
+    for where, value in find_odd_at(frontmatter, ""):
+        if isinstance(value, str):
+            findings.append(
+                f"{path}: timestamp {json.dumps(value[:40])} at {where} is not a UTC time to the second, such as "
+                '"2026-09-08T14:00:00Z" - write the same moment in that shape, in quotes'
+            )
+        else:
+            findings.append(f"{path}: unquoted timestamp at {where}")
 
     # 3. verified is a list, never a bare mapping, and carries at most one
     #    process:ktl-librarian event.

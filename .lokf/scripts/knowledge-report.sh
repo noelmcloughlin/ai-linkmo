@@ -17,6 +17,8 @@
 #   knowledge-report.sh changes            what the working tree does to the record, against HEAD
 #   knowledge-report.sh retrieval --prompt the index-only question an agent is asked
 #   knowledge-report.sh retrieval <reply>  that agent's reply, scored
+#   knowledge-report.sh coverage [<dir>..] the tracked files no concept names: a count per folder, or the list under <dir>
+#   knowledge-report.sh coverage --why <path>..  which concept names each path, or a folder above it
 #
 # Every form takes `--root <dir>` first: the repository root, by default the
 # nearest ancestor of the current directory holding .lokf/. A <path> is a
@@ -135,12 +137,40 @@
 # and the score says how many were left out. The reply is read for answers
 # only: what is expected of it comes from the ledger, in a file of its own.
 #
+# `coverage` counts the files git tracks that no concept names. A file is
+# named when a concept's `resource` or `sources` names it, or a folder above
+# it. A `resource` of `.` names no file. An unnamed file is a gap to look at,
+# not an error: the source map may leave its folder out on purpose and say
+# why.
+#
+# Three kinds of file are not counted:
+#   - a tracked file deleted from the working tree;
+#   - the sidecar's own `.lokf/` and `knowledge_bundle`, apart from the
+#     ingest's mirror;
+#   - a file git would add but does not track yet. It is listed apart, since
+#     a concept names only a tracked path, and never runtime state such as an
+#     installed skill.
+#
+# `coverage <dir>` lists the unnamed files under a folder, and `coverage .`
+# lists them all. `--why <path>` names the concept that claims each path, so
+# a reviewer can find its entry in the source map. It reads frontmatter only.
+#
+# `--strict` exits 1 when:
+#   - a tracked file in scope is named by nobody;
+#   - a folder given holds no tracked file, as a mistyped one does;
+#   - the whole count holds a path it cannot read;
+#   - it cannot count at all.
+# So a check built on it never passes by default.
+#
+# Without git it says it cannot count. It never makes a scheduled run busy.
+#
 # Bash 3.2, POSIX awk and git only, so it runs wherever the other sidecar
 # scripts do, and in a workflow job that installs nothing.
 #
 # Exit 0, or 2 when the call is wrong or there is no bundle to report on;
-# `quiet` exits 1 when work waits.
-[ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [--root <dir>] [health|labels|worklist|quiet|changes|retrieval] [...]" >&2; exit 2; }
+# `quiet` exits 1 when work waits, and `coverage --strict` when a file is
+# named by nobody or the count could not be made.
+[ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [--root <dir>] [health|labels|worklist|quiet|changes|retrieval|coverage] [...]" >&2; exit 2; }
 set -u
 # Byte-oriented awk and sort, so the byte order mark strip, the CRLF strip and
 # every comparison read raw bytes on any awk and in any locale. A gawk under a
@@ -150,7 +180,7 @@ set -u
 export LC_ALL=C
 
 usage() {
-  echo "usage: ${0##*/} [--root <dir>] [health | labels [<path>...] | worklist | quiet | changes | retrieval --prompt | retrieval <reply-file>]" >&2
+  echo "usage: ${0##*/} [--root <dir>] [health | labels [<path>...] | worklist | quiet | changes | retrieval --prompt | retrieval <reply-file> | coverage [--strict] [<dir>...] | coverage --why <path>...]" >&2
   exit 2
 }
 
@@ -1014,6 +1044,158 @@ EOF
   esac
 }
 
+# ---- coverage ----------------------------------------------------------------
+# Each path a concept names, as `concept<TAB>path`: every `resource:` value,
+# the concept's own and each source's, with a fragment cut off and a leading
+# ./ or a trailing / removed. A URL, an absolute path and `.`, the root
+# itself, name no file here.
+named_pairs() {
+  printf '%s\n' "$all" | awk -F'\t' '$1 == "R" { p = $3; sub(/#.*/, "", p); sub(/^\.\//, "", p); sub(/\/+$/, "", p)
+    if (p != "" && p != "." && p !~ /:\/\// && p !~ /^\//) print $2 "\t" p }' | LC_ALL=C sort -u
+}
+# A path argument, under the root: each leading ./, repeated /, /./ and
+# trailing / or /. removed, and `.` for the root itself. It runs in a command
+# substitution, so a refusal is its exit status.
+cov_path() {  # <path>
+  case "$1" in ""|/*|..|../*|*/..|*/../*|-*) echo "a path is one under the repository root, such as docs: $1" >&2; return 2 ;; esac
+  local d="$1"
+  while :; do
+    case "$d" in
+      ./*) d="${d#./}" ;;
+      *//*) d="${d%%//*}/${d#*//}" ;;
+      */./*) d="${d%%/./*}/${d#*/./}" ;;
+      */.) d="${d%/.}" ;;
+      */) d="${d%/}" ;;
+      *) break ;;
+    esac
+  done
+  printf '%s\n' "${d:-.}"
+}
+# Which concepts name each path, or a folder above it. Every path is checked
+# before anything is printed. A path arrives through the environment, so that
+# awk reads no backslash in it as an escape.
+why() {  # <path>...
+  [ $# -gt 0 ] || usage
+  local d there
+  : > "$tmp/whys"
+  for d in "$@"; do d="$(cov_path "$d")" || exit 2; printf '%s\n' "$d" >> "$tmp/whys"; done
+  named_pairs > "$tmp/pairs"
+  echo "Coverage - $today (computed by knowledge-report.sh from frontmatter; paths only)"
+  while IFS= read -r d; do
+    case "$d" in
+      .) echo "- .: the repository as a whole, which no concept's path accounts for"; continue ;;
+      .lokf/mirror|.lokf/mirror/*) ;;
+      .lokf|.lokf/*|knowledge_bundle|knowledge_bundle/*) echo "- $d: skipped, since the sidecar's own files are the preflight's to compare with its templates"; continue ;;
+    esac
+    there=""; [ -e "$root/$d" ] || there=" (no such file or folder here)"
+    KTL_PATH="$d" KTL_THERE="$there" awk -F'\t' 'BEGIN { w = ENVIRON["KTL_PATH"]; x = ENVIRON["KTL_THERE"] }
+      w == $2 { print "- " w ": named by " $1 x; n++ }
+      w != $2 && substr(w, 1, length($2) + 1) == $2 "/" { print "- " w ": under " $2 ", which " $1 " names" x; n++ }
+      substr($2, 1, length(w) + 1) == w "/" { inside[$2] = 1 }
+      END {
+        if (n) exit
+        for (k in inside) m++
+        print "- " w ": under no named path" x (m ? "; concepts name " m " path" (m == 1 ? "" : "s") " inside it, and coverage " w " lists the files they leave out" : "")
+      }' "$tmp/pairs"
+  done < "$tmp/whys"
+}
+coverage() {  # [--strict] [<dir>...] | --why <path>...
+  local d total covered unc hidden pend pend_unc strict=0 flagged=0
+  : > "$tmp/want"
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --strict) strict=1; shift ;;
+      --why) shift; { [ "$strict" = 0 ] && [ ! -s "$tmp/want" ]; } || usage; why "$@"; return 0 ;;
+      -*) usage ;;
+      *) d="$(cov_path "$1")" || exit 2; printf '%s\n' "$d" >> "$tmp/want"; shift ;;
+    esac
+  done
+  # Under --strict a count not made is no pass, so these two return 1 there.
+  if [ "$have_git" != 1 ]; then
+    echo "Coverage: not computed here, since this folder has no git history to list the tracked files"
+    return "$strict"
+  fi
+  named_pairs | cut -f2 | LC_ALL=C sort -u > "$tmp/named"
+  # Git lists each path with its kind:
+  #   D  a tracked file deleted from the working tree, which no longer counts;
+  #   T  a file git tracks;
+  #   U  a file git would add. The ignore rules leave the rest out.
+  # Out come an A line for every path counted, an F line for each one under
+  # no named path, and one S line of counts. Git lists an untracked
+  # repository inside as a folder, so its trailing / is removed. Git quotes a
+  # path that holds a control character. Such a path is counted apart, and
+  # never printed or compared.
+  { git -C "$root" -c core.quotePath=false ls-files --deleted 2>/dev/null | awk '{ print "D\t" $0 }'
+    git -C "$root" -c core.quotePath=false ls-files 2>/dev/null | awk '{ print "T\t" $0 }'
+    git -C "$root" -c core.quotePath=false ls-files --others --exclude-standard 2>/dev/null | awk '{ print "U\t" $0 }'; } \
+  | awk -v named="$tmp/named" '
+  BEGIN { while ((getline p < named) > 0) N[p] = 1; close(named) }
+  { sub(/\r$/, ""); kind = substr($0, 1, 1); f = substr($0, 3) }
+  kind == "D" { gone[f] = 1; next }
+  (f in gone) || (f in seen) { next }
+  { seen[f] = 1 }
+  substr(f, 1, 1) == "\"" { if (kind == "T") hidden++; next }
+  (f ~ /^\.lokf\// && f !~ /^\.lokf\/mirror\//) || f == "knowledge_bundle" || f ~ /^knowledge_bundle\// { next }
+  {
+    sub(/\/$/, "", f); p = f; acc = (p in N)
+    while (!acc && (i = match(p, /\/[^\/]*$/)) > 0) { p = substr(p, 1, i - 1); acc = (p in N) }
+    print "A\t" kind "\t" f
+    if (kind == "T") { total++; if (acc) covered++; else { unc++; print "F\tT\t" f } }
+    else { pend++; if (!acc) { pend_unc++; print "F\tU\t" f } }
+  }
+  END { printf "S\t%d\t%d\t%d\t%d\t%d\t%d\n", total + 0, covered + 0, unc + 0, hidden + 0, pend + 0, pend_unc + 0 }' > "$tmp/cov"
+  IFS=$'\t' read -r _ total covered unc hidden pend pend_unc < <(awk -F'\t' '$1 == "S"' "$tmp/cov")
+  # A folder git tracks nothing under, such as a copy made outside its
+  # repository but inside another, has no list to compare.
+  if [ "$((total + hidden))" -eq 0 ]; then
+    echo "Coverage: not computed here, since git tracks no file under this folder"
+    return "$strict"
+  fi
+  echo "Coverage - $today (computed by knowledge-report.sh from frontmatter and git; paths and counts only)"
+  if [ ! -s "$tmp/want" ]; then
+    echo "Tracked files under a path a concept names as its resource or one of its sources: $covered of $total · under none: $unc"
+    awk -F'\t' '$1 == "F" && $2 == "T" { i = index($3, "/"); t = i ? substr($3, 1, i) : ""; C[t]++ } END { for (t in C) print t "\t" C[t] }' "$tmp/cov" \
+      | LC_ALL=C sort | awk -F'\t' '{ print "- " ($1 == "" ? "at the top level" : $1) ": " $2 }'
+    flagged=$((unc + hidden))
+  else
+    # Each folder arrives through the environment, so that awk reads no
+    # backslash in it as an escape. `.` is the whole tree, and a path that
+    # is itself a file is named as one.
+    : > "$tmp/flagged"; : > "$tmp/late"
+    while IFS= read -r d; do
+      case "$d" in
+        .lokf/mirror|.lokf/mirror/*) ;;
+        .lokf|.lokf/*|knowledge_bundle|knowledge_bundle/*)
+          echo "$d: skipped, since the sidecar's own files are the preflight's to compare with its templates"; echo 1 >> "$tmp/flagged"; continue ;;
+      esac
+      KTL_DIR="$d" awk -F'\t' -v out_n="$tmp/flagged" -v late_n="$tmp/late" 'BEGIN { w = ENVIRON["KTL_DIR"] }
+        { under = (w == "." || $3 == w || substr($3, 1, length(w) + 1) == w "/") }
+        $1 == "A" && under { if ($2 == "T") has++; if ($3 == w) file = 1 }
+        $1 == "F" && under { if ($2 == "T") { n++; out = out "- " $3 "\n" } else { m++; late = late "- " $3 " (not tracked yet)\n" } }
+        END {
+          label = (w == "." ? "the whole tree" : file ? w : w "/")
+          if (!has) print label ": git tracks no file here"
+          else print label ": " (n ? n : "none") " under no named path" (m ? ", and " m " more not tracked yet" : "")
+          printf "%s%s", out, late
+          print (has ? n : 1) + 0 >> out_n
+          print m + 0 >> late_n
+        }' "$tmp/cov"
+    done < <(LC_ALL=C sort -u "$tmp/want")
+    flagged="$(awk '{ n += $1 } END { print n + 0 }' "$tmp/flagged")"
+    pend="$(awk '{ n += $1 } END { print n + 0 }' "$tmp/late")"; pend_unc="$pend"
+  fi
+  [ "${hidden:-0}" -eq 0 ] || echo "- and $hidden more, whose paths hold characters this report does not print"
+  # A file git would add is never counted: it is named once it is tracked.
+  if [ "${pend:-0}" -gt 0 ]; then
+    if [ ! -s "$tmp/want" ]; then
+      echo "Files git would add but does not track yet, so not counted: $pend · under no named path: $pend_unc"
+    fi
+    echo "Commit each file not tracked yet before a concept names it, or ignore it if it is runtime state, such as an installed skill."
+  fi
+  [ "$strict" = 0 ] || [ "$flagged" -eq 0 ] || return 1
+  return 0
+}
+
 # ---- the commands ------------------------------------------------------------
 case "$cmd" in
   retrieval) retrieval "$@"; exit 0 ;;
@@ -1026,6 +1208,7 @@ times=""
 case "$cmd" in
   health)   [ $# -eq 0 ] || usage; health ;;
   labels)   labels "$@" ;;
+  coverage) coverage "$@"; exit $? ;;
   worklist)
     [ $# -eq 0 ] || usage
     declined_load
