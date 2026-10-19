@@ -360,8 +360,11 @@ main() {
       # A copy that differs only on its `uses:` lines was bumped by the
       # host's Dependabot ahead of the template. The template's pins win,
       # since the copy must match it, and the report says so: the next
-      # bump in the skills repository brings the same release back.
-      if ! diff <(unpin < "$want") <(unpin < "$host/$dst") | grep -E '^[<>]' | grep -qvE '^[<>].*uses: '; then
+      # bump in the skills repository brings the same release back. awk
+      # alone decides, reading the whole diff: diff exits 1 whenever the
+      # files differ, so under pipefail a pipeline from it fails for every
+      # copy, whichever lines differ.
+      if awk '/^[<>]/ { if (/uses: /) pin = 1; else other = 1 } END { exit (pin && !other) ? 0 : 1 }' <(diff <(unpin < "$want") <(unpin < "$host/$dst")); then
         pins_only+=("$dst")
       fi
       cat "$want" > "$host/$dst"

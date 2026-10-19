@@ -29,7 +29,7 @@ name: Knowledge Registrar
 # never the pull request's text. What this file does not prove is that the
 # named person read the source. The skills repository's docs/three-lines.md
 # places this job as the second line of defence and says what remains open:
-# https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/main/docs/three-lines.md
+# https://w3id.org/ktl/docs/three-lines/
 on:
   pull_request:
     paths:

@@ -9,8 +9,14 @@
 #   1. log.md has one `## YYYY-MM-DD` heading per day: the bare ISO date,
 #      newest first, no duplicates. OKF §9 makes the date form a MUST, and the
 #      KTL Curator plugin finds today's section by that exact heading.
-#   2. Every `at:` is a quoted string. Unquoted, YAML hands the toolkit a
-#      datetime object and the curator's string comparison a surprise.
+#   2. Every `at:` is a quoted string, and a UTC time to the second, as
+#      `date -u +%Y-%m-%dT%H:%M:%SZ` writes it. Unquoted, YAML hands the
+#      toolkit a datetime object and the curator's string comparison a
+#      surprise. In another shape the readers disagree: the report cannot
+#      read a lower-case `t`, which the federation build reads, no script
+#      reads a lower-case `z`, and the workspace's stored queries, which
+#      compare times as written, put an offset or a fraction out of order. A
+#      person's event that no script reads would confirm every later edit.
 #   3. `verified` is a list, never a bare `{ by, at }` mapping, and carries at
 #      most one `process:ktl-librarian` event: the librarian replaces its
 #      own, and does not stack them.

@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Security
+
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.52.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.47.0...v0.52.0).** The release changed `.github/workflows/knowledge-registrar.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md`, `.lokf/scripts/knowledge-conventions.sh`, `.lokf/scripts/knowledge-conventions.py`, `.lokf/scripts/knowledge-preflight.sh`, `.lokf/scripts/knowledge-report.sh` and `.lokf/scripts/knowledge-sync.sh` here.
+
 ## [0.4.9] - 2026-10-17
 
 ### Security
