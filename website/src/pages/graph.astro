@@ -1,7 +1,11 @@
 ---
-// The bundle's typed relations, drawn from knowledge/graph.json.
+// The bundle's typed relations, drawn from knowledge/graph.json, and on a
+// domain host the workspace's, drawn from the graph.json the federation
+// workflow serves beside the site, which scripts/sync.mjs names in
+// src/generated/workspace.json.
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
 import KnowledgeGraph from "../components/KnowledgeGraph.astro";
+import workspace from "../generated/workspace.json";
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, "");
 ---
@@ -27,5 +31,16 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, "");
     <a href={`${base}/knowledge/graph.nt`}>graph.nt</a> as N-Triples and{" "}
     <a href={`${base}/knowledge/concepts.jsonld`}>concepts.jsonld</a> as JSON-LD.
   </p>
-  <KnowledgeGraph />
+  {
+    workspace && (
+      <p>
+        This repository is a domain. The workspace view draws every bundle its members name, each in
+        a colour of its own, with the links between bundles dashed. Each node links to its IRI, which
+        a bundle with a site of its own serves as the concept's page. The view reads{" "}
+        <a href={workspace.index}>the workspace</a> the newest release built, which the federation
+        workflow adds to the site after building it.
+      </p>
+    )
+  }
+  <KnowledgeGraph workspace={workspace?.graph} />
 </StarlightPage>

@@ -10,13 +10,35 @@
 // knowledge/graph.json, a node's details link to its concept page, and the
 // address names the open node's concept as `?concept=<id>`, so a concept
 // page can link to the graph opened on it and a reader can share the view.
+// On a domain host, `workspace` names the workspace's graph.json, and
+// `?graph=workspace` draws it instead: each bundle in a colour of its own,
+// the links between bundles dashed, a node named by its IRI, as
+// `&iri=<iri>`, since two bundles may each hold a concept of one id. Each
+// bundle has a shape of its own as well as a colour, so no reader depends on
+// colour alone.
+interface Props {
+  workspace?: string;
+}
+const { workspace } = Astro.props;
+// The view links name the graph page itself, so they hold under `astro dev`,
+// whose address may lack the trailing slash.
+const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
 ---
 
 <div
   class="lokf-graph"
   data-graph-src={import.meta.env.BASE_URL.replace(/\/$/, "") + "/knowledge/graph.json"}
   data-page-base={import.meta.env.BASE_URL.replace(/\/$/, "") + "/knowledge/"}
+  data-workspace-src={workspace}
 >
+  {
+    workspace && (
+      <nav class="lokf-graph__views not-content" aria-label="Which graph to draw">
+        <a href={graphPage} data-view="bundle">This bundle</a>
+        <a href={graphPage + "?graph=workspace"} data-view="workspace">The workspace</a>
+      </nav>
+    )
+  }
   <div class="lokf-graph__controls">
     <input
       type="search"
@@ -25,6 +47,9 @@
       autocomplete="off"
     />
     <div class="lokf-graph__filters">
+      <fieldset class="lokf-graph__fieldset" data-filter="bundle" hidden>
+        <legend>Bundles</legend>
+      </fieldset>
       <fieldset class="lokf-graph__fieldset" data-filter="type">
         <legend>Node types</legend>
       </fieldset>
@@ -52,6 +77,7 @@
       <button type="button" class="lokf-graph__close" aria-label="Close">&times;</button>
       <h3 class="lokf-graph__detail-title"></h3>
       <dl>
+        <dt class="lokf-graph__bundle-row" hidden>Bundle</dt><dd class="lokf-graph__bundle-row lokf-graph__detail-bundle" hidden></dd>
         <dt>Type</dt><dd class="lokf-graph__detail-type"></dd>
         <dt>Trust</dt><dd class="lokf-graph__detail-trust"></dd>
         <dt>IRI</dt><dd class="lokf-graph__detail-iri lokf-graph__mono"></dd>
@@ -73,11 +99,30 @@
     "#5b8def", "#e8833a", "#2ea77d", "#c1558b",
     "#9b6dd6", "#d2b13a", "#4bacc6", "#d05b5b",
   ];
+  // A node of no listed bundle, in a colour and shape no bundle takes.
+  const UNLISTED = { color: "#8a8a8a", shape: "rectangle" };
+  // The workspace gives each bundle a shape as well as a colour. The legend
+  // draws the same shape with these clip paths.
+  const SHAPES: [string, string][] = [
+    ["ellipse", "circle(50%)"],
+    ["round-rectangle", "inset(0 round 25%)"],
+    ["diamond", "polygon(50% 0, 100% 50%, 50% 100%, 0 50%)"],
+    ["triangle", "polygon(50% 0, 100% 100%, 0 100%)"],
+    ["hexagon", "polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%)"],
+    ["star", "polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)"],
+    ["vee", "polygon(0 0, 50% 40%, 100% 0, 50% 100%)"],
+    ["octagon", "polygon(30% 0, 70% 0, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0 70%, 0 30%)"],
+  ];
+  // Above this many nodes the layout runs at draft quality, which is some
+  // ten times faster, so a workspace of a few thousand concepts draws in
+  // seconds rather than freezing the page.
+  const LARGE = 400;
 
+  type Bundle = { slug: string; title: string; base_iri: string; version?: string; source_base?: string };
   type Elements = {
     nodes: { data: Record<string, string> }[];
     edges: { data: Record<string, string> }[];
-    meta?: { source_base?: string };
+    meta?: { source_base?: string; bundles?: Bundle[] };
   };
 
   function themeColor(name: string, fallback: string): string {
@@ -88,25 +133,65 @@
   function init(root: HTMLElement) {
     if (root.dataset.ready) return;
     root.dataset.ready = "1";
-    const src = root.dataset.graphSrc!;
+    const workspaceSrc = root.dataset.workspaceSrc;
+    const workspace = !!workspaceSrc && new URLSearchParams(location.search).get("graph") === "workspace";
+    root.querySelectorAll<HTMLAnchorElement>(".lokf-graph__views a").forEach((a) => {
+      if ((a.dataset.view === "workspace") === workspace) a.setAttribute("aria-current", "page");
+    });
+    const src = workspace ? workspaceSrc! : root.dataset.graphSrc!;
+    const stage = root.querySelector(".lokf-graph__canvas") as HTMLElement;
     fetch(src)
-      .then((r) => r.json())
-      .then((graph: Elements) => render(root, graph))
+      .then((r) => {
+        // The federation workflow adds the workspace after the site is
+        // built, and leaves out one that holds internal metadata.
+        if (workspace && r.status === 404) {
+          stage.textContent =
+            "This site serves no workspace yet. The federation workflow adds it when the domain releases, unless it holds internal metadata, which stays on the release.";
+          return null;
+        }
+        if (!r.ok) throw new Error(`${src} answered ${r.status} ${r.statusText}`);
+        return r.json();
+      })
+      .then((graph: Elements | null) => graph && render(root, graph, workspace))
       .catch((e) => {
-        const stage = root.querySelector(".lokf-graph__canvas") as HTMLElement;
         stage.textContent = "Could not load graph: " + e;
       });
   }
 
-  function render(root: HTMLElement, graph: Elements) {
+  async function render(root: HTMLElement, graph: Elements, workspace: boolean) {
     const mount = root.querySelector(".lokf-graph__canvas") as HTMLElement;
     const sourceBase = graph.meta?.source_base ?? "";
+    // The workspace's nodes are coloured and shaped by bundle, a bundle's own coloured by type.
+    const bundles = new Map((workspace ? graph.meta?.bundles ?? [] : []).map((b): [string, Bundle] => [b.slug, b]));
 
     const types = [...new Set(graph.nodes.map((n) => n.data.type))].sort();
     const colorOf: Record<string, string> = {};
-    types.forEach((t, i) => (colorOf[t] = PALETTE[i % PALETTE.length]));
-    graph.nodes.forEach((n) => (n.data.color = colorOf[n.data.type]));
+    const shapeOf: Record<string, [string, string]> = {};
+    if (workspace) {
+      // Colour and shape cycle at the same length, so the colour steps on
+      // each time the shapes come round again and no two bundles of the
+      // first 64 look alike.
+      [...bundles.keys()].forEach((slug, i) => {
+        colorOf[slug] = PALETTE[(i + Math.floor(i / SHAPES.length)) % PALETTE.length];
+        shapeOf[slug] = SHAPES[i % SHAPES.length];
+      });
+    } else {
+      types.forEach((t, i) => (colorOf[t] = PALETTE[i % PALETTE.length]));
+    }
+    graph.nodes.forEach((n) => {
+      const by = workspace ? n.data.bundle : n.data.type;
+      n.data.color = colorOf[by] ?? UNLISTED.color;
+      n.data.shape = workspace ? shapeOf[by]?.[0] ?? UNLISTED.shape : "ellipse";
+    });
     const predicates = [...new Set(graph.edges.map((e) => e.data.predicate))].sort();
+    const large = graph.nodes.length > LARGE;
+    if (large) {
+      // The layout runs before the page can paint again, so the reader is
+      // told first.
+      mount.textContent = `Laying out ${graph.nodes.length} concepts…`;
+      await new Promise((done) => requestAnimationFrame(() => setTimeout(done, 0)));
+      mount.textContent = "";
+    }
 
     const fg = themeColor("--sl-color-text", "#333");
     const line = themeColor("--sl-color-gray-3", "#888");
@@ -115,12 +200,13 @@
     const cy = cytoscape({
       container: mount,
       elements: graph,
-      minZoom: 0.2,
+      // A large graph needs to zoom further out to fit the view.
+      minZoom: large ? 0.02 : 0.2,
       maxZoom: 2.5,
       wheelSensitivity: 0.3,
       layout: {
         name: "fcose",
-        quality: "proof",
+        quality: large ? "draft" : "proof",
         animate: false,
         padding: 50,
         nodeSeparation: 160,
@@ -134,7 +220,9 @@
           selector: "node",
           style: {
             "background-color": "data(color)",
+            shape: (n: cytoscape.NodeSingular) => n.data("shape"),
             label: "data(label)",
+            "min-zoomed-font-size": 7,
             color: fg,
             "font-size": "11px",
             "text-wrap": "wrap",
@@ -150,6 +238,7 @@
           style: {
             label: "data(predicate)",
             "font-size": "9px",
+            "min-zoomed-font-size": 7,
             color: line,
             "line-color": line,
             "target-arrow-color": line,
@@ -159,16 +248,22 @@
             "text-rotation": "autorotate",
           },
         },
+        {
+          selector: "edge[?cross]",
+          style: { "line-style": "dashed", "line-color": accent, "target-arrow-color": accent, width: 2 },
+        },
         { selector: "node:selected", style: { "border-width": 3, "border-color": accent } },
         { selector: ".dim", style: { opacity: 0.15 } },
         { selector: ".hidden", style: { display: "none" } },
       ],
     });
 
-    // Filters: a checkbox per type and per predicate.
+    // Filters: a checkbox per type and per predicate, and in the workspace
+    // per bundle.
     const typeBox = root.querySelector('[data-filter="type"]') as HTMLElement;
     const predBox = root.querySelector('[data-filter="predicate"]') as HTMLElement;
-    const checkbox = (value: string, swatch?: string) => {
+    const bundleBox = root.querySelector('[data-filter="bundle"]') as HTMLElement;
+    const checkbox = (value: string, swatch?: string, text?: string, clip?: string) => {
       const label = document.createElement("label");
       const input = document.createElement("input");
       input.type = "checkbox";
@@ -179,14 +274,19 @@
         const dot = document.createElement("span");
         dot.className = "lokf-graph__swatch";
         dot.style.background = swatch;
+        if (clip) dot.style.clipPath = clip;
         label.append(dot);
       }
-      label.append(document.createTextNode(" " + value));
+      label.append(document.createTextNode(" " + (text ?? value)));
       input.addEventListener("change", applyFilters);
       return label;
     };
-    types.forEach((t) => typeBox.append(checkbox(t, colorOf[t])));
+    types.forEach((t) => typeBox.append(checkbox(t, workspace ? undefined : colorOf[t])));
     predicates.forEach((p) => predBox.append(checkbox(p)));
+    if (workspace && bundles.size) {
+      bundleBox.hidden = false;
+      bundles.forEach((b, slug) => bundleBox.append(checkbox(slug, colorOf[slug], b.title, shapeOf[slug][1])));
+    }
 
     function checkedValues(box: HTMLElement) {
       return new Set(
@@ -196,7 +296,14 @@
     function applyFilters() {
       const okTypes = checkedValues(typeBox);
       const okPreds = checkedValues(predBox);
-      cy.nodes().forEach((n) => n.toggleClass("hidden", !okTypes.has(n.data("type"))));
+      const okBundles = workspace ? checkedValues(bundleBox) : null;
+      // A node of no listed bundle has no box to tick, so no box hides it.
+      cy.nodes().forEach((n) =>
+        n.toggleClass(
+          "hidden",
+          !okTypes.has(n.data("type")) || (okBundles !== null && bundles.has(n.data("bundle")) && !okBundles.has(n.data("bundle"))),
+        ),
+      );
       cy.edges().forEach((e) =>
         e.toggleClass("hidden", !okPreds.has(e.data("predicate"))),
       );
@@ -207,7 +314,7 @@
     search.addEventListener("input", () => {
       const q = search.value.trim().toLowerCase();
       cy.nodes().forEach((n) =>
-        n.toggleClass("dim", q !== "" && !n.data("label").toLowerCase().includes(q)),
+        n.toggleClass("dim", q !== "" && !String(n.data("label") ?? "").toLowerCase().includes(q)),
       );
     });
 
@@ -217,33 +324,51 @@
       (root.querySelector(sel) as HTMLElement).textContent = text;
     };
     // The explorer reads no other parameter, and the id keeps its slashes,
-    // as a concept page's link writes it.
+    // as a concept page's link writes it. In the workspace, the IRI names
+    // the node, and `graph=workspace` stays.
+    const key = workspace ? "iri" : "concept";
     const withConcept = (id: string | null) => {
       const url = new URL(location.href);
-      url.search = id ? `?concept=${encodeURIComponent(id).replace(/%2F/g, "/")}` : "";
+      const params = workspace ? ["graph=workspace"] : [];
+      if (id) params.push(`${key}=${encodeURIComponent(id).replace(/%2F/g, "/").replace(/%3A/g, ":")}`);
+      url.search = params.length ? `?${params.join("&")}` : "";
       history.replaceState(history.state, "", url);
     };
+    // A workspace node carries its review date, so staleness is judged on
+    // the reader's own day, from that date on, as lokf judges it.
+    const now = new Date();
+    const today = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map((n, i) => String(n).padStart(i ? 2 : 4, "0")).join("-");
     function show(node: cytoscape.NodeSingular) {
       const d = node.data();
-      set(".lokf-graph__detail-title", d.label);
+      set(".lokf-graph__detail-title", String(d.label ?? ""));
       set(".lokf-graph__detail-type", d.type);
+      const bundle = bundles.get(d.bundle);
+      root.querySelectorAll<HTMLElement>(".lokf-graph__bundle-row").forEach((el) => (el.hidden = !bundle));
+      if (bundle) set(".lokf-graph__detail-bundle", bundle.version ? `${bundle.title}, ${bundle.version}` : bundle.title);
+      const stale = d.stale_after ? String(d.stale_after).slice(0, 10) <= today : d.stale;
       // OKF v0.2 trust signals: "human-reviewed · stable" (+ " · stale").
-      const trust = [d.trust_tier, d.status, d.stale ? "stale" : ""]
+      const trust = [d.trust_tier, d.status, stale ? "stale" : ""]
         .filter(Boolean)
         .join(" · ");
       set(".lokf-graph__detail-trust", trust || "—");
       set(".lokf-graph__detail-iri", d.id);
       set(".lokf-graph__detail-cid", d.concept_id);
+      // A workspace node links to its IRI, which a bundle with a site of
+      // its own serves as the concept's page. Only an http or https IRI is
+      // linked: a member writes its concepts' ids, and an id such as
+      // javascript: would run on this site when followed.
       const page = root.querySelector(".lokf-graph__detail-page") as HTMLAnchorElement;
-      if (d.concept_id) {
-        page.href = root.dataset.pageBase + d.concept_id + "/";
+      if (workspace ? /^https?:\/\//i.test(String(d.id)) : !!d.concept_id) {
+        page.href = workspace ? d.id : root.dataset.pageBase + d.concept_id + "/";
+        page.textContent = workspace ? "Follow its IRI →" : "Open the concept page →";
         page.hidden = false;
       } else {
         page.hidden = true;
       }
       const link = root.querySelector(".lokf-graph__detail-src") as HTMLAnchorElement;
-      if (sourceBase && d.concept_id) {
-        link.href = sourceBase.replace(/\/$/, "") + "/" + d.concept_id + ".md";
+      const from = workspace ? bundle?.source_base ?? "" : sourceBase;
+      if (from && d.concept_id) {
+        link.href = from.replace(/\/$/, "") + "/" + d.concept_id + ".md";
         link.hidden = false;
       } else {
         link.hidden = true;
@@ -251,7 +376,7 @@
       detail.hidden = false;
       cy.nodes().unselect();
       node.select();
-      withConcept(d.concept_id || null);
+      withConcept((workspace ? d.id : d.concept_id) || null);
     }
     const close = () => {
       detail.hidden = true;
@@ -275,8 +400,8 @@
     cy.ready(() =>
       requestAnimationFrame(() => {
         fit();
-        const wanted = new URLSearchParams(location.search).get("concept");
-        const node = cy.nodes().filter((n) => !!wanted && n.data("concept_id") === wanted);
+        const wanted = new URLSearchParams(location.search).get(key);
+        const node = cy.nodes().filter((n) => !!wanted && n.data(workspace ? "id" : "concept_id") === wanted);
         if (node.nonempty()) focus(node.first());
       }),
     );
@@ -335,6 +460,24 @@
      wouldn't carry Astro's scope hash. All selectors are .lokf-graph__* . */
   .lokf-graph {
     margin: 1.5rem 0 2rem;
+  }
+  .lokf-graph__views {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+  }
+  .lokf-graph__views a {
+    padding: 0.25rem 0.75rem;
+    color: var(--sl-color-text);
+    text-decoration: none;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.35rem;
+  }
+  .lokf-graph__views a[aria-current="page"] {
+    font-weight: 600;
+    color: var(--sl-color-accent-high);
+    border-color: var(--sl-color-accent);
   }
   .lokf-graph__controls {
     display: flex;
@@ -466,6 +609,11 @@
   .lokf-graph__detail dd {
     margin: 0;
     word-break: break-all;
+  }
+  /* Starlight spaces each element after a sibling in page content, which put
+     every label a line below its value; this rule outranks that one. */
+  .lokf-graph .lokf-graph__detail :is(dt, dd) {
+    margin: 0;
   }
   .lokf-graph__mono {
     font-family: var(--sl-font-mono, monospace);

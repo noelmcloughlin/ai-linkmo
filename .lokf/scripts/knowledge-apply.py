@@ -998,6 +998,16 @@ def main(argv: list[str]) -> int:
     if not a.root:
         print("--root <repo-root> is required", file=sys.stderr)
         return 2
+    # In the agent's step of a scheduled run the wrapper sets this, and applies
+    # the patch file itself once the agent has finished. A write here would
+    # delete the file and leave a bundle the wrapper refuses, so the pen only
+    # checks, and says so.
+    deferred = os.environ.get("KNOWLEDGE_PEN_DRY_RUN_ONLY") == "1"
+    if deferred and not a.dry_run:
+        print("refused: this is the agent's step of a scheduled run, where the pen only checks the patch file (--dry-run). "
+              "Leave .lokf/patch.yaml in place: the wrapper applies it after the agent finishes, and the workflow then validates the bundle. "
+              "Nothing was written.", file=sys.stderr)
+        return 2
     root = Path(a.root).resolve()
     patch_file = Path(a.patch).resolve() if a.patch else root / ".lokf" / "patch.yaml"
     if not (root / ".lokf" / "knowledge" / "index.md").is_file():
@@ -1140,7 +1150,13 @@ def main(argv: list[str]) -> int:
             print(f"  {line}")
     if bundle.demoted:
         print(f"confirmed by a person, and edited {'by this patch' if a.dry_run else 'here'}: {', '.join(bundle.demoted)}; each reads as edited since that confirmation until the curator looks again")
-    print(f"{'OK (dry run)' if a.dry_run else 'OK'} - {len(doc['ops'])} operation(s) by {by} at {bundle.now}; now run lokf validate --check-refs and knowledge-conventions.sh")
+    if not a.dry_run:
+        after = "now run lokf validate --check-refs and knowledge-conventions.sh"
+    elif deferred:
+        after = "leave the patch file in place: the wrapper applies it after you finish, and the workflow validates the bundle"
+    else:
+        after = "nothing was written: apply it without --dry-run, then run lokf validate --check-refs and knowledge-conventions.sh"
+    print(f"{'OK (dry run)' if a.dry_run else 'OK'} - {len(doc['ops'])} operation(s) by {by} at {bundle.now}; {after}")
     return 0
 
 

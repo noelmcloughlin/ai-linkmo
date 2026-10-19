@@ -120,6 +120,9 @@ fi
 key_name="${AGENT_API_KEY_ENV:-}"
 agent_key="${AGENT_API_KEY:-}"
 unset AGENT_API_KEY AGENT_API_KEY_ENV
+# The pen's dry-run-only switch belongs to the agent's process alone (see
+# run_agent): one set outside would stop this script applying the patch.
+unset KNOWLEDGE_PEN_DRY_RUN_ONLY
 if [ -n "$agent_key" ] || [ -n "$key_name" ]; then
   if [ -z "$agent_key" ]; then
     echo "knowledge-librarian: AGENT_API_KEY_ENV is $key_name but the AGENT_API_KEY secret is empty" >&2
@@ -220,8 +223,14 @@ fi
 
 # Become the agent, with the given prompt where AGENT_PROMPT_FLAG says it
 # goes. Called with exec from a subshell, so only that subshell's environment
-# carries the key.
+# carries the key. It carries KNOWLEDGE_PEN_DRY_RUN_ONLY too, so the pen only
+# checks the patch file while the agent runs, and this script applies it after.
+# An agent that followed the skill's live-session step and applied its own
+# patch once lost the run's work: the pen deleted the file, and the check below
+# refused the bundle it wrote. The switch is a guard against that mistake, not
+# a boundary; the check below still is one.
 run_agent() {
+  export KNOWLEDGE_PEN_DRY_RUN_ONLY=1
   if [ "$prompt_flag" = arg ]; then
     exec "${agent_cmd[@]}" "$1"
   fi
