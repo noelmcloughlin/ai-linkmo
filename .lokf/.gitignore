@@ -17,3 +17,10 @@ feedback.md.*
 # knowledge-apply.sh applies and removes it. A run that stopped midway can
 # leave it behind, and it is never bundle content.
 patch.yaml
+
+# knowledge-federate.py keeps each member's release zip here on a domain
+# host, named by its digest. A build downloads them again and checks each one
+# against the checksum its member concept names, so they are never content.
+# knowledge-ingest.py keeps the mirror of a confidential entry under
+# .cache/mirror/, which is never committed.
+.cache/

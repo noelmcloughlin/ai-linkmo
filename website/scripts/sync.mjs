@@ -22,8 +22,8 @@
 // second way. When site.config.mjs shows the schema's pages or the data, it
 // also runs the command that builds each, when its folder is not built yet.
 import { execFileSync, spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { dirname, extname, relative, resolve } from "node:path";
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { dirname, extname, relative, resolve, sep } from "node:path";
 import { markdownToHtml } from "satteri";
 import { parse as parseYaml } from "yaml";
 import {
@@ -55,8 +55,9 @@ import {
   docsPages,
   groupLabel,
   schemaPages,
+  workspaceLinks,
 } from "./config.mjs";
-import { WIKILINK, resolveWikilink } from "./markdown-ktl.mjs";
+import { WIKILINK, cleanHtmlNode, resolveWikilink } from "./markdown-ktl.mjs";
 import { rewriteUrl, route } from "./routes.mjs";
 
 const CONTENT = resolve(SITE_DIR, "src", "content", "docs");
@@ -784,7 +785,9 @@ async function writeLogFeed(root) {
     const kinds = new Map();
     for (const m of text.matchAll(/^[*-] \*\*([^*]+)\*\*:/gm)) kinds.set(m[1], (kinds.get(m[1]) ?? 0) + 1);
     const title = [d.date, ...[...kinds].sort((a, b) => b[1] - a[1]).map(([kind, n]) => `${kind}: ${n}`)].join(" · ");
-    const { html } = await markdownToHtml(text);
+    const { html } = await markdownToHtml(text, {
+      mdastPlugins: [{ name: "ktl-raw-html", html: (node, ctx) => cleanHtmlNode(node, ctx, ".lokf/knowledge/log.md") }],
+    });
     const content = html.replace(
       /(<(?:a|img)\b[^>]*?\s(?:href|src)=")([^"]*)"/g,
       (_, before, url) => `${before}${absoluteUrl(".lokf/knowledge/log.md", log, url)}"`,
@@ -1173,6 +1176,38 @@ function writeLlmsFullTxt(concepts, root) {
   write(resolve(PUBLIC, "llms-full.txt"), lines.join("\n"));
 }
 
+// What makes an SVG a page that runs code when it is opened on its own.
+const ACTIVE_SVG = /<script|<foreignObject|\son[a-z]+\s*=|javascript:/i;
+
+/**
+ * Copy a file or folder of the repository into the site. A link is followed
+ * only when it ends inside the repository, and the copy holds the file, not
+ * the link: a link that left the repository would publish a file of the
+ * runner's, since the build copies what a link points at. An SVG that holds
+ * a script, an event handler or a javascript: address is left out too, since
+ * the site serves it as a page of its own.
+ */
+function copyFromRepository(from, to) {
+  const root = realpathSync(REPO_ROOT) + sep;
+  cpSync(from, to, {
+    recursive: true,
+    dereference: true,
+    filter: (src) => {
+      let real;
+      try { real = realpathSync(src); } catch { real = ""; }
+      if (!real || !(real + sep === root || real.startsWith(root))) {
+        console.warn(`sync: left out ${relative(REPO_ROOT, src)}, a link to something outside the repository`);
+        return false;
+      }
+      if (/\.svg$/i.test(real) && statSync(real).isFile() && ACTIVE_SVG.test(readFileSync(real, "latin1"))) {
+        console.warn(`sync: left out ${relative(REPO_ROOT, src)}, an SVG that holds a script, an event handler or a javascript: address`);
+        return false;
+      }
+      return true;
+    },
+  });
+}
+
 /** Every file of the bundle as it is in the repository, so `<concept>.md` sits beside its page. */
 function copyBundleFiles() {
   const walk = (dir) => {
@@ -1183,7 +1218,7 @@ function copyBundleFiles() {
       else if (name.endsWith(".md")) {
         const dest = resolve(PUBLIC_KNOWLEDGE, relative(BUNDLE_DIR, full));
         mkdirSync(dirname(dest), { recursive: true });
-        cpSync(full, dest);
+        copyFromRepository(full, dest);
       }
     }
   };
@@ -1264,17 +1299,21 @@ function writeChangelog() {
 }
 
 function copyAssets() {
-  if (ASSETS) cpSync(resolve(REPO_ROOT, ASSETS), resolve(PUBLIC, "assets"), { recursive: true });
+  if (ASSETS) copyFromRepository(resolve(REPO_ROOT, ASSETS), resolve(PUBLIC, "assets"));
   mkdirSync(GENERATED, { recursive: true });
   mkdirSync(PUBLIC, { recursive: true });
   if (LOGO) {
-    cpSync(resolve(REPO_ROOT, LOGO.light), resolve(GENERATED, LOGO_FILES.light));
-    cpSync(resolve(REPO_ROOT, LOGO.dark), resolve(GENERATED, LOGO_FILES.dark));
+    copyFromRepository(resolve(REPO_ROOT, LOGO.light), resolve(GENERATED, LOGO_FILES.light));
+    copyFromRepository(resolve(REPO_ROOT, LOGO.dark), resolve(GENERATED, LOGO_FILES.dark));
   }
   // The favicon: the one the logo gives, or the site's own ladder mark.
-  if (LOGO?.favicon) cpSync(resolve(REPO_ROOT, LOGO.favicon), resolve(PUBLIC, `favicon${extname(LOGO.favicon)}`));
+  if (LOGO?.favicon) copyFromRepository(resolve(REPO_ROOT, LOGO.favicon), resolve(PUBLIC, `favicon${extname(LOGO.favicon)}`));
   else cpSync(resolve(SITE_DIR, "src", "assets", "favicon.svg"), resolve(PUBLIC, "favicon.svg"));
   if (CUSTOM_DOMAIN) write(resolve(PUBLIC, "CNAME"), `${CUSTOM_DOMAIN}\n`);
+  // Where a domain host's workspace is served, for the graph page, or null.
+  // The workspace itself arrives after the build, from the federation
+  // workflow, so the page names it and fetches it when a reader asks.
+  write(resolve(GENERATED, "workspace.json"), JSON.stringify(workspaceLinks()) + "\n");
 }
 
 // ---------------------------------------------------------------------------
@@ -1433,7 +1472,7 @@ function writeBrowse() {
   const dir = resolve(REPO_ROOT, BROWSE.dir);
   const { databases, metadata: metadataFile } = browseFiles();
   mkdirSync(resolve(PUBLIC, "browse"), { recursive: true });
-  for (const { file } of databases) cpSync(resolve(dir, file), resolve(PUBLIC, "browse", file));
+  for (const { file } of databases) copyFromRepository(resolve(dir, file), resolve(PUBLIC, "browse", file));
   let metadata = null;
   if (metadataFile) {
     // JSON is YAML, so one parser reads either form.

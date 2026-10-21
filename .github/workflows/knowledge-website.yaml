@@ -11,8 +11,9 @@ name: Knowledge website
 # ktl-website skill installed both.
 #
 # Two jobs, for least privilege. `build` runs the third-party packages, npm's
-# and the lokf toolkit's, under a read-only token. `deploy` runs nothing but
-# GitHub's own deploy-pages action, holds the Pages scopes, and runs for the
+# and the lokf toolkit's, and the repository's own site code, under a
+# read-only token. `deploy` runs harden-runner and GitHub's own deploy-pages
+# action and nothing else, holds the Pages scopes, and runs for the
 # default branch only, once the repository variable KNOWLEDGE_WEBSITE_ENABLED
 # is `true`; until then this workflow builds and deploys nothing. Set it under
 # Repository variables, not on an environment: a job's `if:` sees only
@@ -126,8 +127,10 @@ jobs:
       # `build` runs the sync first and the link check after.
       - name: Build the site and check its links
         working-directory: website
+        env:
+          ASTRO_TELEMETRY_DISABLED: "1"
         run: |
-          npm ci
+          npm ci --ignore-scripts
           npm run build
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

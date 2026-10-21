@@ -11,7 +11,11 @@
 //     code highlighter's reach, for src/components/Mermaid.astro to draw.
 //     It does so only on a page the sync marked `ktlMermaid`, since only
 //     those pages load that script. On any other page the block stays code.
+// On every page, raw HTML passes only as GitHub would render it
+// (scripts/raw-html.mjs): a tag GitHub allows keeps the attributes it
+// allows, and any other markup is shown as text.
 import { BASE } from "./config.mjs";
+import { cleanRawHtml } from "./raw-html.mjs";
 import { rewriteHtml, rewriteUrl } from "./routes.mjs";
 
 // Both are shared with the sync, which resolves a concept's wikilinks the
@@ -26,12 +30,24 @@ export function resolveWikilink(name, selfId, ids) {
   return hits.length === 1 ? hits[0] : null;
 }
 
-/** The plugin factory: called once per document, it returns null for a page the sync did not write. */
+/** Put a raw HTML node through cleanRawHtml, saying in the build's log what it dropped or showed as text. */
+export function cleanHtmlNode(node, ctx, where, value = node.value) {
+  const clean = cleanRawHtml(value);
+  if (clean.html === null) {
+    console.warn(`markdown: ${where}: raw HTML shown as text, since it holds ${clean.reason}`);
+    ctx.replaceNode(node, { type: "html", value: escapeHtml(node.value) });
+    return;
+  }
+  for (const d of clean.dropped) console.warn(`markdown: ${where}: dropped ${d}`);
+  if (clean.html !== node.value) ctx.setProperty(node, "value", clean.html);
+}
+
+/** The plugin factory: called once per document. A page the sync did not write gets the raw HTML check alone. */
 export default function markdownKtl({ conceptIds = [] } = {}) {
   return ({ data }) => {
     const fm = data?.astro?.frontmatter ?? {};
     const source = fm.ktlSource;
-    if (!source) return null;
+    if (!source) return { name: "ktl-raw-html", html: (node, ctx) => cleanHtmlNode(node, ctx, "a page of the site") };
     const selfId = source.startsWith(".lokf/knowledge/")
       ? source.slice(".lokf/knowledge/".length).replace(/\.md$/, "")
       : null;
@@ -45,8 +61,7 @@ export default function markdownKtl({ conceptIds = [] } = {}) {
       image: relink,
       definition: relink,
       html(node, ctx) {
-        const value = rewriteHtml(source, node.value);
-        if (value !== node.value) ctx.setProperty(node, "value", value);
+        cleanHtmlNode(node, ctx, source, rewriteHtml(source, node.value));
       },
       heading(node, ctx) {
         if (fm.ktlShiftHeadings) ctx.setProperty(node, "depth", Math.min(6, node.depth + 1));

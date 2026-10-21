@@ -135,6 +135,12 @@ jobs:
     # propose that change again. A run a person starts goes ahead.
     if: github.event_name != 'schedule' || needs.earlier.outputs.open == ''
     runs-on: ubuntu-latest
+    # AGENT_API_KEY and AGENT_CLI, when it is a secret, belong in this
+    # Environment, limited to the default branch, so a workflow on any other
+    # branch cannot read them. It records no deployment.
+    environment:
+      name: knowledge-librarian
+      deployment: false
     permissions:
       contents: read # read the repo only; no write token near the agent
       # Lets the job token pay for Copilot CLI requests. The token reaches the
@@ -177,9 +183,10 @@ jobs:
       # note: .agents/ and .claude/ are gitignored), so a scheduled run cannot
       # rely on it already being present in the checkout. Install it fresh,
       # pinned to one release, on every run. A plain clone of the tagged
-      # public repo needs no `gh` flags and no token. The install target is
-      # gitignored, so it is invisible both to "Enforce the agent's write
-      # scope" below and to "Detect changes".
+      # public repo needs no `gh` flags and no token. The install target must
+      # be gitignored, so that it is invisible both to "Enforce the agent's
+      # write scope" below and to "Detect changes", and the step stops before
+      # any agent runs when it is not.
       #
       # The pin is a tag and the commit that tag named when the pin was set. A
       # tag can be moved, and what it names here is the instructions an agent
@@ -198,8 +205,8 @@ jobs:
         if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.52.0 # the one pin; point your docs here instead of repeating it
-          TRUST_LADDER_SKILLS_SHA: 2801e26f2fc99675eb395b639670ec789e49eb08 # the commit that tag names
+          TRUST_LADDER_SKILLS_REF: v0.53.0 # the one pin; point your docs here instead of repeating it
+          TRUST_LADDER_SKILLS_SHA: d5c7817f57ac4e68cd48721a309825afaacd8994 # the commit that tag names
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -213,6 +220,10 @@ jobs:
           rm -rf .agents/skills/ktl-librarian
           cp -R "$tmp/skills/ktl-librarian" .agents/skills/
           test -f .agents/skills/ktl-librarian/SKILL.md
+          if ! git check-ignore -q .agents/skills/ktl-librarian/SKILL.md; then
+            echo "::error::git does not ignore .agents/, where the skill was installed, so the write-scope check would fail the run. Add .agents/, .claude/ and skills-lock.json to the root .gitignore, as ktl-sidecar's repo hygiene note says."
+            exit 1
+          fi
           echo "Installed ktl-librarian@$TRUST_LADDER_SKILLS_REF ($TRUST_LADDER_SKILLS_SHA)"
 
       # Both agent commands the sidecar documents run through npx, and Copilot
@@ -225,11 +236,12 @@ jobs:
         with:
           node-version: "22"
 
-      # Set this up under Settings -> Secrets and variables -> Actions, as
-      # repository variables and secrets: this job names no environment, so it
-      # never sees an environment's. The
-      # sidecar's references/automation.md gives the full commands for Copilot
-      # CLI and for Claude Code.
+      # Set this up under Settings -> Secrets and variables -> Actions: the
+      # variables on the repository, and the secrets on the
+      # knowledge-librarian Environment, limited to the default branch (a
+      # repository secret still works, but any branch's workflow can read
+      # it). The sidecar's references/automation.md gives the full commands
+      # for Copilot CLI and for Claude Code.
       #   1. Set KNOWLEDGE_LIBRARIAN_ENABLED to "true" to turn on the run.
       #      Anything else (or unset) leaves this step skipped, a safe no-op.
       #   2. Set AGENT_CLI to your non-interactive agent command; the wrapper
