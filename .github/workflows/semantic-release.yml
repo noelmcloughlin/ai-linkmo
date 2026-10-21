@@ -76,12 +76,16 @@ jobs:
       # Angular preset's feat/fix plus this repository's `security`, and any
       # type marked breaking by a `!` or a BREAKING CHANGE footer. Both checks
       # below key off this one answer.
+      # Only the pull request's own commits count: HEAD is GitHub's trial
+      # merge with today's main, so on a branch that main has moved past,
+      # "$BASE..HEAD" would read main's commits too.
       - name: Read whether these commits would release
         id: commits
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if git log --format='%s%n%b' "$BASE..HEAD" \
+          if git log --format='%s%n%b' "$(git merge-base "$BASE" "$HEAD_SHA")..$HEAD_SHA" \
             | grep -qE '^((feat|fix|security)(\([^)]*\))?!?:|[a-z]+(\([^)]*\))?!:|BREAKING CHANGE:)'; then
             echo "releases=true" >> "$GITHUB_OUTPUT"
           else
