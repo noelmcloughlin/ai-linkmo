@@ -13,8 +13,8 @@ bundle := "knowledge"
 # Leave it empty for the core vocabulary alone. The two validate recipes run
 # from the schema's directory, because linkml-runtime before 1.12.0 resolves a
 # schema's relative imports from the working directory, and uv.lock may hold
-# such a version. The three workflows run these recipes, so this one line is
-# the whole of the host's wiring.
+# such a version. The three workflows run these recipes, so a host sets its
+# schema on this one line and nowhere else.
 schema := ""
 _validate := if schema == "" { "uv run lokf validate" } else { "cd " + quote(parent_directory(justfile_directory() / schema)) + " && uv run --project " + quote(justfile_directory()) + " lokf validate --schema " + quote(file_name(schema)) }
 _bundle := if schema == "" { bundle } else { quote(justfile_directory() / bundle) }

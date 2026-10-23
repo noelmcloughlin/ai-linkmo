@@ -24,3 +24,9 @@ patch.yaml
 # knowledge-ingest.py keeps the mirror of a confidential entry under
 # .cache/mirror/, which is never committed.
 .cache/
+
+# knowledge-apply.sh stages the concepts it is about to write here for lokf
+# validate, and removes the folder after. A pen killed during the check can
+# leave it behind. The scheduled librarian refuses any run that changed a
+# file git sees.
+.pen-check-*/

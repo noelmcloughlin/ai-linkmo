@@ -40,7 +40,7 @@ on:
     - cron: "0 6 * * 1" # Mondays at 06:00 UTC
   workflow_dispatch:
 
-# Least-privilege default: no token scope at all unless a job opts in, the
+# Least-privilege default: no token scope unless a job opts in, the
 # same default knowledge-librarian.yaml already sets. Each job below names
 # exactly what it needs.
 permissions: {}
@@ -212,7 +212,7 @@ jobs:
           # copy does not. An added line would not do: a re-dated `at`, a moved
           # `revision` or a flow-style event adds no `by:` line, and a
           # `by: human:` in a body code fence or a send-back note is not an
-          # event at all.
+          # event.
           #
           # Any event present at head and absent at base names an actor who
           # must stand behind it. So does a `verified` event present at base
@@ -230,7 +230,7 @@ jobs:
               inev = 0; by = ""; at = ""; rev = "" }
             function flow(s,  n, parts, i) { emit(); inev = 1; gsub(/[{}]/, "", s); n = split(s, parts, ",")
               for (i = 1; i <= n; i++) kv(parts[i]); emit() }
-            # A flow verified/generated may span lines - valid YAML a
+            # A flow verified/generated may span lines: valid YAML a
             # block-only reader skips, which would let a forged confirmation
             # past the gate. Accumulate to the closing bracket, then parse: a
             # sequence into its events, a mapping as one. Matches
@@ -282,7 +282,7 @@ jobs:
           # Against every parent: a merge that brings in another curator's
           # confirmation claims nothing, and one that adds an event neither
           # side held is read like any other commit. Without -m, git lists no
-          # paths at all for a merge.
+          # paths for a merge.
           new_in_commit() {  # sha -> actors of events at sha that none of its parents holds
             { git -c core.quotePath=false diff-tree --no-commit-id --name-only -r -m "$1" -- .lokf/knowledge knowledge_bundle | tee -a "$listed" | grep '\.md$' | sort -u > "$paths"
               events_in "$1" < "$paths" | comm -13 <(for p in $(git rev-parse "$1^@"); do events_in "$p" < "$paths"; done | sort -u) - | cut -f2; } || true

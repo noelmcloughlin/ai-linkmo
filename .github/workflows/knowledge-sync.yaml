@@ -28,11 +28,12 @@ name: Knowledge sync
 # branch and last pull request under a token that can read the repository
 # and its pull requests, and nothing else. `sync` runs the host's own sync
 # script under a read-only token with no git credentials on disk, and hands
-# the change to `publish` as a patch artifact. `publish` runs the copy of
-# the same script on the default branch with --apply: it refuses any path
-# or change a sync may not make, and keeps every workflow as it is here but
-# for the pin, which it sets from the tag and the commit it read at the
-# skills repository. Then it writes the pull request's body from that patch
+# the change to `publish` as a patch artifact.
+#
+# `publish` runs the copy of the same script on the default branch with
+# --apply. That copy refuses any path or change a sync may not make. It
+# keeps every workflow as it is here but for the pin, which it sets from the
+# tag and the commit it read at the skills repository. Then it writes the pull request's body from that patch
 # and nothing the `sync` job wrote, and opens or refreshes the pull request.
 # The pull request's own checks run the synced scripts and site files with a
 # read-only token, as they run on any change here.
@@ -49,8 +50,8 @@ name: Knowledge sync
 #
 # The pin is under .github/workflows/, which the job's own GITHUB_TOKEN may
 # not push. So `publish` pushes and opens the pull request with the
-# KNOWLEDGE_SYNC_TOKEN secret: a fine-grained personal access token for this
-# repository alone, with Contents, Pull requests and Workflows set to read
+# KNOWLEDGE_SYNC_TOKEN secret. The secret is a fine-grained personal access
+# token for this repository alone, with Contents, Pull requests and Workflows set to read
 # and write, or a GitHub App's installation token made in a step of your
 # own. Keep it in the knowledge-sync Environment, limited to the default
 # branch, so no workflow on another branch can read it; a repository secret
@@ -67,14 +68,14 @@ name: Knowledge sync
 # answers each under "The sync workflow":
 #   - a repository fetched at run time: `sync` clones the release as data,
 #     a manifest and the templates it names, under contents: read, with no
-#     credential on disk, only after the tag was found at the address this
-#     repository's own librarian workflow names. The script that reads it is
+#     credential on disk. It clones only after the tag was found at the
+#     address this repository's own librarian workflow names. The script that reads it is
 #     this repository's own, reviewed and merged here, and the pull request
 #     shows every byte the sync proposes;
 #   - a token that can write workflows: KNOWLEDGE_SYNC_TOKEN is scoped to
 #     this repository and to the default branch's knowledge-sync
-#     Environment, reaches `publish` and `push-workflows` alone, and pushes
-#     one branch and opens or edits one pull request; the jobs' own token
+#     Environment, and reaches `publish` and `push-workflows` alone. It
+#     pushes one branch and opens or edits one pull request; the jobs' own token
 #     keeps contents: read;
 #   - a forced push: only to knowledge-sync, this workflow's own branch,
 #     leased to the commit the run read, and only over this workflow's own
@@ -138,7 +139,7 @@ jobs:
       # and sync-<tag>, the branch the sync script makes by hand. A fork's
       # branch of the same name does not count, since anyone can open a pull
       # request from one. From each it takes the newest pull request's
-      # number, state, head commit and commit count, and reads the pin out
+      # number, state, head commit and commit count. It reads the pin out
       # of the librarian workflow at that commit, which says what the pull
       # request proposed whether or not its branch still exists. A title,
       # body or comment is never read. The input is read through `env:` and
@@ -375,9 +376,9 @@ jobs:
       # Trust nothing the `sync` job decided on its own: it read a release
       # nobody here has reviewed. The pin's commit is read here, from the
       # skills repository itself. Then this checkout's own copy of the sync
-      # script, from the default branch, puts the patch on: it refuses any
-      # path or change a sync may not make, keeps every workflow as it is
-      # here but for the pin, and holds the workflow changes the release
+      # script, from the default branch, puts the patch on. It refuses any
+      # path or change a sync may not make, and keeps every workflow as it is
+      # here but for the pin. It holds the workflow changes the release
       # brought in a patch of their own, for a person to read and apply.
       - name: Check the patch and apply it
         id: check

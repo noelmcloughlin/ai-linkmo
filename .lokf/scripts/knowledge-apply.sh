@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 # The pen, the librarian's only way to write the bundle. ktl-librarian
 # describes each change to the bundle as an operation in .lokf/patch.yaml and
-# never edits .lokf/knowledge/ itself; this script checks every operation and
-# writes the files, or refuses the whole file and writes nothing. The rules live in the Python half beside it,
-# knowledge-apply.py, which this script runs through `uv run` (the script's
-# own header names pyyaml) or, without uv, through python3 where pyyaml is
-# installed. The scheduled wrapper runs it after the agent has finished.
+# never edits .lokf/knowledge/ itself. This script checks every operation and
+# writes the files, or refuses the whole file and writes nothing. The
+# scheduled wrapper runs it after the agent has finished.
+#
+# The rules live in the Python half beside it, knowledge-apply.py. This
+# script runs it with the sidecar's own .venv when that holds pyyaml, then
+# through `uv run` (the script's own header names pyyaml), then through
+# python3 where pyyaml is installed. The .venv comes first because `uv sync`
+# installed it from uv.lock, so a run needs no package index. An index that
+# serves no upload times, as a Nexus or Artifactory mirror often does, makes
+# `uv run` refuse every file the script's `exclude-newer` names. Each
+# interpreter must be Python 3.9 or later. On an enterprise host python3 is
+# often older, and the script would stop at its first line.
 #
 # Usage: knowledge-apply.sh [--dry-run] [--keep] [--handoff <file>] [--root <repo-root>] [<patch-file>]
 #        knowledge-apply.sh --format
@@ -37,10 +45,14 @@ done
 [ -n "$root" ] || root="$(cd "$here/../.." && pwd)"
 py="$here/knowledge-apply.py"
 [ -f "$py" ] || { echo "knowledge-apply: $py is missing beside this script; run ktl-sidecar's repair path" >&2; exit 2; }
-if command -v uv >/dev/null 2>&1; then
+usable() { command -v "$1" >/dev/null 2>&1 && "$1" -c 'import sys; assert sys.version_info >= (3, 9); import yaml' >/dev/null 2>&1; }
+venv="$root/.lokf/.venv/bin/python"; [ -e "$venv" ] || venv="$root/.lokf/.venv/Scripts/python.exe"
+if usable "$venv"; then
+  exec "$venv" "$py" --root "$root" ${args[@]+"${args[@]}"}
+elif command -v uv >/dev/null 2>&1; then
   exec uv run --quiet "$py" --root "$root" ${args[@]+"${args[@]}"}
-elif command -v python3 >/dev/null 2>&1 && python3 -c 'import yaml' >/dev/null 2>&1; then
+elif usable python3; then
   exec python3 "$py" --root "$root" ${args[@]+"${args[@]}"}
 fi
-echo "knowledge-apply: needs uv, which installs pyyaml for the script, or python3 with pyyaml; nothing was written. The sidecar's references/prerequisites.md says who installs uv." >&2
+echo "knowledge-apply: needs the sidecar's .venv (uv sync in .lokf/), uv, or python3 3.9 or later with pyyaml; nothing was written. The sidecar's references/prerequisites.md says who installs uv." >&2
 exit 2
