@@ -9,7 +9,7 @@
 # had just been fetching URLs and reading repository files, held off by
 # nothing but a line of prose telling it not to act on them. This script does
 # the insertion instead. The caller hands over its own entry and never opens
-# the file, so no other reader's text reaches the model at all. The guard is
+# the file, so no other reader's text reaches the model. The guard is
 # the call, not a rule an agent has to keep (docs/threat-model.md,
 # "Prompt-injection guards").
 #
@@ -155,9 +155,9 @@ readonly_bundle() {
 # Two runs at once, such as parallel agents in one checkout, would each read
 # the file, and the second mv would drop the first entry without a word. A
 # directory is the one lock every platform here creates atomically. A run
-# killed outright leaves it behind; the message says what to remove. When
-# mkdir fails and no lock is there, nothing can be created here at all, on a
-# read-only mount that -w did not see, and that is the other message.
+# killed before it can clean up leaves it behind; the message says what to
+# remove. When mkdir fails and no lock is there, nothing can be created here,
+# on a read-only mount that -w did not see, and that is the other message.
 tries=0
 until mkdir "$lock" 2>/dev/null; do
   [ -d "$lock" ] || readonly_bundle

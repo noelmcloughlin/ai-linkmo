@@ -9,14 +9,14 @@
 # 13 and 14 (see that script's header for the list).
 #
 # Rules 2, 3, 7 and 9 are questions about a document's YAML that a real
-# parser answers outright, where grep and awk could only approximate. Is this
+# parser can decide, where grep and awk could only approximate. Is this
 # scalar quoted, is this key a list or a mapping, do two files share an id,
 # does the block even parse? An unquoted `at:` is only visible as a
 # `datetime` once something parses the document. A flow-style
 # `verified: { by: ... }` or a multi-line flow item is where a line-oriented
 # regex used to guess wrong.
 #
-# Rule 4 is a body rule that goes with them. Rule 10 exists because the
+# Rule 4 is a body rule, checked with them. Rule 10 exists because the
 # provenance gates do read the frontmatter line by line: it keeps the fields
 # they read to spellings a line reader and a parser agree on. Rule 12 compares
 # a concept's title and description, which only a parser reads whole, with
@@ -25,19 +25,21 @@
 # knowledge-apply.sh writes the whole frontmatter back and a requoted value is
 # no change. Rule 14 walks the commits after a base and compares each concept
 # that gains a person's confirmation with the same file in every parent, as
-# parsed values too. Rules 1, 5, 6, 8 and 11 stay in the shell script: they are git
-# and filesystem facts, and need not wait on uv.
+# parsed values too. The shell half checks rules 1, 5, 6, 8 and 11: they are
+# git and filesystem facts, and need no uv.
 #
-# Usage: knowledge-conventions.py <bundle-dir> [--since <commit>]. Same contract as the shell
-# half: one line per finding on stdout, exit 1 if any; "OK" and exit 0 if
-# none. Invoked by knowledge-conventions.sh through `uv run`, which reads the
-# dependency block above and needs nothing preinstalled; run directly it
-# needs python3 and pyyaml.
+# Usage: knowledge-conventions.py <bundle-dir> [--since <commit>]
+#
+# Same contract as the shell half: one line per finding on stdout, exit 1 if
+# any; "OK" and exit 0 if none. The shell half runs it with the sidecar's
+# .venv, or through `uv run`, which installs what the dependency block above
+# names. Run directly, it needs python3 3.9 or later and pyyaml.
 #
 # That block names one PyYAML release, and `exclude-newer` takes no file
 # uploaded after its date. A registry never replaces a file, so every run
 # installs the files that were there when the pin was set, and this gate runs
-# what a person reviewed. Move the version and the date together, here and in
+# what a person reviewed. The .venv holds what uv.lock pins, by hash, which a
+# person reviewed too. Move the version and the date together, here and in
 # knowledge-apply.py; the skills repository's contract holds the two equal.
 
 from __future__ import annotations

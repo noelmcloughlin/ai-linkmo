@@ -46,6 +46,7 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
       placeholder="Search nodes by label…"
       autocomplete="off"
     />
+    <p class="lokf-graph__shown" aria-live="polite" hidden></p>
     <div class="lokf-graph__filters">
       <fieldset class="lokf-graph__fieldset" data-filter="bundle" hidden>
         <legend>Bundles</legend>
@@ -134,13 +135,41 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
     if (root.dataset.ready) return;
     root.dataset.ready = "1";
     const workspaceSrc = root.dataset.workspaceSrc;
-    const workspace = !!workspaceSrc && new URLSearchParams(location.search).get("graph") === "workspace";
-    root.querySelectorAll<HTMLAnchorElement>(".lokf-graph__views a").forEach((a) => {
-      if ((a.dataset.view === "workspace") === workspace) a.setAttribute("aria-current", "page");
-    });
-    const src = workspace ? workspaceSrc! : root.dataset.graphSrc!;
     const stage = root.querySelector(".lokf-graph__canvas") as HTMLElement;
-    fetch(src)
+    // Each drawing listens until the next one starts, so switching views
+    // draws the other graph in place, and full screen stays on.
+    let current: AbortController | null = null;
+    const load = () => {
+      current?.abort();
+      const run = (current = new AbortController());
+      const workspace = !!workspaceSrc && new URLSearchParams(location.search).get("graph") === "workspace";
+      root.querySelectorAll<HTMLAnchorElement>(".lokf-graph__views a").forEach((a) => {
+        if ((a.dataset.view === "workspace") === workspace) a.setAttribute("aria-current", "page");
+        else a.removeAttribute("aria-current");
+      });
+      root.querySelectorAll(".lokf-graph__fieldset :is(label, .lokf-graph__all)").forEach((l) => l.remove());
+      (root.querySelector(".lokf-graph__shown") as HTMLElement).hidden = true;
+      (root.querySelector('[data-filter="bundle"]') as HTMLElement).hidden = true;
+      (root.querySelector(".lokf-graph__detail") as HTMLElement).hidden = true;
+      (root.querySelector(".lokf-graph__search") as HTMLInputElement).value = "";
+      stage.replaceChildren();
+      draw(root, stage, workspace, workspace ? workspaceSrc! : root.dataset.graphSrc!, run.signal);
+    };
+    root.querySelectorAll<HTMLAnchorElement>(".lokf-graph__views a").forEach((a) =>
+      a.addEventListener("click", (e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        if (a.getAttribute("aria-current") === "page") return;
+        history.pushState(null, "", a.href);
+        load();
+      }),
+    );
+    window.addEventListener("popstate", load);
+    load();
+  }
+
+  function draw(root: HTMLElement, stage: HTMLElement, workspace: boolean, src: string, signal: AbortSignal) {
+    fetch(src, { signal })
       .then((r) => {
         // The federation workflow adds the workspace after the site is
         // built, and leaves out one that holds internal metadata.
@@ -152,13 +181,14 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
         if (!r.ok) throw new Error(`${src} answered ${r.status} ${r.statusText}`);
         return r.json();
       })
-      .then((graph: Elements | null) => graph && render(root, graph, workspace))
+      .then((graph: Elements | null) => graph && !signal.aborted && render(root, graph, workspace, signal))
       .catch((e) => {
+        if (signal.aborted) return;
         stage.textContent = "Could not load graph: " + e;
       });
   }
 
-  async function render(root: HTMLElement, graph: Elements, workspace: boolean) {
+  async function render(root: HTMLElement, graph: Elements, workspace: boolean, signal: AbortSignal) {
     const mount = root.querySelector(".lokf-graph__canvas") as HTMLElement;
     const sourceBase = graph.meta?.source_base ?? "";
     // The workspace's nodes are coloured and shaped by bundle, a bundle's own coloured by type.
@@ -191,6 +221,7 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
       mount.textContent = `Laying out ${graph.nodes.length} concepts…`;
       await new Promise((done) => requestAnimationFrame(() => setTimeout(done, 0)));
       mount.textContent = "";
+      if (signal.aborted) return;
     }
 
     const fg = themeColor("--sl-color-text", "#333");
@@ -257,13 +288,19 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
         { selector: ".hidden", style: { display: "none" } },
       ],
     });
+    signal.addEventListener("abort", () => cy.destroy());
 
     // Filters: a checkbox per type and per predicate, and in the workspace
     // per bundle.
     const typeBox = root.querySelector('[data-filter="type"]') as HTMLElement;
     const predBox = root.querySelector('[data-filter="predicate"]') as HTMLElement;
     const bundleBox = root.querySelector('[data-filter="bundle"]') as HTMLElement;
-    const checkbox = (value: string, swatch?: string, text?: string, clip?: string) => {
+    const tally = (values: string[]) =>
+      values.reduce((m, v) => m.set(v, (m.get(v) ?? 0) + 1), new Map<string, number>());
+    const typeCount = tally(graph.nodes.map((n) => n.data.type));
+    const predCount = tally(graph.edges.map((e) => e.data.predicate));
+    const bundleCount = tally(graph.nodes.map((n) => n.data.bundle));
+    const checkbox = (value: string, count: number, swatch?: string, text?: string, clip?: string) => {
       const label = document.createElement("label");
       const input = document.createElement("input");
       input.type = "checkbox";
@@ -277,16 +314,41 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
         if (clip) dot.style.clipPath = clip;
         label.append(dot);
       }
-      label.append(document.createTextNode(" " + (text ?? value)));
-      input.addEventListener("change", applyFilters);
+      const name = document.createElement("span");
+      name.textContent = text ?? value;
+      const tallied = document.createElement("span");
+      tallied.className = "lokf-graph__count";
+      tallied.textContent = String(count);
+      label.append(name, tallied);
+      input.addEventListener("change", applyFilters, { signal });
       return label;
     };
-    types.forEach((t) => typeBox.append(checkbox(t, workspace ? undefined : colorOf[t])));
-    predicates.forEach((p) => predBox.append(checkbox(p)));
+    types.forEach((t) => typeBox.append(checkbox(t, typeCount.get(t) ?? 0, workspace ? undefined : colorOf[t])));
+    predicates.forEach((p) => predBox.append(checkbox(p, predCount.get(p) ?? 0)));
     if (workspace && bundles.size) {
       bundleBox.hidden = false;
-      bundles.forEach((b, slug) => bundleBox.append(checkbox(slug, colorOf[slug], b.title, shapeOf[slug][1])));
+      bundles.forEach((b, slug) =>
+        bundleBox.append(checkbox(slug, bundleCount.get(slug) ?? 0, colorOf[slug], b.title, shapeOf[slug][1])),
+      );
     }
+    // "All" and "None" on each group, so a reader with many boxes can keep
+    // one or two in two clicks.
+    [typeBox, predBox, bundleBox].forEach((box) => {
+      const bar = document.createElement("div");
+      bar.className = "lokf-graph__all";
+      for (const [text, on] of [["All", true], ["None", false]] as const) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = text;
+        b.addEventListener("click", () => {
+          box.querySelectorAll<HTMLInputElement>("input").forEach((i) => (i.checked = on));
+          applyFilters();
+        }, { signal });
+        bar.append(b);
+      }
+      box.querySelector("legend")!.after(bar);
+    });
+    const shown = root.querySelector(".lokf-graph__shown") as HTMLElement;
 
     function checkedValues(box: HTMLElement) {
       return new Set(
@@ -307,6 +369,13 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
       cy.edges().forEach((e) =>
         e.toggleClass("hidden", !okPreds.has(e.data("predicate"))),
       );
+      // A filter that hides anything says so, so no part of the graph goes
+      // missing unremarked.
+      const total = cy.nodes().length;
+      const visible = cy.nodes(":visible").length;
+      const filtered = root.querySelector(".lokf-graph__filters input:not(:checked)") !== null;
+      shown.hidden = !filtered;
+      shown.textContent = `${visible} of ${total} concepts shown`;
     }
 
     // Search dims non-matching nodes.
@@ -316,7 +385,7 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
       cy.nodes().forEach((n) =>
         n.toggleClass("dim", q !== "" && !String(n.data("label") ?? "").toLowerCase().includes(q)),
       );
-    });
+    }, { signal });
 
     // Detail panel on node click.
     const detail = root.querySelector(".lokf-graph__detail") as HTMLElement;
@@ -389,7 +458,7 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
     cy.on("tap", (evt) => {
       if (evt.target === cy && !detail.hidden) close();
     });
-    (root.querySelector(".lokf-graph__close") as HTMLElement).addEventListener("click", close);
+    (root.querySelector(".lokf-graph__close") as HTMLElement).addEventListener("click", close, { signal });
 
     // Zoom to fit once the force layout settles (fcose fits too, but a re-fit
     // after the container has its final size avoids the "too zoomed in" start).
@@ -429,12 +498,12 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
 
     // Toolbar: fit + a full-screen graph browser (the whole explorer — search,
     // filters, and graph — fills the viewport).
-    root.querySelector('[data-action="fit"]')!.addEventListener("click", fit);
+    root.querySelector('[data-action="fit"]')!.addEventListener("click", fit, { signal });
     const fsBtn = root.querySelector('[data-action="fullscreen"]') as HTMLButtonElement;
     fsBtn.addEventListener("click", () => {
       if (document.fullscreenElement) document.exitFullscreen();
       else root.requestFullscreen?.();
-    });
+    }, { signal });
     document.addEventListener("fullscreenchange", () => {
       const full = document.fullscreenElement === root;
       root.classList.toggle("is-fullscreen", full);
@@ -444,7 +513,9 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
         cy.resize();
         fit();
       });
-    });
+    }, { signal });
+    // A view drawn while full screen is on gets the full-screen label.
+    if (document.fullscreenElement === root) fsBtn.textContent = "⛶ Exit full screen";
   }
 
   // This module script is deferred, so the DOM is ready — boot now. Also
@@ -514,17 +585,61 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
     color: var(--sl-color-gray-2);
     padding: 0 0.3rem;
   }
+  /* Each row is a whole click target, so the filters read as controls. */
   .lokf-graph__fieldset label {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8rem;
-    line-height: 1.8;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    border-radius: 0.3rem;
     cursor: pointer;
   }
+  .lokf-graph__fieldset label:hover {
+    background: var(--sl-color-gray-6);
+  }
+  .lokf-graph__fieldset input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    flex: none;
+    accent-color: var(--sl-color-accent);
+    cursor: pointer;
+  }
+  .lokf-graph__count {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--sl-color-gray-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .lokf-graph__fieldset .lokf-graph__all {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0.1rem 0 0.3rem;
+  }
+  .lokf-graph__all button {
+    font-size: 0.72rem;
+    padding: 0.1rem 0.55rem;
+    color: var(--sl-color-text);
+    background: var(--sl-color-black);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.3rem;
+    cursor: pointer;
+  }
+  .lokf-graph__all button:hover {
+    border-color: var(--sl-color-accent);
+    color: var(--sl-color-accent-high);
+  }
+  .lokf-graph .lokf-graph__shown {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--sl-color-gray-2);
+  }
   .lokf-graph__swatch {
-    width: 0.7rem;
-    height: 0.7rem;
+    width: 0.8rem;
+    height: 0.8rem;
     border-radius: 50%;
     flex: none;
   }
@@ -561,18 +676,38 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
     border-radius: 0.5rem;
     background: var(--sl-color-gray-7, var(--sl-color-black));
   }
-  /* Full-screen graph browser: the whole explorer — search, filters, and
-     graph — fills the viewport, with the graph stage taking the leftover
-     height. */
+  /* Full-screen graph browser: the view links run along the top, search and
+     filters in a side panel that scrolls on its own, and the graph stage
+     takes the rest, so however many filters there are, the graph keeps the
+     full height. */
   .lokf-graph.is-fullscreen {
     margin: 0;
     padding: 1rem;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(12rem, 18rem) 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 0 1rem;
     background: var(--sl-color-bg);
   }
+  .lokf-graph.is-fullscreen .lokf-graph__views {
+    grid-column: 1 / -1;
+  }
+  .lokf-graph.is-fullscreen .lokf-graph__controls {
+    grid-row: 2;
+    min-height: 0;
+    margin: 0;
+    overflow-y: auto;
+  }
+  .lokf-graph.is-fullscreen .lokf-graph__filters {
+    flex-direction: column;
+  }
+  .lokf-graph.is-fullscreen .lokf-graph__fieldset {
+    flex: none;
+    min-width: 0;
+  }
   .lokf-graph.is-fullscreen .lokf-graph__stage {
-    flex: 1;
+    grid-row: 2;
+    grid-column: 2;
     min-height: 0;
   }
   .lokf-graph.is-fullscreen .lokf-graph__canvas {

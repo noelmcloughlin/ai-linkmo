@@ -31,7 +31,7 @@
 #                                concept is counted here and not as confirmed,
 #                                since the person confirmed an earlier text
 #   checked by automation only   `verified` holds events, none a person's
-#   nobody has checked this yet  no `verified` event at all
+#   nobody has checked this yet  no `verified` event
 #   still a draft                `status: draft`, and no person has confirmed it
 #   reopened                     `status: draft` on a concept a person has
 #                                confirmed: a question asked since waits, and
@@ -47,11 +47,13 @@
 #                                log.md links one
 #
 # The whole report also prints what ktl-curator ranks its queue by, so that
-# no model counts or sorts it: each review date due within 30 days, each
-# concept a person confirmed that is derived from one edited after that
-# confirmation, how many other concepts rely on each concept, and Worth ten
-# minutes today, the queue itself. "The curator's queue" below says how a
-# relation's target is found.
+# no model counts or sorts it:
+#   - each review date due within 30 days;
+#   - each concept a person confirmed that is derived from one edited after
+#     that confirmation;
+#   - how many other concepts rely on each concept;
+#   - Worth ten minutes today, the queue itself.
+# "The curator's queue" below says how a relation's target is found.
 #
 # One fact comes from git and not from frontmatter, so a host without git is
 # told it was not computed: whether a source "moved" after an event. The
@@ -71,8 +73,8 @@
 # was.
 #
 # An open question is "answered" here when a person confirmed the concept on
-# or after the day the question is dated and the concept is no longer a
-# draft: the person looked again after it was asked. ktl-curator clears a
+# or after the day the question is dated, and the concept is no longer a
+# draft. The person looked again after it was asked. ktl-curator clears a
 # person's note on that person's word, and ktl-librarian withdraws its own
 # with the pen's `resolve`.
 #
@@ -82,7 +84,7 @@
 #   - a person left a note after the librarian last wrote or checked that
 #     concept;
 #   - reader feedback waits;
-#   - a concept carries no stamp at all, as in the skeleton ktl-sidecar
+#   - a concept carries no stamp, as in the skeleton ktl-sidecar
 #     installs: no `generated`, no `timestamp` and no `verified` event, so no
 #     history can say what moved for it.
 #
@@ -115,11 +117,15 @@
 #   touched <path>    a concept that pull request changed or removed
 #   added <path>      a concept it added
 #   handled <hash>    git's blob hash of a feedback entry it handled
+#
 # A person said no to those changes, so nothing that pull request had before
-# it counts as work: a source of a touched concept whose last commit is that
-# base commit or an ancestor of it, a note a person left there no later, a
-# touched concept with no stamp that has not changed since, and a feedback
-# entry it handled. Each makes work again once it changes: the source moves,
+# it counts as work:
+#   - a source of a touched concept whose last commit is that base commit or
+#     an ancestor of it;
+#   - a note a person left there no later;
+#   - a touched concept with no stamp that has not changed since;
+#   - a feedback entry it handled.
+# Each makes work again once it changes: the source moves,
 # a person leaves a new note, a reader asks again. The work list names what
 # was left and the concepts that pull request added, so that none is proposed
 # twice. A run a person starts is handed no such file: starting it is the
@@ -159,7 +165,7 @@
 #   - a tracked file in scope is named by nobody;
 #   - a folder given holds no tracked file, as a mistyped one does;
 #   - the whole count holds a path it cannot read;
-#   - it cannot count at all.
+#   - the count cannot run.
 # So a check built on it never passes by default.
 #
 # Without git it says it cannot count. It never makes a scheduled run busy.
@@ -210,7 +216,7 @@ today="$(date -u +%Y-%m-%d)"
 have_git=0
 if command -v git >/dev/null 2>&1 && git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1; then have_git=1; fi
 # The bundle's real folder, since git names a concept by it and never through
-# a link. And whether git tracks the bundle at all, which a gitignored .lokf/
+# a link. And whether git tracks the bundle, which a gitignored .lokf/
 # does not, so that "nothing moved" is never said of a history that is absent.
 kdir="$(cd "$bundle" && pwd -P)"
 tracked=0
@@ -703,10 +709,12 @@ repeats() {  # concepts the ledger names more than once: readers keep asking abo
 
 # ---- the curator's queue -----------------------------------------------------
 # What ktl-curator ranks its queue by, so that no model counts or sorts it.
-# A relation's target is resolved as the KTL Curator plugin resolves it: an
-# IRI under base_iri by the path after it, any other IRI as written, and a
-# relative path from the bundle's root and then from the citing concept's
-# folder. A concept's id is its `id`, or base_iri and its path without `.md`.
+# A relation's target is resolved as the KTL Curator plugin resolves it:
+#   - an IRI under base_iri, by the path after it;
+#   - any other IRI, as written;
+#   - a relative path, from the bundle's root and then from the citing
+#     concept's folder.
+# A concept's id is its `id`, or base_iri and its path without `.md`.
 # Each concept that names another counts once for it, and a concept never
 # counts for itself. Retired concepts are left out of every list here.
 # `queue` prints Worth ten minutes today, in the order ktl-curator's
@@ -834,10 +842,12 @@ note_scan() {
     }')
 }
 
-# What else a closed pull request had before it, as `D` lines: a concept it
-# touched that still has no stamp and has not changed since, a concept it
-# added, which the work list names so that it is not added again, and the
-# feedback entries it handled, by their line numbers and never their words.
+# What else a closed pull request had before it, as `D` lines:
+#   - a concept it touched that still has no stamp and has not changed since;
+#   - a concept it added, which the work list names so that it is not added
+#     again;
+#   - the feedback entries it handled, by their line numbers and never their
+#     words.
 declined_rest() {
   local path base num day last us n line lines count prev dec pbase pday
   [ -s "$tmp/touched" ] || [ -s "$tmp/added" ] || [ -s "$tmp/handled" ] || return 0
@@ -899,10 +909,10 @@ quiet() {
 }
 
 # ---- changes -----------------------------------------------------------------
-# What the working tree, staged or not, does to the record against HEAD: for
-# a reviewer, and for the librarian workflow's pull request, which the job
-# holding the write token fills from a clean checkout rather than from
-# anything the agent's job reported. A path is printed only when it is made
+# What the working tree, staged or not, does to the record against HEAD, for
+# a reviewer and for the librarian workflow's pull request. The job holding
+# the write token fills that pull request from a clean checkout, rather than
+# from anything the agent's job reported. A path is printed only when it is made
 # of the characters a concept path may hold. Each confirmed concept the change
 # touches is named with what the change does to its label: a check or a
 # question leaves it confirmed, and an edit the pen stamped turns it to
@@ -918,7 +928,7 @@ changes() {
   # Git names each changed path from the top of the work tree, which is above
   # $root when the sidecar sits in a subfolder of a larger repository.
   top="$(git -C "$root" rev-parse --show-toplevel 2>/dev/null)" || top="$root"
-  # The sidecar may sit in a subfolder: git names each path, and resolves a
+  # The sidecar may sit in a subfolder. Git names each path, and resolves a
   # HEAD:<path>, from the top of the work tree, so prepend that folder's prefix
   # (empty when the sidecar is at the top) to reach the bundle and the ledgers.
   pfx="$(git -C "$root" rev-parse --show-prefix 2>/dev/null || true)"

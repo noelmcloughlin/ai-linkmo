@@ -12,10 +12,10 @@
 #   2. Every `at:` is a quoted string, and a UTC time to the second, as
 #      `date -u +%Y-%m-%dT%H:%M:%SZ` writes it. Unquoted, YAML hands the
 #      toolkit a datetime object and the curator's string comparison a
-#      surprise. In another shape the readers disagree: the report cannot
-#      read a lower-case `t`, which the federation build reads, no script
-#      reads a lower-case `z`, and the workspace's stored queries, which
-#      compare times as written, put an offset or a fraction out of order. A
+#      surprise. In another shape the readers disagree. The report cannot
+#      read a lower-case `t`, which the federation build reads, and no script
+#      reads a lower-case `z`. The workspace's stored queries compare times
+#      as written, so they put an offset or a fraction out of order. A
 #      person's event that no script reads would confirm every later edit.
 #   3. `verified` is a list, never a bare `{ by, at }` mapping, and carries at
 #      most one `process:ktl-librarian` event: the librarian replaces its
@@ -43,7 +43,7 @@
 #      how every sync client names a conflict copy.
 #   9. Every concept starts with a `---` frontmatter block that closes, with no
 #      byte order mark in front of it. A BOM from a web editor or Notepad, or a
-#      file with no block at all, would otherwise pass this script unread.
+#      file with no block, would otherwise pass this script unread.
 #  10. The fields the provenance gates read line by line are spelt so a line
 #      reader and a parser see the same thing. They are `id`, and `by`, `at`
 #      and `revision` on an event, and they carry no tags, anchors, aliases,
@@ -89,7 +89,7 @@
 #      what the concept says. Rule 13 compares with the commit that recorded
 #      the confirmation, so an edit made in that same commit reads as
 #      confirmed. With `--since <commit>`, each commit after it is read
-#      against every parent: one that adds a `human:` event no parent holds
+#      against every parent. One that adds a `human:` event no parent holds
 #      may change the concept's claims only when `generated.by` names that
 #      same person, which is how Correct now records an edit the person made.
 #      The registrar's gate passes the pull request's base. Without
@@ -108,14 +108,20 @@
 # A bundle written to the letter of OKF may fail them; that is a policy of the
 # gate, not a defect in the bundle.
 #
-# Rules 2, 3, 7, 9, 10 and 12 are questions about a document's YAML that a real
-# parse answers outright, and rule 4 goes with them. So this script hands
-# them to knowledge-conventions.py (same directory) through `uv run`, which
-# needs nothing preinstalled. Rules 13 and 14 go there too: they read git as
-# well, but they compare parsed values. Rules 1, 5, 6, 8 and 11 stay here: they are git and
-# filesystem facts, and this half, grep and awk only, keeps running wherever
-# bash and git do, with no toolchain at all. Without uv, this half still runs
-# and says so.
+# Rules 2, 3, 7, 9, 10 and 12 are checks on a document's YAML that need a
+# parser, and rule 4 is checked with them. So the Python half,
+# knowledge-conventions.py in the same directory, checks them. This shell
+# half checks rules 1, 5, 6, 8 and 11 itself: they are git and filesystem
+# facts, which grep and awk can check wherever bash and git run, with no
+# toolchain. Rules 13 and 14 read git too, but they compare parsed values,
+# so the Python half checks them as well.
+#
+# This script runs the Python half with the sidecar's .venv when the .venv
+# holds pyyaml and is Python 3.9 or later. Otherwise it runs the Python half
+# through `uv run`. knowledge-apply.sh says why the .venv is tried first.
+# Without either runner, the shell half still runs and says so. A runner that
+# cannot start the Python half, such as `uv run` refused by a package mirror,
+# is reported as a runner failure, not as a finding, and the script exits 2.
 #
 # Files are read with carriage returns removed and a leading byte order mark
 # stripped, so a Windows checkout (`core.autocrlf`) reads the same as CI. The
@@ -124,13 +130,14 @@
 #
 # Usage: knowledge-conventions.sh [bundle-dir] [--since <commit>]   (default:
 # knowledge, i.e. run from .lokf/). Exit 1 with one line per finding; nothing
-# else is written.
+# else is written. Exit 2 when the Python half could not run, with the
+# reason on stderr.
 [ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [bundle-dir] [--since <commit>]" >&2; exit 2; }
 set -euo pipefail
 
 # The bundle directory may be a link, on a host that keeps the real folder as
-# a visible knowledge_bundle/. find never enters a link it is handed bare, so
-# the trailing slash below is what makes it read the files at all.
+# a visible knowledge_bundle/. Handed a link bare, find never enters it, so
+# the trailing slash below is what makes it read the files.
 bundle="${1:-knowledge}"; bundle="${bundle%/}"
 since=""
 if [ $# -gt 1 ]; then
@@ -278,21 +285,44 @@ while IFS= read -r f; do
   fi
 done < <(find "$bundle/" -name '*.md' -not -path '*/.obsidian/*' | sort)
 
-# ---- 2, 3, 4, 7, 9, 10, 12, 13, 14. the parser's half --------------------------
-py="$(dirname "$0")/knowledge-conventions.py"
-skipped=""
-if command -v uv >/dev/null 2>&1; then
-  if ! out="$(uv run --quiet "$py" "$bundle" ${since:+--since "$since"} 2>&1)"; then
-    printf '%s\n' "$out"
-    fail=1
+# ---- 2, 3, 4, 7, 9, 10, 12, 13, 14. the Python half ----------------------------
+here="$(dirname "$0")"
+py="$here/knowledge-conventions.py"
+rules="rules 2, 3, 4, 7, 9, 10, 12 and 13"
+[ -z "$since" ] || rules="rules 2, 3, 4, 7, 9, 10, 12, 13 and 14"
+venv="$root/.lokf/.venv/bin/python"; [ -e "$venv" ] || venv="$root/.lokf/.venv/Scripts/python.exe"
+runner=""
+if [ -x "$venv" ] && "$venv" -c 'import sys; assert sys.version_info >= (3, 9); import yaml' >/dev/null 2>&1; then
+  runner="$venv"
+elif command -v uv >/dev/null 2>&1; then
+  runner=uv
+fi
+skipped=""; unrun=0
+if [ -n "$runner" ]; then
+  rc=0
+  if [ "$runner" = uv ]; then
+    out="$(uv run --quiet "$py" "$bundle" ${since:+--since "$since"} 2>&1)" || rc=$?
+  else
+    out="$("$runner" "$py" "$bundle" ${since:+--since "$since"} 2>&1)" || rc=$?
   fi
+  # The Python half exits 1 for findings. Any other failure is the runner's,
+  # or a usage error, and says nothing about the bundle.
+  case "$rc" in
+    0) ;;
+    1) printf '%s\n' "$out"; fail=1 ;;
+    *) unrun=1
+       printf '%s\n' "$out" >&2
+       hint=""
+       [ "$runner" = uv ] && hint=" Behind a package mirror, run uv sync in .lokf/ and this script uses that .venv."
+       echo "$rules not checked: $runner could not run $py (exit $rc).$hint" >&2 ;;
+  esac
 else
-  skipped="rules 2, 3, 4, 7, 9, 10, 12 and 13 not checked: uv not found"
-  [ -z "$since" ] || skipped="rules 2, 3, 4, 7, 9, 10, 12, 13 and 14 not checked: uv not found"
-  echo "$skipped - install uv, or run $py directly with python3 and pyyaml" >&2
+  skipped="$rules not checked: uv not found"
+  echo "$skipped - install uv, or run $py directly with python3 3.9 or later and pyyaml" >&2
 fi
 
-if [ "$fail" -eq 0 ]; then
+if [ "$fail" -eq 0 ] && [ "$unrun" -eq 0 ]; then
   echo "OK - $bundle keeps the conventions lokf validate cannot check${skipped:+ ($skipped)}"
 fi
+[ "$fail" -eq 0 ] && [ "$unrun" -eq 1 ] && exit 2
 exit "$fail"

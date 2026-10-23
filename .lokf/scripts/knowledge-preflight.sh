@@ -24,6 +24,9 @@ info() { line info "$1" "$2"; }
 warn() { line warn "$1" "$2"; warns=$((warns + 1)); }
 miss() { line missing "$1" "$2"; missing=$((missing + 1)); [ -n "${3:-}" ] && disables="${disables}${disables:+; }$3"; }
 have() { command -v "$1" >/dev/null 2>&1; }
+# The host of a URL, without its scheme, user, password, port and path. An
+# index URL may carry a password, so a URL is only ever printed this way.
+hostof() { printf '%s\n' "$1" | sed -e 's#^[A-Za-z][A-Za-z0-9+.-]*://##' -e 's#^[^/@]*@##' -e 's#[/:?].*$##'; }
 
 # ---- root ------------------------------------------------------------------
 root="${1:-}"
@@ -45,9 +48,31 @@ case "$os" in
   *) host="$os" ;;
 esac
 if have sha256sum; then digest="sha256sum"; elif have shasum; then digest="shasum -a 256"; else digest=""; fi
-if have python3; then py=python3; elif have python; then py=python; else py=""; fi
+# Only python3 is probed, because bare `python` is Python 2 on some hosts.
+# The skills' scripts need 3.9 or later, which an enterprise host's python3
+# often is not.
+pyv=""
+have python3 && pyv="$(python3 -c 'import sys; print("%d.%d" % sys.version_info[:2])' 2>/dev/null)"
 printf 'Preflight for %s\n' "$root"
-ok host "$host, bash ${BASH_VERSION%%(*}; digest: ${digest:-none (macOS: install coreutils, or use uv run python)}; python: ${py:-none (use uv run python)}"
+ok host "$host, bash ${BASH_VERSION%%(*}; digest: ${digest:-none (macOS: install coreutils, or use uv run python)}; python3: ${pyv:-none (use uv run python)}"
+case "$pyv" in
+  2.*|3.[0-8]) warn python "python3 is $pyv and the skills' scripts need 3.9 or later: run each through uv run or the sidecar's .venv, never python3 or python" ;;
+esac
+# The skill's copy of this script, run from the skill's folder or a folder in
+# it, screens the skill, not the host. Step 0 runs it from the host
+# repository's root. A host's own copy sits in .lokf/scripts/. A repository
+# that holds the skill, as the skills repository does, is the skill's parent.
+# Neither is warned about.
+self="$(cd "$(dirname "$0")" 2>/dev/null && pwd -P)"
+case "$self" in
+  */templates/scripts)
+    skill="${self%/templates/scripts}"
+    if [ -f "$skill/SKILL.md" ]; then
+      case "$root/" in
+        "$skill"/*) warn root "$root is in the ktl-sidecar skill's own folder, not a repository to screen: run this from the host repository's root, or pass that root" ;;
+      esac
+    fi ;;
+esac
 
 # ---- bundle ----------------------------------------------------------------
 # Every find takes a trailing slash. A host may have made .lokf/knowledge a
@@ -183,6 +208,29 @@ else
 fi
 
 # ---- toolkit ---------------------------------------------------------------
+# The index uv installs from: UV_DEFAULT_INDEX (a URL, or name=URL), the
+# older UV_INDEX_URL, else the default index of a user or system uv.toml,
+# else PyPI. The lock and network lines name its host.
+index="${UV_DEFAULT_INDEX:-${UV_INDEX_URL:-}}"
+case "$index" in *=http*) index="${index#*=}" ;; esac
+if [ -z "$index" ]; then
+  for f in "${XDG_CONFIG_HOME:-${HOME:-}/.config}/uv/uv.toml" /etc/uv/uv.toml; do
+    [ -f "$f" ] || continue
+    # An [[index]] table with `default = true` names the default index; a
+    # top-level index-url is the older spelling of the same.
+    index="$(awk '
+      function flush() { if (inidx && dflt && url != "") found = url }
+      /^[[:space:]]*\[\[index\]\]/ { flush(); inidx = 1; url = ""; dflt = 0; next }
+      /^[[:space:]]*\[/ { flush(); inidx = 0; next }
+      inidx && /^[[:space:]]*url[[:space:]]*=/ { url = $0; sub(/^[^"]*"/, "", url); sub(/".*$/, "", url) }
+      inidx && /^[[:space:]]*default[[:space:]]*=[[:space:]]*true/ { dflt = 1 }
+      !inidx && /^[[:space:]]*index-url[[:space:]]*=/ { top = $0; sub(/^[^"]*"/, "", top); sub(/".*$/, "", top) }
+      END { flush(); if (found != "") print found; else if (top != "") print top }' "$f")"
+    [ -n "$index" ] && break
+  done
+fi
+index="${index:-https://pypi.org/simple}"
+ihost="$(hostof "$index")"
 if have uv; then
   floor="$(sed -n 's/.*"lokf\[build\]>=\([0-9.]*\)".*/\1/p' "$root/.lokf/pyproject.toml" 2>/dev/null | head -n 1)"
   if [ -d "$root/.lokf/.venv" ]; then
@@ -203,6 +251,15 @@ fi
 if [ "$ingit" = 1 ] && [ "$tracked" = tracked ] && [ -f "$root/.lokf/pyproject.toml" ] && [ -f "$root/.github/workflows/knowledge-registrar.yaml" ] \
    && [ -z "$(git -C "$root" ls-files .lokf/uv.lock 2>/dev/null | head -n 1)" ]; then
   warn toolkit ".lokf/uv.lock is not in git - the gate installs the toolkit with uv sync --locked and fails without it; run uv lock in .lokf/ and commit the file"
+fi
+# A lock records the index it was made against, and every file's address
+# there. Where uv reads another index, uv sync --locked fails on it, and
+# uv sync rewrites every address to the index uv reads.
+if [ -f "$root/.lokf/uv.lock" ]; then
+  lhost="$(hostof "$(sed -n 's/.*registry = "\([^"]*\)".*/\1/p' "$root/.lokf/uv.lock" | sort | uniq -c | sort -rn | head -n 1 | sed 's/^ *[0-9]* *//')")"
+  if [ -n "$lhost" ] && [ "$lhost" != "$ihost" ]; then
+    warn lock ".lokf/uv.lock was made against $lhost, and uv here reads $ihost - uv sync in .lokf/ rewrites it to $ihost; commit that only where the gate's runner reads $ihost too"
+  fi
 fi
 
 # ---- installed skills, and drift between copies -----------------------------
@@ -235,16 +292,28 @@ if [ -n "$found" ]; then
 else
   info skills "no KTL skill installed under .claude/skills, .github/skills, .agents/skills or skills/"
 fi
+# Skills installed for one user serve that user's live sessions. The
+# scheduled librarian runs on a fresh runner and reads only a copy in the
+# repository.
+user=""
+for dir in .claude/skills .copilot/skills .agents/skills; do
+  here=""
+  for s in ktl-sidecar ktl-librarian ktl-curator ktl-docent ktl-prose ktl-website; do
+    [ -f "${HOME:-/nonexistent}/$dir/$s/SKILL.md" ] && here="$here ${s#ktl-}"
+  done
+  [ -n "$here" ] && user="${user}${user:+; }~/$dir:$here"
+done
+[ -z "$user" ] || info skills "user scope: $user; the scheduled librarian needs a copy in the repository"
 
 # ---- host copies of the sidecar's templates ----------------------------------
 # The conventions script runs its Python half, so a host holding the .sh
-# without the .py has a gate that fails outright, not a stale copy. This is
-# reported whether or not a sidecar is installed to compare against. A bundle with no
-# knowledge-feedback.sh is the same kind of gap rather than drift. ktl-docent
-# runs its own copy, but an earlier release runs this one, and without it has
-# to open feedback.md to add an entry, which is the one thing that script
-# exists to stop. A host on a sidecar that predates it should hear so before a
-# reader's first recorded gap, not after.
+# without the .py has a gate that fails, not a stale copy. This is reported
+# whether or not a sidecar is installed to compare against. A bundle with no
+# knowledge-feedback.sh is the same kind of gap rather than drift. A current
+# ktl-docent runs its own copy, but an earlier release runs this one, and
+# without it has to open feedback.md to add an entry, which is the one thing
+# that script exists to stop. A host on a sidecar that predates it should
+# hear so before a reader's first recorded gap, not after.
 script_gaps=""
 if [ -f "$root/.lokf/scripts/knowledge-conventions.sh" ] && [ ! -f "$root/.lokf/scripts/knowledge-conventions.py" ]; then
   script_gaps=".lokf/scripts/knowledge-conventions.py missing beside the .sh, which runs it"
@@ -298,7 +367,7 @@ if [ -f "$root/.lokf/ingest.yaml" ]; then
     case "$status" in
       "ingest: "*"missing from the mirror"*|"ingest: "*"the lock does not name"*) warn ingest "${status#ingest: }" ;;
       "ingest: "*) info ingest "${status#ingest: }" ;;
-      *) info ingest ".lokf/ingest.yaml is here; its status was not read (no uv, or no python3 with pyyaml)" ;;
+      *) info ingest ".lokf/ingest.yaml is here; its status was not read (no .lokf/.venv or python3 3.9 or later with pyyaml, and uv could not run it)" ;;
     esac
   else
     warn ingest ".lokf/ingest.yaml is here but .lokf/scripts/knowledge-ingest.sh is not, so nothing is mirrored - the ktl-sidecar repair lays it down"
@@ -320,7 +389,7 @@ else
   info session "attended${agent:+ ($agent)}: a person can answer item by item"
 fi
 if have curl; then
-  if curl -sI --max-time 4 https://pypi.org/simple/lokf/ >/dev/null 2>&1; then info network "pypi.org reachable"; else warn network "pypi.org unreachable - version checks and skill installs will fail here"; fi
+  if curl -sI --max-time 4 "${index%/}/lokf/" >/dev/null 2>&1; then info network "$ihost reachable"; else warn network "$ihost unreachable - uv cannot install the toolkit here, and version checks fail"; fi
 else
   warn network "curl not installed - the signing-key identity route and the version check need it"
 fi

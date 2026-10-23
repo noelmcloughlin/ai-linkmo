@@ -386,7 +386,7 @@ main() {
   # So snapshot both around the agent call and restore them on every exit
   # (success, agent failure, cancellation), and neither this check nor
   # anything the workflow does afterwards can be defeated or taken over that
-  # way. Only SIGKILL escapes this, and a runner that kills the step outright
+  # way. Only SIGKILL escapes this, and a runner that kills the step with it
   # also discards the job, so nothing reads the checkout after it. This is
   # defence in depth, not the backstop: a person reviewing the pull request
   # before merge is.
