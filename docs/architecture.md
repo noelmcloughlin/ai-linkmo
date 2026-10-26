@@ -68,7 +68,7 @@ This repository keeps a LOKF bundle of its own under `.lokf/knowledge/`: documen
 | Status and caveats, the full list | [status.md](status.md) |
 | How releases are cut, and why the version stays below 1.0.0 | [releasing.md](releasing.md), [CHANGELOG.md](../CHANGELOG.md) |
 | The repository tree, the three toolchains and the test suite; contributing; reporting a security issue | [repository-layout.md](repository-layout.md), [CONTRIBUTING.md](../CONTRIBUTING.md), [SECURITY.md](../SECURITY.md) |
-| The code of conduct and the AI covenant; what to read before running the API outside localhost or enabling the BYOD upload path | [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md), [AI_COVENANT.md](../AI_COVENANT.md), [SECURITY.md](../SECURITY.md) |
+| The code of conduct and the AI covenant; what to read before running the API outside localhost or enabling the BYOD upload path | [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md), [AI_COVENANT.md](../AI_COVENANT.md), [SECURITY.md](../SECURITY.md), [threat-model.md](threat-model.md) |
 
 ## Credits
 

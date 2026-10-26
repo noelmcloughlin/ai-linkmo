@@ -27,6 +27,7 @@ docs/
   for-the-curious.md        what this adds over AI Atlas Nexus, what it leaves out, where it could go
   status.md                 status and caveats, the full list
   releasing.md              how this repository releases
+  threat-model.md           why the application and the automation are held as SECURITY.md says
   repository-layout.md      this page
 .assets/                screenshots of each door, the architecture diagram, and the logos
 .lokf/                  the sidecar: this repository's own knowledge bundle (knowledge/) and its tooling; its README has the layout
