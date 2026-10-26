@@ -7,7 +7,7 @@ name: Knowledge website
 # link check included, and no deployment. A weekly run rebuilds the site
 # from the default branch. It catches what no push to the paths below brings:
 # a schema or data change elsewhere, and the changelog's promotion, whose
-# commit skips CI. website/README.md says what each page is built from; the
+# commit skips CI. website/README.md says what each page is built from. The
 # ktl-website skill installed both.
 #
 # Two jobs, for least privilege. `build` runs the third-party packages, npm's
@@ -15,10 +15,11 @@ name: Knowledge website
 # read-only token. `deploy` runs harden-runner and GitHub's own deploy-pages
 # action and nothing else, holds the Pages scopes, and runs for the
 # default branch only, once the repository variable KNOWLEDGE_WEBSITE_ENABLED
-# is `true`; until then this workflow builds and deploys nothing. Set it under
-# Repository variables, not on an environment: a job's `if:` sees only
-# repository and organization variables. Before
-# setting it, tell Pages once to take its site from Actions, under
+# is `true`. Until then this workflow builds but deploys nothing.
+#
+# Set the variable under Repository variables, not on an environment: a
+# job's `if:` sees only repository and organization variables. Before setting
+# it, tell Pages once to take its site from Actions, under
 # Settings > Pages > Source, or with:
 #   gh api -X POST repos/{owner}/{repo}/pages -f build_type=workflow
 # A repository that already publishes Pages another way (a gh-pages branch, a
@@ -72,7 +73,7 @@ concurrency:
 jobs:
   build:
     name: Build the site (read-only)
-    # A push builds on the default branch only; a pull request or a dispatch always builds.
+    # A push builds on the default branch only. A pull request or a dispatch always builds.
     if: github.event_name != 'push' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     runs-on: ubuntu-latest
     permissions:
@@ -115,12 +116,20 @@ jobs:
       # A schema or a data folder that site.config.mjs shows is written by
       # its own command, which the sync runs when the folder is missing, as it
       # always is here. A LinkML project's commands are recipes for just, a
-      # command runner the runner image lacks. setup-uv puts the tool
-      # directory on PATH on Windows only, so the step adds it.
+      # command runner the runner image lacks. Where .lokf/uv.lock pins
+      # rust-just, the step links the copy it checked by hash, alone, so the
+      # sidecar's other commands stay off PATH; else it installs the same
+      # version by name. setup-uv puts the tool directory on PATH on Windows
+      # only, so the step adds it.
       - name: Install just, when the site builds a folder with it
         run: |
           if node website/scripts/config.mjs | grep -q '"build": "just '; then
-            uv tool install rust-just==1.47.0
+            if grep -qx 'name = "rust-just"' .lokf/uv.lock; then
+              mkdir -p "$HOME/.local/bin"
+              ln -sf "$PWD/.lokf/.venv/bin/just" "$HOME/.local/bin/just"
+            else
+              uv tool install rust-just==1.47.0
+            fi
             echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           fi
 

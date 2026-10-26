@@ -94,7 +94,11 @@ jobs:
       # host with a domain schema names it as `schema :=` in the justfile, and
       # the recipe passes it; the workflow runs the recipe so no host edits this line.
       - name: Validate the knowledge bundle and its relation targets
-        run: uvx --from rust-just==1.47.0 just lokf-check-refs
+        # just from uv.lock, checked against its hash, where the host's
+        # pyproject.toml names rust-just; else uvx fetches the same version.
+        run: |
+          if grep -qx 'name = "rust-just"' uv.lock; then uv run --locked just lokf-check-refs
+          else uvx --from rust-just==1.47.0 just lokf-check-refs; fi
         working-directory: .lokf
 
       # `lokf validate` reads a concept body as an opaque string and never

@@ -170,7 +170,11 @@ jobs:
       # domain schema the justfile's `schema` line names.
       - name: Validate the knowledge bundle and its relation targets
         if: steps.compare.outputs.changed == 'true'
-        run: uvx --from rust-just==1.47.0 just lokf-check-refs
+        # just from uv.lock, checked against its hash, where the host's
+        # pyproject.toml names rust-just; else uvx fetches the same version.
+        run: |
+          if grep -qx 'name = "rust-just"' uv.lock; then uv run --locked just lokf-check-refs
+          else uvx --from rust-just==1.47.0 just lokf-check-refs; fi
         working-directory: .lokf
 
       - name: Check the conventions lokf validate cannot see

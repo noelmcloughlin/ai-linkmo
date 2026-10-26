@@ -335,7 +335,11 @@ jobs:
         id: validate-lokf
         if: steps.install-lokf.outcome == 'success'
         continue-on-error: true
-        run: uvx --from rust-just==1.47.0 just lokf-check-refs
+        # just from uv.lock, checked against its hash, where the host's
+        # pyproject.toml names rust-just; else uvx fetches the same version.
+        run: |
+          if grep -qx 'name = "rust-just"' uv.lock; then uv run --locked just lokf-check-refs
+          else uvx --from rust-just==1.47.0 just lokf-check-refs; fi
         working-directory: .lokf
 
       # The registrar's gate does not run on the pull request this workflow
