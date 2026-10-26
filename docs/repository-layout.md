@@ -27,13 +27,14 @@ docs/
   for-the-curious.md        what this adds over AI Atlas Nexus, what it leaves out, where it could go
   status.md                 status and caveats, the full list
   releasing.md              how this repository releases
+  threat-model.md           why the application and the automation are held as SECURITY.md says
   repository-layout.md      this page
 .assets/                screenshots of each door, the architecture diagram, and the logos
-.lokf/                  the sidecar: this repository's own knowledge bundle (knowledge/) and its tooling
+.lokf/                  the sidecar: this repository's own knowledge bundle (knowledge/) and its tooling; its README has the layout
 knowledge_bundle        -> .lokf/knowledge, the bundle under a visible name, for folder pickers and Obsidian
 .github/workflows/      tests, lint, the knowledge-bundle gates, releases
 ```
 
 ## Tests
 
-The test suite runs 101 CLI cases in API mode and in local mode, and starts the API server for you. CI runs `uv run pytest lib/test -m "not slow"`, which takes about two minutes. `./scripts/tests.sh` has the narrower modes. The browse tests need the `browse` extra and skip without it, so CI installs it beside `test`. The web UI (`npm run check`, `npm run lint`, `npm test` in `lib/frontend/`) and the bundle (`cd .lokf && just lokf-validate`) have their own gates. [lib/test/README.md](../lib/test/README.md) has the detail.
+The test suite runs 101 CLI cases in API mode and in local mode, and starts the API server for you. CI runs `uv run pytest lib/test -m "not slow"`, which takes about two minutes. `./scripts/tests.sh` has the narrower modes. The browse tests need the `browse` extra and skip without it, so CI installs it beside `test`. The web UI (`npm run check`, `npm run lint`, `npm test` in `lib/frontend/`) and the bundle (`cd .lokf && just lokf-validate`) have their own gates. [lib/test/README.md](../lib/test/README.md) has the detail. The `slow` and `byod_required` markers are defined in `pyproject.toml` under `[tool.pytest.ini_options]`; `pytest-timeout` is installed, but no default timeout is set.

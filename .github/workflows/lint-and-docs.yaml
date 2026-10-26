@@ -57,6 +57,37 @@ jobs:
           # knowledge-librarian.yaml requests; drop it once a release knows it.
           args: -color -ignore copilot-requests
 
+  word-budgets:
+    name: Hold the governance files to their word budgets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # CONTRIBUTING.md is a checklist and SECURITY.md a policy, not design
+      # logs; the budgets are the sibling repositories' and keep them so. The
+      # reasoning a rule needs goes beside the code it explains, and the
+      # security reasoning in docs/threat-model.md.
+      - name: Count words
+        run: |
+          status=0
+          for pair in CONTRIBUTING.md:1000 SECURITY.md:900; do
+            file="${pair%%:*}"; budget="${pair##*:}"
+            words="$(wc -w < "$file")"
+            if [ "$words" -gt "$budget" ]; then
+              echo "::error file=$file::$file has $words words, over its budget of $budget. Move the reasoning beside the code it explains and link to it."
+              status=1
+            else
+              echo "$file: $words of $budget words"
+            fi
+          done
+          exit "$status"
+
   validate-markdown:
     name: Lint Markdown & check links
     runs-on: ubuntu-latest
