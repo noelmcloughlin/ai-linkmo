@@ -69,13 +69,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      # CONTRIBUTING.md is a checklist, not a design log; the budget is the
-      # sibling repositories' and keeps it so. The reasoning a rule needs goes
-      # beside the code it explains.
+      # CONTRIBUTING.md is a checklist and SECURITY.md a policy, not design
+      # logs; the budgets are the sibling repositories' and keep them so. The
+      # reasoning a rule needs goes beside the code it explains, and the
+      # security reasoning in docs/threat-model.md.
       - name: Count words
         run: |
           status=0
-          for pair in CONTRIBUTING.md:1000; do
+          for pair in CONTRIBUTING.md:1000 SECURITY.md:900; do
             file="${pair%%:*}"; budget="${pair##*:}"
             words="$(wc -w < "$file")"
             if [ "$words" -gt "$budget" ]; then
