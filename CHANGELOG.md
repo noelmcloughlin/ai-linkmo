@@ -10,43 +10,43 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ### Security
 
-- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.55.2](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.53.0...v0.55.2).** The release changed `.github/workflows/knowledge-registrar.yaml`, `.github/workflows/knowledge-release.yaml`, `.github/workflows/knowledge-sync.yaml`, `.lokf/scripts/knowledge-librarian.sh`, `.lokf/scripts/knowledge-conventions.sh`, `.lokf/scripts/knowledge-conventions.py`, `.lokf/scripts/knowledge-preflight.sh`, `.lokf/scripts/knowledge-provenance.sh`, `.lokf/scripts/knowledge-feedback.sh`, `.lokf/scripts/knowledge-apply.sh`, `.lokf/scripts/knowledge-apply.py`, `.lokf/scripts/knowledge-report.sh`, `.lokf/scripts/knowledge-sync.sh`, `.lokf/.gitignore`, `.lokf/justfile`, `website/package-lock.json`, `website/package.json` and `website/src/components/KnowledgeGraph.astro` here.
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.55.2](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/d5c7817f57ac4e68cd48721a309825afaacd8994...v0.55.2).** The release changed `.github/workflows/knowledge-registrar.yaml`, `.github/workflows/knowledge-release.yaml`, `.github/workflows/knowledge-sync.yaml`, `.lokf/scripts/knowledge-librarian.sh`, `.lokf/scripts/knowledge-conventions.sh`, `.lokf/scripts/knowledge-conventions.py`, `.lokf/scripts/knowledge-preflight.sh`, `.lokf/scripts/knowledge-provenance.sh`, `.lokf/scripts/knowledge-feedback.sh`, `.lokf/scripts/knowledge-apply.sh`, `.lokf/scripts/knowledge-apply.py`, `.lokf/scripts/knowledge-report.sh`, `.lokf/scripts/knowledge-sync.sh`, `.lokf/.gitignore`, `.lokf/justfile`, `website/package-lock.json`, `website/package.json` and `website/src/components/KnowledgeGraph.astro` here.
 
 ## [0.4.11] - 2026-10-21
 
 ### Security
 
-- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.53.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.52.0...v0.53.0).** The release changed `.github/workflows/knowledge-librarian.yaml`, `.github/workflows/knowledge-sync.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md`, `.lokf/scripts/knowledge-librarian.sh`, `.lokf/scripts/knowledge-apply.py`, `.lokf/scripts/knowledge-sync.sh`, `.lokf/.gitignore`, `website/scripts/config.mjs`, `website/scripts/markdown-ktl.mjs`, `website/scripts/sync.mjs`, `website/src/components/KnowledgeGraph.astro`, `website/src/pages/graph.astro`, `.github/workflows/knowledge-website.yaml` and `website/scripts/raw-html.mjs` here.
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.53.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/2801e26f2fc99675eb395b639670ec789e49eb08...d5c7817f57ac4e68cd48721a309825afaacd8994).** The release changed `.github/workflows/knowledge-librarian.yaml`, `.github/workflows/knowledge-sync.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md`, `.lokf/scripts/knowledge-librarian.sh`, `.lokf/scripts/knowledge-apply.py`, `.lokf/scripts/knowledge-sync.sh`, `.lokf/.gitignore`, `website/scripts/config.mjs`, `website/scripts/markdown-ktl.mjs`, `website/scripts/sync.mjs`, `website/src/components/KnowledgeGraph.astro`, `website/src/pages/graph.astro`, `.github/workflows/knowledge-website.yaml` and `website/scripts/raw-html.mjs` here.
 
 ## [0.4.10] - 2026-10-19
 
 ### Security
 
-- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.52.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.47.0...v0.52.0).** The release changed `.github/workflows/knowledge-registrar.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md`, `.lokf/scripts/knowledge-conventions.sh`, `.lokf/scripts/knowledge-conventions.py`, `.lokf/scripts/knowledge-preflight.sh`, `.lokf/scripts/knowledge-report.sh` and `.lokf/scripts/knowledge-sync.sh` here.
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.52.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/b7d15e5c58554d6af4b71dfe35ef2a6bfe8c45d8...2801e26f2fc99675eb395b639670ec789e49eb08).** The release changed `.github/workflows/knowledge-registrar.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md`, `.lokf/scripts/knowledge-conventions.sh`, `.lokf/scripts/knowledge-conventions.py`, `.lokf/scripts/knowledge-preflight.sh`, `.lokf/scripts/knowledge-report.sh` and `.lokf/scripts/knowledge-sync.sh` here.
 
 ## [0.4.9] - 2026-10-17
 
 ### Security
 
-- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.47.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.46.0...v0.47.0).** The release changed `.lokf/scripts/knowledge-preflight.sh`, `.github/workflows/knowledge-sync.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md` and `.lokf/scripts/knowledge-sync.sh` here.
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.47.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/13f847f1988ec1a7f1c41f63cc3f1945c2010231...b7d15e5c58554d6af4b71dfe35ef2a6bfe8c45d8).** The release changed `.lokf/scripts/knowledge-preflight.sh`, `.github/workflows/knowledge-sync.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md` and `.lokf/scripts/knowledge-sync.sh` here.
 
 ## [0.4.8] - 2026-10-17
 
 ### Security
 
-- **The sidecar copies and the skills pin match `v0.46.0`.** The release changed `.github/workflows/knowledge-release.yaml`, `.lokf/scripts/knowledge-federate.py`, `website/package-lock.json` and `website/package.json` here; its [changelog](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/v0.46.0/CHANGELOG.md) says how.
+- **The sidecar copies and the skills pin match `v0.46.0`.** The release changed `.github/workflows/knowledge-release.yaml`, `.lokf/scripts/knowledge-federate.py`, `website/package-lock.json` and `website/package.json` here; its [changelog](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/13f847f1988ec1a7f1c41f63cc3f1945c2010231/CHANGELOG.md) says how.
 
 ## [0.4.7] - 2026-10-17
 
 ### Security
 
-- **The sidecar copies and the skills pin match `v0.45.1`.** The release changed `.lokf/scripts/knowledge-apply.py` and `.lokf/scripts/knowledge-federate.py` here; its [changelog](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/v0.45.1/CHANGELOG.md) says how.
+- **The sidecar copies and the skills pin match `v0.45.1`.** The release changed `.lokf/scripts/knowledge-apply.py` and `.lokf/scripts/knowledge-federate.py` here; its [changelog](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/d38e52b20d99c21ff201be9252a01b1da28fff57/CHANGELOG.md) says how.
 
 ## [0.4.6] - 2026-10-16
 
 ### Security
 
-- **The sidecar copies and the skills pin match `v0.45.0`.** The release changed `.lokf/scripts/knowledge-report.sh`, `.lokf/m365/ktl-docent-m365.md`, `website/scripts/sync.mjs`, `website/src/components/ConceptCard.astro`, `website/src/content.config.ts` and `website/src/styles/catalogue.css` here; its [changelog](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/v0.47.0/CHANGELOG.md) says how.
+- **The sidecar copies and the skills pin match `v0.45.0`.** The release changed `.lokf/scripts/knowledge-report.sh`, `.lokf/m365/ktl-docent-m365.md`, `website/scripts/sync.mjs`, `website/src/components/ConceptCard.astro`, `website/src/content.config.ts` and `website/src/styles/catalogue.css` here; its [changelog](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/08c13b5e30a6e0c4c6a2373658ee2c3ebbf4ae8e/CHANGELOG.md) says how.
 
 ## [0.4.5] - 2026-10-16
 
