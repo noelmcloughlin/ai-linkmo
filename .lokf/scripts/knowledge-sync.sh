@@ -630,9 +630,12 @@ main() {
         echo "preflight: $(bash scripts/knowledge-preflight.sh | tail -1)"
       fi
       if command -v uv >/dev/null 2>&1; then
-        # The recipe, as the gate runs it; just's own closing line on a
-        # failure is dropped, so the line shown is lokf's verdict.
-        if out="$(uvx --from rust-just==1.47.0 just lokf-check-refs 2>&1 | grep -v '^error: Recipe ' | tail -1)"; then
+        # The recipe, as the gate runs it, with the just uv.lock pins where
+        # it pins one; just's own closing line on a failure is dropped, so
+        # the line shown is lokf's verdict.
+        just=(uvx --from rust-just==1.47.0 just)
+        if grep -qx 'name = "rust-just"' uv.lock 2>/dev/null; then just=(uv run --locked just); fi
+        if out="$("${just[@]}" lokf-check-refs 2>&1 | grep -v '^error: Recipe ' | tail -1)"; then
           echo "lokf validate --check-refs: $out"
         else
           echo "lokf validate --check-refs: failed, $out"; rc=1

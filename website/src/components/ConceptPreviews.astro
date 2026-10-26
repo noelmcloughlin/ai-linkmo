@@ -1,7 +1,7 @@
 ---
-// A link to a concept page shows the concept's title, type, trust label and
-// definition while the pointer or the keyboard focus rests on it, before the
-// reader follows the link. The script reads /knowledge/previews.json, which
+// A link to a concept page shows the concept's title, type, genre, trust
+// label and definition while the pointer or the keyboard focus rests on it,
+// before the reader follows the link. The script reads /knowledge/previews.json, which
 // the sync writes, once, on the first link it is asked about. The card
 // follows WCAG 1.4.13: the pointer can move onto it, Escape dismisses it, and
 // it goes when the pointer or the focus leaves. Links in the sidebars are
@@ -10,7 +10,7 @@
 ---
 
 <script>
-  type Preview = { title: string; type: string; label: string; tone: string; definition?: string };
+  type Preview = { title: string; type: string; genre?: string; label: string; tone: string; definition?: string };
 
   const KNOWLEDGE = `${import.meta.env.BASE_URL.replace(/\/$/, "")}/knowledge/`;
   // Long enough that a pointer crossing a line of links opens nothing.
@@ -39,7 +39,7 @@
     (a) => a instanceof HTMLAnchorElement && conceptOf(a) !== null,
   );
   if (links.length > 0) {
-    // A popover sits above everything without a z-index; a browser without
+    // A popover sits above everything without a z-index. A browser without
     // popovers gets a hidden element that the stylesheet places above the
     // content instead.
     const card = document.createElement("div");
@@ -81,7 +81,7 @@
       // The pointer may have moved on while the index loaded.
       if (!preview || current !== a) return;
       card.innerHTML = [
-        `<p class="ktl-preview__head">${escapeHtml(preview.type)}</p>`,
+        `<p class="ktl-preview__head"><span class="ktl-card__type">${escapeHtml(preview.type)}</span>${preview.genre && preview.genre.toLowerCase() !== preview.type.toLowerCase() ? ` · ${escapeHtml(preview.genre)}` : ""}</p>`,
         `<p class="ktl-preview__title">${escapeHtml(preview.title)}</p>`,
         `<p><span class="ktl-label ktl-label--${escapeHtml(preview.tone)}">${escapeHtml(preview.label)}</span></p>`,
         ...(preview.definition ? [`<p class="ktl-preview__definition">${inline(preview.definition)}</p>`] : []),
