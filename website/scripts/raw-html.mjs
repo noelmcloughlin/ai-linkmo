@@ -1,13 +1,13 @@
 // Which raw HTML in repository Markdown the site passes through, held to
-// what GitHub's own README rendering allows. Markdown hands raw HTML over a
-// fragment at a time, an opening tag in one and its closing tag in another,
-// so each fragment is read tag by tag. A tag GitHub allows keeps the
+// what GitHub's own README rendering allows. The Markdown parser gives raw
+// HTML a fragment at a time, an opening tag in one and its closing tag in
+// another, so each fragment is read tag by tag. A tag GitHub allows keeps the
 // attributes it allows and loses the rest, as on GitHub, and an address
 // that is not http, https, mailto, a path or a fragment is dropped. A
 // fragment with any other tag, or markup that is not one plain tag, is
 // shown as text. Concept bodies come from a scheduled agent and are
-// reviewed in a pull request; this keeps a script that got past review off
-// the site.
+// reviewed in a pull request. This check keeps a script that got past review
+// off the site.
 
 const TAGS = new Set([
   "a", "abbr", "b", "bdi", "bdo", "blockquote", "br", "caption", "center", "cite", "code", "col", "colgroup",

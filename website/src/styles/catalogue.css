@@ -94,6 +94,11 @@ h1#_top,
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
+/* The type reads a step above the genre and tags beside it. */
+.ktl-card__type {
+  color: var(--sl-color-gray-2);
+  font-weight: 600;
+}
 .ktl-card__tag::before {
   content: "\00b7";
   margin-inline: 0.5em;
@@ -186,7 +191,7 @@ h1#_top,
 .ktl-card__more li + li {
   margin-top: 0.1rem;
 }
-/* A name stays whole; an IRI or a path breaks where it must. */
+/* A name stays whole. An IRI or a path breaks where it must. */
 .ktl-card__when code,
 .ktl-card__more li > code {
   white-space: nowrap;
@@ -203,7 +208,7 @@ h1#_top,
 
 /* A concept link's preview: a small card beside the link while the pointer
    or the focus rests on it. It is a popover, drawn above everything, and
-   src/components/ConceptPreviews.astro places it; the z-index is for a
+   src/components/ConceptPreviews.astro places it. The z-index is for a
    browser without popovers, under the site's header. */
 .ktl-preview {
   position: fixed;

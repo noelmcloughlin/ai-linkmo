@@ -85,8 +85,8 @@
         block.dataset.processed = "failed";
         continue;
       }
-      // mermaid opens a diagram's links in a new tab; one that stays on this
-      // site opens in the same tab, as every other link here does.
+      // mermaid opens a diagram's links in a new tab. A link that stays on
+      // this site opens in the same tab, as every other link here does.
       for (const link of block.querySelectorAll("a[target='_blank']")) {
         const href = link.getAttribute("href") ?? link.getAttribute("xlink:href") ?? "";
         if (!external.test(href)) link.removeAttribute("target");

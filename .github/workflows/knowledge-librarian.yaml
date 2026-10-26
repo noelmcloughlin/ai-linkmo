@@ -205,8 +205,8 @@ jobs:
         if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.55.2 # the one pin; point your docs here instead of repeating it
-          TRUST_LADDER_SKILLS_SHA: 9b1c1fcc43e7e079facd070a1a73c0d139260339 # the commit that tag names
+          TRUST_LADDER_SKILLS_REF: v0.56.1 # the one pin; point your docs here instead of repeating it
+          TRUST_LADDER_SKILLS_SHA: ae304cb924a0d8ffea4d04b6d737a58ee20dd3b0 # the commit that tag names
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
@@ -335,7 +335,11 @@ jobs:
         id: validate-lokf
         if: steps.install-lokf.outcome == 'success'
         continue-on-error: true
-        run: uvx --from rust-just==1.47.0 just lokf-check-refs
+        # just from uv.lock, checked against its hash, where the host's
+        # pyproject.toml names rust-just; else uvx fetches the same version.
+        run: |
+          if grep -qx 'name = "rust-just"' uv.lock; then uv run --locked just lokf-check-refs
+          else uvx --from rust-just==1.47.0 just lokf-check-refs; fi
         working-directory: .lokf
 
       # The registrar's gate does not run on the pull request this workflow

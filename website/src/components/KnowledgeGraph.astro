@@ -1,8 +1,9 @@
 ---
-// Interactive knowledge-graph explorer. Reads knowledge/graph.json (emitted by
-// `lokf export`): nodes are concepts, edges are RDF predicates. Search dims
-// non-matching nodes; the filters toggle node types and predicates; clicking a
-// node opens its details. Themed with Starlight's CSS variables.
+// An interactive explorer of the knowledge graph. It reads
+// knowledge/graph.json, which `lokf export` writes: the nodes are concepts
+// and the edges are RDF predicates. Search dims the nodes that do not match,
+// the filters show or hide node types and predicates, and a click on a node
+// opens its details. It takes its colours from Starlight's CSS variables.
 //
 // Adapted from web/src/components/KnowledgeGraph.astro in the LOKF toolkit
 // (https://github.com/nicholsn/lokf), Apache-2.0, Copyright 2026 Nolan
@@ -378,7 +379,7 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
       shown.textContent = `${visible} of ${total} concepts shown`;
     }
 
-    // Search dims non-matching nodes.
+    // Search dims the nodes that do not match.
     const search = root.querySelector(".lokf-graph__search") as HTMLInputElement;
     search.addEventListener("input", () => {
       const q = search.value.trim().toLowerCase();
@@ -387,7 +388,7 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
       );
     }, { signal });
 
-    // Detail panel on node click.
+    // A click on a node opens its detail panel.
     const detail = root.querySelector(".lokf-graph__detail") as HTMLElement;
     const set = (sel: string, text: string) => {
       (root.querySelector(sel) as HTMLElement).textContent = text;
@@ -415,7 +416,8 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
       root.querySelectorAll<HTMLElement>(".lokf-graph__bundle-row").forEach((el) => (el.hidden = !bundle));
       if (bundle) set(".lokf-graph__detail-bundle", bundle.version ? `${bundle.title}, ${bundle.version}` : bundle.title);
       const stale = d.stale_after ? String(d.stale_after).slice(0, 10) <= today : d.stale;
-      // OKF v0.2 trust signals: "human-reviewed · stable" (+ " · stale").
+      // The OKF v0.2 trust signals, such as "human-reviewed · stable", with
+      // " · stale" added when the concept is stale.
       const trust = [d.trust_tier, d.status, stale ? "stale" : ""]
         .filter(Boolean)
         .join(" · ");
@@ -460,11 +462,11 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
     });
     (root.querySelector(".lokf-graph__close") as HTMLElement).addEventListener("click", close, { signal });
 
-    // Zoom to fit once the force layout settles (fcose fits too, but a re-fit
-    // after the container has its final size avoids the "too zoomed in" start).
-    // The layout does not animate, so it has stopped before the constructor
-    // returns, and an event handler added now would never run; cy.ready runs
-    // its callback at once when the graph is ready.
+    // Zoom to fit once the force layout settles. fcose fits too, but a second
+    // fit after the container has its final size avoids the "too zoomed in"
+    // start. The layout does not animate, so it has stopped before the
+    // constructor returns, and an event handler added now would never run.
+    // cy.ready runs its callback at once when the graph is ready.
     const fit = () => cy.fit(undefined, 45);
     cy.ready(() =>
       requestAnimationFrame(() => {
@@ -496,8 +498,8 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
       root.querySelector(".lokf-graph__stage")!.scrollIntoView({ block: "start" });
     }
 
-    // Toolbar: fit + a full-screen graph browser (the whole explorer — search,
-    // filters, and graph — fills the viewport).
+    // The toolbar: fit, and a full-screen graph browser, in which the whole
+    // explorer (search, filters and graph) fills the viewport.
     root.querySelector('[data-action="fit"]')!.addEventListener("click", fit, { signal });
     const fsBtn = root.querySelector('[data-action="fullscreen"]') as HTMLButtonElement;
     fsBtn.addEventListener("click", () => {
@@ -518,8 +520,9 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
     if (document.fullscreenElement === root) fsBtn.textContent = "⛶ Exit full screen";
   }
 
-  // This module script is deferred, so the DOM is ready — boot now. Also
-  // re-boot on Astro client navigation, when view transitions are enabled.
+  // This module script is deferred, so the DOM is ready and the explorer
+  // starts now. It starts again on Astro's client navigation, when view
+  // transitions are on.
   const boot = () =>
     document.querySelectorAll<HTMLElement>(".lokf-graph").forEach(init);
   boot();
@@ -527,8 +530,8 @@ const graphPage = import.meta.env.BASE_URL.replace(/\/$/, "") + "/graph/";
 </script>
 
 <style is:global>
-  /* Global (not scoped): the filter labels/swatches are created in JS and
-     wouldn't carry Astro's scope hash. All selectors are .lokf-graph__* . */
+  /* Global, not scoped: the script creates the filter labels and swatches,
+     which would not carry Astro's scope hash. All selectors are .lokf-graph__*. */
   .lokf-graph {
     margin: 1.5rem 0 2rem;
   }

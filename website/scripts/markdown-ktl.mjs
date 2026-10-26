@@ -1,4 +1,4 @@
-// A Sätteri plugin, Astro's Markdown processor, that renders repository
+// A plugin for Sätteri, Astro's Markdown processor, that renders repository
 // Markdown on the site. A page the sync wrote names its source file in the
 // `ktlSource` frontmatter key, and for such a page the plugin:
 //   - points each relative link, image and raw-HTML src/href at the page or

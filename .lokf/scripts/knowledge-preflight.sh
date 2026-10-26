@@ -242,6 +242,10 @@ if have uv; then
     info toolkit "uv $(uv --version 2>/dev/null | sed 's/^uv //') present; no .lokf/pyproject.toml yet"
   fi
   if have just; then ok just "just $(just --version 2>/dev/null | sed 's/^just //')"; else info just "just not installed - uvx --from rust-just just works the same"; fi
+  # The workflows run the just uv.lock pins, checked by hash, where it pins one.
+  if [ -f "$root/.lokf/uv.lock" ] && ! grep -qx 'name = "rust-just"' "$root/.lokf/uv.lock"; then
+    info just-pin "uv.lock pins no just, so the workflows fetch rust-just by version; uv add rust-just==1.47.0 in .lokf/ pins it by hash"
+  fi
 else
   miss toolkit "uv not installed - lokf validate, convert and query unavailable, and the conventions script skips its parser's half (rules 2, 3, 4, 7, 9, 10, 12, 13, 14); only the manual schema cross-check remains" "lokf validate and nine of the fourteen conventions (every skill's audit)"
 fi

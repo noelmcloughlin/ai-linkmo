@@ -2,7 +2,7 @@
 // use this, so a link means the same page wherever it is written.
 import { statSync } from "node:fs";
 import { posix, resolve } from "node:path";
-import { ASSETS, BASE, DOCS, HOME, PAGES, REF, REPO_ROOT, REPO_URL, SCHEMA, docsPages, schemaPages } from "./config.mjs";
+import { ASSETS, BASE, DOCS, HOME, PAGES, REF, REPO_ROOT, REPO_URL, SCHEMA, docsPages, docsRoute, schemaPages } from "./config.mjs";
 
 const ABSOLUTE = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i;
 // The docs pages the site renders: a link to any other file under the docs
@@ -43,7 +43,7 @@ export function route(repoPath) {
   }
   if (DOCS && p.startsWith(`${DOCS.dir}/`) && p.endsWith(".md")) {
     const name = p.slice(DOCS.dir.length + 1, -3);
-    if (DOC_PAGES.has(name)) return `${BASE}/docs/${name}/`;
+    if (DOC_PAGES.has(name)) return BASE + docsRoute(name);
   }
   let m = p.match(/^\.lokf\/knowledge\/(.+)\.md$/);
   if (m) {
