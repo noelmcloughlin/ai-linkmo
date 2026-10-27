@@ -18,7 +18,7 @@ references:
   - https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
   - by: process:ktl-librarian
-    at: "2026-10-27T01:10:23Z"
+    at: "2026-10-27T17:36:28Z"
 generated:
   by: process:ktl-librarian
   at: "2026-10-17T00:24:57Z"

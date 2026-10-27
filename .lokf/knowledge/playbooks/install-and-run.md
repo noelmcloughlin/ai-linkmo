@@ -9,28 +9,28 @@ generated:
   by: process:ktl-librarian
   at: "2026-10-17T00:24:57Z"
 sources:
-- resource: docs/install.md
-  title: Install and Quick start
-- resource: docs/install-notes.md
-  title: Install notes
-- resource: docs/neo4j.md
-  title: Load the graph into Neo4j
-- resource: docs/working-with-the-data.md
-  title: Working with the data
-- resource: lib/frontend/README.md
-  title: Web UI README
-- resource: lib/test/README.md
-  title: Test suite README
-- resource: scripts/tests.sh
-  title: Test runner script
+  - resource: docs/install.md
+    title: Install and Quick start
+  - resource: docs/install-notes.md
+    title: Install notes
+  - resource: docs/neo4j.md
+    title: Load the graph into Neo4j
+  - resource: docs/working-with-the-data.md
+    title: Working with the data
+  - resource: lib/frontend/README.md
+    title: Web UI README
+  - resource: lib/test/README.md
+    title: Test suite README
+  - resource: scripts/tests.sh
+    title: Test runner script
 about:
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/cli
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/web-ui
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/graph-db
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/cli
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/web-ui
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/graph-db
 verified:
-- by: process:ktl-librarian
-  at: "2026-09-25T20:31:36Z"
+  - by: process:ktl-librarian
+    at: "2026-10-27T17:36:28Z"
 ---
 
 # Install and run
