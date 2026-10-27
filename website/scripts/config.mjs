@@ -294,12 +294,13 @@ function firstTitle(rel) {
 }
 
 // The buttons under the home page's title when HOME.actions is not set: the
-// bundle, the docs' architecture page when the site has one, the health page
-// and the graph.
+// bundle, the docs' architecture page when the site has one, the schema's
+// pages when the site shows them, the health page and the graph.
 function defaultActions() {
   return [
     { text: "Browse the bundle", link: "/knowledge/", icon: "right-arrow" },
     ...(docsPages().includes("architecture") ? [{ text: "Architecture", link: "/docs/architecture/", variant: "secondary" }] : []),
+    ...(SCHEMA ? [{ text: "Schema", link: "/schema/", variant: "secondary" }] : []),
     { text: "Bundle health", link: "/health/", variant: "secondary" },
     { text: "Knowledge graph", link: "/graph/", variant: "secondary" },
   ];

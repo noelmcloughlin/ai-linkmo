@@ -205,8 +205,8 @@ jobs:
         if: github.repository != 'noelmcloughlin/knowledge-trust-ladder'
         env:
           TRUST_LADDER_SKILLS_REPO: https://github.com/noelmcloughlin/knowledge-trust-ladder
-          TRUST_LADDER_SKILLS_REF: v0.56.2 # the one pin; point your docs here instead of repeating it
-          TRUST_LADDER_SKILLS_SHA: 332b2b3207f430a3286b38aec3cd2bc8f77b911f # the commit that tag names
+          TRUST_LADDER_SKILLS_REF: v0.57.0 # the one pin; point your docs here instead of repeating it
+          TRUST_LADDER_SKILLS_SHA: e7ec838780e9bc436970055a3cd5a5695015def6 # the commit that tag names
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"

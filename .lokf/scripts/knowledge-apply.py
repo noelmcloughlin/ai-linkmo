@@ -117,6 +117,12 @@ OWN_BULLET_RE = re.compile(r"^\* \[[^\]]*\]\([^)]+\)(?: - .*)?$")  # any concept
 FEEDBACK_KIND_RE = re.compile(r"^- \*\*(Miss|Disagreement)\*\* ")
 HANDOFF_LINES, HANDOFF_CHARS = 10, 300
 FEEDBACK_ENTRIES = 10  # the reader entries one patch may handle; the rest wait for the next run
+# The characters Unicode calls default ignorable, which a renderer draws as
+# nothing, beyond the format and control characters: variation selectors,
+# which can spell hidden text after a visible character, the Hangul fillers
+# and the combining grapheme joiner, among others. knowledge-ingest.py holds
+# the same list.
+IGNORABLE = re.compile("[\u034f\u115f\u1160\u17b4\u17b5\u180b-\u180f\u2065\u3164\ufe00-\ufe0f\uffa0\ufff0-\ufff8\U000e0000-\U000e0fff]")
 # The keys each operation reads besides `op` and `path`. The script refuses
 # any other key, naming it, because a key it skipped would pass a dry run and
 # change nothing. A `set` on a rewrite was once dropped that way. Every
@@ -283,8 +289,8 @@ def one_line(value, what: str) -> str:
 
 
 def shown(text: str) -> str:
-    """The text without the characters no reader sees: a control character, or a format character such as a zero-width space, a soft hyphen, a bidirectional control or a tag character. The Unicode category decides, as it does in the repository contract and in prose-check.py, so no list of ranges has to keep up."""
-    return " ".join("".join(char for char in text if unicodedata.category(char) not in ("Cc", "Cf")).split())
+    """The text without the characters no reader sees: a control character, a format character such as a zero-width space, a soft hyphen, a bidirectional control or a tag character, or another character Unicode calls default ignorable, such as a variation selector. knowledge-ingest.py drops the same characters, except the two joiners, which it keeps."""
+    return " ".join("".join(char for char in text if unicodedata.category(char) not in ("Cc", "Cf") and not IGNORABLE.match(char)).split())
 
 
 def person_record(text: str | None) -> Counter:
@@ -1037,7 +1043,8 @@ def schema_findings(root: Path, files: dict) -> tuple:
         for rel, text in files.items():
             file = staged / rel
             file.parent.mkdir(parents=True, exist_ok=True)
-            file.write_text(text, encoding="utf-8", newline="\n")
+            with open(file, "w", encoding="utf-8", newline="\n") as f:  # Path.write_text takes newline= only from Python 3.10
+                f.write(text)
         done = subprocess.run(cmd + [str(staged)], cwd=str(cwd), capture_output=True, text=True,
                               encoding="utf-8", errors="replace", timeout=600)
     except (OSError, subprocess.TimeoutExpired) as exc:

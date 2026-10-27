@@ -363,13 +363,14 @@ fi
 # The script's own status line says how many entries, how many mirrored files
 # and which token names are present; it prints no value. A mirror file the
 # lock names and the disk has lost, or a file the lock does not name, is a
-# warning: a run restores the first, and the second is nobody's. Without the
-# script, the manifest is a wish nothing fulfils.
+# warning: a run restores the first, and the second is nobody's. So is a git
+# older than a `git` entry needs, since the run refuses that entry. Without
+# the script, the manifest is a wish nothing fulfils.
 if [ -f "$root/.lokf/ingest.yaml" ]; then
   if [ -f "$root/.lokf/scripts/knowledge-ingest.sh" ]; then
     status="$(bash "$root/.lokf/scripts/knowledge-ingest.sh" --root "$root" --status 2>/dev/null)" || status=""
     case "$status" in
-      "ingest: "*"missing from the mirror"*|"ingest: "*"the lock does not name"*) warn ingest "${status#ingest: }" ;;
+      "ingest: "*"missing from the mirror"*|"ingest: "*"the lock does not name"*|"ingest: "*"this git is "*) warn ingest "${status#ingest: }" ;;
       "ingest: "*) info ingest "${status#ingest: }" ;;
       *) info ingest ".lokf/ingest.yaml is here; its status was not read (no .lokf/.venv or python3 3.9 or later with pyyaml, and uv could not run it)" ;;
     esac
