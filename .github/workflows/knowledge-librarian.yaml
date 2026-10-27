@@ -42,7 +42,7 @@ jobs:
       record: ${{ steps.read.outputs.record }}
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: audit
 
@@ -158,7 +158,7 @@ jobs:
       # installs packages, installs a skill everywhere but the repository
       # that publishes it, and runs a third-party agent.
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: audit
 
@@ -169,7 +169,7 @@ jobs:
           persist-credentials: false # keep GITHUB_TOKEN off disk while the agent runs
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
         with:
           python-version: "3.12"
 
@@ -430,7 +430,7 @@ jobs:
       pull-requests: write # open the review PR
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: audit
 
@@ -538,15 +538,16 @@ jobs:
             // it, and is shown as nothing more. The pen cleaned it there; it
             // is cleaned again here, since that job could be blinded: ten
             // lines of 300 characters at most, with no backtick and no
-            // character a reader cannot see. Unicode's own categories say
-            // which those are, as they do in the pen: a control, a format
-            // character such as a zero-width space, a bidirectional control
-            // or a tag character, and a line or paragraph separator. It goes
+            // character a reader cannot see. Unicode says which those are,
+            // as it does in the pen: a control, a format character such as
+            // a zero-width space, a bidirectional control or a tag character,
+            // another character it calls default ignorable, such as a
+            // variation selector, and a line or paragraph separator. It goes
             // in a code block, where no link, image, mention or HTML renders.
             let handoff = [];
             try {
               handoff = fs.readFileSync(HANDOFF_FILE, 'utf8').split('\n')
-                .map((l) => l.replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, '').replace(/`/g, "'").trim().slice(0, 300))
+                .map((l) => l.replace(/[\p{Cc}\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}]/gu, '').replace(/`/g, "'").trim().slice(0, 300))
                 .filter((l) => l !== '')
                 .slice(0, 10);
             } catch (e) {
