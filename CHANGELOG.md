@@ -6,6 +6,8 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-27
+
 ### Changed
 
 - **The linkmo template serves the API, the CLI's commands and the browse build.** Its project in `ai-risk-ontology-linkmo/` replaces `lib/api/api.yaml`, the API kernel and `lib/browse/`, and answers every listing through `lib/api/handlers.py`, so the related-risk lookups and `byod` work as before.
