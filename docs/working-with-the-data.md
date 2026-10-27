@@ -56,7 +56,7 @@ The [website](https://noelmcloughlin.github.io/ai-linkmo/) serves the packaged d
 
 ## The schema's pages, with examples
 
-`just gen-doc` writes the schema's pages to `docs/elements` with LinkML's `gen-doc`, one page per class, slot, enum and type. Each class page has an *Examples* section with a record from the data: for every concrete class that has records, the record whose identifier sorts first. `just gen-examples`, which `just gen-doc` runs first, writes those examples to `docs/elements/examples` and validates each against its class, and the recipe stops if one fails. Abstract classes get no example, although the data holds a few records of `Certification`, `Group` and `Taxonomy`. Nothing under `docs/elements` is committed. The website builds the pages the same way and shows them under its *Schema* topic, each class diagram drawn.
+`just gen-doc` writes the schema's pages to `ai-risk-ontology-linkmo/docs/elements` with LinkML's `gen-doc`, one page per class, slot, enum and type. Each class page has an *Examples* section with a record from the data: for every concrete class that has records, the record whose identifier sorts first. `just gen-examples`, which `just gen-doc` runs first, writes those examples to `ai-risk-ontology-linkmo/docs/elements/examples` and validates each against its class, and the recipe stops if one fails. Abstract classes get no example, although the data holds a few records of `Certification`, `Group` and `Taxonomy`. Nothing under `ai-risk-ontology-linkmo/docs/elements` is committed. The website builds the pages the same way and shows them under its *Schema* topic, each class diagram drawn.
 
 ## Graph database
 
