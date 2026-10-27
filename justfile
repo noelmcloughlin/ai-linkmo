@@ -7,8 +7,8 @@
 # knowledge-bundle recipes live in .lokf/justfile.
 
 # The linkmo project in ai-risk-ontology-linkmo/ builds the contract, the entity list, the
-# browse database and the schema's pages. Its recipes run on this project's environment,
-# which has ai-atlas-nexus already, rather than building one of their own.
+# browse databases and the schema's pages. It is a member of this project's uv workspace,
+# so its recipes run on this project's environment, which has ai-atlas-nexus already.
 host := "uv run --project '" + justfile_directory() + "'"
 export LINKMO_PYTHON := env("LINKMO_PYTHON", host + " python")
 export LINKMO_BROWSE_PYTHON := env("LINKMO_BROWSE_PYTHON", host + " --extra browse python")
@@ -52,9 +52,18 @@ dump-store:
 build-browse:
     {{ linkmo }} build-browse
 
+# Build the same database with the bring-your-own data added, under ai-risk-ontology-linkmo/browse-byod.
+build-browse-byod:
+    {{ linkmo }} build-browse --data-dir browse-byod --param byod=true
+
 # Serve the browse database with Datasette on http://127.0.0.1:8001, building it if it is missing.
 browse:
     {{ linkmo }} browse
+
+# Serve the database with the bring-your-own data on http://127.0.0.1:8001, building it if it is missing.
+browse-byod:
+    test -f ai-risk-ontology-linkmo/browse-byod/metadata.yaml || just build-browse-byod
+    {{ linkmo }} browse browse-byod
 
 # Write one example per class with records to ai-risk-ontology-linkmo/docs/elements/examples.
 gen-examples:
