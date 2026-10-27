@@ -6,27 +6,27 @@ title: What AI-LinkMO adds to AI Atlas Nexus
 description: AI-LinkMO is a workshop built on IBM AI Atlas Nexus. It adds doors, encodings and checks but no ontology of its own, and its governance records carry no provenance yet.
 resource: docs/for-the-curious.md
 tags:
-- rationale
-- provenance
+  - rationale
+  - provenance
 generated:
   by: process:ktl-librarian
   at: "2026-10-17T00:24:57Z"
 status: draft
 references:
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 relatedTo:
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/ibm
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/explanations/why-linked-ai-governance
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/ibm
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/explanations/why-linked-ai-governance
 verified:
-- by: process:ktl-librarian
-  at: "2026-10-14T02:10:40Z"
+  - by: process:ktl-librarian
+    at: "2026-10-27T01:10:23Z"
 sources:
-- resource: docs/for-the-curious.md
-  title: For the curious, Where this sits and What it does not add yet
-- resource: docs/architecture.md
-  title: Architecture, Where this sits
-- resource: docs/cli-examples.md
-  title: CLI examples, which says most of its commands are test cases
+  - resource: docs/for-the-curious.md
+    title: For the curious, Where this sits and What it does not add yet
+  - resource: docs/architecture.md
+    title: Architecture, Where this sits
+  - resource: docs/cli-examples.md
+    title: CLI examples, which says most of its commands are test cases
 ---
 
 # What AI-LinkMO adds to AI Atlas Nexus

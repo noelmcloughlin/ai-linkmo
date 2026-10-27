@@ -1,5 +1,9 @@
 # Change Log
 
+## 2026-10-27
+
+* **Changed**: the source map's exclusions name `docs/threat-model.md` and `.github/workflows/lint-and-docs.yaml`, both added in #123, so every tracked file keeps a place in the map.
+
 ## 2026-10-18
 
 * **Changed**: the source map names the three generator scripts beside the rows they serve, the sync's pull request template beside the sidecar, and the repository plumbing and `llms.txt` it leaves out, so every tracked file has a place in it.
