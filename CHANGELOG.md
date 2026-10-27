@@ -6,6 +6,10 @@ Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it
 
 ## [Unreleased]
 
+### Fixed
+
+- **A `!` after the type marks a breaking change.** `.releaserc.json` names the Conventional Commits preset, so a `feat!:` commit bumps the minor version instead of releasing nothing.
+
 ## [0.4.14] - 2026-10-27
 
 ### Security
