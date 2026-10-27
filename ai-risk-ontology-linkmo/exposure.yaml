@@ -112,6 +112,8 @@ generator_args:
               type: boolean
             required: false
             description: Add the bring-your-own-data frameworks under byo/data to the packaged ontology
+            # It chooses the data, not the question, so an id with it still fetches one record.
+            x-linkmo-filter: true
           related:
             in: query
             name: related
