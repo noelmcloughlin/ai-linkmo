@@ -6,27 +6,27 @@ title: Why linked AI governance
 description: "Why AI-LinkMO keeps AI governance as one catalogue of linked data behind four doors (the CLI, the API, the web UI and the graph database): the problems of governance kept in PDFs and spreadsheets, and why one shared ontology makes the traceability auditable."
 resource: docs/architecture.md
 tags:
-- rationale
-- ai-governance
+  - rationale
+  - ai-governance
 timestamp: "2026-08-12T00:00:00Z"
 about:
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/cli
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/web-ui
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/graph-db
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/cli
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/web-ui
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/graph-db
 references:
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
-- by: process:ktl-librarian
-  at: "2026-09-25T20:32:51Z"
+  - by: process:ktl-librarian
+    at: "2026-10-27T01:10:23Z"
 generated:
   by: process:ktl-librarian
   at: "2026-10-17T00:24:57Z"
 sources:
-- resource: docs/architecture.md
-  title: Architecture, Why governance needs a catalogue and One model, four ways in
-- resource: docs/working-with-the-data.md
-  title: Working with the data, Bring your own data
+  - resource: docs/architecture.md
+    title: Architecture, Why governance needs a catalogue and One model, four ways in
+  - resource: docs/working-with-the-data.md
+    title: Working with the data, Bring your own data
 ---
 
 # Why linked AI governance

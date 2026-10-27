@@ -8,15 +8,15 @@ endpoint: http://localhost:5173
 resource: lib/frontend
 documentation: https://github.com/noelmcloughlin/ai-linkmo/blob/main/lib/frontend/README.md
 tags:
-- frontend
-- svelte
-- spa
+  - frontend
+  - svelte
+  - spa
 timestamp: "2026-08-12T00:00:00Z"
 dependsOn:
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
 verified:
-- by: process:ktl-librarian
-  at: "2026-10-16T23:49:47Z"
+  - by: process:ktl-librarian
+    at: "2026-10-27T01:10:23Z"
 generated:
   by: process:ktl-librarian
   at: "2026-10-17T00:24:57Z"

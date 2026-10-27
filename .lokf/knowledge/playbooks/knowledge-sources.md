@@ -7,7 +7,7 @@ description: "The librarian's scrape map: every repository location and external
 resource: https://github.com/noelmcloughlin/ai-linkmo
 generated:
   by: process:ktl-librarian
-  at: "2026-10-18T00:17:24Z"
+  at: "2026-10-27T01:10:23Z"
 verified:
   - by: process:ktl-librarian
     at: "2026-10-18T00:17:24Z"
@@ -49,7 +49,7 @@ These are not knowledge sources, and are left out on purpose:
 - `lib/frontend/STATUS.md`: transient dev notes.
 - The `.lokf/` sidecar itself, including its automation workflows (`.github/workflows/knowledge-*.yaml`) and the sync's pull request template (`.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md`).
 - The bundle's website under `website/`, which ktl-website builds from this bundle and the docs.
-- Repository plumbing with no claim of its own: `justfile`, whose recipes the rows above name, `uv.lock`, `LICENSE`, `.editorconfig`, `.gitignore`, `.markdownlint-cli2.jsonc`, `lychee.toml`, `.releaserc.json`, `.github/scripts/`, `.github/dependabot.yml`, `.github/ISSUE_TEMPLATE/` and `.github/pull_request_template.md`.
+- Repository plumbing with no claim of its own: `justfile`, whose recipes the rows above name, `uv.lock`, `LICENSE`, `.editorconfig`, `.gitignore`, `.markdownlint-cli2.jsonc`, `lychee.toml`, `.releaserc.json`, `.github/scripts/`, `.github/dependabot.yml`, `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md` and `.github/workflows/lint-and-docs.yaml`, added 2026-10-26 (#123) to lint shell scripts, workflow files and prose rather than to state a fact.
 - `llms.txt`, which tells an agent to read this bundle first.
 
 Also excluded, decided 2026-10-14: the schema's pages that `just gen-doc` writes to `docs/elements` (generated from the AI Risk Ontology, carried by `references/ai-risk-ontology`, never committed), the per-class examples from the data that `scripts/gen_examples.py` writes there first, and the `just gen-openapi` copy `docs/openapi.json` beyond its row above.
@@ -60,6 +60,6 @@ Also excluded, re-decided 2026-09-25 after the README moved its detail into `doc
 - `docs/for-the-curious.md` §Curate your own open data, §Build Python applications on it and §Research: guidance that re-points to references already captured.
 - Both roadmap sections, which name [asago-policy-mapper](https://github.com/asago-ai/asago-policy-mapper) and finos/fluxnova-ai#40 as possible future directions, not code-backed here. Promote them only once an integration is merged.
 - `docs/status.md`: its caveats are already carried where they apply. The Cypher and BYOD scope is in the graph concepts, the unauthenticated writes in the install playbook, and the reviewer gap in `explanations/what-ai-linkmo-adds`.
-- `docs/releasing.md`, `docs/repository-layout.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `AI_COVENANT.md` and `CODE_OF_CONDUCT.md`: the process and governance of the repository, not knowledge of the product.
+- `docs/releasing.md`, `docs/repository-layout.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `SECURITY.md`, `docs/threat-model.md`, `AI_COVENANT.md` and `CODE_OF_CONDUCT.md`: the process and governance of the repository, not knowledge of the product. `docs/threat-model.md`, split from `SECURITY.md` on 2026-10-26 (#123), restates the unauthenticated-write-endpoint and persona-picker-login caveats that `playbooks/install-and-run.md` already carries, and adds repository-hardening detail with no product claim of its own.
 - `NOTICE`: framework credits, already carried by the `references/` and `org/` concepts.
 - The architecture page's §What it looks like examples, covered by `services/cli`.
