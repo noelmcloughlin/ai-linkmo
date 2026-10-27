@@ -19,7 +19,7 @@ relatedTo:
   - https://noelmcloughlin.github.io/ai-linkmo/knowledge/explanations/why-linked-ai-governance
 verified:
   - by: process:ktl-librarian
-    at: "2026-10-27T01:10:23Z"
+    at: "2026-10-27T17:36:28Z"
 sources:
   - resource: docs/for-the-curious.md
     title: For the curious, Where this sits and What it does not add yet

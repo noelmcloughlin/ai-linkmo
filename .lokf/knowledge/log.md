@@ -2,6 +2,15 @@
 
 ## 2026-10-27
 
+* **Changed**: the FastAPI backend names the linkmo project's folder and its answers file as sources, so the coverage sweep counts them.
+* **Changed**: `./ai` now runs the linkmo project's generated command line, so the CLI concept cites `ai-risk-ontology-linkmo/src/ai_linkmo/cli.py` and `AI_LINKMO_MODE`; `lib/cli/` and `lib/api/api.yaml` are gone.
+* **Changed**: the FastAPI backend is the linkmo project's app over ai-linkmo's handlers since 0.5.0; `api.yaml`, `exposure.py` and `server_kernel.py` are gone, and the store switch is `AI_LINKMO_BACKEND`.
+* **Changed**: the linkmo project builds the browse databases, under `ai-risk-ontology-linkmo/browse` and `browse-byod`, since `lib/browse/` was removed.
+* **Changed**: the web UI's entity list is written from the linkmo project's exposure file, which replaced `lib/api/api.yaml`.
+* **Changed**: BYOD names the exposure file, which now declares the `byod` parameter.
+* **Changed**: the store switch is `AI_LINKMO_BACKEND` since 0.5.0, as `lib/store/source.py` says.
+* **Changed**: the source map names the linkmo project's files in place of `lib/cli/`, `lib/api/api.yaml`, `exposure.py`, `server_kernel.py` and `lib/browse/`.
+* **Changed**: the browse database with your files is built by `just build-browse-byod`, since `just build-browse` builds the packaged data alone.
 * **Changed**: the source map's exclusions name `docs/threat-model.md` and `.github/workflows/lint-and-docs.yaml`, both added in #123, so every tracked file keeps a place in the map.
 
 ## 2026-10-18
