@@ -6,6 +6,8 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-27
+
 ### Changed
 
 - **`./ai` runs the linkmo project's command line, and `lib/cli/` is gone.** It still asks the API by default, through `AI_LINKMO_MODE`. It prints plain JSON, indented on a terminal, with errors on stderr, and no longer probes other ports or takes `--verbose`.
