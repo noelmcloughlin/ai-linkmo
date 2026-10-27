@@ -5,13 +5,14 @@ A FastAPI server whose class listings are generated from the AI Risk Ontology sc
 ## Architecture Overview
 
 The linkmo project in `ai-risk-ontology-linkmo/` builds the API. Its exposure file,
-`ai-risk-ontology-linkmo/exposure.yaml`, names the ontology classes the API lists, the path
-of each, the parameters ai-linkmo adds beside the slots (`byod`, and `hasRelatedRisk`,
-`related` and `related_ids` on the classes a risk relates to), and the hand-written
-operations (`/search`, `/graph`, `/crosswalk`, `/inference`, `/schemaview`, `/byo`, `/ares`)
-as OpenAPI operation objects in its overlay. Everything else about a class comes from the
-LinkML schema shipped inside the installed `ai_atlas_nexus` package: each slot of the class
-is one query parameter, an enum slot offers its values, and a value outside them is a 422.
+`ai-risk-ontology-linkmo/exposure.yaml`, names the ontology classes the API lists and the
+path of each. It names the parameters ai-linkmo adds beside the slots: `byod`, and
+`hasRelatedRisk`, `related` and `related_ids` on the classes a risk relates to. Its overlay
+holds the hand-written operations (`/search`, `/graph`, `/crosswalk`, `/inference`,
+`/schemaview`, `/byo`, `/ares`) as OpenAPI operation objects. Everything else about a class
+comes from the LinkML schema inside the installed `ai_atlas_nexus` package: each slot of the
+class is one query parameter, an enum slot offers its values, and a value outside them is a
+422.
 
 The project's kernels register one GET per exposed class and the overlay's operations, and
 both the API and the CLI read the same exposure. Every listing goes to the project's data
@@ -36,7 +37,7 @@ at `/docs`, ReDoc at `/redoc` and Scalar at `/scalar`.
 Add or remove an entry under `expose.classes` in `ai-risk-ontology-linkmo/exposure.yaml`,
 with its `path`, and the related parameters when the library can look it up by risk (then
 add its call to `RELATED_LOOKUPS`). The linkmo project's tests check that every exposed
-class is in the schema and every slot is a filter, and run the README's count cases in
+class is in the schema and every slot is a filter, and run the count cases in
 `ai-risk-ontology-linkmo/tests/expected_counts.yaml` through the CLI and the API.
 
 ## Where the records come from
@@ -66,15 +67,15 @@ Infrastructure endpoints surfaced by `server.py`:
 
 | Endpoint   | Purpose                                                                 |
 | ---------- | ----------------------------------------------------------------------- |
-| `/health`  | Liveness probe - always 200 once the process is up.                     |
-| `/ready`   | Readiness probe - 200 only when the data source has loaded.             |
+| `/health`  | Liveness probe: always 200 once the process is up.                      |
+| `/ready`   | Readiness probe: 200 only when the data source has loaded.              |
 | `/version` | Reports `api`, the schema's version, and the `datamodel` module.        |
 | `/classes` | Lists schema classes, optionally filtered by `taxonomy`/`vocabulary`.   |
 
-The class listings (`/risk`, `/action`, ...) and the hand-written operations
-are registered by the linkmo project from its exposure file, so a new slot in
-the ontology is a new filter without a code change, and a new method on a hand
-path needs its operation object in the overlay and its function in `hand.py`.
+The linkmo project registers the class listings (`/risk`, `/action`, ...) and
+the hand-written operations from its exposure file. So a new slot in the
+ontology is a new filter without a code change. A new method on a hand path
+needs its operation object in the overlay and its function in `hand.py`.
 
 ### Security & operational hardening
 
@@ -92,7 +93,7 @@ path needs its operation object in the overlay and its function in `hand.py`.
     promoted via `os.replace`; a `.bak` is taken first when an existing
     file is being overwritten).
   - The exposure file's overlay declares an `ApiKeyAuth` security scheme on this
-    operation, and `/openapi.json` publishes it. The demo server does **not** enforce it - operators
+    operation, and `/openapi.json` publishes it. The demo server does **not** enforce it, so operators
     deploying outside localhost should add a reverse-proxy that validates
     `X-API-Key`.
 - **`/inference`**: `gpu_memory_utilization` is a `float` (was a string).

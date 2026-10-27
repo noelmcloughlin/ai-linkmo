@@ -1,6 +1,6 @@
-"""Test CLI commands from README examples.
+"""Test CLI commands from the examples in docs/cli-examples.md.
 
-This test suite validates all CLI commands documented in README.md,
+This test suite validates most CLI commands documented in docs/cli-examples.md,
 ensuring they work correctly in both API and local modes. When data
 changes ("bring your own data", upgraded 'ai_atlas_nexus' package),
 you need to update the test suite accordingly.
@@ -9,7 +9,7 @@ you need to update the test suite accordingly.
 import pytest
 
 
-# Test cases extracted from README.md
+# Test cases taken from docs/cli-examples.md.
 # Format: (command_args, expected_count_min, expected_count_max, byod_required)
 # A scope lists every instance of its class, wherever the data file put it: ``control`` is
 # every RiskControl including the 1,085 Actions, ``group`` every Group subclass, and
@@ -170,7 +170,7 @@ CLI_TEST_CASES = [
 
 @pytest.mark.parametrize("cmd_args,min_count,max_count,byod_required", CLI_TEST_CASES)
 def test_cli_api_mode(api_server, cli_command, cmd_args, min_count, max_count, byod_required):
-    """Test CLI commands in API mode against expected counts from README."""
+    """Test CLI commands in API mode against the expected counts of docs/cli-examples.md."""
     if byod_required:
         pytest.skip("Skipping BYOD test in standard test suite")
     
@@ -208,11 +208,12 @@ def test_cli_api_mode(api_server, cli_command, cmd_args, min_count, max_count, b
 @pytest.mark.slow
 @pytest.mark.parametrize("cmd_args,min_count,max_count,byod_required", CLI_TEST_CASES)
 def test_cli_local_mode(cli_command, cmd_args, min_count, max_count, byod_required):
-    """Test CLI commands in local mode against expected counts from README.
+    """Test CLI commands in local mode against the expected counts of docs/cli-examples.md.
 
     Marked ``slow`` because each parametrisation spawns a fresh Python
-    interpreter and loads the full ontology in-process - the full sweep
-    takes ~25 minutes. Run with ``pytest -m "not slow"`` to skip.
+    interpreter and reads the data in process. The slow tests take about five
+    minutes once ``just load-store`` has built the store. Run with
+    ``pytest -m "not slow"`` to skip them.
     """
     if byod_required:
         pytest.skip("Skipping BYOD test in standard test suite")

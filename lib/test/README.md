@@ -1,17 +1,17 @@
 # CLI Testing
 
-This directory contains unit tests for the AI-LinkMO CLI Demo commands documented in the main README.md.
+This directory contains unit tests for the AI-LinkMO CLI commands documented in [docs/cli-examples.md](../../docs/cli-examples.md).
 
 ## Test Structure
 
-- **conftest.py** - Pytest fixtures including API server startup/shutdown
-- **test_cli_examples.py** - Parametrized tests for all README CLI examples
-- **test_cli_kernel.py** - The generated CLI commands and options
-- **test_contract_published.py** - The published `/openapi.json` is the one the server serves
+- **conftest.py**: Pytest fixtures, including the API server's startup and shutdown
+- **test_cli_examples.py**: Parametrized tests for the CLI examples in `docs/cli-examples.md`
+- **test_cli_kernel.py**: The generated CLI commands and options
+- **test_contract_published.py**: The published `/openapi.json` is the one the server serves
 
 The linkmo project's own tests, in `ai-risk-ontology-linkmo/tests/`, check the exposure file,
-the endpoints, the browse database and the examples, and run the README's count cases through
-the CLI and the API: `just --justfile ai-risk-ontology-linkmo/justfile test`, with
+the endpoints, the browse database and the examples, and run the count cases in
+`tests/expected_counts.yaml` through the CLI and the API: `just --justfile ai-risk-ontology-linkmo/justfile test`, with
 `LINKMO_PYTHON` set to this project's `.venv/bin/python`.
 
 ## Running Tests
@@ -73,7 +73,8 @@ A working workflow is already set up at
 [.github/workflows/cli-tests.yml](../../.github/workflows/cli-tests.yml). It
 runs on every push or pull request that touches `ai`, `lib/api/**`,
 `lib/store/**`, `ai-risk-ontology-linkmo/**`, `lib/test/**`, `scripts/**`,
-`byo/**`, `pyproject.toml`, or `uv.lock`. Minimal equivalent:
+`byo/**`, `pyproject.toml`, `uv.lock`, or the workflow file itself. Minimal
+equivalent:
 
 ```yaml
 name: CLI Tests
@@ -108,7 +109,7 @@ test:cli:
 
 ## Test Configuration
 
-Tests are parametrized based on README.md examples. Each test case includes:
+Tests are parametrized from the examples in `docs/cli-examples.md`. Each test case includes:
 
 - Command arguments
 - Expected minimum count

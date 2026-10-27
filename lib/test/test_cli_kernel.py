@@ -1,9 +1,9 @@
 """The CLI command tree matches the exposure.
 
 These tests build the click group from ``load_exposure()`` and check the invariants the
-kernel promises: one command per exposed class with one option per parameter, the names kept
-in camelCase, enum slots offered as choices, and one command per hand path. None of them
-needs the server or loads the ontology data; the schema alone is read.
+kernel promises. Each exposed class is one command with one option per parameter, the names
+stay in camelCase, enum slots are offered as choices, and each hand path is one command. None
+of the tests needs the server or loads the ontology data. They read the schema alone.
 """
 
 from __future__ import annotations

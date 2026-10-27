@@ -84,7 +84,7 @@ def cli_command(project_root, request):
         """Execute CLI command with given arguments.
         
         Args:
-            *args: Command arguments (e.g., 'risk', '--count')
+            *args: Command arguments (for example 'risk', '--count')
             mode: Optional mode override ('api' or 'local')
             timeout: Command timeout in seconds
             
