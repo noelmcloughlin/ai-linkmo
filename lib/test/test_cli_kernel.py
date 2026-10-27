@@ -1,9 +1,9 @@
 """The CLI command tree matches the exposure.
 
 These tests build the click group from ``load_exposure()`` and check the invariants the
-kernel promises: one command per exposed class with one option per parameter, the names kept
-in camelCase, enum slots offered as choices, and one command per hand path. None of them
-needs the server or loads the ontology data; the schema alone is read.
+kernel promises. Each exposed class is one command with one option per parameter, the names
+stay in camelCase, enum slots are offered as choices, and each hand path is one command. None
+of the tests needs the server or loads the ontology data. They read the schema alone.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from lib.cli.cli import SHARED_OPTION_NAMES, build_cli
+from ai_linkmo.cli import SHARED_OPTION_NAMES, build_cli
 from ai_linkmo.exposure import load_exposure
 
 
@@ -104,18 +104,18 @@ def test_unknown_scope_exits_2(cli):
     assert "error" in result.output.lower()
 
 
-def test_group_help_names_the_demo_and_the_scope(cli):
+def test_group_help_lists_every_scope(exposure, cli):
     result = CliRunner().invoke(cli, ["--help"])
     assert result.exit_code == 0
-    assert "AI-LinkMO CLI Demo" in result.output
-    assert "scope" in result.output
+    for scope in [*exposure.by_scope, *(path.strip("/") for path in exposure.hand_paths)]:
+        assert f"  {scope} " in result.output, scope
     # The short -h works after the scope too, as docs/cli-examples.md says.
     assert CliRunner().invoke(cli, ["risk", "-h"]).exit_code == 0
 
 
 def test_shared_options_resolve_from_either_level(cli, monkeypatch):
     """A flag before the scope and a flag after it both count; the command's mode wins."""
-    import lib.cli.cli as cli_module
+    import ai_linkmo.cli as cli_module
 
     seen = {}
 

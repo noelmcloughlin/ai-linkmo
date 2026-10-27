@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import importlib.util
 import os
+import sys
 from pathlib import Path
 
 PACKAGE_DIR = Path(__file__).resolve().parent
@@ -40,10 +41,28 @@ EXPOSURE = _setting("EXPOSURE", "exposure.yaml")
 DATA_SOURCE = _setting("DATA_SOURCE", "python")
 # AI_LINKMO_DATA: the directory of instance files, or the object as module:attribute.
 DATA = _setting("DATA", "ai_linkmo.atlas:AtlasSource")
+# AI_LINKMO_OPENAPI: where `just gen-openapi` publishes the API's contract.
+OPENAPI = _setting("OPENAPI", "docs/openapi.json")
+# AI_LINKMO_ENTITIES: where `just gen-ui-config` writes a web UI's entity list.
+ENTITIES = _setting("ENTITIES", "lib/frontend/src/lib/entities.json")
 
-# Folders put on sys.path before the datamodel is imported, when they exist. The sidecar's
-# src/ is one, because gen-pydantic writes the datamodel there.
+# Folders put first on sys.path, when they exist, before the datamodel, a Python data
+# source or hand.py is imported. The sidecar's src/ is one, because gen-pydantic writes
+# the datamodel there.
 MODULE_PATHS = [HOST_ROOT / ".linkml" / "src"]
+# Folders put last on sys.path, so that a Python data source or hand.py can import the
+# host's own modules while every installed package keeps its place.
+HOST_PATHS = [HOST_ROOT]
+
+
+def add_module_paths() -> None:
+    """Put MODULE_PATHS first on sys.path and HOST_PATHS last, once each."""
+    for path in MODULE_PATHS:
+        if path.is_dir() and str(path) not in sys.path:
+            sys.path.insert(0, str(path))
+    for path in HOST_PATHS:
+        if path.is_dir() and str(path) not in sys.path:
+            sys.path.append(str(path))
 
 
 def host_path(value: str, base: Path = HOST_ROOT) -> Path:
@@ -74,3 +93,11 @@ def exposure_path() -> Path:
 
 def data_path() -> Path:
     return host_path(DATA)
+
+
+def openapi_path() -> Path:
+    return host_path(OPENAPI)
+
+
+def entities_path() -> Path:
+    return host_path(ENTITIES)

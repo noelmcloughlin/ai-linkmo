@@ -3,12 +3,12 @@
 [The README](../README.md) says what AI-LinkMO is for. This is the tree behind it. Three toolchains live here: Python and uv at the root, Node in `lib/frontend/`, and a second uv project in `.lokf/`. [CONTRIBUTING.md](../CONTRIBUTING.md) has the development setup and the checklist to run before a pull request.
 
 ```text
-ai                      the CLI entry point (runs lib/cli through uv)
+ai                      the CLI entry point (runs the linkmo project's command line through uv, asking the API by default)
 justfile                build steps: the API contract and the UI entity list, which are committed; the graph, the store, the browse database and the schema's pages, which are not
 scripts/                the scripts behind those recipes, and the test runner
-lib/cli/                the CLI, one command per exposed class; fastCLI (via the API) or slowCLI (offline)
-ai-risk-ontology-linkmo/ the linkmo project: the exposure file, the CLI and API kernels, the server, the browse build and the schema's pages
-lib/api/                ai-linkmo's handlers behind the API: the related-risk lookups and the hand-written operations
+ai-risk-ontology-linkmo/ the linkmo project, a uv workspace member: the exposure file, the CLI and API kernels, the server, the browse build and the schema's pages
+  docs/elements/            the schema's pages, one example on each class page, written by `just gen-doc`, not committed
+lib/api/                ai-linkmo's handlers behind the API: the related-risk lookups, the hand-written operations and the library instances they share
 lib/frontend/           Svelte 5 web UI (Vite; proxies to the API on :8000)
 lib/store/              the DuckDB store behind the listings and the search, built by `just load-store`, not committed
 lib/test/               pytest suite; its API-mode CLI cases are the documented CLI examples, checked
@@ -17,7 +17,6 @@ byo/data/               nine governance frameworks encoded for the AI Risk Ontol
 byo/notes/EXAMPLES.md   a scripted walk through all four access patterns
 docs/
   openapi.json              the API contract, written by `just gen-openapi` and checked against the server
-  elements/                 the schema's pages, one example on each class page, written by `just gen-doc`, not committed
   key-concepts.md           the vocabulary the four doors share
   working-with-the-data.md  bring your own data, crosswalks, search and dumps, browsing, the schema's pages, the graph export
   neo4j.md                  load the graph into Neo4j in a container

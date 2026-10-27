@@ -9,8 +9,9 @@ Each entry carries a default filter list and a prominent field list, derived fro
 class's slots that point at another class or an enum. They are a fallback for a class
 the UI's overlay does not mention, not a judgement about the best filters.
 
-Run it with `just gen-ui-config`. tests/test_published.py fails when the committed file
-is out of date with the exposure file or the schema.
+Run it with `just gen-ui-config`, which writes it where the entities_file answer says, or
+to the path given. tests/test_published.py fails when the committed file is out of date
+with the exposure file or the schema.
 """
 
 from __future__ import annotations
@@ -104,7 +105,12 @@ def render(config: dict) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
-    output = Path(args[0]) if args else Path("ui/entities.json")
+    if args:
+        output = Path(args[0])
+    else:
+        from ai_linkmo.settings import entities_path
+
+        output = entities_path()
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(render(build_config()), encoding="utf-8")
     print(f"wrote {output}")

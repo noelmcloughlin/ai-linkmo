@@ -8,14 +8,12 @@ gets the same answer through the CLI in local mode and through the API.
 
 from __future__ import annotations
 
-import logging
-
 import click
 import pytest
 from click.testing import CliRunner
 from fastapi.testclient import TestClient
 
-from lib.cli.cli import SHARED_OPTION_NAMES, build_cli
+from ai_linkmo.cli import SHARED_OPTION_NAMES, build_cli
 from ai_linkmo.exposure import load_exposure
 
 
@@ -35,8 +33,6 @@ def client():
 
     with TestClient(app) as test_client:
         yield test_client
-    # Local mode silences logging for the process; put it back for the tests that follow.
-    logging.disable(logging.NOTSET)
 
 
 @pytest.fixture(scope="module")

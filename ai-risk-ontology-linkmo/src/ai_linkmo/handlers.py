@@ -3,9 +3,11 @@
 The API kernel routes each class listing here, and the command line calls it directly in
 local mode, so both kernels give the same answer by construction. A listing is the
 envelope ``{"items", "count", "validation_errors"}``. Giving the identifier of the class
-returns ``{"item": record}`` instead, with ``null`` when no record has it, unless a
-parameter the exposure file adds is given too: then the question is the data source's
-own, such as the records related to that one, and the answer is a listing.
+returns ``{"item": record}`` instead, with ``null`` when no record has it. A parameter the
+exposure file adds, given with the identifier, asks the data source a question of its
+own, such as the records related to that one, and the answer is a listing. An added
+parameter marked ``x-linkmo-filter: true`` only chooses records, as a slot does, so the
+answer stays one record.
 """
 
 from __future__ import annotations
@@ -62,7 +64,7 @@ def query_class(class_name: str, **params: Any) -> dict[str, Any]:
         records = source.query(class_name, **given)
     except UnknownFilter as exc:
         raise QueryError(422, str(exc)) from exc
-    added = {p.name for p in exposed.parameters if not p.slot}
+    added = {p.name for p in exposed.parameters if not p.slot and not p.filter}
     if exposed.identifier is not None and exposed.identifier in given and not added & set(given):
         return {"item": jsonable(records[0]) if records else None}
     items = [jsonable(record) for record in records]

@@ -10,8 +10,8 @@ AI-LinkMO demonstrates four ways into one linked AI-governance knowledge graph: 
 
 | Path | Lives in |
 | --- | --- |
-| CLI | `ai`, `lib/cli/` |
-| HTTP API | `lib/api/` |
+| CLI | `ai`, `ai-risk-ontology-linkmo/` |
+| HTTP API | `ai-risk-ontology-linkmo/`, `lib/api/` |
 | Web UI | `lib/frontend/` |
 | Graph, ontology, crosswalks | `graph/`, `byo/` |
 | Tests | `lib/test/` |
@@ -27,7 +27,7 @@ Python 3.11+ and [uv](https://docs.astral.sh/uv/) are required; Node 22 for the 
 git clone https://github.com/noelmcloughlin/ai-linkmo.git
 cd ai-linkmo
 uv sync --extra test --extra browse   # application, test and browse dependencies
-./ai --help                           # runs lib/cli via uv
+./ai --help                           # runs the linkmo project's command line via uv
 ```
 
 For the web UI:
@@ -86,7 +86,7 @@ Open an issue; the templates ask for your OS, Python version, access pattern, an
 - If a PR should release but its commits are typed too quietly, squash-merge it with the right type.
 - Every pull request gets a `--dry-run` preview.
 - On merge, [`semantic-release.yml`](.github/workflows/semantic-release.yml) retitles the section to `## [X.Y.Z] - YYYY-MM-DD`, writes the version into `pyproject.toml` and `uv.lock` (`.github/scripts/bump-version.mjs`), commits the three files, tags `vX.Y.Z` and publishes the GitHub Release. Once the `KNOWLEDGE_RELEASE_ENABLED` repository variable is `true`, it dispatches [`knowledge-release.yaml`](.github/workflows/knowledge-release.yaml), which attaches the bundle as `knowledge-vX.Y.Z-ai-linkmo.zip` when it changed since the last release that carries one.
-- Those steps run behind the `release` GitHub Environment; configure required reviewers on it once, in Settings → Environments, or every qualifying merge ships unattended.
+- Those steps run behind the `release` GitHub Environment; configure required reviewers on it once, in Settings → Environments, or every qualifying merge is released unattended.
 - Below 1.0.0: the `v0.1.0` baseline tag makes the first real release `0.2.0`, and `.releaserc.json` maps `breaking: true` to `minor`. Still mark breaking changes; they show in the release notes. Reaching 1.0.0 means removing that rule in its own PR.
 - Leave branch rules for pull requests, required status checks and signed commits off: each would reject the release job's own push, which GitHub does not sign ([repository hardening](https://w3id.org/ktl/docs/threat-model/#repository-hardening) says why). A red check is yours to fix. [Signing your own commits](https://w3id.org/ktl/docs/signing-commits/) is still worth doing.
 

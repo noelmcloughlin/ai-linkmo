@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier; do not edit by hand
-_commit: v0.2.0
+_commit: v0.3.0
 _src_path: gh:noelmcloughlin/linkmo
 api: fastapi
 cli_framework: click
@@ -7,8 +7,11 @@ command_name: ai
 data_object: ai_linkmo.atlas:AtlasSource
 data_source: python
 datamodel_module: ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology
+entities_file: lib/frontend/src/lib/entities.json
+env_prefix: AI_LINKMO
 exposure_file: exposure.yaml
 linkmo_dir: ai-risk-ontology-linkmo
+openapi_file: docs/openapi.json
 project_slug: ai-risk-ontology
 python_package: ai_linkmo
 requirements:

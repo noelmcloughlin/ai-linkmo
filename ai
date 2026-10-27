@@ -1,12 +1,15 @@
 #!/bin/bash
 
-# This script executes lib/cli.py script using `uv run`.
+# Runs ai-linkmo's command line, the linkmo project's ai_linkmo, with `uv run`.
 # Usage: ./ai [arguments]
+#
+# It asks the running API server, unless --mode local or AI_LINKMO_MODE=local says to
+# read the data in this process.
 
 if [ ! -d ".venv" ]
 then
     echo
-    echo "No directory named ./venv found in current directory (see SETUP.md)!"
+    echo "No directory named ./.venv found in current directory (see docs/install.md)!"
     echo "You can build library as follows (check README.md)"
     echo
     echo '    scl enable gcc-toolset-12 bash'
@@ -20,13 +23,11 @@ if [ ! -f "lib/frontend/static/mylogo.png" ]; then
     cp .assets/mylogo.png lib/frontend/static/mylogo.png 2>/dev/null || true
 fi
 
-# Check if arguments are provided
+export AI_LINKMO_MODE="${AI_LINKMO_MODE:-api}"
+
+# Without arguments, show the help.
 if [ "$#" -eq 0 ]; then
-    # Default behavior: show help
-    exec uv run -m lib.cli.cli --help
-    exit 0
+    exec uv run -m ai_linkmo --help
 fi
 
-# Execute the lib.cli module with the provided arguments
-# CLI defaults to --mode api, but users can override with --mode local
-exec uv run -m lib.cli.cli "$@"
+exec uv run -m ai_linkmo "$@"

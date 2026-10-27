@@ -25808,7 +25808,8 @@
           "type": "boolean"
         },
         "required": false,
-        "description": "Add the bring-your-own-data frameworks under byo/data to the packaged ontology"
+        "description": "Add the bring-your-own-data frameworks under byo/data to the packaged ontology",
+        "x-linkmo-filter": true
       },
       "related": {
         "in": "query",

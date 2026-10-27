@@ -1,7 +1,7 @@
 """Print answers as JSON and errors as plain text, for the command line.
 
-Answers go to stdout as one line of JSON, so that a pipe into ``jq`` works, or indented
-with ``--pretty``. Errors go to stderr, so they never corrupt that JSON.
+Answers go to stdout as one line of JSON, so that a pipe into ``jq`` works, or indented on
+a terminal and with ``--pretty``. Errors go to stderr, so they never corrupt that JSON.
 """
 
 from __future__ import annotations
@@ -34,7 +34,7 @@ def count_of(result: Any) -> Any:
 
 
 def display_result(result: Any, count_only: bool = False, pretty: bool = False) -> None:
-    print(count_of(result) if count_only else to_json(result, pretty))
+    print(count_of(result) if count_only else to_json(result, pretty or sys.stdout.isatty()))
 
 
 def display_error(title: str, message: str) -> None:

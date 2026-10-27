@@ -6,7 +6,6 @@ on:
     paths:
       - "ai"
       - "lib/api/**"
-      - "lib/cli/**"
       - "lib/store/**"
       - "ai-risk-ontology-linkmo/**"
       - "lib/test/**"
@@ -19,7 +18,6 @@ on:
     paths:
       - "ai"
       - "lib/api/**"
-      - "lib/cli/**"
       - "lib/store/**"
       - "ai-risk-ontology-linkmo/**"
       - "lib/test/**"
@@ -100,8 +98,8 @@ jobs:
         run: uv run python scripts/validate_store.py lib/store/data/config.yaml --database atlas --allow 30
 
       # Excludes tests marked "slow": local-mode CLI runs (each spawns a
-      # fresh interpreter and loads the full ontology, ~25 min) and the
-      # consistency/help/invalid-scope checks. API-mode CLI examples plus
+      # fresh interpreter and reads the data in process, about five minutes
+      # with the store) and the consistency/help/invalid-scope checks. API-mode CLI examples plus
       # the API/security/handler test modules still run, backed by the
       # session-scoped `api_server` fixture in lib/test/conftest.py.
       - name: Run test suite (API mode, not slow)

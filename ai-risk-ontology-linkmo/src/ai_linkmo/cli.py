@@ -1,9 +1,9 @@
 """The command line, built from the schema and the exposure file.
 
-The command tree is data, not code. ``exposure.py`` joins the exposure file and the schema,
-and this module turns the result into one click command per exposed class, with one
-option per slot of the class, plus one command per operation written by hand in the
-exposure file's overlay. Nothing here reads YAML or SchemaView.
+The command tree is data, not code. ``exposure.py`` joins the exposure file and the schema.
+This module turns the result into one click command per exposed class, with one option
+per slot of the class, plus one command per hand-written operation in the exposure file's
+overlay. Nothing here reads YAML or SchemaView.
 
 Every command runs in one of two modes. Local mode, the default, reads the data in this
 process. API mode sends the same question to a running server and prints its answer.
@@ -136,7 +136,7 @@ def _shared_options() -> list[click.Option]:
             help=f"Seconds to wait for the server in API mode. Default {DEFAULT_TIMEOUT:g}.",
         ),
         click.Option(["--count", "count"], is_flag=True, help="Print only the number of records."),
-        click.Option(["--pretty", "pretty"], is_flag=True, help="Indent the JSON."),
+        click.Option(["--pretty", "pretty"], is_flag=True, help="Indent the JSON, as on a terminal."),
     ]
 
 
@@ -222,7 +222,9 @@ def _overlay_parameter(definition: dict[str, Any]) -> Parameter:
 
 def _hand_command(path: str, methods: dict[str, Any]) -> click.Command | None:
     """The command for one hand operation: the GET when there is one, else the first
-    method. Its options are the operation's query parameters and its body's properties."""
+    method. Its options are the operation's query parameters and its body's properties.
+    The first query parameter marked ``x-linkmo-argument: true`` is its argument instead,
+    as the identifier is a class command's."""
     method = "get" if "get" in methods else next(iter(methods), None)
     if method is None:
         return None
@@ -234,7 +236,12 @@ def _hand_command(path: str, methods: dict[str, Any]) -> click.Command | None:
             continue
         parameter = _overlay_parameter(definition)
         names[parameter.python_name] = parameter.name
-        params.append(_option(parameter, definition.get("required", False)))
+        required = definition.get("required", False)
+        if definition.get("x-linkmo-argument") and not any(isinstance(p, click.Argument) for p in params):
+            kind = {"integer": int, "number": float}.get(parameter.kind, str)
+            params.insert(0, click.Argument([parameter.python_name], type=kind, required=required))
+        else:
+            params.append(_option(parameter, required))
     body = ((operation.get("requestBody") or {}).get("content") or {}).get("application/json") or {}
     for name, schema in ((body.get("schema") or {}).get("properties") or {}).items():
         parameter = Parameter(
@@ -380,12 +387,15 @@ def call_api_server(target: Target, request: dict[str, Any], run_settings: RunSe
 def call_local_handler(target: Target, request: dict[str, Any], run_settings: RunSettings) -> None:
     """Answer in this process: a class listing through ``query_class``, a hand operation
     through the function its operationId names, with the arguments it accepts."""
+    from fastapi import HTTPException
+
     from .handlers import QueryError, jsonable, query_class
 
     try:
         if target.class_name is not None:
             result = query_class(target.class_name, **request)
         else:
+            settings.add_module_paths()
             module_name, _, function_name = target.operation_id.rpartition(".")
             module = importlib.import_module(f".{module_name or 'hand'}", __package__)
             function = getattr(module, function_name)
@@ -393,6 +403,10 @@ def call_local_handler(target: Target, request: dict[str, Any], run_settings: Ru
             result = jsonable(function(**{k: v for k, v in request.items() if k in accepted}))
     except QueryError as exc:
         display_error("Error", f"[{exc.status}] {exc.detail}")
+        sys.exit(1)
+    except HTTPException as exc:
+        # A hand operation may raise FastAPI's own exception, which the API answers as is.
+        display_error("Error", f"[{exc.status_code}] {exc.detail}")
         sys.exit(1)
     except (FileNotFoundError, LookupError, ValueError, ImportError, AttributeError) as exc:
         display_error("Error", str(exc))

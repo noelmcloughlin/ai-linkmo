@@ -63,6 +63,10 @@ class Parameter:
     multivalued: bool = False
     # True for a slot of the class, False for a parameter the exposure file adds.
     slot: bool = True
+    # True for an added parameter that, like a slot, only chooses which records answer, so
+    # that giving it beside the identifier still fetches one record. The exposure file
+    # marks it with ``x-linkmo-filter: true``.
+    filter: bool = False
 
     @property
     def python_name(self) -> str:
@@ -202,6 +206,7 @@ def _extra_parameter(overlay: dict[str, Any], name: str) -> Parameter:
         description=" ".join((definition.get("description") or "").split()),
         choices=tuple((definition.get("schema") or {}).get("enum") or ()),
         slot=False,
+        filter=bool(definition.get("x-linkmo-filter")),
     )
 
 

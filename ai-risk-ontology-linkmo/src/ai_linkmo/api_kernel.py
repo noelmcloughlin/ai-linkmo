@@ -24,6 +24,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse, Response
 from pydantic import BaseModel, Field, create_model
 
+from . import settings
 from .datamodel import model
 from .exposure import ExposedClass, Parameter, load_exposure
 from .handlers import QueryError, jsonable, query_class
@@ -142,6 +143,7 @@ def _bound_handler(operation: dict[str, Any], method: str, path: str):
     if module_name != "hand" or not function_name:
         logger.warning("%s %s needs an operationId of the form hand.<function>", method, path)
         return None, operation_id
+    settings.add_module_paths()
     module = importlib.import_module(".hand", __package__)
     function = getattr(module, function_name, None)
     if function is None:

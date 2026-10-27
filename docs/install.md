@@ -31,7 +31,7 @@ That is the offline CLI, ready to use. If `uv sync` needs to compile anything on
    npm run dev
    ```
 
-3. **Try the CLI** in a third terminal ([details](../lib/cli/README.md)). Each entity type has its own command, and [docs/cli-examples.md](cli-examples.md) lists them all.
+3. **Try the CLI** in a third terminal. Each entity type has its own command, and [docs/cli-examples.md](cli-examples.md) lists them all with the flags they share.
 
    ```bash
    ./ai -h

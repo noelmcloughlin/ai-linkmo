@@ -4,7 +4,8 @@ FastAPI builds the OpenAPI document from the registered routes, and the routes c
 the exposure file and the schema, so the document can be made here exactly as the running
 server makes it at /openapi.json. The committed copy lets a reader or a client generator
 see the contract without starting anything, and tests/test_published.py fails when it
-is out of date. Run it with `just gen-openapi`.
+is out of date. Run it with `just gen-openapi`, which writes it where the openapi_file
+answer says, or to the path given.
 
 When LinkML's gen-openapi gains a console script, and the fixes that let it describe list
 responses and enums without values, the same recipe can publish its output instead.
@@ -32,7 +33,12 @@ def render(contract: dict) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
-    output = Path(args[0]) if args else Path("docs/openapi.json")
+    if args:
+        output = Path(args[0])
+    else:
+        from ai_linkmo.settings import openapi_path
+
+        output = openapi_path()
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(render(build_contract()), encoding="utf-8")
     print(f"wrote {output}")

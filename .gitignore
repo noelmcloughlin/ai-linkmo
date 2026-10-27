@@ -153,3 +153,5 @@ graph/cypher/*.part
 
 # The DuckDB store and its linkml-store config are built by `just load-store`, never committed.
 lib/store/data/
+# The browse database with the bring-your-own data, beside the linkmo project's browse/.
+ai-risk-ontology-linkmo/browse-byod/

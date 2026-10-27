@@ -84,7 +84,7 @@ def cli_command(project_root, request):
         """Execute CLI command with given arguments.
         
         Args:
-            *args: Command arguments (e.g., 'risk', '--count')
+            *args: Command arguments (for example 'risk', '--count')
             mode: Optional mode override ('api' or 'local')
             timeout: Command timeout in seconds
             
@@ -105,8 +105,8 @@ def cli_command(project_root, request):
 
         env = os.environ.copy()
         if mode == "api":
-            # Pass the known server URL so the CLI skips the /health detection probe
-            env["AI_ATLAS_API_URL"] = request.getfixturevalue("api_server")
+            # Point the CLI at the server the fixture started.
+            env["AI_LINKMO_API_URL"] = request.getfixturevalue("api_server")
 
         result = subprocess.run(
             cmd,

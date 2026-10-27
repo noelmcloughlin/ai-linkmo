@@ -44,7 +44,7 @@ just build-browse
 just browse
 ```
 
-`just build-browse` writes one SQLite database of the packaged data under `ai-risk-ontology-linkmo/browse`. Your files from `byo/data` are not in it. It takes about twenty seconds the first time and ten after that, because the table definitions are kept until the schema changes. `just browse` serves it on <http://127.0.0.1:8001>, and builds it first if it is missing. Both recipes install the `browse` extra, Datasette and sqlite-utils, through uv.
+`just build-browse` writes one SQLite database of the packaged data under `ai-risk-ontology-linkmo/browse`. A build takes about 17 seconds the first time and about 7 after that, because the table definitions are kept beside the database until the schema changes. `just browse` serves it on <http://127.0.0.1:8001>, and builds it first if it is missing. `just build-browse-byod` and `just browse-byod` do the same with your files from `byo/data` added, under `ai-risk-ontology-linkmo/browse-byod`. The recipes install the `browse` extra, Datasette and sqlite-utils, through uv.
 
 The tables follow the schema. LinkML's `gen-sqltables` generator makes one table per class, abstract parents included, and a link table such as `Risk_hasRelatedAction` for each multivalued slot. Each record is written to its own class's table and to the table of every class above it, so `Taxonomy` lists every taxonomy, whatever its class. A reference points at the table of the class its slot names. A risk's taxonomy therefore links to that taxonomy's row in `Taxonomy`, and the risks that cite it are listed under *Links from other tables* on that row, not on its `RiskTaxonomy` row. Empty class tables are hidden behind the *hidden tables* link, and empty link tables are left out.
 
@@ -52,11 +52,11 @@ The tables follow the schema. LinkML's `gen-sqltables` generator makes one table
 
 A database's front page takes two or three seconds, since Datasette looks at each of its few hundred tables. Table and row pages answer at once.
 
-The [website](https://noelmcloughlin.github.io/ai-linkmo/) serves both databases on its *Browse the data* page, which opens each in Datasette Lite, Datasette running in your browser.
+The [website](https://noelmcloughlin.github.io/ai-linkmo/) serves the packaged data's database on its *Browse the data* page, which opens it in Datasette Lite, Datasette running in your browser.
 
 ## The schema's pages, with examples
 
-`just gen-doc` writes the schema's pages to `docs/elements` with LinkML's `gen-doc`, one page per class, slot, enum and type. Each class page has an *Examples* section with a record from the data: for every concrete class that has records, the record whose identifier sorts first. `just gen-examples`, which `just gen-doc` runs first, writes those examples to `docs/elements/examples` and validates each against its class, and the recipe stops if one fails. Abstract classes get no example, although the data holds a few records of `Certification`, `Group` and `Taxonomy`. Nothing under `docs/elements` is committed. The website builds the pages the same way and shows them under its *Schema* topic, each class diagram drawn.
+`just gen-doc` writes the schema's pages to `ai-risk-ontology-linkmo/docs/elements` with LinkML's `gen-doc`, one page per class, slot, enum and type. Each class page has an *Examples* section with a record from the data: for every concrete class that has records, the record whose identifier sorts first. `just gen-examples`, which `just gen-doc` runs first, writes those examples to `ai-risk-ontology-linkmo/docs/elements/examples` and validates each against its class, and the recipe stops if one fails. Abstract classes get no example, although the data holds a few records of `Certification`, `Group` and `Taxonomy`. Nothing under `ai-risk-ontology-linkmo/docs/elements` is committed. The website builds the pages the same way and shows them under its *Schema* topic, each class diagram drawn.
 
 ## Graph database
 

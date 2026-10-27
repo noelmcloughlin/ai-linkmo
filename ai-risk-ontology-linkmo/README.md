@@ -17,7 +17,7 @@ just --justfile ai-risk-ontology-linkmo/justfile test
 
 Inside this folder, plain `just <recipe>` works, and after `just install` so does `uv run ai --help`. `just --list` shows the rest: the published contract, a web UI's entity list, the SSSOM check, the Datasette browse database and the schema's pages with examples.
 
-A `pkg:` path is read from an installed package, which `just install` installs as `ai-atlas-nexus>=1.2.5`. To use an environment that already has the package, set `LINKMO_PYTHON` to its Python, and the recipes put `src/` on its path. ai-linkmo's own justfile does that with its environment for the recipes it runs here. Answer `requirements` with `[]` to leave the package out of this project's dependencies.
+This project is a member of ai-linkmo's uv workspace. ai-linkmo's `uv sync` installs it, editable, beside ai-atlas-nexus, which the `pkg:` paths read, and `./ai` at the host root runs its command line. `just install` here adds the test tools to that environment and removes nothing. ai-linkmo's justfile runs these recipes on the same environment through `LINKMO_PYTHON`.
 
 A command lists the records of its class. Give an identifier to fetch one record, any option to filter, `--count` for the number only, and `--mode api` to ask a running server instead of reading the data in the process. The API answers `GET /<class>` with the same parameters and the same JSON, and publishes its contract at `/openapi.json`.
 
