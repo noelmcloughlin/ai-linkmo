@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier; do not edit by hand
-_commit: v0.2.0-2-gf7602d0
+_commit: v0.2.0-3-g205bc74
 _src_path: gh:noelmcloughlin/linkmo
 api: fastapi
 cli_framework: click

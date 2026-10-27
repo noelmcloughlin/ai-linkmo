@@ -28,10 +28,11 @@ gen_doc := env("LINKMO_GEN_DOC", "uv run --group docs gen-doc")
 default:
     @just --list
 
-# Install the project and its test tools into .venv with uv
+# Install the project and its test tools into .venv with uv. --inexact leaves the rest of
+# the environment alone, such as the host's packages when the project is a workspace member.
 [group('project')]
 install:
-    uv sync --group dev
+    uv sync --inexact --group dev
 
 # Update this template on its own answers file, from the host root
 [group('project')]
