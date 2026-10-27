@@ -6,9 +6,13 @@ This directory contains unit tests for the AI-LinkMO CLI Demo commands documente
 
 - **conftest.py** - Pytest fixtures including API server startup/shutdown
 - **test_cli_examples.py** - Parametrized tests for all README CLI examples
-- **test_exposure.py** - The exposure file, the schema and the library agree; `query_class` counts
-- **test_api_kernel.py** - The generated endpoints and the published `/openapi.json`
 - **test_cli_kernel.py** - The generated CLI commands and options
+- **test_contract_published.py** - The published `/openapi.json` is the one the server serves
+
+The linkmo project's own tests, in `ai-risk-ontology-linkmo/tests/`, check the exposure file,
+the endpoints, the browse database and the examples, and run the README's count cases through
+the CLI and the API: `just --justfile ai-risk-ontology-linkmo/justfile test`, with
+`LINKMO_PYTHON` set to this project's `.venv/bin/python`.
 
 ## Running Tests
 

@@ -117,7 +117,8 @@ def attach(config: dict[str, Any], alias: str, base_dir: Path):
         collection.class_definition() is None
         for collection in database.list_collections()
     ):
-        from lib.api.exposure import schema_view
+        import lib  # noqa: F401  # puts the linkmo project's package on the path
+        from ai_linkmo.schema import schema_view
 
         database.set_schema_view(schema_view())
     return database

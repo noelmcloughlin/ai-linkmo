@@ -227,11 +227,11 @@ def invalidate_server_url_cache() -> None:
 
 def get_ran_instance(byod: bool = False) -> Any:  # Returns AIAtlasNexus
     """
-    Get cached AIAtlasNexus instance - from FastAPI state or module cache.
+    Get the cached AIAtlasNexus instance, creating it on first use.
 
-    Instances are stateless and safe to reuse across requests.
-    Uses FastAPI lifespan-managed instances when available (server context),
-    otherwise falls back to module-level cache (CLI context).
+    Instances are stateless and safe to reuse across requests. The server and
+    the CLI share this module cache; the server fills it at startup through
+    the linkmo project's data source, src/ai_linkmo/atlas.py.
 
     Lazy imports AIAtlasNexus only when actually needed for local mode.
 
@@ -244,22 +244,8 @@ def get_ran_instance(byod: bool = False) -> Any:  # Returns AIAtlasNexus
     Raises:
         HTTPException: If instance creation fails
     """
-    # Check module cache first (faster, no imports needed)
     if byod in _ran_cache:
         return _ran_cache[byod]
-
-    # Try FastAPI state if the server module is currently loaded. Re-check
-    # ``sys.modules`` on every call so a server import that happens after
-    # the first CLI call is still detected (previous code cached the result
-    # exactly once per process and could miss it).
-    import sys
-    if 'lib.api.server' in sys.modules:
-        try:
-            from lib.api.server import ran_instances
-            if byod in ran_instances:
-                return ran_instances[byod]
-        except (ImportError, KeyError, AttributeError):
-            pass
 
     # Create new instance and cache it - lazy import here
     try:
@@ -283,19 +269,8 @@ def clear_ran_cache(byod: bool = True) -> None:
     Args:
         byod: Which cache to clear (typically True for BYOD instance)
     """
-    # Clear module cache
     if byod in _ran_cache:
         del _ran_cache[byod]
-    
-    # Clear FastAPI state cache if available
-    try:
-        from lib.api.server import ran_instances
-        if byod in ran_instances:
-            # Reinitialize the instance - lazy import
-            from ai_atlas_nexus import AIAtlasNexus
-            ran_instances[byod] = AIAtlasNexus(base_dir=BYOD_PATH) if byod else AIAtlasNexus()
-    except (ImportError, KeyError, AttributeError):
-        pass
 
 
 def initialize_ran(byod: bool = False, taxonomy: Optional[str] = None) -> Any:  # Returns AIAtlasNexus

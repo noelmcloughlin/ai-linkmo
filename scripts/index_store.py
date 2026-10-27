@@ -19,9 +19,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 
 def main(argv: list[str] | None = None) -> int:
-    from lib.api.exposure import load_exposure
     from lib.store.loader import DATA_DIR, DATABASES
     from lib.store.search import index_database
+    from ai_linkmo.exposure import load_exposure
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=Path, default=DATA_DIR)

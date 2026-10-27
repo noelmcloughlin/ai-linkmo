@@ -1,6 +1,6 @@
 """Choose where the class listings read their records: the DuckDB store or the library.
 
-``AI_LINKMO_DATA_SOURCE`` names the source. ``store`` reads the DuckDB files that
+``AI_LINKMO_BACKEND`` names the source. ``store`` reads the DuckDB files that
 ``just load-store`` builds through linkml-store, which answers a filter in milliseconds.
 ``library`` keeps the ``AIAtlasNexus`` instance the project started with, which re-parses
 the YAML on first use. ``auto``, the default, is the store when its files exist and the
@@ -9,6 +9,9 @@ library otherwise, so a checkout that has never run ``just load-store`` still wo
 Only the plain listings go through here: list, filter and fetch by id. The related-risk
 lookups, crosswalks, inference, SHACL and SPARQL stay on the library whichever source is
 chosen, because linkml-store has no join or traversal to carry them.
+
+The name is not ``AI_LINKMO_DATA_SOURCE``, which is the linkmo project's own setting: there it
+names a Python object, ``src/ai_linkmo/atlas.py``, as the source of every listing.
 """
 
 from __future__ import annotations
@@ -24,9 +27,9 @@ SOURCES = ("auto", "store", "library")
 
 def configured_source() -> str:
     """The source named by the environment, with ``auto`` resolved to a real one."""
-    name = os.getenv("AI_LINKMO_DATA_SOURCE", "auto").strip().lower() or "auto"
+    name = os.getenv("AI_LINKMO_BACKEND", "auto").strip().lower() or "auto"
     if name not in SOURCES:
-        raise ValueError(f"AI_LINKMO_DATA_SOURCE must be one of {', '.join(SOURCES)}, not {name!r}")
+        raise ValueError(f"AI_LINKMO_BACKEND must be one of {', '.join(SOURCES)}, not {name!r}")
     if name == "auto":
         return "store" if database_path(False).exists() else "library"
     return name

@@ -8,14 +8,30 @@ The function may return any JSON-like value, pydantic models included, and may r
 
 The linkmo template created this file once and never overwrites it: it is the place for
 this project's own logic, such as lookups across classes that the schema cannot express.
+
+ai-linkmo's operations are in ``lib/api/handlers.py``, beside the related-risk lookups
+they share with the listings, so the exposure file's seven paths bind to the names this
+module imports from there. ``summary`` is the template's, and no path binds it.
 """
 
 from __future__ import annotations
 
 from typing import Any
 
+from . import atlas  # noqa: F401  # puts ai-linkmo's lib on the path
 from .exposure import load_exposure
 from .handlers import QueryError, query_class
+
+from lib.api.handlers import (  # noqa: E402, F401
+    ares,
+    byo,
+    byo_put,
+    crosswalk,
+    graph,
+    inference,
+    schemaview,
+    search,
+)
 
 
 def summary(scope: str | None = None) -> dict[str, Any]:

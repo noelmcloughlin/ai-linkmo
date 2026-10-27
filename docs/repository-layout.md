@@ -4,13 +4,13 @@
 
 ```text
 ai                      the CLI entry point (runs lib/cli through uv)
-justfile                build steps: the API contract and the UI entity list, which are committed; the graph, the store, the browse databases and the schema's pages, which are not
+justfile                build steps: the API contract and the UI entity list, which are committed; the graph, the store, the browse database and the schema's pages, which are not
 scripts/                the scripts behind those recipes, and the test runner
 lib/cli/                the CLI, one command per exposed class; fastCLI (via the API) or slowCLI (offline)
-lib/api/                FastAPI backend; api.yaml names the exposed classes, the schema gives their filters
+ai-risk-ontology-linkmo/ the linkmo project: the exposure file, the CLI and API kernels, the server, the browse build and the schema's pages
+lib/api/                ai-linkmo's handlers behind the API: the related-risk lookups and the hand-written operations
 lib/frontend/           Svelte 5 web UI (Vite; proxies to the API on :8000)
 lib/store/              the DuckDB store behind the listings and the search, built by `just load-store`, not committed
-lib/browse/             the SQLite databases Datasette serves and their metadata, built from the schema by `just build-browse`, not committed
 lib/test/               pytest suite; its API-mode CLI cases are the documented CLI examples, checked
 graph/                  the exported ontology and crosswalk CSVs; cypher/ receives the fetched Neo4j export, not committed
 byo/data/               nine governance frameworks encoded for the AI Risk Ontology

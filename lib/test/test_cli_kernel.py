@@ -14,8 +14,8 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from lib.api.exposure import load_exposure
 from lib.cli.cli import SHARED_OPTION_NAMES, build_cli
+from ai_linkmo.exposure import load_exposure
 
 
 @pytest.fixture(scope="module")

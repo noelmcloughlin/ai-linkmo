@@ -95,7 +95,7 @@ def check_exposure():
     """Verify the exposure file the CLI and the API are built from exists."""
     print("\nChecking exposure file...")
     
-    api_path = project_root / "lib" / "api" / "api.yaml"
+    api_path = project_root / "ai-risk-ontology-linkmo" / "exposure.yaml"
     
     if not api_path.exists():
         print(f"✗ Exposure file not found at {api_path}")

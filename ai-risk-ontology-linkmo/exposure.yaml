@@ -12,7 +12,9 @@
 generator_args:
   openapi:
     expose:
-      # The 22 classes ai-linkmo 0.2.0 exposed, with its paths and operation ids.
+      # The 22 classes ai-linkmo 0.2.0 exposed, with its paths and operation ids. A class
+      # whose records a risk relates to takes the related parameters, which
+      # src/ai_linkmo/atlas.py answers through lib/api/handlers.py.
       classes:
         RiskTaxonomy:
           path: /taxonomy
@@ -26,18 +28,22 @@ generator_args:
         Risk:
           path: /risk
           operation_id: handlers.risks
+          parameters: [hasRelatedRisk, related, related_ids]
         Group:
           path: /group
           operation_id: handlers.groups
         Action:
           path: /action
           operation_id: handlers.actions
+          parameters: [hasRelatedRisk, related, related_ids]
         RiskControl:
           path: /control
           operation_id: handlers.controls
+          parameters: [hasRelatedRisk, related, related_ids]
         RiskIncident:
           path: /incident
           operation_id: handlers.incidents
+          parameters: [hasRelatedRisk, related, related_ids]
         LargeLanguageModel:
           path: /model
           operation_id: handlers.models
@@ -47,15 +53,18 @@ generator_args:
         AiEval:
           path: /evaluation
           operation_id: handlers.evaluations
+          parameters: [hasRelatedRisk, related, related_ids]
         Dataset:
           path: /dataset
           operation_id: handlers.datasets
         Adapter:
           path: /adapter
           operation_id: handlers.adapters
+          parameters: [hasRelatedRisk, related, related_ids]
         LLMIntrinsic:
           path: /intrinsic
           operation_id: handlers.intrinsics
+          parameters: [hasRelatedRisk, related, related_ids]
         Organization:
           path: /organization
           operation_id: handlers.organizations
@@ -75,6 +84,7 @@ generator_args:
         BenchmarkMetadataCard:
           path: /benchmarkcard
           operation_id: handlers.benchmarkcards
+          parameters: [hasRelatedRisk, related, related_ids]
         Vocabulary:
           path: /vocabulary
           operation_id: handlers.vocabularies
@@ -84,22 +94,352 @@ generator_args:
       #
       # `parameters` adds overlay parameters beside the slots, on every class here or
       # on one class in its own entry. Only a Python data source understands them.
-      parameters: []
+      parameters: [byod]
     exclude:
       classes: []
     overlay:
       info:
-        title: ai-risk-ontology-linkmo API
+        title: AI-LinkMO API Demo
+        description: REST API over the AI Risk Ontology. One listing per exposed class, with the
+          class's slots as filters, beside the graph, crosswalk, inference and upload operations.
         version: 0.1.0
-      paths:
-        /summary:
-          get:
-            summary: Count the records of each exposed class
-            operationId: hand.summary
-            parameters:
-              - in: query
-                name: scope
+      components:
+        parameters:
+          byod:
+            in: query
+            name: byod
+            schema:
+              type: boolean
+            required: false
+            description: Add the bring-your-own-data frameworks under byo/data to the packaged ontology
+          related:
+            in: query
+            name: related
+            schema:
+              type: boolean
+            required: false
+            description: Return the records related to the given risk, or to the record named by id
+          related_ids:
+            in: query
+            name: related_ids
+            schema:
+              type: boolean
+            required: false
+            description: Return only the ids of the related records
+          hasRelatedRisk:
+            in: query
+            name: hasRelatedRisk
+            schema:
+              type: string
+            required: false
+            description: Id of the risk whose related records are wanted
+        securitySchemes:
+          ApiKeyAuth:
+            type: apiKey
+            in: header
+            name: X-API-Key
+            description: 'API key authentication. This scheme is declared so write endpoints
+
+              (PUT /byo/{filename}) can reference it; the demo server does NOT
+
+              yet enforce it. Operators deploying outside localhost should add a
+
+              reverse-proxy layer that validates the header.
+
+              '
+        responses:
+          BadRequest:
+            description: Invalid request (validation failure, malformed body, traversal attempt, etc.)
+            content:
+              application/json:
                 schema:
-                  type: string
-                required: false
-                description: One class only, named by its command
+                  type: object
+                  properties:
+                    detail:
+                      type: string
+          PayloadTooLarge:
+            description: Request body exceeds the server-side cap.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    detail:
+                      type: string
+          InternalError:
+            description: Unhandled server error.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    detail:
+                      type: string
+      paths:
+        /search:
+          get:
+            summary: Search records by text
+            operationId: hand.search
+            description: Full-text search over the records in the store, ranked by a trigram
+              index; run `just load-store` and `just index-store` first.
+            parameters:
+            - in: query
+              name: q
+              schema:
+                type: string
+              required: true
+              description: The text to search for
+            - in: query
+              name: scope
+              schema:
+                type: string
+              required: false
+              description: Search one class only, named by its scope, such as risk or control
+            - in: query
+              name: byod
+              schema:
+                type: boolean
+              required: false
+              description: Search the store that includes the bring-your-own-data files
+            - in: query
+              name: limit
+              schema:
+                type: integer
+              required: false
+              description: The number of results to return, 20 by default
+            responses:
+              '200':
+                description: The matching records with their scores
+                content:
+                  application/json:
+                    schema:
+                      type: object
+        /graph:
+          get:
+            summary: Get graph
+            operationId: hand.graph
+            parameters:
+            - in: query
+              name: export
+              schema:
+                type: boolean
+              required: false
+              description: Export the graph or data for the selected scope
+            - in: query
+              name: id
+              schema:
+                type: string
+              required: false
+              description: Unique identifier for the resource
+            - in: query
+              name: byod
+              schema:
+                type: boolean
+              required: false
+              description: Include the bring-your-own-data files in the YAML export; refused with the Cypher export, which is fetched from ai-atlas-nexus
+            responses:
+              '200':
+                description: Graph response
+                content:
+                  application/json:
+                    schema:
+                      type: object
+        /crosswalk:
+          get:
+            summary: Get crosswalk
+            operationId: hand.crosswalk
+            parameters:
+            - in: query
+              name: byod
+              schema:
+                type: boolean
+              required: false
+              description: Bring your own AiAtlasNexus data
+            - in: query
+              name: isDefinedByTaxonomy
+              schema:
+                type: string
+              required: false
+              description: Filter by taxonomy
+            - in: query
+              name: isDefinedByTaxonomy2
+              schema:
+                type: string
+              required: false
+              description: Second taxonomy ID to compare in the crosswalk scope
+            - in: query
+              name: export
+              schema:
+                type: boolean
+              required: false
+              description: Export the graph or data for the selected scope
+            responses:
+              '200':
+                description: Crosswalk response
+                content:
+                  application/json:
+                    schema:
+                      type: object
+        /inference:
+          get:
+            summary: Get inference
+            operationId: hand.inference
+            parameters:
+            - in: query
+              name: engine
+              schema:
+                type: string
+              required: false
+              description: Specify the inference engine
+            - in: query
+              name: parameters
+              schema:
+                type: string
+              required: false
+              description: 'Inference engine parameters as a JSON object string, e.g. {"max_tokens": 1000,
+                "temperature": 0.7}'
+            - in: query
+              name: byod
+              schema:
+                type: boolean
+              required: false
+              description: Bring your own AiAtlasNexus data
+            - in: query
+              name: isDefinedByTaxonomy
+              schema:
+                type: string
+              required: false
+              description: Filter by taxonomy
+            - in: query
+              name: usecase
+              schema:
+                type: string
+              required: false
+              description: Specify the use case for the inference scope
+            - in: query
+              name: id
+              schema:
+                type: string
+              required: false
+              description: Unique identifier for the resource
+            responses:
+              '200':
+                description: Inference response
+                content:
+                  application/json:
+                    schema:
+                      type: object
+        /schemaview:
+          get:
+            summary: Get schemaview
+            operationId: hand.schemaview
+            parameters:
+            - in: query
+              name: introspect
+              schema:
+                type: boolean
+              required: false
+              description: Enable introspection for the schemaview scope
+            responses:
+              '200':
+                description: Schemaview response
+                content:
+                  application/json:
+                    schema:
+                      type: object
+        /byo:
+          get:
+            summary: Get Bring your own data file
+            operationId: hand.byo
+            parameters:
+            - in: query
+              name: filename
+              schema:
+                type: string
+              required: true
+              description: Filename for BYO data operations
+            responses:
+              '200':
+                description: File found and returned
+                content:
+                  application/octet-stream:
+                    schema:
+                      type: string
+                      format: binary
+              '404':
+                description: File not found
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        detail:
+                          type: string
+          put:
+            summary: Upload Bring your own data file
+            operationId: hand.byo_put
+            security:
+            - ApiKeyAuth: []
+            parameters:
+            - in: query
+              name: filename
+              schema:
+                type: string
+              required: true
+              description: Filename for BYO data operations
+            requestBody:
+              required: true
+              content:
+                application/octet-stream:
+                  schema:
+                    type: string
+                    format: binary
+            responses:
+              '200':
+                description: File uploaded successfully
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        detail:
+                          type: string
+              '400':
+                $ref: '#/components/responses/BadRequest'
+              '413':
+                $ref: '#/components/responses/PayloadTooLarge'
+              '500':
+                $ref: '#/components/responses/InternalError'
+        /ares:
+          post:
+            summary: Run ARES evaluation
+            operationId: hand.ares
+            requestBody:
+              required: true
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      risks:
+                        type: array
+                        items:
+                          type: object
+                          description: Risk object
+                      inference_engine:
+                        type: string
+                        description: Inference engine identifier
+                      target:
+                        type: object
+                        description: Target dictionary
+            responses:
+              '200':
+                description: ARES evaluation completed
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        result:
+                          type: object
+                          description: Evaluation result

@@ -12,8 +12,8 @@ import pytest
 import yaml
 from fastapi import HTTPException
 
-from lib.api.exposure import schema_view
 from lib.store.loader import build_database
+from ai_linkmo.schema import schema_view
 from lib.store.search import index_database, search
 from scripts.dump_store import dump_database
 

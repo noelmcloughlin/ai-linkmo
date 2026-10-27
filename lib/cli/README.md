@@ -4,7 +4,7 @@
 
 This demo CLI provides command-line access to AI-LinkMO.
 
-The command tree is built from data. `lib/api/api.yaml` names the ontology classes the project exposes and the operations written by hand; the LinkML schema inside the installed `ai_atlas_nexus` package gives each class its slots. `lib/api/exposure.py` joins the two, and `cli.py` turns the result into one click command per exposed class, with one option per slot, plus one command per hand path (`graph`, `crosswalk`, `inference`, `schemaview`, `byo`, `ares`). The API kernel in `lib/api/server_kernel.py` reads the same view, so the CLI and the API cannot drift apart.
+The command tree is built from data. The linkmo project's exposure file, `ai-risk-ontology-linkmo/exposure.yaml`, names the ontology classes the project exposes and the operations written by hand; the LinkML schema inside the installed `ai_atlas_nexus` package gives each class its slots. `ai_linkmo.exposure` joins the two, and `cli.py` turns the result into one click command per exposed class, with one option per slot, plus one command per hand path (`search`, `graph`, `crosswalk`, `inference`, `schemaview`, `byo`, `ares`). The API reads the same view, and local mode calls the handler the API routes to, so the CLI and the API cannot drift apart.
 
 ```ascii
 
@@ -16,7 +16,7 @@ lib/cli/
 
 Option names are the schema's slot names unchanged, so `--isDefinedByTaxonomy` means the same thing on every scope and in the API. An enum slot offers its permissible values and rejects anything else with exit code 2; an enum without values, such as `hasJurisdiction`, is a free string. A multivalued slot still takes one value, and a record matches when its list holds it.
 
-A slot added upstream becomes a filter here without a code change. Adding or removing a class is one entry in `lib/api/api.yaml`.
+A slot added upstream becomes a filter here without a code change. Adding or removing a class is one entry in `ai-risk-ontology-linkmo/exposure.yaml`.
 
 ## Usage
 
@@ -40,7 +40,7 @@ A slot added upstream becomes a filter here without a code change. Adding or rem
 ```
 
 **Checks:**
-`lib/test/test_cli_kernel.py` checks that every exposed class is a command whose options are exactly its parameters, and `lib/test/test_exposure.py` checks that every parameter is a slot of its class.
+`lib/test/test_cli_kernel.py` checks that every exposed class is a command whose options are exactly its parameters, and the linkmo project's `tests/test_exposure.py` checks that every slot of a class is a parameter.
 
 ## Status
 
@@ -100,5 +100,5 @@ New suites added in this iteration:
 - `lib/test/test_byo_put.py` - traversal / suffix / oversize / malformed-YAML on `PUT /byo`.
 - `lib/test/test_endpoints.py` - `/version`, `/ready`, `/classes`, `/inference`, `Cache-Control`.
 - `lib/test/test_cli_kernel.py` - the command tree matches the exposure.
-- `lib/test/test_api_kernel.py` - the generated endpoints and the published `/openapi.json`.
-- `lib/test/test_exposure.py` - the exposure file, the schema and the library agree.
+- `lib/test/test_contract_published.py` - the published `/openapi.json` is the served one.
+- `ai-risk-ontology-linkmo/tests/` - the exposure, the endpoints and the README's counts.

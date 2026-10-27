@@ -7,8 +7,7 @@
 # as the data becomes stable. The linkmo template created this file once and never
 # overwrites it.
 # The cases are ai-linkmo 0.2.0's README examples, from lib/test/test_cli_examples.py,
-# less those that need bring-your-own data or a related-risk lookup. hasRelatedRisk is
-# a slot of AiEval, Adapter, LLMIntrinsic and Action, so it filters those as it is.
+# less the two that read the bring-your-own data, whose counts change with byo/data.
 cases:
   - args: [taxonomy]
     count: 14
@@ -28,6 +27,12 @@ cases:
     count: 31
   - args: [risk, "--phase", training-tuning]
     count: 0
+  - args: [risk, atlas-toxic-output, "--related_ids"]
+    count: 14
+  - args: [risk, atlas-toxic-output, "--related"]
+    count: 14
+  - args: [risk, atlas-toxic-output, "--related", "--isDefinedByTaxonomy", nist-ai-rmf]
+    count: 2
   - args: [group]
     count: 183
   - args: [group, "--type", CapabilityGroup]
@@ -106,6 +111,8 @@ cases:
     count: 3
   - args: [evaluation, "--hasRelatedRisk", atlas-hallucination]
     count: 2
+  - args: [evaluation, "--related", "--hasRelatedRisk", mit-ai-causal-risk-timing-post-deployment]
+    count: 25
   - args: [dataset]
     count: 54
   - args: [dataset, CybersecurityBenchmarks_datasets_frr]
@@ -132,6 +139,8 @@ cases:
     count: 3
   - args: [adapter, "--hasRelatedRisk", granite-relevance]
     count: 1
+  - args: [adapter, "--hasRelatedRisk", granite-relevance, "--related"]
+    count: 0
   - args: [intrinsic]
     count: 16
   - args: [intrinsic, "--hasDocumentation", arxiv.org/2504.11704]
@@ -144,6 +153,8 @@ cases:
     count: 16
   - args: [intrinsic, "--hasRelatedRisk", nist-confabulation]
     count: 3
+  - args: [intrinsic, "--related", "--hasRelatedRisk", granite-answer-relevance]
+    count: 6
   - args: [action]
     count: 1085
   - args: [action, "--isDefinedByTaxonomy", nist-ai-rmf]
@@ -152,6 +163,8 @@ cases:
     count: 22
   - args: [action, "--hasRelatedRisk", nist-human-ai-configuration]
     count: 53
+  - args: [action, "--related_ids", "--hasRelatedRisk", atlas-toxic-output]
+    count: 47
   - args: [control]
     count: 1102
   - args: [control, "--isDefinedByTaxonomy", shieldgemma-taxonomy]
@@ -160,14 +173,22 @@ cases:
     count: 1
   - args: [control, "--detectsRiskConcept", shieldgemma-dangerous-content]
     count: 1
+  - args: [control, "--hasRelatedRisk", shieldgemma-hate-speech]
+    count: 1
+  - args: [control, "--related", "--hasRelatedRisk", atlas-toxic-output]
+    count: 4
   - args: [incident]
     count: 38
   - args: [incident, "--isDefinedByTaxonomy", ibm-risk-atlas]
     count: 38
   - args: [incident, ibm-risk-atlas-ri-fake-legal-cases]
     count: 1
+  - args: [incident, "--hasRelatedRisk", atlas-dangerous-use]
+    count: 2
   - args: [incident, "--refersToRisk", atlas-evasion-attack]
     count: 1
+  - args: [incident, "--hasRelatedRisk", atlas-dangerous-use, "--related"]
+    count: 0
   - args: [document]
     count: 97
   - args: [document, repo_stanford_air_bench_2024]

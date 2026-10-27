@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from lib.api.exposure import load_exposure as load_served_exposure
+import lib  # noqa: F401  # puts the linkmo project's package on the path
 from ai_linkmo.exposure import load_exposure
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -68,9 +68,7 @@ def overlay_filters() -> dict[str, list[str]]:
     }
 
 
-def test_overlay_filters_are_parameters_of_their_class():
-    # The API is still the one lib/api/api.yaml describes, with the related parameters.
-    exposure = load_served_exposure()
+def test_overlay_filters_are_parameters_of_their_class(exposure):
     overlay = overlay_filters()
     assert overlay, "the overlay parsed as empty"
     for key, names in overlay.items():

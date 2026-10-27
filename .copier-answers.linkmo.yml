@@ -4,8 +4,8 @@ _src_path: gh:noelmcloughlin/linkmo
 api: fastapi
 cli_framework: click
 command_name: ai
-data_path: pkg:ai_atlas_nexus/data/knowledge_graph
-data_source: yaml
+data_object: ai_linkmo.atlas:AtlasSource
+data_source: python
 datamodel_module: ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology
 exposure_file: exposure.yaml
 linkmo_dir: ai-risk-ontology-linkmo

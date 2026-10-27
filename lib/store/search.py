@@ -77,7 +77,7 @@ def scope_classes(scope: str | None) -> list[str]:
     Each class is listed once, in exposure order with its descendants after it. An unknown
     scope is a 422.
     """
-    from lib.api.exposure import load_exposure
+    from ai_linkmo.exposure import load_exposure
 
     exposure = load_exposure()
     if scope is None:

@@ -87,7 +87,7 @@ const ENDPOINT_OVERLAY: Record<
   evaluation: { label: "Evaluations" },
 };
 
-// List of all endpoints available in the application, in the order of api.yaml.
+// List of all endpoints available in the application, in the order of the exposure file.
 // Each endpoint has a key, label, class name, Container slot and derived defaults.
 // Used to dynamically generate UI forms and views based on selected endpoint.
 export const ENDPOINTS: UiEndpoint[] = GENERATED_ENDPOINTS.map((e) => ({

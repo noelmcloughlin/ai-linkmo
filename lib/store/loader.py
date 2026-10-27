@@ -3,7 +3,7 @@
 The ai-atlas-nexus library re-parses every YAML file each time it starts, which is why a
 local-mode CLI call takes several seconds. This module loads the same data once into a
 DuckDB file that linkml-store queries in milliseconds, and the API and the CLI read it when
-``AI_LINKMO_DATA_SOURCE`` says so (see ``lib/store/source.py``).
+``AI_LINKMO_BACKEND`` says so (see ``lib/store/source.py``).
 
 Two choices were measured before they were made (see the research behind the roadmap).
 The library's own loader, ``load_yamls_to_container``, is reused so that the mapping rows
@@ -117,7 +117,7 @@ def build_database(byod: bool, data_dir: Path = DATA_DIR) -> dict[str, int]:
     """
     from linkml_store import Client
 
-    from lib.api.exposure import schema_view
+    from ai_linkmo.schema import schema_view
 
     widen_duckdb_types()
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -147,7 +147,7 @@ def open_database(byod: bool, data_dir: Path = DATA_DIR):
     """
     from linkml_store import Client
 
-    from lib.api.exposure import schema_view
+    from ai_linkmo.schema import schema_view
 
     path = database_path(byod, data_dir)
     if not path.exists():
@@ -164,9 +164,9 @@ def write_config(counts_by_database: dict[str, dict[str, int]], data_dir: Path =
     ``linkml-store validate`` check each row against the right class. The schema location is
     the installed package's, so the file is generated with the store rather than committed.
     """
-    from lib.api.exposure import schema_directory
+    from ai_linkmo.settings import schema_path
 
-    schema = schema_directory() / "ai-risk-ontology.yaml"
+    schema = schema_path()
     # linkml-store's ClientConfig forbids keys it does not know, so the provenance goes in
     # a comment rather than in the document.
     header = (

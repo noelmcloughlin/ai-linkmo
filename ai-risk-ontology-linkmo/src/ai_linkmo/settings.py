@@ -37,9 +37,9 @@ ROOT_CLASS = _setting("ROOT_CLASS", "")
 # AI_LINKMO_EXPOSURE: the exposure file, read from the project folder unless absolute.
 EXPOSURE = _setting("EXPOSURE", "exposure.yaml")
 # AI_LINKMO_DATA_SOURCE: "yaml" for a directory of instance files, "python" for an object.
-DATA_SOURCE = _setting("DATA_SOURCE", "yaml")
+DATA_SOURCE = _setting("DATA_SOURCE", "python")
 # AI_LINKMO_DATA: the directory of instance files, or the object as module:attribute.
-DATA = _setting("DATA", "pkg:ai_atlas_nexus/data/knowledge_graph")
+DATA = _setting("DATA", "ai_linkmo.atlas:AtlasSource")
 
 # Folders put on sys.path before the datamodel is imported, when they exist. The sidecar's
 # src/ is one, because gen-pydantic writes the datamodel there.
