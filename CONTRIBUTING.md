@@ -82,7 +82,7 @@ Open an issue; the templates ask for your OS, Python version, access pattern, an
 [docs/releasing.md](docs/releasing.md) says how releases work and why the version stays in `0.x`. The maintainer's steps:
 
 - Write `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md) as you go; the release job refuses an empty one (`.github/scripts/changelog-release.mjs check`).
-- Type the commit ([Conventional Commits](https://www.conventionalcommits.org/)) for what the change *is*: a user-visible behaviour change is a `feat:` even when most of the diff is prose. Only `feat:`, `fix:` and `security:` cut a release; other types leave their entries for the next release that does.
+- Type the commit ([Conventional Commits](https://www.conventionalcommits.org/)) for what the change *is*: a user-visible behaviour change is a `feat:` even when most of the diff is prose. Only `feat:`, `fix:` and `security:` commits, and breaking changes, cut a release; other types leave their entries for the next release that does.
 - If a PR should release but its commits are typed too quietly, squash-merge it with the right type.
 - Every pull request gets a `--dry-run` preview.
 - On merge, [`semantic-release.yml`](.github/workflows/semantic-release.yml) retitles the section to `## [X.Y.Z] - YYYY-MM-DD`, writes the version into `pyproject.toml` and `uv.lock` (`.github/scripts/bump-version.mjs`), commits the three files, tags `vX.Y.Z` and publishes the GitHub Release. Once the `KNOWLEDGE_RELEASE_ENABLED` repository variable is `true`, it dispatches [`knowledge-release.yaml`](.github/workflows/knowledge-release.yaml), which attaches the bundle as `knowledge-vX.Y.Z-ai-linkmo.zip` when it changed since the last release that carries one.

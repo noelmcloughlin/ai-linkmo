@@ -68,14 +68,17 @@ jobs:
           npm install --no-save --no-audit --no-fund --ignore-scripts \
             semantic-release@25.0.9 \
             @semantic-release/commit-analyzer@13.0.1 \
+            conventional-changelog-conventionalcommits@8.0.0 \
             @semantic-release/exec@7.1.0 \
             @semantic-release/git@11.0.1 \
             @semantic-release/github@12.0.9
 
       # Would these commits release? The types are .releaserc.json's: the
-      # Angular preset's feat/fix plus this repository's `security`, and any
-      # type marked breaking by a `!` or a BREAKING CHANGE footer. Both checks
-      # below key off this one answer.
+      # Conventional Commits preset's feat/fix plus this repository's
+      # `security`, and any type marked breaking by a `!` or a BREAKING CHANGE
+      # footer. The preset is named because the default, angular, does not
+      # read the `!`, so it would skip a `feat!:` commit altogether. Both
+      # checks below key off this one answer.
       # Only the pull request's own commits count: HEAD is GitHub's trial
       # merge with today's main, so on a branch that main has moved past,
       # "$BASE..HEAD" would read main's commits too.
@@ -163,6 +166,7 @@ jobs:
           npm install --no-save --no-audit --no-fund --ignore-scripts \
             semantic-release@25.0.9 \
             @semantic-release/commit-analyzer@13.0.1 \
+            conventional-changelog-conventionalcommits@8.0.0 \
             @semantic-release/exec@7.1.0 \
             @semantic-release/git@11.0.1 \
             @semantic-release/github@12.0.9
