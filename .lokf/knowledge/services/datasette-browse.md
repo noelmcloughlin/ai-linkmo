@@ -24,8 +24,14 @@ verified:
 
 # Overview
 
-[Datasette](https://datasette.io/) gives every class a table to filter, facet, search and export. The linkmo project in `ai-risk-ontology-linkmo/` builds the databases. `just build-browse` writes one SQLite database of the packaged data under `ai-risk-ontology-linkmo/browse`. `just build-browse-byod` writes another, with the files under `byo/data/` added, under `ai-risk-ontology-linkmo/browse-byod`. `just browse` serves the first on port 8001 and `just browse-byod` the second, each building its database first when it is missing. The recipes install the `browse` extra, Datasette and sqlite-utils, through uv. Neither folder is committed.
+[Datasette](https://datasette.io/) gives every class a table to filter, facet, search and export. The linkmo project in `ai-risk-ontology-linkmo/` builds the databases, and its recipes install the `browse` extra, Datasette and sqlite-utils, through uv:
 
-The tables follow the schema. LinkML's `gen-sqltables` makes one table per class, abstract parents included, and a link table for each multivalued slot. Each record is written to its own class's table and to the table of every class above it, so a reference to an abstract parent resolves. The same build writes `metadata.yaml` beside each database from the schema: it describes each table and column from its class and slot, and offers facets on enum and reference columns with few values.
+- `just build-browse` writes one SQLite database of the packaged data under `ai-risk-ontology-linkmo/browse`.
+- `just build-browse-byod` writes another, with the files under `byo/data/` added, under `ai-risk-ontology-linkmo/browse-byod`.
+- `just browse` serves the first on port 8001 and `just browse-byod` the second, and each builds its database first when it is missing.
 
-The build lists the references that name a record the data does not hold. The linkmo project's `tests/test_browse.py` builds the database of the packaged data and checks that each class table holds its records, that search finds a record by its label, and that Datasette serves the folder. The [website](https://noelmcloughlin.github.io/ai-linkmo/) serves the packaged data's database in Datasette Lite.
+Neither folder is committed. The [website](https://noelmcloughlin.github.io/ai-linkmo/) serves the packaged data's database in Datasette Lite.
+
+The tables follow the schema. LinkML's `gen-sqltables` makes one table per class, abstract parents included, and a link table for each multivalued slot. Each record is written to its own class's table and to the table of every class above it, so a reference to an abstract parent resolves. The same build writes `metadata.yaml` beside each database from the schema: it describes each table and column from its class and slot, and offers facets on enum and reference columns with few values. The build also lists the references that name a record the data does not hold.
+
+The linkmo project's `tests/test_browse.py` builds the database of the packaged data and checks that each class table holds its records, that search finds a record by its label, and that Datasette serves the folder.

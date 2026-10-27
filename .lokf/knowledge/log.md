@@ -2,6 +2,7 @@
 
 ## 2026-10-27
 
+* **Prose**: reworded 3 concept bodies in plain English: `services/cli`, `services/fastapi-backend` and `services/datasette-browse`. No fact, link, number or frontmatter changed.
 * **Changed**: the FastAPI backend names the linkmo project's folder and its answers file as sources, so the coverage sweep counts them.
 * **Changed**: `./ai` now runs the linkmo project's generated command line, so the CLI concept cites `ai-risk-ontology-linkmo/src/ai_linkmo/cli.py` and `AI_LINKMO_MODE`; `lib/cli/` and `lib/api/api.yaml` are gone.
 * **Changed**: the FastAPI backend is the linkmo project's app over ai-linkmo's handlers since 0.5.0; `api.yaml`, `exposure.py` and `server_kernel.py` are gone, and the store switch is `AI_LINKMO_BACKEND`.

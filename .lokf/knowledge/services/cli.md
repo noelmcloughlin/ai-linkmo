@@ -26,12 +26,18 @@ verified:
 
 The **AI-LinkMO CLI** (`./ai`) is the automation and CI/CD access pattern. `./ai` runs `ai_linkmo`, the command line of the linkmo project in `ai-risk-ontology-linkmo/`, through `uv run`. The linkmo copier template generated that project, and ai-linkmo's uv workspace installs it.
 
-The command tree is built from data. The exposure file, `ai-risk-ontology-linkmo/exposure.yaml`, names the ontology classes the project exposes and the operations written by hand. The LinkML schema inside the installed `ai_atlas_nexus` package gives each class its slots. `ai_linkmo.exposure` joins the two, and `ai_linkmo.cli` turns the result into one click command per exposed class, with one option per slot, plus one command per hand-written operation (`search`, `graph`, `crosswalk`, `inference`, `schemaview`, `byo`, `ares`). The [FastAPI backend](fastapi-backend.md) reads the same view, so the CLI and the API cannot drift apart.
+The command tree is built from data. The exposure file, `ai-risk-ontology-linkmo/exposure.yaml`, names the ontology classes the project exposes and the hand-written operations. The LinkML schema inside the installed `ai_atlas_nexus` package gives each class its slots. `ai_linkmo.exposure` joins the two, and `ai_linkmo.cli` turns the result into one click command per exposed class, with one option per slot, plus one command per hand-written operation (`search`, `graph`, `crosswalk`, `inference`, `schemaview`, `byo`, `ares`). The [FastAPI backend](fastapi-backend.md) reads the same view, so the CLI and the API cannot differ.
 
-Option names are the schema's slot names unchanged, so `--isDefinedByTaxonomy` means the same thing on every command and in the API. An enum slot offers its permissible values and rejects anything else with exit code 2. A slot added upstream becomes a filter without a code change, and adding or removing a class is one entry in the exposure file. A record's id goes after the command name, and `graph` and `inference` take their id the same way.
+Option names are the schema's slot names unchanged, so `--isDefinedByTaxonomy` means the same thing on every command and in the API. An enum slot offers its permissible values and rejects anything else with exit code 2. A slot added upstream becomes a filter without a code change, and adding or removing a class takes one entry in the exposure file. A record's id goes after the command name, and `graph` and `inference` take their id the same way. `--byod` adds the files under `byo/data/` to the packaged data, and `./ai search` queries the [record store](../datasets/record-store.md)'s text index.
 
-The CLI has two modes. API mode, the default, sends each query to the running FastAPI backend, so this concept `dependsOn` the backend. `./ai` makes it the default by setting `AI_LINKMO_MODE` to `api` when nothing else has set it. Local mode (`--mode local`) runs in process and offline, and calls the handler the API routes to.
+The CLI has two modes. API mode, the default, sends each query to the running FastAPI backend, so this concept `dependsOn` the backend. `./ai` makes it the default by setting `AI_LINKMO_MODE` to `api` when the variable is not set already. Local mode (`--mode local`) runs in process and offline, and calls the handler the API routes to.
 
-API mode asks `http://localhost:8000`, or the URL in `AI_LINKMO_API_URL`. A URL on another host also needs `AI_LINKMO_API_URL_ALLOW_REMOTE=1`. Answers are JSON on stdout, indented on a terminal, and errors go to stderr. `--byod` adds the files under `byo/data/` to the packaged data, and `./ai search` queries the [record store](../datasets/record-store.md)'s text index.
+API mode asks `http://localhost:8000`, or the URL in `AI_LINKMO_API_URL`. A URL on another host also needs `AI_LINKMO_API_URL_ALLOW_REMOTE=1`. The CLI prints answers as JSON on stdout, indented on a terminal, and errors on stderr.
 
-In the tests, `lib/test/test_cli_kernel.py` checks that every exposed class is a command whose options are exactly its parameters, `lib/test/test_cli_api_identity.py` checks that the CLI and the API expose the same surface, and `lib/test/test_cli_examples.py` runs most of the commands listed in `docs/cli-examples.md`. CI runs `uv run pytest lib/test -m "not slow"` and the linkmo project's own tests.
+These test files check the CLI:
+
+- `lib/test/test_cli_kernel.py` checks that every exposed class is a command whose options are exactly its parameters.
+- `lib/test/test_cli_api_identity.py` checks that the CLI and the API expose the same surface.
+- `lib/test/test_cli_examples.py` runs most of the commands listed in `docs/cli-examples.md`.
+
+CI runs `uv run pytest lib/test -m "not slow"` and the linkmo project's own tests.
