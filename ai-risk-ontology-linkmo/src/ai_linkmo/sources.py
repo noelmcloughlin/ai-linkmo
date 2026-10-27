@@ -320,7 +320,7 @@ def rows_by_class(source: Source | None = None, params: dict[str, Any] | None = 
     its records as read. Any other source is asked for every exposed class, and a record
     that two listings return, such as a subclass's record in its parent's listing, is kept
     once under its own class. ``params``, such as a parameter the exposure file adds to
-    bring in more data, go with each question to every class that takes them.
+    bring in more data, are passed with each question to every class that takes them.
     """
     from .exposure import load_exposure
 

@@ -4,8 +4,8 @@ Run it with `just build-browse`, then `just browse` to serve the folder with Dat
 work is in src/ai_linkmo/browse.py. It needs the browse dependency group.
 
 `--param name=value` asks the data source each question with a parameter the exposure file
-adds, such as one that brings in more data, and `--data-dir` keeps that database apart:
-`just build-browse --data-dir browse-more --param more=true`.
+adds, such as one that brings in more data. `--data-dir` writes that database to another
+folder: `just build-browse --data-dir browse-more --param more=true`.
 """
 
 from __future__ import annotations
