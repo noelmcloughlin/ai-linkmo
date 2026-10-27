@@ -15,7 +15,7 @@ from ai_linkmo.cli import api_base_url
 
 @pytest.fixture
 def resolver(monkeypatch: pytest.MonkeyPatch):
-    """The resolver, with neither variable set; it reads them on each call."""
+    """The resolver, with neither variable set. It reads them on each call."""
     monkeypatch.delenv("AI_LINKMO_API_URL", raising=False)
     monkeypatch.delenv("AI_LINKMO_API_URL_ALLOW_REMOTE", raising=False)
     return api_base_url

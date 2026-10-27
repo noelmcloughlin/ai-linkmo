@@ -70,9 +70,10 @@ Tests marked with `byod_required=True` are skipped unless BYOD data is present.
 ### GitHub Actions
 
 A working workflow is already set up at
-[.github/workflows/cli-tests.yml](../../.github/workflows/cli-tests.yml); it
-runs on every push/PR that touches `ai`, `lib/api/**`, `lib/store/**`,
-`ai-risk-ontology-linkmo/**`, `lib/test/**`, `scripts/**`, `byo/**`, `pyproject.toml`, or `uv.lock`. Minimal equivalent:
+[.github/workflows/cli-tests.yml](../../.github/workflows/cli-tests.yml). It
+runs on every push or pull request that touches `ai`, `lib/api/**`,
+`lib/store/**`, `ai-risk-ontology-linkmo/**`, `lib/test/**`, `scripts/**`,
+`byo/**`, `pyproject.toml`, or `uv.lock`. Minimal equivalent:
 
 ```yaml
 name: CLI Tests

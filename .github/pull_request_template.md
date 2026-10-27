@@ -2,8 +2,8 @@
 
 ## What changed?
 
-- [ ] Application code (`ai-risk-ontology-linkmo/`, `lib/api/`, `lib/store/`, `ai`) - behaviour of the CLI or API
-- [ ] Frontend (`lib/frontend/`) - the Svelte web UI
+- [ ] Application code (`ai-risk-ontology-linkmo/`, `lib/api/`, `lib/store/`, `ai`): behaviour of the CLI or API
+- [ ] Frontend (`lib/frontend/`): the Svelte web UI
 - [ ] Graph, ontology, or crosswalk data (`graph/`, `byo/`)
 - [ ] This repo's own `.lokf/knowledge/` bundle (documentation *about this repo*)
 - [ ] Repository packaging only (CI, templates, docs unrelated to behaviour)

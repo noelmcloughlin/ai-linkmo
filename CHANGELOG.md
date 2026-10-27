@@ -8,8 +8,8 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 ### Changed
 
-- **`./ai` runs the linkmo project's command line, and `lib/cli/` is gone.** It still asks the API by default, through `AI_LINKMO_MODE`; it prints plain JSON, indented on a terminal, with errors on stderr, and no longer probes other ports or takes `--verbose`.
-- **`AI_ATLAS_API_URL` is now `AI_LINKMO_API_URL`**, and its opt-in `AI_LINKMO_API_URL_ALLOW_REMOTE`. `0.0.0.0` no longer counts as a local host.
+- **`./ai` runs the linkmo project's command line, and `lib/cli/` is gone.** It still asks the API by default, through `AI_LINKMO_MODE`. It prints plain JSON, indented on a terminal, with errors on stderr, and no longer probes other ports or takes `--verbose`.
+- **`AI_ATLAS_API_URL` is now `AI_LINKMO_API_URL`**, and its opt-in is `AI_LINKMO_API_URL_ALLOW_REMOTE`. `0.0.0.0` no longer counts as a local host.
 - **The linkmo project is a uv workspace member**, so `uv sync` installs it and nothing puts its `src/` on the path.
 
 ### Added
