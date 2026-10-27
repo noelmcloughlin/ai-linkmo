@@ -14,7 +14,7 @@ This repository is a workshop built on them. It adds doors, encodings and checks
 
 | Added here | Where |
 | :--- | :--- |
-| Four doors onto one model: CLI, FastAPI, Svelte UI, Cypher export for Neo4j | `lib/cli/`, `lib/api/`, `lib/frontend/`, `graph/` |
+| Four doors onto one model: CLI, FastAPI, Svelte UI, Cypher export for Neo4j | `ai-risk-ontology-linkmo/`, `lib/api/`, `lib/frontend/`, `graph/` |
 | Nine governance frameworks encoded in the ontology's own classes, as bring-your-own-data examples | `byo/data/` |
 | Crosswalks between two taxonomies, on screen and as files | `./ai crosswalk`, `graph/` |
 | A scripted walk through all four doors, ending in a CI gate | `byo/notes/EXAMPLES.md` |

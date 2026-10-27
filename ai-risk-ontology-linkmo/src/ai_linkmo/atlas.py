@@ -24,7 +24,7 @@ class AtlasSource:
     """Answers ``query(class_name, **filters)`` through ai-linkmo's handlers."""
 
     def __init__(self) -> None:
-        from lib.cli.utils import get_ran_instance
+        from lib.api.library import get_ran_instance
         from lib.store.source import using_store
 
         # Load the library at startup, as ai-linkmo's own server did, unless the store

@@ -31,7 +31,7 @@ uv run pytest lib/test/test_cli_examples.py -v
 ### Run with coverage
 
 ```bash
-uv run pytest lib/test/ --cov=lib.cli --cov=lib.api --cov-report=html
+uv run pytest lib/test/ --cov=ai_linkmo --cov=lib.api --cov-report=html
 ```
 
 ### Run only fast tests (exclude slow)
@@ -71,8 +71,8 @@ Tests marked with `byod_required=True` are skipped unless BYOD data is present.
 
 A working workflow is already set up at
 [.github/workflows/cli-tests.yml](../../.github/workflows/cli-tests.yml); it
-runs on every push/PR that touches `ai`, `lib/api/**`, `lib/cli/**`,
-`lib/test/**`, `byo/**`, `pyproject.toml`, or `uv.lock`. Minimal equivalent:
+runs on every push/PR that touches `ai`, `lib/api/**`, `lib/store/**`,
+`ai-risk-ontology-linkmo/**`, `lib/test/**`, `scripts/**`, `byo/**`, `pyproject.toml`, or `uv.lock`. Minimal equivalent:
 
 ```yaml
 name: CLI Tests

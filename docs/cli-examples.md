@@ -4,6 +4,8 @@ Most of the commands below are test cases in [lib/test/test_cli_examples.py](../
 
 A few flags recur. `--byod` adds the bring-your-own-data frameworks under `byo/data/` to the packaged ontology (see [Bring your own data](working-with-the-data.md#bring-your-own-data)). `--related` returns the related records, and `--related_ids` returns only their ids. API mode, the default, sends each command through the running API. Local mode, `--mode local`, loads the ontology in-process.
 
+Every command also takes `--count`, `--pretty` and `--timeout SECONDS`, and prints JSON, indented on a terminal and on one line in a pipe. `AI_LINKMO_MODE=local` makes local mode the default. API mode asks `http://localhost:8000`, or the URL in `AI_LINKMO_API_URL`. A URL on another host also needs `AI_LINKMO_API_URL_ALLOW_REMOTE=1`, so a stray variable cannot send your queries elsewhere. `graph` and `inference` take an id after the command, as a scope takes a record's id.
+
 ## Taxonomies
 
 ```bash

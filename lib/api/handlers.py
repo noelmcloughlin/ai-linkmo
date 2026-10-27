@@ -24,7 +24,7 @@ import yaml
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse
 
-from lib.cli.utils import (
+from lib.api.library import (
     clear_ran_cache,
     get_ran_instance,
     initialize_ran,
@@ -454,8 +454,7 @@ def crosswalk(byod: bool = False, isDefinedByTaxonomy: Optional[str] = None,
     ran = initialize_ran(byod, isDefinedByTaxonomy)
     # Explicitly validate the second taxonomy too so a bad value fails fast
     # with a 400 instead of producing an empty CSV.
-    from lib.cli.utils import validate_taxonomy as _validate_taxonomy
-    _validate_taxonomy(ran, isDefinedByTaxonomy2)
+    validate_taxonomy(ran, isDefinedByTaxonomy2)
 
     taxonomies = ran.query(class_name='taxonomies')
     logger.info("Taxonomies: %d  IDs: %s", len(taxonomies), [x.id for x in taxonomies])

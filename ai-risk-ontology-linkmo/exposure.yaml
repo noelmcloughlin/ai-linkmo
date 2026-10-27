@@ -233,6 +233,7 @@ generator_args:
                 type: string
               required: false
               description: Unique identifier for the resource
+              x-linkmo-argument: true
             - in: query
               name: byod
               schema:
@@ -324,6 +325,7 @@ generator_args:
                 type: string
               required: false
               description: Unique identifier for the resource
+              x-linkmo-argument: true
             responses:
               '200':
                 description: Inference response

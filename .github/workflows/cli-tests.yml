@@ -6,7 +6,6 @@ on:
     paths:
       - "ai"
       - "lib/api/**"
-      - "lib/cli/**"
       - "lib/store/**"
       - "ai-risk-ontology-linkmo/**"
       - "lib/test/**"
@@ -19,7 +18,6 @@ on:
     paths:
       - "ai"
       - "lib/api/**"
-      - "lib/cli/**"
       - "lib/store/**"
       - "ai-risk-ontology-linkmo/**"
       - "lib/test/**"

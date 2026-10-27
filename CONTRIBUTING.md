@@ -10,8 +10,8 @@ AI-LinkMO demonstrates four ways into one linked AI-governance knowledge graph: 
 
 | Path | Lives in |
 | --- | --- |
-| CLI | `ai`, `lib/cli/` |
-| HTTP API | `lib/api/` |
+| CLI | `ai`, `ai-risk-ontology-linkmo/` |
+| HTTP API | `ai-risk-ontology-linkmo/`, `lib/api/` |
 | Web UI | `lib/frontend/` |
 | Graph, ontology, crosswalks | `graph/`, `byo/` |
 | Tests | `lib/test/` |
@@ -27,7 +27,7 @@ Python 3.11+ and [uv](https://docs.astral.sh/uv/) are required; Node 22 for the 
 git clone https://github.com/noelmcloughlin/ai-linkmo.git
 cd ai-linkmo
 uv sync --extra test --extra browse   # application, test and browse dependencies
-./ai --help                           # runs lib/cli via uv
+./ai --help                           # runs the linkmo project's command line via uv
 ```
 
 For the web UI:

@@ -254,8 +254,8 @@ def test_cli_help(cli_command):
     stdout, stderr, returncode = cli_command("--help")
     
     assert returncode == 0
-    assert "AI-LinkMO CLI Demo" in stdout
-    assert "scope" in stdout
+    assert "Usage: ai " in stdout
+    assert "  risk " in stdout and "  graph " in stdout
 
 
 @pytest.mark.slow

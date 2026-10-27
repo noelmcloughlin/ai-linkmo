@@ -3,12 +3,11 @@
 [The README](../README.md) says what AI-LinkMO is for. This is the tree behind it. Three toolchains live here: Python and uv at the root, Node in `lib/frontend/`, and a second uv project in `.lokf/`. [CONTRIBUTING.md](../CONTRIBUTING.md) has the development setup and the checklist to run before a pull request.
 
 ```text
-ai                      the CLI entry point (runs lib/cli through uv)
+ai                      the CLI entry point (runs the linkmo project's command line through uv, asking the API by default)
 justfile                build steps: the API contract and the UI entity list, which are committed; the graph, the store, the browse database and the schema's pages, which are not
 scripts/                the scripts behind those recipes, and the test runner
-lib/cli/                the CLI, one command per exposed class; fastCLI (via the API) or slowCLI (offline)
-ai-risk-ontology-linkmo/ the linkmo project: the exposure file, the CLI and API kernels, the server, the browse build and the schema's pages
-lib/api/                ai-linkmo's handlers behind the API: the related-risk lookups and the hand-written operations
+ai-risk-ontology-linkmo/ the linkmo project, a uv workspace member: the exposure file, the CLI and API kernels, the server, the browse build and the schema's pages
+lib/api/                ai-linkmo's handlers behind the API: the related-risk lookups, the hand-written operations and the library instances they share
 lib/frontend/           Svelte 5 web UI (Vite; proxies to the API on :8000)
 lib/store/              the DuckDB store behind the listings and the search, built by `just load-store`, not committed
 lib/test/               pytest suite; its API-mode CLI cases are the documented CLI examples, checked
