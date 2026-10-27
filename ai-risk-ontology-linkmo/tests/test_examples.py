@@ -10,16 +10,16 @@ import yaml
 
 pytest.importorskip("linkml", reason="the docs dependency group is not installed")
 
-from ai_risk_ontology_linkmo.examples import (  # noqa: E402
+from ai_linkmo.examples import (  # noqa: E402
     choose_examples,
     example_file,
     identifier_of,
     validate_examples,
     write_examples,
 )
-from ai_risk_ontology_linkmo.schema import schema_view  # noqa: E402
-from ai_risk_ontology_linkmo.settings import schema_path  # noqa: E402
-from ai_risk_ontology_linkmo.sources import rows_by_class  # noqa: E402
+from ai_linkmo.schema import schema_view  # noqa: E402
+from ai_linkmo.settings import schema_path  # noqa: E402
+from ai_linkmo.sources import rows_by_class  # noqa: E402
 
 
 @pytest.fixture(scope="module")

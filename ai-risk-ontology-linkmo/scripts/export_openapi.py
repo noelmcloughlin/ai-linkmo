@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 def build_contract() -> dict:
     """The OpenAPI document, built from the schema alone. No record is read."""
-    from ai_risk_ontology_linkmo.server import app
+    from ai_linkmo.server import app
 
     return app.openapi()
 

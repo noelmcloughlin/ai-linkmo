@@ -17,6 +17,8 @@ just --justfile ai-risk-ontology-linkmo/justfile test
 
 Inside this folder, plain `just <recipe>` works, and after `just install` so does `uv run ai --help`. `just --list` shows the rest: the published contract, a web UI's entity list, the SSSOM check, the Datasette browse database and the schema's pages with examples.
 
+A `pkg:` path is read from an installed package, which `just install` installs as `ai-atlas-nexus>=1.2.5`. To use an environment that already has the package, set `LINKMO_PYTHON` to its Python, and the recipes put `src/` on its path. Answer `requirements` with `[]` to leave the package out of this project's dependencies.
+
 A command lists the records of its class. Give an identifier to fetch one record, any option to filter, `--count` for the number only, and `--mode api` to ask a running server instead of reading the data in the process. The API answers `GET /<class>` with the same parameters and the same JSON, and publishes its contract at `/openapi.json`.
 
 ## What is yours
@@ -24,7 +26,7 @@ A command lists the records of its class. Give an identifier to fetch one record
 The template created these files once and never overwrites them:
 
 - `exposure.yaml` says which classes are exposed, under which path, and binds hand-written operations to paths.
-- `src/ai_risk_ontology_linkmo/hand.py` holds those operations.
+- `src/ai_linkmo/hand.py` holds those operations.
 - `tests/expected_counts.yaml` lists the questions your data must answer and how many records each returns.
 - `project.justfile` holds your own recipes.
 

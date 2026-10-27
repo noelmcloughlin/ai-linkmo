@@ -10,7 +10,7 @@ from __future__ import annotations
 import pytest
 from linkmo_cases import case_id, load_cases, to_query
 
-from ai_risk_ontology_linkmo.output import count_of
+from ai_linkmo.output import count_of
 
 CASES = load_cases()
 

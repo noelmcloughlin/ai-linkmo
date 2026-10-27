@@ -20,10 +20,12 @@ dependencies = [
     "linkml-runtime>=1.10,<2",
     "pydantic>=2.11,<3",
     "pyyaml>=6.0",
+    # The packages the pkg: paths read, from the requirements answer.
+    "ai-atlas-nexus>=1.2.5",
 ]
 
 [project.scripts]
-ai = "ai_risk_ontology_linkmo.cli:main"
+ai = "ai_linkmo.cli:main"
 
 [dependency-groups]
 dev = [
@@ -45,7 +47,7 @@ docs = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/ai_risk_ontology_linkmo"]
+packages = ["src/ai_linkmo"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

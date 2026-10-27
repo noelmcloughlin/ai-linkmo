@@ -2,7 +2,7 @@
 #
 # It says which classes of the schema the command line and the API expose, under which
 # path, and which operations written by hand exist beside them. Both kernels read it
-# through src/ai_risk_ontology_linkmo/exposure.py. Everything else about a class, such as
+# through src/ai_linkmo/exposure.py. Everything else about a class, such as
 # its filters, comes from the schema itself.
 #
 # The shape follows the configuration proposed for LinkML's gen-openapi in
@@ -12,15 +12,75 @@
 generator_args:
   openapi:
     expose:
-      # With no `classes` key, every class that a collection slot of the root class
-      # holds is exposed, under a path made from its name. `just exposure` prints that
-      # list in this format. Copy it here to set the paths, labels and operation ids.
-      #
-      # classes:
-      #   Person:
-      #     path: /person
-      #     operation_id: list_person
-      #     label: People
+      # The 22 classes ai-linkmo 0.2.0 exposed, with its paths and operation ids.
+      classes:
+        RiskTaxonomy:
+          path: /taxonomy
+          operation_id: handlers.taxonomies
+        ControlActivityObligation:
+          path: /obligation
+          operation_id: handlers.obligations
+        ControlActivityRecommendation:
+          path: /recommendation
+          operation_id: handlers.recommendations
+        Risk:
+          path: /risk
+          operation_id: handlers.risks
+        Group:
+          path: /group
+          operation_id: handlers.groups
+        Action:
+          path: /action
+          operation_id: handlers.actions
+        RiskControl:
+          path: /control
+          operation_id: handlers.controls
+        RiskIncident:
+          path: /incident
+          operation_id: handlers.incidents
+        LargeLanguageModel:
+          path: /model
+          operation_id: handlers.models
+        AiTask:
+          path: /task
+          operation_id: handlers.tasks
+        AiEval:
+          path: /evaluation
+          operation_id: handlers.evaluations
+        Dataset:
+          path: /dataset
+          operation_id: handlers.datasets
+        Adapter:
+          path: /adapter
+          operation_id: handlers.adapters
+        LLMIntrinsic:
+          path: /intrinsic
+          operation_id: handlers.intrinsics
+        Organization:
+          path: /organization
+          operation_id: handlers.organizations
+        Documentation:
+          path: /document
+          operation_id: handlers.documents
+          label: Documents
+        Stakeholder:
+          path: /stakeholder
+          operation_id: handlers.stakeholders
+        LLMQuestionPolicy:
+          path: /questionpolicy
+          operation_id: handlers.questionpolicies
+        Principle:
+          path: /principle
+          operation_id: handlers.principles
+        BenchmarkMetadataCard:
+          path: /benchmarkcard
+          operation_id: handlers.benchmarkcards
+        Vocabulary:
+          path: /vocabulary
+          operation_id: handlers.vocabularies
+        Requirement:
+          path: /requirement
+          operation_id: handlers.requirements
       #
       # `parameters` adds overlay parameters beside the slots, on every class here or
       # on one class in its own entry. Only a Python data source understands them.

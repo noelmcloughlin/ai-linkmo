@@ -38,6 +38,16 @@ _KIND_BY_TYPE = {
     "boolean": "boolean",
 }
 
+# Nouns that a label leaves as they are, because they have no plural of their own: a menu
+# reads "Documentation", not "Documentations".
+MASS_NOUNS = frozenset(
+    {
+        "advice", "compliance", "data", "documentation", "equipment", "evidence", "feedback",
+        "governance", "guidance", "hardware", "information", "infrastructure", "knowledge",
+        "metadata", "provenance", "research", "series", "software", "species", "staff",
+    }
+)
+
 
 @dataclass(frozen=True)
 class Parameter:
@@ -117,6 +127,8 @@ def words(class_name: str) -> list[str]:
 
 
 def plural(word: str) -> str:
+    if word.lower() in MASS_NOUNS:
+        return word
     if word.endswith("y") and not word.endswith(("ay", "ey", "oy", "uy")):
         return word[:-1] + "ies"
     if word.endswith(("s", "x", "z", "ch", "sh")):
@@ -133,9 +145,21 @@ def default_operation_id(class_name: str) -> str:
     return "list_" + "_".join(w.lower() for w in words(class_name))
 
 
-def default_label(class_name: str) -> str:
-    """A readable plural for a menu: ``RiskTaxonomy`` is ``Risk Taxonomies``."""
-    parts = words(class_name)
+def capitalised_words(text: str) -> set[str]:
+    """The words of two letters or more that a text writes only in capitals, in lower case."""
+    found = re.findall(r"\b[A-Za-z][A-Za-z0-9]*\b", text)
+    capitals = {w.lower() for w in found if len(w) > 1 and w.isupper()}
+    return capitals - {w.lower() for w in found if not w.isupper()}
+
+
+def default_label(class_name: str, text: str = "") -> str:
+    """A readable plural for a menu: ``RiskTaxonomy`` is ``Risk Taxonomies``.
+
+    ``text`` is the class's own title, aliases and description. A word of the name that it
+    writes only in capitals keeps them, so an ``AiTask`` "performed by an AI" is ``AI Tasks``.
+    """
+    capitals = capitalised_words(text)
+    parts = [w.upper() if w.lower() in capitals else w for w in words(class_name)]
     parts[-1] = plural(parts[-1])
     return " ".join(parts)
 
@@ -181,6 +205,10 @@ def _extra_parameter(overlay: dict[str, Any], name: str) -> Parameter:
     )
 
 
+def _class_text(definition) -> str:
+    return " ".join(filter(None, [definition.title, *(definition.aliases or ()), definition.description]))
+
+
 def read_exposure_file(path: Path) -> dict[str, Any]:
     with open(path, encoding="utf-8") as handle:
         document = yaml.safe_load(handle) or {}
@@ -221,7 +249,7 @@ def load_exposure(path: Path | None = None) -> Exposure:
             name=name,
             path=entry.get("path", default_path(name)),
             operation_id=entry.get("operation_id", default_operation_id(name)),
-            label=entry.get("label", default_label(name)),
+            label=entry.get("label", default_label(name, _class_text(definition))),
             description=" ".join((definition.description or "").split()),
             identifier=identifier_slot(view, name),
             parameters=tuple(parameters),

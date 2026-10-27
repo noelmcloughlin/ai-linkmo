@@ -9,6 +9,11 @@ set dotenv-filename := "linkmo.env"
 # The Python that runs the project, and the tools beside it. Each can be replaced through
 # the environment variable named here, as the template's own tests do.
 python := env("LINKMO_PYTHON", "uv run python")
+# A Python from LINKMO_PYTHON has not installed this project, so src/ goes on its path.
+# Every recipe runs inside this folder, which the relative path needs.
+path_separator := if os_family() == "windows" { ";" } else { ":" }
+host_pythonpath := env("PYTHONPATH", "")
+export PYTHONPATH := if env("LINKMO_PYTHON", "") == "" { host_pythonpath } else if host_pythonpath == "" { "src" } else { "src" + path_separator + host_pythonpath }
 sssom := env("LINKMO_SSSOM", "uvx --from sssom sssom")
 package := env("LINKMO_PACKAGE")
 host_root := ".."

@@ -6,7 +6,7 @@ a model, every slot of the class is a parameter, and enum slots offer their valu
 
 from __future__ import annotations
 
-from ai_risk_ontology_linkmo.datamodel import model
+from ai_linkmo.datamodel import model
 
 
 def test_every_exposed_class_is_in_the_schema_and_has_a_model(exposure):

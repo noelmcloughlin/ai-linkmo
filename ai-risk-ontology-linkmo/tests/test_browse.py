@@ -17,9 +17,9 @@ pytest.importorskip("datasette", reason="the browse dependency group is not inst
 
 from datasette.app import Datasette  # noqa: E402
 
-from ai_risk_ontology_linkmo.browse import build, quote, search_tables, table_columns, text_columns  # noqa: E402
-from ai_risk_ontology_linkmo.schema import schema_view  # noqa: E402
-from ai_risk_ontology_linkmo.sources import rows_by_class  # noqa: E402
+from ai_linkmo.browse import build, quote, search_tables, table_columns, text_columns  # noqa: E402
+from ai_linkmo.schema import schema_view  # noqa: E402
+from ai_linkmo.sources import rows_by_class  # noqa: E402
 
 
 @pytest.fixture(scope="module")

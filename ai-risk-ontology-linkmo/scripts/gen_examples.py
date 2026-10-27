@@ -2,7 +2,7 @@
 
 Run it with `just gen-examples`. `just gen-doc` runs it before gen-doc. With --validate it
 also checks each example against its class with linkml's validator and exits 1 when one
-fails. The work is in src/ai_risk_ontology_linkmo/examples.py.
+fails. The work is in src/ai_linkmo/examples.py.
 """
 
 from __future__ import annotations
@@ -16,9 +16,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 
 def main(argv: list[str] | None = None) -> int:
-    from ai_risk_ontology_linkmo.examples import choose_examples, validate_examples, write_examples
-    from ai_risk_ontology_linkmo.schema import schema_view
-    from ai_risk_ontology_linkmo.sources import rows_by_class
+    from ai_linkmo.examples import choose_examples, validate_examples, write_examples
+    from ai_linkmo.schema import schema_view
+    from ai_linkmo.sources import rows_by_class
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("directory", type=Path, help="where gen-doc will look for examples")

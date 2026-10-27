@@ -19,7 +19,7 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = PACKAGE_DIR.parents[1]
 HOST_ROOT = PROJECT_DIR.parent
 
-ENV_PREFIX = "AI_RISK_ONTOLOGY_LINKMO"
+ENV_PREFIX = "AI_LINKMO"
 COMMAND_NAME = "ai"
 DISTRIBUTION = "ai-risk-ontology-linkmo"
 
@@ -28,17 +28,17 @@ def _setting(name: str, default: str) -> str:
     return os.environ.get(f"{ENV_PREFIX}_{name}", default)
 
 
-# AI_RISK_ONTOLOGY_LINKMO_SCHEMA: the LinkML schema.
+# AI_LINKMO_SCHEMA: the LinkML schema.
 SCHEMA = _setting("SCHEMA", "pkg:ai_atlas_nexus/ai_risk_ontology/schema/ai-risk-ontology.yaml")
-# AI_RISK_ONTOLOGY_LINKMO_DATAMODEL: the module gen-pydantic wrote from the schema.
+# AI_LINKMO_DATAMODEL: the module gen-pydantic wrote from the schema.
 DATAMODEL_MODULE = _setting("DATAMODEL", "ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology")
-# AI_RISK_ONTOLOGY_LINKMO_ROOT_CLASS: the class a data file holds; empty means the tree_root class.
+# AI_LINKMO_ROOT_CLASS: the class a data file holds; empty means the tree_root class.
 ROOT_CLASS = _setting("ROOT_CLASS", "")
-# AI_RISK_ONTOLOGY_LINKMO_EXPOSURE: the exposure file, read from the project folder unless absolute.
+# AI_LINKMO_EXPOSURE: the exposure file, read from the project folder unless absolute.
 EXPOSURE = _setting("EXPOSURE", "exposure.yaml")
-# AI_RISK_ONTOLOGY_LINKMO_DATA_SOURCE: "yaml" for a directory of instance files, "python" for an object.
+# AI_LINKMO_DATA_SOURCE: "yaml" for a directory of instance files, "python" for an object.
 DATA_SOURCE = _setting("DATA_SOURCE", "yaml")
-# AI_RISK_ONTOLOGY_LINKMO_DATA: the directory of instance files, or the object as module:attribute.
+# AI_LINKMO_DATA: the directory of instance files, or the object as module:attribute.
 DATA = _setting("DATA", "pkg:ai_atlas_nexus/data/knowledge_graph")
 
 # Folders put on sys.path before the datamodel is imported, when they exist. The sidecar's
@@ -55,7 +55,10 @@ def host_path(value: str, base: Path = HOST_ROOT) -> Path:
         package, _, inner = value[len("pkg:") :].partition("/")
         spec = importlib.util.find_spec(package)
         if spec is None or not spec.submodule_search_locations:
-            raise FileNotFoundError(f"{value}: no installed package named {package}")
+            raise FileNotFoundError(
+                f"{value}: no installed package named {package}. Add its distribution to the "
+                "requirements answer, or set LINKMO_PYTHON to a Python that has it."
+            )
         return Path(list(spec.submodule_search_locations)[0]) / inner
     path = Path(value).expanduser()
     return path if path.is_absolute() else base / path

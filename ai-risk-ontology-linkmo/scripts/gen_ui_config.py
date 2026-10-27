@@ -57,7 +57,7 @@ def reference_slots(exposure, exposed) -> list[str]:
 
 def collection_for(exposure, exposed) -> str | None:
     """The root class's slot that holds this class in a data file, if there is one."""
-    from ai_risk_ontology_linkmo.schema import collection_slots
+    from ai_linkmo.schema import collection_slots
 
     if exposure.root_class is None:
         return None
@@ -87,7 +87,7 @@ def endpoint_entry(exposure, exposed) -> dict:
 
 
 def build_config(exposure=None) -> dict:
-    from ai_risk_ontology_linkmo.exposure import load_exposure
+    from ai_linkmo.exposure import load_exposure
 
     exposure = exposure or load_exposure()
     return {

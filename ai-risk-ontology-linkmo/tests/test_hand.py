@@ -1,4 +1,4 @@
-"""Tests of the operations written by hand in src/ai_risk_ontology_linkmo/hand.py.
+"""Tests of the operations written by hand in src/ai_linkmo/hand.py.
 
 The linkmo template created this file once and never overwrites it. Change it when you
 change the operations it tests.

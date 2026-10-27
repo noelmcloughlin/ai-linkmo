@@ -1,7 +1,7 @@
 """Build the SQLite database and its Datasette metadata under browse/.
 
 Run it with `just build-browse`, then `just browse` to serve the folder with Datasette. The
-work is in src/ai_risk_ontology_linkmo/browse.py. It needs the browse dependency group.
+work is in src/ai_linkmo/browse.py. It needs the browse dependency group.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ def plural(number: int, noun: str) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    from ai_risk_ontology_linkmo.browse import DATA_DIR, build
+    from ai_linkmo.browse import DATA_DIR, build
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--data-dir", type=Path, default=DATA_DIR)

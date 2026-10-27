@@ -6,8 +6,8 @@ import pytest
 from click.testing import CliRunner
 from fastapi.testclient import TestClient
 
-from ai_risk_ontology_linkmo.cli import build_cli
-from ai_risk_ontology_linkmo.exposure import load_exposure
+from ai_linkmo.cli import build_cli
+from ai_linkmo.exposure import load_exposure
 
 
 @pytest.fixture(scope="session")
@@ -22,7 +22,7 @@ def cli(exposure):
 
 @pytest.fixture(scope="session")
 def client():
-    from ai_risk_ontology_linkmo.server import app
+    from ai_linkmo.server import app
 
     with TestClient(app) as test_client:
         yield test_client

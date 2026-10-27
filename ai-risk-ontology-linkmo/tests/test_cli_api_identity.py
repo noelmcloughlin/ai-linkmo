@@ -13,7 +13,7 @@ import click
 import pytest
 from linkmo_cases import case_id, load_cases, to_query
 
-from ai_risk_ontology_linkmo.cli import SHARED_OPTION_NAMES
+from ai_linkmo.cli import SHARED_OPTION_NAMES
 
 CASES = load_cases()
 
