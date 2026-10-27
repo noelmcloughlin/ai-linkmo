@@ -6,13 +6,13 @@ export type EndpointType = {
   getIncludeByod: () => boolean;
 };
 
-// One entry of src/lib/entities.json, written by `just gen-ui-config` from lib/api/api.yaml.
+// One entry of src/lib/entities.json, written by `just gen-ui-config` from the exposure file.
 export type GeneratedEndpoint = {
   key: string;
   path: string;
   label: string;
   type: string;
-  byo: string;
+  collection: string;
   description: string;
   filters: string[];
   prominent: string[];

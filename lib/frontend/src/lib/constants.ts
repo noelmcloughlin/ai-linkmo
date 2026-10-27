@@ -68,17 +68,17 @@ export const YOUR_FILES = [
 // This is the endpoint that will be selected when the app loads
 export const DEFAULT_ENDPOINT: string = "taxonomy";
 
-// The entity list is generated from lib/api/api.yaml by `just gen-ui-config`, so an
+// The entity list is generated from the exposure file by `just gen-ui-config`, so an
 // endpoint key here is an API route by construction. entities.json is not hand-edited;
 // what the schema cannot know lives in the overlays below and is merged over it.
 const GENERATED_ENDPOINTS: GeneratedEndpoint[] = entities.endpoints;
 
 // Hand-written overrides per endpoint key. A label replaces the plural derived from the
-// class name where that reads badly in the sidebar; a byo replaces the derived
+// class name where that reads badly in the sidebar; a collection replaces the derived
 // Container slot if a bring-your-own-data file ever keeps a class under another key.
 const ENDPOINT_OVERLAY: Record<
   string,
-  Partial<Pick<UiEndpoint, "label" | "byo">>
+  Partial<Pick<UiEndpoint, "label" | "collection">>
 > = {
   taxonomy: { label: "Taxonomies" },
   obligation: { label: "Obligations" },
@@ -88,7 +88,7 @@ const ENDPOINT_OVERLAY: Record<
 };
 
 // List of all endpoints available in the application, in the order of api.yaml.
-// Each endpoint has a key, label, class name, byo section and derived defaults.
+// Each endpoint has a key, label, class name, Container slot and derived defaults.
 // Used to dynamically generate UI forms and views based on selected endpoint.
 export const ENDPOINTS: UiEndpoint[] = GENERATED_ENDPOINTS.map((e) => ({
   ...e,

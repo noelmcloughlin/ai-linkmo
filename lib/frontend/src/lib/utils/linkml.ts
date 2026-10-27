@@ -4,7 +4,7 @@ import { ENDPOINTS } from "$lib/constants";
 // Mapping: Nexus yaml file section → webapp endpoint format section key
 export function getByoSectionKey(endpointKey: string): string {
   const ep = ENDPOINTS.find((e) => e.key === endpointKey);
-  return ep?.byo || endpointKey;
+  return ep?.collection || endpointKey;
 }
 
 // Mapping: Nexus Yaml file format → webapp endpoint format

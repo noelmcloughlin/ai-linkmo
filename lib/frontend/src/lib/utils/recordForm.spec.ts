@@ -66,10 +66,10 @@ describe("findClassName", () => {
   });
 
   it("falls back to the items of the endpoint's Container slot", () => {
-    expect(findClassName(jsonSchema, { key: "nothing", byo: "actions" })).toBe(
+    expect(findClassName(jsonSchema, { key: "nothing", collection: "actions" })).toBe(
       "Action",
     );
-    expect(findClassName(jsonSchema, { key: "nothing", byo: "groups" })).toBe(
+    expect(findClassName(jsonSchema, { key: "nothing", collection: "groups" })).toBe(
       "RiskControlGroup",
     );
   });

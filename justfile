@@ -6,6 +6,11 @@
 # the browse databases and the schema's pages. Run `just --list` to see them. The
 # knowledge-bundle recipes live in .lokf/justfile.
 
+# The linkmo project in ai-risk-ontology-linkmo/ runs on this project's environment, which
+# has ai-atlas-nexus already, rather than building one of its own.
+export LINKMO_PYTHON := env("LINKMO_PYTHON", "uv run --project '" + justfile_directory() + "' python")
+linkmo := just_executable() + " --justfile ai-risk-ontology-linkmo/justfile"
+
 # List available recipes
 default:
     @just --list
@@ -16,7 +21,7 @@ gen-openapi:
 
 # Write lib/frontend/src/lib/entities.json, the web UI's entity list, from the exposure file.
 gen-ui-config:
-    uv run python scripts/gen_ui_config.py lib/frontend/src/lib/entities.json
+    {{ linkmo }} gen-ui-config ../lib/frontend/src/lib/entities.json
 
 # Fetch the Cypher export that ai-atlas-nexus commits, pinned to the installed version.
 fetch-cypher:
