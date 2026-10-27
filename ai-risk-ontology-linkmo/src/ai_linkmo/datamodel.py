@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import importlib
 import inspect
-import sys
 from enum import Enum
 from functools import lru_cache
 from types import ModuleType
@@ -18,9 +17,7 @@ from .schema import schema_view
 
 @lru_cache(maxsize=1)
 def datamodel() -> ModuleType:
-    for path in settings.MODULE_PATHS:
-        if path.is_dir() and str(path) not in sys.path:
-            sys.path.insert(0, str(path))
+    settings.add_module_paths()
     module = importlib.import_module(settings.DATAMODEL_MODULE)
     _accept_strings_for_valueless_enums(module)
     return module

@@ -22,11 +22,11 @@ default:
 
 # Write the API contract, FastAPI's /openapi.json, to docs/openapi.json without a server.
 gen-openapi:
-    {{ linkmo }} gen-openapi ../docs/openapi.json
+    {{ linkmo }} gen-openapi
 
 # Write lib/frontend/src/lib/entities.json, the web UI's entity list, from the exposure file.
 gen-ui-config:
-    {{ linkmo }} gen-ui-config ../lib/frontend/src/lib/entities.json
+    {{ linkmo }} gen-ui-config
 
 # Fetch the Cypher export that ai-atlas-nexus commits, pinned to the installed version.
 fetch-cypher:

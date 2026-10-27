@@ -5,25 +5,19 @@ The exposure file adds ``byod`` to every class, and ``hasRelatedRisk``, ``relate
 ``related_ids`` to the classes whose records a risk relates to. The kernels pass them here
 unchanged, and ``lib.api.handlers.query_records`` answers them as ai-linkmo always has.
 The answer is model instances, so each record keeps its own class, or ids with
-``related_ids``. The settings name this object as the project's Python data source.
+``related_ids``. The settings name this object as the project's Python data source, and
+the template puts the host root, where ``lib`` is, on the path before importing it.
 """
 
 from __future__ import annotations
 
-import sys
 from typing import Any
 
-from . import settings
+from fastapi import HTTPException
+
+from lib.api import handlers
+
 from .handlers import QueryError
-
-# ai-linkmo's own package, lib, is at the host root, which is not on the path when this
-# project's recipes run from its own folder.
-if str(settings.HOST_ROOT) not in sys.path:
-    sys.path.append(str(settings.HOST_ROOT))
-
-from fastapi import HTTPException  # noqa: E402
-
-from lib.api import handlers  # noqa: E402
 
 
 class AtlasSource:

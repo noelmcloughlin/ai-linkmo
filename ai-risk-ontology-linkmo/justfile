@@ -63,14 +63,16 @@ exposure:
 gen-datamodel:
     {{ python }} scripts/gen_datamodel.py
 
-# Publish FastAPI's OpenAPI document, the API's contract, without starting a server
+# Publish FastAPI's OpenAPI document, the API's contract, without starting a server, to
+# the openapi_file answer's path unless another is given
 [group('build')]
-gen-openapi output="docs/openapi.json":
+gen-openapi *output:
     {{ python }} scripts/export_openapi.py {{ output }}
 
-# Write the web UI's entity list from the exposure file and the schema
+# Write the web UI's entity list from the exposure file and the schema, to the
+# entities_file answer's path unless another is given
 [group('build')]
-gen-ui-config output="ui/entities.json":
+gen-ui-config *output:
     {{ python }} scripts/gen_ui_config.py {{ output }}
 
 # Validate each *.sssom.tsv file in a folder, mappings/ by default, with sssom-py
@@ -83,16 +85,18 @@ validate-sssom dir="mappings":
     if [ ${#files[@]} -eq 0 ]; then echo "no *.sssom.tsv files in {{ dir }}"; exit 0; fi
     for file in "${files[@]}"; do echo "sssom validate $file"; {{ sssom }} validate "$file"; done
 
-# Build the SQLite database and its Datasette metadata under browse/
+# Build the SQLite database and its Datasette metadata under browse/, or under --data-dir,
+# asking the data source with each --param name=value
 [group('browse')]
-build-browse:
-    {{ browse_python }} scripts/build_browse.py
+build-browse *args:
+    {{ browse_python }} scripts/build_browse.py {{ args }}
 
-# Serve browse/ with Datasette on http://127.0.0.1:8001, building it first if it is missing
+# Serve a browse folder, browse/ by default, with Datasette on http://127.0.0.1:8001,
+# building it first if it is missing
 [group('browse')]
-browse:
-    test -f browse/metadata.yaml || just build-browse
-    {{ datasette }} serve browse
+browse dir="browse":
+    test -f {{ dir }}/metadata.yaml || just build-browse --data-dir {{ dir }}
+    {{ datasette }} serve {{ dir }}
 
 # Write one example per class with records to docs/elements/examples, and validate them
 [group('docs')]

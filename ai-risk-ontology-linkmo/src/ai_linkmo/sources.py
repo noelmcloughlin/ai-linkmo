@@ -252,6 +252,7 @@ class ObjectSource:
         module_name, _, attribute = spec.partition(":")
         if not module_name or not attribute:
             raise ValueError(f"The data object {spec!r} is not written as module:attribute")
+        settings.add_module_paths()
         obj = getattr(importlib.import_module(module_name), attribute)
         if inspect.isclass(obj) or (callable(obj) and not hasattr(obj, "query")):
             obj = obj()
@@ -274,7 +275,10 @@ def load_source() -> Source:
         return YamlDirectory(settings.data_path())
     if settings.DATA_SOURCE == "python":
         return ObjectSource(settings.DATA)
-    raise ValueError(f"{settings.ENV_PREFIX}_DATA_SOURCE must be yaml or python, not {settings.DATA_SOURCE!r}")
+    raise ValueError(
+        f"{settings.ENV_PREFIX}_DATA_SOURCE must be yaml or python, not {settings.DATA_SOURCE!r}. If the "
+        "host uses that name for a setting of its own, answer env_prefix again with copier update."
+    )
 
 
 def reset_source() -> None:
@@ -296,26 +300,43 @@ def _own_class(view, record: Any, fallback: str) -> str:
     return fallback
 
 
-def rows_by_class(source: Source | None = None) -> dict[str, list[dict[str, Any]]]:
+def _typed(kind: str, value: Any) -> Any:
+    """A parameter's value given as text, typed as the kernels type it."""
+    if not isinstance(value, str):
+        return value
+    if kind == "boolean":
+        return value.strip().lower() in ("1", "true", "yes", "on")
+    if kind == "integer":
+        return int(value)
+    if kind == "number":
+        return float(value)
+    return value
+
+
+def rows_by_class(source: Source | None = None, params: dict[str, Any] | None = None) -> dict[str, list[dict[str, Any]]]:
     """Every record as a plain dict under its slot names, grouped by its own class.
 
     The browse build and the class examples read the data this way. A YAML directory gives
     its records as read. Any other source is asked for every exposed class, and a record
     that two listings return, such as a subclass's record in its parent's listing, is kept
-    once under its own class.
+    once under its own class. ``params``, such as a parameter the exposure file adds to
+    bring in more data, go with each question to every class that takes them.
     """
     from .exposure import load_exposure
 
     source = source or load_source()
     view = schema_view()
-    if isinstance(source, YamlDirectory):
+    if isinstance(source, YamlDirectory) and not params:
         pairs = list(source.records)
     else:
-        pairs = [
-            (_own_class(view, record, exposed.name), record)
-            for exposed in load_exposure().classes.values()
-            for record in source.query(exposed.name)
-        ]
+        pairs = []
+        for exposed in load_exposure().classes.values():
+            given = {
+                name: _typed(parameter.kind, value)
+                for name, value in (params or {}).items()
+                if (parameter := exposed.parameter(name)) is not None
+            }
+            pairs += [(_own_class(view, record, exposed.name), record) for record in source.query(exposed.name, **given)]
     rows: dict[str, list[dict[str, Any]]] = defaultdict(list)
     seen: set[tuple[str, str]] = set()
     for class_name, record in pairs:

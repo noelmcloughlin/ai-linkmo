@@ -2,6 +2,10 @@
 
 Run it with `just build-browse`, then `just browse` to serve the folder with Datasette. The
 work is in src/ai_linkmo/browse.py. It needs the browse dependency group.
+
+`--param name=value` asks the data source each question with a parameter the exposure file
+adds, such as one that brings in more data, and `--data-dir` keeps that database apart:
+`just build-browse --data-dir browse-more --param more=true`.
 """
 
 from __future__ import annotations
@@ -23,9 +27,22 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--data-dir", type=Path, default=DATA_DIR)
+    parser.add_argument(
+        "--param",
+        action="append",
+        default=[],
+        metavar="NAME=VALUE",
+        help="A parameter for each question to the data source; give it once per parameter",
+    )
     args = parser.parse_args(argv)
+    params = {}
+    for given in args.param:
+        name, equals, value = given.partition("=")
+        if not name or not equals:
+            parser.error(f"--param {given!r} is not written as name=value")
+        params[name] = value
     logging.disable(logging.WARNING)
-    report = build(args.data_dir)
+    report = build(args.data_dir, params=params)
     load = report.load
     print(
         f"{report.path.name}: {load.records} rows in {sum(1 for n in load.rows.values() if n)} class tables "

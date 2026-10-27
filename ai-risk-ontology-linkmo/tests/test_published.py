@@ -1,7 +1,8 @@
 """The published contract and entity list are current, and the references are served.
 
-docs/openapi.json is written by `just gen-openapi` and ui/entities.json by
-`just gen-ui-config`. Each test of a file is skipped until the project publishes it.
+`just gen-openapi` writes the contract where the openapi_file answer says, and
+`just gen-ui-config` the entity list where the entities_file answer says. Each test of a
+file is skipped until the project publishes it.
 """
 
 from __future__ import annotations
@@ -9,17 +10,19 @@ from __future__ import annotations
 import json
 
 import pytest
-from linkmo_cases import PROJECT_DIR, load_script
+from linkmo_cases import load_script
 
-CONTRACT = PROJECT_DIR / "docs" / "openapi.json"
-ENTITIES = PROJECT_DIR / "ui" / "entities.json"
+from ai_linkmo.settings import entities_path, openapi_path
+
+CONTRACT = openapi_path()
+ENTITIES = entities_path()
 
 
 @pytest.mark.skipif(not CONTRACT.is_file(), reason="run `just gen-openapi` to publish the contract")
 def test_the_published_contract_is_current(contract):
     export = load_script("export_openapi")
     assert CONTRACT.read_text(encoding="utf-8") == export.render(export.build_contract()), (
-        "docs/openapi.json is behind the exposure file or the schema; run `just gen-openapi`"
+        f"{CONTRACT} is behind the exposure file or the schema; run `just gen-openapi`"
     )
     assert json.loads(CONTRACT.read_text(encoding="utf-8")) == contract
 
@@ -28,7 +31,7 @@ def test_the_published_contract_is_current(contract):
 def test_the_entity_list_is_current():
     ui = load_script("gen_ui_config")
     assert ENTITIES.read_text(encoding="utf-8") == ui.render(ui.build_config()), (
-        "ui/entities.json is behind the exposure file or the schema; run `just gen-ui-config`"
+        f"{ENTITIES} is behind the exposure file or the schema; run `just gen-ui-config`"
     )
 
 

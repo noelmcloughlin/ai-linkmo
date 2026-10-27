@@ -18,11 +18,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import atlas  # noqa: F401  # puts ai-linkmo's lib on the path
-from .exposure import load_exposure
-from .handlers import QueryError, query_class
-
-from lib.api.handlers import (  # noqa: E402, F401
+from lib.api.handlers import (  # noqa: F401
     ares,
     byo,
     byo_put,
@@ -32,6 +28,9 @@ from lib.api.handlers import (  # noqa: E402, F401
     schemaview,
     search,
 )
+
+from .exposure import load_exposure
+from .handlers import QueryError, query_class
 
 
 def summary(scope: str | None = None) -> dict[str, Any]:

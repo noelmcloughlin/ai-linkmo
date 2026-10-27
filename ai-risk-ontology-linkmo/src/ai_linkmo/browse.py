@@ -486,8 +486,12 @@ class BuildReport:
     seconds: float
 
 
-def build(data_dir: Path = DATA_DIR, rows: dict[str, list[dict[str, Any]]] | None = None) -> BuildReport:
-    """Build the database and its metadata from the project's data source."""
+def build(
+    data_dir: Path = DATA_DIR,
+    rows: dict[str, list[dict[str, Any]]] | None = None,
+    params: dict[str, Any] | None = None,
+) -> BuildReport:
+    """Build the database and its metadata from the project's data source, asked with ``params``."""
     from .schema import schema_view
     from .sources import rows_by_class
 
@@ -495,7 +499,7 @@ def build(data_dir: Path = DATA_DIR, rows: dict[str, list[dict[str, Any]]] | Non
     view = schema_view()
     ddl = generate_ddl(view, data_dir / DDL_FILE)
     ddl_seconds = time.perf_counter() - started
-    rows = rows if rows is not None else rows_by_class()
+    rows = rows if rows is not None else rows_by_class(params=params)
     path = database_path(view, data_dir)
     connection = create_database(ddl)
     try:
