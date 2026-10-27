@@ -1,6 +1,6 @@
 """The store and the library answer the plain listings alike.
 
-``AI_LINKMO_DATA_SOURCE`` chooses the source. These tests ask the same questions of both and
+``AI_LINKMO_BACKEND`` chooses the source. These tests ask the same questions of both and
 compare the answers, so a difference between linkml-store's filters and the library's shows
 up here rather than in a user's terminal.
 """
@@ -34,9 +34,9 @@ CASES = [
 
 
 def _answer(monkeypatch, source: str, class_name: str, **kwargs):
-    from lib.api.handlers import query_class
+    from ai_linkmo.handlers import query_class
 
-    monkeypatch.setenv("AI_LINKMO_DATA_SOURCE", source)
+    monkeypatch.setenv("AI_LINKMO_BACKEND", source)
     return query_class(class_name, **kwargs)
 
 
@@ -56,20 +56,20 @@ def test_a_record_reads_the_same_from_both_sources(monkeypatch):
 
 
 def test_the_store_rejects_an_unknown_taxonomy_like_the_library(monkeypatch):
-    from fastapi import HTTPException
+    from ai_linkmo.handlers import QueryError
 
     for source in ("store", "library"):
-        with pytest.raises(HTTPException) as caught:
+        with pytest.raises(QueryError) as caught:
             _answer(monkeypatch, source, "Risk", isDefinedByTaxonomy="no-such-taxonomy")
-        assert caught.value.status_code == 400
+        assert caught.value.status == 400
 
 
 def test_the_store_does_not_load_the_library(monkeypatch):
     import sys
 
-    monkeypatch.setenv("AI_LINKMO_DATA_SOURCE", "store")
+    monkeypatch.setenv("AI_LINKMO_BACKEND", "store")
     loaded_before = "ai_atlas_nexus.library" in sys.modules
-    from lib.api.handlers import query_class
+    from ai_linkmo.handlers import query_class
 
     assert query_class("RiskTaxonomy", id="nist-ai-rmf")["item"]["id"] == "nist-ai-rmf"
     assert loaded_before or "ai_atlas_nexus.library" not in sys.modules

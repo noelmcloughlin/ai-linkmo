@@ -4,28 +4,26 @@ A FastAPI server whose class listings are generated from the AI Risk Ontology sc
 
 ## Architecture Overview
 
-`api.yaml` is the exposure file. It names the ontology classes the API lists, the path of
-each, and the hand-written operations (`/graph`, `/crosswalk`, `/inference`, `/schemaview`,
-`/byo`, `/ares`) as OpenAPI operation objects in its overlay. Everything else about a class
-comes from the LinkML schema shipped inside the installed `ai_atlas_nexus` package: each
-slot of the class is one query parameter, an enum slot offers its values, and a value
-outside them is a 422.
+The linkmo project in `ai-risk-ontology-linkmo/` builds the API. Its exposure file,
+`ai-risk-ontology-linkmo/exposure.yaml`, names the ontology classes the API lists, the path
+of each, the parameters ai-linkmo adds beside the slots (`byod`, and `hasRelatedRisk`,
+`related` and `related_ids` on the classes a risk relates to), and the hand-written
+operations (`/search`, `/graph`, `/crosswalk`, `/inference`, `/schemaview`, `/byo`, `/ares`)
+as OpenAPI operation objects in its overlay. Everything else about a class comes from the
+LinkML schema shipped inside the installed `ai_atlas_nexus` package: each slot of the class
+is one query parameter, an enum slot offers its values, and a value outside them is a 422.
 
-`exposure.py` joins the two into one view, `load_exposure()`, which the API kernel and the
-CLI both read. Neither reads YAML or `SchemaView` itself.
+The project's kernels register one GET per exposed class and the overlay's operations, and
+both the API and the CLI read the same exposure. Every listing goes to the project's data
+source, `src/ai_linkmo/atlas.py`, which passes the question to `handlers.query_records`
+here. Each hand operation's `operationId` names a function in `src/ai_linkmo/hand.py`, which
+imports it from `handlers.py`.
 
-`server_kernel.py` registers the endpoints at startup. `register_class_endpoints` adds one
-GET per exposed class, with a signature built from the class's slots and a response model
-built from the ontology's own Pydantic class, and routes it to `handlers.query_class`.
-`register_hand_endpoints` adds the overlay's operations, each bound to the `handlers`
-function its `operationId` names.
+`handlers.py` holds `query_records`, which lists, filters or fetches the records of one
+class and keeps the only per-class knowledge left, how the library looks records up by a
+related risk, in `RELATED_LOOKUPS`; and the hand-written operations after it.
 
-`handlers.py` holds `query_class`, which lists, filters or fetches the records of one class
-and keeps the only per-class knowledge left, how the library looks records up by a related
-risk, in `RELATED_LOOKUPS`; and the hand-written operations after it.
-
-`server.py` is the app itself: CORS, the cache-control middleware, the probes and the
-cached `AIAtlasNexus` instances.
+`server.py` is the project's app, `ai_linkmo.server:app`, with ai-linkmo's `/classes` added.
 
 The contract is `/openapi.json` (OpenAPI 3.1), which carries the ontology classes under
 `components/schemas`. `just gen-openapi` writes the same document to `docs/openapi.json`
@@ -35,15 +33,15 @@ at `/docs`, ReDoc at `/redoc` and Scalar at `/scalar`.
 
 ## Adding or removing a class
 
-Add or remove an entry under `expose.classes` in `api.yaml`, with its `path`, the
-`collection` the library stores it under, and `related: true` when the library can look it
-up by risk (then add its call to `RELATED_LOOKUPS`). `lib/test/test_exposure.py` checks that
-every exposed class is in the schema and every filter is a slot of its class;
-`lib/test/test_api_kernel.py` checks the contract and the envelope the web UI reads.
+Add or remove an entry under `expose.classes` in `ai-risk-ontology-linkmo/exposure.yaml`,
+with its `path`, and the related parameters when the library can look it up by risk (then
+add its call to `RELATED_LOOKUPS`). The linkmo project's tests check that every exposed
+class is in the schema and every slot is a filter, and run the README's count cases in
+`ai-risk-ontology-linkmo/tests/expected_counts.yaml` through the CLI and the API.
 
 ## Where the records come from
 
-`AI_LINKMO_DATA_SOURCE` chooses the source of the class listings. `store` reads the DuckDB
+`AI_LINKMO_BACKEND` chooses the source of the class listings. `store` reads the DuckDB
 files that `just load-store` builds through linkml-store, one collection per concrete class,
 and answers a filter in milliseconds without loading the library. `library` keeps the
 `AIAtlasNexus` instance, which re-parses the YAML on first use. `auto`, the default, is the
@@ -69,14 +67,14 @@ Infrastructure endpoints surfaced by `server.py`:
 | Endpoint   | Purpose                                                                 |
 | ---------- | ----------------------------------------------------------------------- |
 | `/health`  | Liveness probe - always 200 once the process is up.                     |
-| `/ready`   | Readiness probe - 200 only when the default `AIAtlasNexus` is loaded.   |
-| `/version` | Reports `api`, `ai_atlas_nexus`, and (when available) `git_sha`.        |
+| `/ready`   | Readiness probe - 200 only when the data source has loaded.             |
+| `/version` | Reports `api`, the schema's version, and the `datamodel` module.        |
 | `/classes` | Lists schema classes, optionally filtered by `taxonomy`/`vocabulary`.   |
 
 The class listings (`/risk`, `/action`, ...) and the hand-written operations
-are registered at startup by `server_kernel.py`, so a new slot in the ontology
-is a new filter without a code change, and a new method on a hand path only
-needs its operation object in the overlay of `api.yaml`.
+are registered by the linkmo project from its exposure file, so a new slot in
+the ontology is a new filter without a code change, and a new method on a hand
+path needs its operation object in the overlay and its function in `hand.py`.
 
 ### Security & operational hardening
 
@@ -93,7 +91,7 @@ needs its operation object in the overlay of `api.yaml`.
     the target directory, `yaml.safe_load`-validated, then atomically
     promoted via `os.replace`; a `.bak` is taken first when an existing
     file is being overwritten).
-  - The overlay in `api.yaml` declares an `ApiKeyAuth` security scheme on this
+  - The exposure file's overlay declares an `ApiKeyAuth` security scheme on this
     operation, and `/openapi.json` publishes it. The demo server does **not** enforce it - operators
     deploying outside localhost should add a reverse-proxy that validates
     `X-API-Key`.
@@ -107,5 +105,6 @@ needs its operation object in the overlay of `api.yaml`.
   with the project root as CWD, and applies a 300 s subprocess timeout.
 - **Cache-Control middleware**: `GET` responses get `no-cache`, anything
   else `no-store`. Set the header explicitly on a response to opt out.
-- **Lifespan**: server now fails fast if the default `AIAtlasNexus`
-  instance can't initialise (the BYOD instance is still optional).
+- **Lifespan**: the server loads the data source at startup, and the
+  library with it unless the store answers the listings; `/ready` answers
+  503 until it has. The BYOD instance loads on its first question.

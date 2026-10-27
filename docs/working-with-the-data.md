@@ -44,11 +44,11 @@ just build-browse
 just browse
 ```
 
-`just build-browse` writes two SQLite databases under `lib/browse/data`: `atlas.sqlite` holds the packaged data and `byod.sqlite` adds your files from `byo/data`. It takes about twenty seconds the first time and ten after that, because the table definitions are kept until the schema changes. `just browse` serves them on <http://127.0.0.1:8001>, and builds them first if they are missing. Both recipes install the `browse` extra, Datasette and sqlite-utils, through uv.
+`just build-browse` writes one SQLite database of the packaged data under `ai-risk-ontology-linkmo/browse`. Your files from `byo/data` are not in it. It takes about twenty seconds the first time and ten after that, because the table definitions are kept until the schema changes. `just browse` serves it on <http://127.0.0.1:8001>, and builds it first if it is missing. Both recipes install the `browse` extra, Datasette and sqlite-utils, through uv.
 
 The tables follow the schema. LinkML's `gen-sqltables` generator makes one table per class, abstract parents included, and a link table such as `Risk_hasRelatedAction` for each multivalued slot. Each record is written to its own class's table and to the table of every class above it, so `Taxonomy` lists every taxonomy, whatever its class. A reference points at the table of the class its slot names. A risk's taxonomy therefore links to that taxonomy's row in `Taxonomy`, and the risks that cite it are listed under *Links from other tables* on that row, not on its `RiskTaxonomy` row. Empty class tables are hidden behind the *hidden tables* link, and empty link tables are left out.
 
-`lib/browse/data/metadata.yaml` is written from the schema in the same build. It describes each table and column from its class and slot, shows each record by its name wherever another row links to it, and offers facets on enum and reference columns with few values. Search covers each table's name and description, and every page has a JSON and a CSV form. The build lists the references that name a record the data does not hold, such as 20 risks whose risk group is missing.
+`ai-risk-ontology-linkmo/browse/metadata.yaml` is written from the schema in the same build. It describes each table and column from its class and slot, shows each record by its name wherever another row links to it, and offers facets on enum and reference columns with few values. Search covers each table's name and description, and every page has a JSON and a CSV form. The build lists the references that name a record the data does not hold, such as 20 risks whose risk group is missing.
 
 A database's front page takes two or three seconds, since Datasette looks at each of its few hundred tables. Table and row pages answer at once.
 

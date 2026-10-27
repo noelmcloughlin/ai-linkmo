@@ -1,19 +1,20 @@
-# ai-linkmo exposure file.
+# The exposure file of ai-risk-ontology-linkmo.
 #
-# This file says which classes of the AI Risk Ontology the CLI and the API expose, under
-# which path, and which hand-written operations exist beside the class listings. Both
-# kernels read it through lib/api/exposure.py, and everything else about a class, such as
+# It says which classes of the schema the command line and the API expose, under which
+# path, and which operations written by hand exist beside them. Both kernels read it
+# through src/ai_linkmo/exposure.py. Everything else about a class, such as
 # its filters, comes from the schema itself.
 #
 # The shape follows the configuration proposed for LinkML's gen-openapi in
-# linkml/linkml#3871: `expose.classes` names the classes and `overlay` is deep-merged into
-# the generated document. Two keys are ai-linkmo's own, and gen-openapi can ignore them.
-# `related` marks a class whose records can be looked up by a related risk, which adds the
-# `related`, `related_ids` and `hasRelatedRisk` parameters; lib/api/handlers.py holds the
-# library call for each. `operation_id` keeps the names the hand-written contract used.
+# linkml/linkml#3871: `expose.classes` names the classes, `exclude.classes` leaves some
+# out, and `overlay` is merged into the generated OpenAPI document. The linkmo template
+# created this file once and never overwrites it.
 generator_args:
   openapi:
     expose:
+      # The 22 classes ai-linkmo 0.2.0 exposed, with its paths and operation ids. A class
+      # whose records a risk relates to takes the related parameters, which
+      # src/ai_linkmo/atlas.py answers through lib/api/handlers.py.
       classes:
         RiskTaxonomy:
           path: /taxonomy
@@ -27,22 +28,22 @@ generator_args:
         Risk:
           path: /risk
           operation_id: handlers.risks
-          related: true
+          parameters: [hasRelatedRisk, related, related_ids]
         Group:
           path: /group
           operation_id: handlers.groups
         Action:
           path: /action
           operation_id: handlers.actions
-          related: true
+          parameters: [hasRelatedRisk, related, related_ids]
         RiskControl:
           path: /control
           operation_id: handlers.controls
-          related: true
+          parameters: [hasRelatedRisk, related, related_ids]
         RiskIncident:
           path: /incident
           operation_id: handlers.incidents
-          related: true
+          parameters: [hasRelatedRisk, related, related_ids]
         LargeLanguageModel:
           path: /model
           operation_id: handlers.models
@@ -52,24 +53,25 @@ generator_args:
         AiEval:
           path: /evaluation
           operation_id: handlers.evaluations
-          related: true
+          parameters: [hasRelatedRisk, related, related_ids]
         Dataset:
           path: /dataset
           operation_id: handlers.datasets
         Adapter:
           path: /adapter
           operation_id: handlers.adapters
-          related: true
+          parameters: [hasRelatedRisk, related, related_ids]
         LLMIntrinsic:
           path: /intrinsic
           operation_id: handlers.intrinsics
-          related: true
+          parameters: [hasRelatedRisk, related, related_ids]
         Organization:
           path: /organization
           operation_id: handlers.organizations
         Documentation:
           path: /document
           operation_id: handlers.documents
+          label: Documents
         Stakeholder:
           path: /stakeholder
           operation_id: handlers.stakeholders
@@ -82,16 +84,24 @@ generator_args:
         BenchmarkMetadataCard:
           path: /benchmarkcard
           operation_id: handlers.benchmarkcards
-          related: true
+          parameters: [hasRelatedRisk, related, related_ids]
         Vocabulary:
           path: /vocabulary
           operation_id: handlers.vocabularies
         Requirement:
           path: /requirement
           operation_id: handlers.requirements
+      #
+      # `parameters` adds overlay parameters beside the slots, on every class here or
+      # on one class in its own entry. Only a Python data source understands them.
+      parameters: [byod]
+    exclude:
+      classes: []
     overlay:
       info:
-        title: AI-LinkMO User Demo, Open API
+        title: AI-LinkMO API Demo
+        description: REST API over the AI Risk Ontology. One listing per exposed class, with the
+          class's slots as filters, beside the graph, crosswalk, inference and upload operations.
         version: 0.1.0
       components:
         parameters:
@@ -169,7 +179,7 @@ generator_args:
         /search:
           get:
             summary: Search records by text
-            operationId: handlers.search
+            operationId: hand.search
             description: Full-text search over the records in the store, ranked by a trigram
               index; run `just load-store` and `just index-store` first.
             parameters:
@@ -207,7 +217,7 @@ generator_args:
         /graph:
           get:
             summary: Get graph
-            operationId: handlers.graph
+            operationId: hand.graph
             parameters:
             - in: query
               name: export
@@ -237,7 +247,7 @@ generator_args:
         /crosswalk:
           get:
             summary: Get crosswalk
-            operationId: handlers.crosswalk
+            operationId: hand.crosswalk
             parameters:
             - in: query
               name: byod
@@ -273,7 +283,7 @@ generator_args:
         /inference:
           get:
             summary: Get inference
-            operationId: handlers.inference
+            operationId: hand.inference
             parameters:
             - in: query
               name: engine
@@ -322,7 +332,7 @@ generator_args:
         /schemaview:
           get:
             summary: Get schemaview
-            operationId: handlers.schemaview
+            operationId: hand.schemaview
             parameters:
             - in: query
               name: introspect
@@ -340,7 +350,7 @@ generator_args:
         /byo:
           get:
             summary: Get Bring your own data file
-            operationId: handlers.byo
+            operationId: hand.byo
             parameters:
             - in: query
               name: filename
@@ -367,7 +377,7 @@ generator_args:
                           type: string
           put:
             summary: Upload Bring your own data file
-            operationId: handlers.byo_put
+            operationId: hand.byo_put
             security:
             - ApiKeyAuth: []
             parameters:
@@ -403,7 +413,7 @@ generator_args:
         /ares:
           post:
             summary: Run ARES evaluation
-            operationId: handlers.ares
+            operationId: hand.ares
             requestBody:
               required: true
               content:

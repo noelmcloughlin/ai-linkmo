@@ -61,13 +61,13 @@ export const PAGES = [];
 // folder is missing. "auto" takes the first of the root, a linkmo project
 // and .linkml/ whose justfile has a gen-doc recipe; null shows no schema.
 //   export const SCHEMA = { dir: "docs/elements", build: "just gen-doc" };
-export const SCHEMA = "auto";
+export const SCHEMA = { dir: "ai-risk-ontology-linkmo/docs/elements", build: "just gen-doc" };
 
 // The data: a folder of SQLite databases and their Datasette metadata, served
 // under /browse/ with a page that opens each in Datasette Lite, and the
 // command that writes it. The databases go on the public site, so it is null
 // until set; "auto" takes a linkmo project's browse/ folder.
-export const BROWSE = { dir: "lib/browse/data", build: "just build-browse" };
+export const BROWSE = { dir: "ai-risk-ontology-linkmo/browse", build: "just build-browse" };
 
 // The home page: its source, from the file's `# ` title down ("auto" takes
 // the README when it has one, else the bundle's own introduction); the

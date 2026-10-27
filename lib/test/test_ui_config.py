@@ -1,26 +1,27 @@
-"""The UI's entity list is the exposure file's class list, and its filter overlay is valid.
+"""The UI's entity list is current, and its filter overlay is valid.
 
-``lib/frontend/src/lib/entities.json`` is written by ``just gen-ui-config``. The first tests
-check that the generator follows the exposure and that the committed file is current. The
-last ones read the hand-written overlay in ``constants.ts`` and check every filter name
-against the schema, because the API answers 422 to a filter that is not a parameter of the
-class.
+``lib/frontend/src/lib/entities.json`` is written by ``just gen-ui-config``, which runs the
+linkmo project's script. That project's own tests check that the script follows the
+exposure file. These check the committed file, each endpoint's Container slot, and the
+hand-written overlay in ``constants.ts``, because the API answers 422 to a filter that is
+not a parameter of the class.
 """
 
 from __future__ import annotations
 
-import json
+import importlib.util
 import re
 from pathlib import Path
 
 import pytest
 
-from lib.api.exposure import load_exposure
-from scripts.gen_ui_config import build_config, main, render
+import lib  # noqa: F401  # puts the linkmo project's package on the path
+from ai_linkmo.exposure import load_exposure
 
 ROOT = Path(__file__).resolve().parents[2]
 ENTITIES = ROOT / "lib" / "frontend" / "src" / "lib" / "entities.json"
 CONSTANTS = ROOT / "lib" / "frontend" / "src" / "lib" / "constants.ts"
+SCRIPT = ROOT / "ai-risk-ontology-linkmo" / "scripts" / "gen_ui_config.py"
 
 
 @pytest.fixture(scope="module")
@@ -29,34 +30,26 @@ def exposure():
 
 
 @pytest.fixture(scope="module")
-def generated(tmp_path_factory):
-    output = tmp_path_factory.mktemp("ui") / "entities.json"
-    assert main([str(output)]) == 0
-    return json.loads(output.read_text(encoding="utf-8"))
+def ui():
+    spec = importlib.util.spec_from_file_location("linkmo_gen_ui_config", SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
-def test_endpoint_keys_are_the_exposure_scopes(exposure, generated):
-    assert [e["key"] for e in generated["endpoints"]] == list(exposure.by_scope)
-    assert [e["path"] for e in generated["endpoints"]] == list(exposure.by_path)
-    assert generated["generated_by"] == "just gen-ui-config"
-
-
-def test_the_committed_entities_file_is_current():
+def test_the_committed_entities_file_is_current(ui):
     assert ENTITIES.is_file(), "run `just gen-ui-config` to write entities.json"
-    assert ENTITIES.read_text(encoding="utf-8") == render(build_config()), (
+    assert ENTITIES.read_text(encoding="utf-8") == ui.render(ui.build_config()), (
         "entities.json is behind the exposure file or the schema; run `just gen-ui-config`"
     )
 
 
-def test_derived_filters_and_byo_sections_are_valid(exposure, generated):
-    view = exposure.schema_view
-    container_slots = {s.name for s in view.class_induced_slots("Container")}
-    for entry in generated["endpoints"]:
-        exposed = exposure.by_scope[entry["key"]]
-        assert entry["type"] == exposed.name
-        assert set(entry["filters"]) <= set(exposed.slot_names), entry["key"]
+def test_each_collection_is_a_container_slot(exposure, ui):
+    container_slots = {s.name for s in exposure.schema_view.class_induced_slots("Container")}
+    for entry in ui.build_config(exposure)["endpoints"]:
+        assert entry["type"] == exposure.by_scope[entry["key"]].name
         assert entry["prominent"][:3] == ["id", "name", "description"]
-        assert entry["byo"] in container_slots, entry["key"]
+        assert entry["collection"] in container_slots, entry["key"]
 
 
 def overlay_filters() -> dict[str, list[str]]:
@@ -80,7 +73,7 @@ def test_overlay_filters_are_parameters_of_their_class(exposure):
     assert overlay, "the overlay parsed as empty"
     for key, names in overlay.items():
         exposed = exposure.by_scope.get(key)
-        assert exposed is not None, f"overlay names {key}, which api.yaml does not expose"
+        assert exposed is not None, f"overlay names {key}, which the exposure file does not expose"
         parameters = {p.name for p in exposed.parameters}
         unknown = [n for n in names if n not in parameters]
         assert not unknown, f"{key}: {unknown} are not parameters of {exposed.name}"

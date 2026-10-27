@@ -1,0 +1,108 @@
+# Recipes of this linkmo project. Each runs inside this folder. From the host root, run
+#   just --justfile <this folder>/justfile <recipe>
+# the way the LinkML sidecar's recipes run with --justfile .linkml/justfile. Put your own
+# recipes in project.justfile, which the template never overwrites.
+
+set dotenv-load := true
+set dotenv-filename := "linkmo.env"
+
+# The Python that runs the project, and the tools beside it. Each can be replaced through
+# the environment variable named here, as the template's own tests do.
+python := env("LINKMO_PYTHON", "uv run python")
+# A Python from LINKMO_PYTHON has not installed this project, so src/ goes on its path.
+# Every recipe runs inside this folder, which the relative path needs.
+path_separator := if os_family() == "windows" { ";" } else { ":" }
+host_pythonpath := env("PYTHONPATH", "")
+export PYTHONPATH := if env("LINKMO_PYTHON", "") == "" { host_pythonpath } else if host_pythonpath == "" { "src" } else { "src" + path_separator + host_pythonpath }
+sssom := env("LINKMO_SSSOM", "uvx --from sssom sssom")
+package := env("LINKMO_PACKAGE")
+host_root := ".."
+# The browse and docs steps need linkml beside the project. uv installs the browse and docs
+# dependency groups on first use.
+browse_python := env("LINKMO_BROWSE_PYTHON", env("LINKMO_PYTHON", "uv run --group browse python"))
+datasette := env("LINKMO_DATASETTE", "uv run --group browse datasette")
+docs_python := env("LINKMO_DOCS_PYTHON", env("LINKMO_PYTHON", "uv run --group docs python"))
+gen_doc := env("LINKMO_GEN_DOC", "uv run --group docs gen-doc")
+
+# List the recipes
+default:
+    @just --list
+
+# Install the project and its test tools into .venv with uv
+[group('project')]
+install:
+    uv sync --group dev
+
+# Update this template on its own answers file, from the host root
+[group('project')]
+update-template:
+    cd {{ host_root }} && copier update -a .copier-answers.linkmo.yml --trust --skip-answered
+
+# Run the project's tests
+[group('test')]
+test *args:
+    {{ python }} -m pytest {{ args }}
+
+# Run the command line, as in `just cli --help`
+[group('run')]
+cli *args:
+    {{ python }} -m {{ package }} {{ args }}
+
+# Serve the API on a port, 8000 by default, reloading on change
+[group('run')]
+serve port="8000":
+    {{ python }} -m uvicorn {{ package }}.server:app --reload --port {{ port }}
+
+# Print the exposed classes in the exposure file's format
+[group('build')]
+exposure:
+    {{ python }} -m {{ package }}.exposure
+
+# Generate the sidecar's datamodel with gen-pydantic, replacing the file
+[group('build')]
+gen-datamodel:
+    {{ python }} scripts/gen_datamodel.py
+
+# Publish FastAPI's OpenAPI document, the API's contract, without starting a server
+[group('build')]
+gen-openapi output="docs/openapi.json":
+    {{ python }} scripts/export_openapi.py {{ output }}
+
+# Write the web UI's entity list from the exposure file and the schema
+[group('build')]
+gen-ui-config output="ui/entities.json":
+    {{ python }} scripts/gen_ui_config.py {{ output }}
+
+# Validate each *.sssom.tsv file in a folder, mappings/ by default, with sssom-py
+[group('mappings')]
+validate-sssom dir="mappings":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shopt -s nullglob
+    files=("{{ dir }}"/*.sssom.tsv)
+    if [ ${#files[@]} -eq 0 ]; then echo "no *.sssom.tsv files in {{ dir }}"; exit 0; fi
+    for file in "${files[@]}"; do echo "sssom validate $file"; {{ sssom }} validate "$file"; done
+
+# Build the SQLite database and its Datasette metadata under browse/
+[group('browse')]
+build-browse:
+    {{ browse_python }} scripts/build_browse.py
+
+# Serve browse/ with Datasette on http://127.0.0.1:8001, building it first if it is missing
+[group('browse')]
+browse:
+    test -f browse/metadata.yaml || just build-browse
+    {{ datasette }} serve browse
+
+# Write one example per class with records to docs/elements/examples, and validate them
+[group('docs')]
+gen-examples:
+    {{ docs_python }} scripts/gen_examples.py docs/elements/examples --validate
+
+# Write the schema's pages to docs/elements with gen-doc, each class page with its example
+[group('docs')]
+gen-doc: gen-examples
+    rm -f docs/elements/*.md
+    {{ gen_doc }} --render-imports --example-directory docs/elements/examples --directory docs/elements "$({{ python }} -c 'from {{ package }}.settings import schema_path; print(schema_path())')"
+
+import? "project.justfile"

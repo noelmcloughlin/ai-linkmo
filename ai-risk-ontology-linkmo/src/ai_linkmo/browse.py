@@ -1,32 +1,26 @@
-"""Build SQLite databases from the schema and the data, for browsing in Datasette.
+"""Build a SQLite database and its Datasette metadata from the schema and the records.
 
 Datasette turns any SQLite file into table and row pages with filters, facets, labelled
 foreign-key links, the links from other tables on each row page, full-text search, a JSON
 API and CSV export. What it needs is a database whose tables and foreign keys follow the
-schema. This module makes one from the schema and the records, and names no class or slot
-of its own, so it serves any LinkML schema whose records come grouped by class.
+schema. This module makes one from the schema and the project's data source, and names no
+class or slot of its own. It is generalised from ai-linkmo's lib/browse.
 
 The tables come from linkml's ``SQLTableGenerator``, the Python side of ``gen-sqltables``.
 It makes one table per class, abstract classes and mixins included with their inherited
 columns, a foreign key for each single-valued reference to the table of the slot's declared
-range, and a link table for each multivalued slot. linkml-sqldb, the loader written for
-that DDL, failed four different ways on the ontology schema when it was measured, so the
-rows are written here from the same records the DuckDB store loads.
+range, and a link table for each multivalued slot.
 
-The rule the loader has to respect is that a foreign key points at the table of the slot's
-declared range, which is often an abstract parent of the record's own class. So each
-record is written to its class table and to the table of every ancestor that shares its
-identifier, and each multivalued slot to the link table of each of those classes. Every
-table then holds the whole extent of its class, and a reference resolves whichever class
-its range names. Everything is written in one transaction with ``executemany``.
+A foreign key points at the table of the slot's declared range, which is often an abstract
+parent of the record's own class. So each record is written to its class table and to the
+table of every ancestor that shares its identifier, and each multivalued slot to the link
+table of each of those classes. Every table then holds the whole extent of its class, and a
+reference resolves whichever class its range names. The link tables that stay empty are
+dropped once the rows are in. Every class table stays, so every foreign key keeps its parent.
 
-The DDL also has a link table for every multivalued slot of every class, and most stay
-empty. Those are dropped once the rows are in (see ``drop_empty_link_tables``), while every
-class table stays so that every foreign key keeps its parent.
-
-The databases are build artefacts. ``just build-browse`` writes them under
-``lib/browse/data/`` with the Datasette metadata beside them (see ``metadata.py``), and
-``just browse`` serves that directory.
+The database is a build artefact. ``just build-browse`` writes it under ``browse/`` with
+``metadata.yaml`` beside it, and ``just browse`` serves that folder with Datasette. Building
+needs the ``browse`` dependency group: linkml, sqlite-utils and datasette.
 """
 
 from __future__ import annotations
@@ -34,28 +28,30 @@ from __future__ import annotations
 import copy
 import hashlib
 import importlib.metadata
+import re
 import sqlite3
 import time
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
+import yaml
 from linkml_runtime.linkml_model import SchemaDefinition
 from linkml_runtime.utils.schemaview import SchemaView
 
-from lib.store.loader import DATABASES
+from . import settings
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-DATA_DIR = PROJECT_ROOT / "lib" / "browse" / "data"
+DATA_DIR = settings.PROJECT_DIR / "browse"
 DDL_FILE = "schema.sql"
+METADATA_FILE = "metadata.yaml"
 
 # The class LinkML provides as an open range, which no table can stand for.
 LINKML_ANY = "https://w3id.org/linkml/Any"
 
 # Slots whose URI says they hold a record's label or its description. The first one a class
 # has is its label column in Datasette, and both are indexed for full-text search. They are
-# matched by URI rather than by name so that any schema using these vocabularies is served.
+# matched by URI rather than by name, so any schema using these vocabularies is served.
 LABEL_URIS = frozenset(
     {
         "http://schema.org/name",
@@ -74,18 +70,20 @@ DESCRIPTION_URIS = frozenset(
         "http://www.w3.org/2000/01/rdf-schema#comment",
     }
 )
+# A slot named like a label or a description serves when no slot has one of those URIs.
+LABEL_NAMES = ("name", "label", "title", "prefLabel")
+DESCRIPTION_NAMES = ("description", "definition", "comment")
+
+# Datasette shows thirty values of a facet by default, so a column with more is a list.
+FACET_LIMIT = 30
 
 
-# What each database holds, for its page in Datasette.
-DATABASE_DESCRIPTIONS = {
-    False: "The packaged data.",
-    True: "The packaged data with the bring-your-own files under byo/data added.",
-}
+def database_name(view: SchemaView) -> str:
+    return re.sub(r"[^A-Za-z0-9_-]+", "_", view.schema.name or "records")
 
 
-def database_path(byod: bool, data_dir: Path = DATA_DIR) -> Path:
-    """The SQLite file for ``byod``, named like the DuckDB store's database."""
-    return data_dir / f"{DATABASES[byod]}.sqlite"
+def database_path(view: SchemaView, data_dir: Path = DATA_DIR) -> Path:
+    return data_dir / f"{database_name(view)}.sqlite"
 
 
 def quote(name: str) -> str:
@@ -93,21 +91,21 @@ def quote(name: str) -> str:
     return '"' + name.replace('"', '""') + '"'
 
 
+def plain(text: str | None) -> str:
+    """A schema description on one line, as Datasette shows it."""
+    return " ".join((text or "").split())
+
+
 def table_schema(view: SchemaView) -> SchemaDefinition:
     """The schema the tables are generated from: the source schema with two changes.
 
-    ``view`` must have its imports merged, as ``lib.api.exposure.schema_view()`` does. A
-    slot whose range is ``linkml:Any`` is stored as text. The generator would otherwise make
-    it a foreign key to an ``Any`` table that never holds a row, so every value would be a
-    dead link. And a tree root holds the records rather than being one, so it gets no table;
-    otherwise every class it holds would carry an empty foreign key column back to it. A
-    class that something still refers to keeps its table.
+    A slot whose range is ``linkml:Any`` is stored as text, since a foreign key to an
+    ``Any`` table would make every value a dead link. And a tree root holds the records
+    rather than being one, so it gets no table, unless something refers to it.
     """
     schema = copy.deepcopy(view.schema)
     classes = view.all_classes()
-    open_ranges = {
-        name for name, cls in classes.items() if view.get_uri(cls, expand=True) == LINKML_ANY
-    }
+    open_ranges = {name for name, cls in classes.items() if view.get_uri(cls, expand=True) == LINKML_ANY}
     definitions = list(schema.slots.values())
     for cls in schema.classes.values():
         definitions += list(cls.slot_usage.values()) + list(cls.attributes.values())
@@ -119,30 +117,25 @@ def table_schema(view: SchemaView) -> SchemaDefinition:
         referenced.update([cls.is_a, *cls.mixins])
     roots = {name for name, cls in classes.items() if cls.tree_root}
     for name in (open_ranges | roots) - referenced:
-        del schema.classes[name]
+        schema.classes.pop(name, None)
     return schema
 
 
 def schema_digest(view: SchemaView) -> str:
-    """A digest of everything the DDL depends on: the schema files, linkml, and this module.
-
-    The files are hashed rather than the merged schema, because ``SchemaView`` fills in
-    fields of the merged schema as it is read, so two dumps of it in one process differ.
-    """
+    """A digest of what the DDL depends on: the schema files, linkml, and this module."""
     digest = hashlib.sha256(f"linkml {importlib.metadata.version('linkml')}".encode())
     sources = {Path(s.source_file) for s in view.schema_map.values() if s.source_file}
     for path in [*sorted(sources), Path(__file__)]:
-        digest.update(path.read_bytes())
+        if path.is_file():
+            digest.update(path.read_bytes())
     return digest.hexdigest()[:16]
 
 
 def generate_ddl(view: SchemaView, cache: Path | None = None) -> str:
-    """The SQLite DDL for the schema, written by linkml's ``SQLTableGenerator``.
+    """The SQLite DDL for the schema, kept in ``cache`` under the schema's digest.
 
-    Generating it takes about ten seconds for a schema of a hundred classes, nearly all of
-    it in linkml's relational transform, and the result changes only with the schema or with
-    linkml. So when ``cache`` names a file, the DDL is kept there under the schema's digest
-    and reused while the digest still matches.
+    Generating it takes about ten seconds for a schema of a hundred classes, and the result
+    changes only with the schema or with linkml, so a cached copy is reused while it matches.
     """
     from linkml.generators.sqltablegen import SQLTableGenerator
 
@@ -160,13 +153,8 @@ def generate_ddl(view: SchemaView, cache: Path | None = None) -> str:
 
 
 def create_database(ddl: str) -> sqlite3.Connection:
-    """An in-memory database holding every table of the DDL, all of them empty.
-
-    The build happens in memory and ``save`` writes the result out in one step, so a failed
-    build never leaves half a file behind. Most of the thousand or so tables and indexes
-    stay empty, and each takes at least a page, so the pages are 1 KB rather than SQLite's
-    4 KB.
-    """
+    """An in-memory database with every table of the DDL. The build happens in memory and
+    ``save`` writes it out in one step, so a failed build leaves no half-written file."""
     connection = sqlite3.connect(":memory:")
     connection.execute("pragma page_size = 1024")
     connection.executescript(f"begin;\n{ddl}\ncommit;")
@@ -174,44 +162,32 @@ def create_database(ddl: str) -> sqlite3.Connection:
 
 
 def table_columns(connection: sqlite3.Connection) -> dict[str, list[str]]:
-    """Every table of the database with its column names, in creation order."""
     names = [
         name
         for (name,) in connection.execute(
             "select name from sqlite_master where type = 'table' and name not like 'sqlite_%'"
         )
     ]
-    return {
-        name: [row[1] for row in connection.execute(f"pragma table_info({quote(name)})")]
-        for name in names
-    }
+    return {name: [row[1] for row in connection.execute(f"pragma table_info({quote(name)})")] for name in names}
 
 
 @dataclass(frozen=True)
 class Target:
-    """Where one slot's values go in one class table.
-
-    A single-valued slot is a column of the table itself, and ``key_column`` is None. A
-    multivalued slot is a link table with two columns: ``key_column`` holds the record's
-    identifier and ``column`` one value.
-    """
+    """Where one slot's values go in one class table: a column of the table itself, or a
+    link table whose ``key_column`` holds the record's identifier and ``column`` a value."""
 
     table: str
     column: str
     key_column: str | None = None
 
 
-def table_plan(
-    view: SchemaView, tables: dict[str, list[str]], table: str, key: str
-) -> dict[str, Target]:
-    """Where each slot of the class ``table`` is stored, found by the generator's naming rules.
+def table_plan(view: SchemaView, tables: dict[str, list[str]], table: str, key: str) -> dict[str, Target]:
+    """Where each slot of the class ``table`` is stored, by the generator's naming rules.
 
-    A slot keeps its name (or its alias) as a column. An inlined reference becomes a column
+    A slot keeps its name, or its alias, as a column. An inlined reference becomes a column
     named after the slot and the range's identifier. A multivalued slot becomes the table
-    ``<class>_<singular name>``, whose first column is ``<class>_<identifier>``. A list of
-    inlined objects matches none of these, because the generator stores it as a column in
-    the objects' own table that points back at their owner. Such a slot is left out of the
-    plan, and its values are counted as unplaced rather than loaded.
+    ``<class>_<singular name>``. A list of inlined objects matches none of these. It is left
+    out, and its values are counted as unplaced.
     """
     classes = view.all_classes()
     columns = set(tables[table])
@@ -237,11 +213,9 @@ def table_plan(
 class LoadReport:
     """What a load wrote, what SQLite refused, and what had nowhere to go."""
 
-    # Rows written per class table, and per link table.
     rows: Counter = field(default_factory=Counter)
     links: Counter = field(default_factory=Counter)
-    # Rows SQLite refused per class table: an identifier already present, or a required
-    # value missing. Both are data defects, and the build reports them.
+    # Rows SQLite refused per class table: a duplicate identifier or a missing required value.
     refused: Counter = field(default_factory=Counter)
     # Values per "Class.slot" that no column or link table could take.
     unplaced: Counter = field(default_factory=Counter)
@@ -256,32 +230,18 @@ class LoadReport:
         return sum(self.links.values())
 
 
-def _insert(
-    connection: sqlite3.Connection, table: str, columns: list[str], rows: list[tuple]
-) -> int:
-    """Insert ``rows`` into ``table`` and return how many SQLite kept."""
+def _insert(connection: sqlite3.Connection, table: str, columns: list[str], rows: list[tuple]) -> int:
     if not rows:
         return 0
     names = ", ".join(quote(column) for column in columns)
     marks = ", ".join("?" for _ in columns)
-    cursor = connection.executemany(
-        f"insert or ignore into {quote(table)} ({names}) values ({marks})", rows
-    )
-    return cursor.rowcount
+    return connection.executemany(f"insert or ignore into {quote(table)} ({names}) values ({marks})", rows).rowcount
 
 
-def _write_class(
-    connection: sqlite3.Connection,
-    view: SchemaView,
-    tables: dict[str, list[str]],
-    class_name: str,
-    records: list[dict[str, Any]],
-    report: LoadReport,
-) -> None:
+def _write_class(connection, view: SchemaView, tables, class_name: str, records: list[dict[str, Any]], report: LoadReport) -> None:
     """Write the records of one class to its table, its ancestors' tables and their link tables."""
     key = view.get_identifier_slot(class_name)
     if key is None:
-        # Without an identifier there is nothing a link row or a reference could hold.
         report.unplaced[f"{class_name} (no identifier)"] += len(records)
         return
     for table in view.class_ancestors(class_name):
@@ -321,14 +281,10 @@ def _write_class(
         report.refused[table] += len(values) - kept
         for name, pairs in links.items():
             target = plan[name]
-            report.links[target.table] += _insert(
-                connection, target.table, [target.key_column, target.column], pairs
-            )
+            report.links[target.table] += _insert(connection, target.table, [target.key_column, target.column], pairs)
 
 
-def load_rows(
-    connection: sqlite3.Connection, view: SchemaView, rows: dict[str, list[dict[str, Any]]]
-) -> LoadReport:
+def load_rows(connection: sqlite3.Connection, view: SchemaView, rows: dict[str, list[dict[str, Any]]]) -> LoadReport:
     """Write every record of ``rows``, keyed by class, in one transaction."""
     started = time.perf_counter()
     tables = table_columns(connection)
@@ -342,33 +298,26 @@ def load_rows(
 
 
 def text_columns(view: SchemaView, table: str, columns: list[str]) -> tuple[str | None, list[str]]:
-    """The label column of a class table and the columns full-text search should index.
-
-    The label is the first slot whose URI is a label's (``LABEL_URIS``), and the indexed
-    columns are the label and the first slot whose URI is a description's.
-    """
+    """The label column of a class table and the columns full-text search indexes."""
     label = description = None
-    for slot in view.class_induced_slots(table):
-        name = slot.alias or slot.name
-        if name not in columns or slot.multivalued:
-            continue
+    slots = [s for s in view.class_induced_slots(table) if (s.alias or s.name) in columns and not s.multivalued]
+    for slot in slots:
         uri = view.get_uri(slot, expand=True)
         if label is None and uri in LABEL_URIS:
-            label = name
+            label = slot.alias or slot.name
         elif description is None and uri in DESCRIPTION_URIS:
-            description = name
+            description = slot.alias or slot.name
+    names = {slot.alias or slot.name for slot in slots}
+    label = label or next((n for n in LABEL_NAMES if n in names), None)
+    description = description or next((n for n in DESCRIPTION_NAMES if n in names and n != label), None)
     return label, [column for column in (label, description) if column]
 
 
-def enable_search(
-    connection: sqlite3.Connection, view: SchemaView, report: LoadReport
-) -> list[str]:
+def enable_search(connection: sqlite3.Connection, view: SchemaView, report: LoadReport) -> list[str]:
     """Index the label and description of every class table with rows, and list those tables.
 
     sqlite-utils creates ``<table>_fts`` with the table as its content, which is the layout
-    Datasette looks for, so each of these tables gets a search box. The Porter stemmer lets
-    a search for "outputs" find "output". No triggers are made, since the file is never
-    written again after the build.
+    Datasette looks for, so each of these tables gets a search box.
     """
     import sqlite_utils
 
@@ -384,14 +333,8 @@ def enable_search(
 
 
 def drop_empty_link_tables(connection: sqlite3.Connection, view: SchemaView) -> int:
-    """Drop the link tables that received no rows, and return how many there were.
-
-    The DDL has a link table for every multivalued slot of every class, and for this schema
-    nearly nine hundred of them stay empty. Datasette does some work for every table each
-    time it lists a database, which with them took forty seconds and without them three. No
-    foreign key ever points at a link table, so dropping one breaks no reference. Every
-    class table stays, empty or not, so every foreign key keeps its parent table.
-    """
+    """Drop the link tables that received no rows. No foreign key points at a link table,
+    and Datasette does work for every table each time it lists a database."""
     classes = view.all_classes()
     empty = [
         table
@@ -413,14 +356,9 @@ def foreign_key_count(connection: sqlite3.Connection) -> int:
 
 
 def dangling_references(connection: sqlite3.Connection) -> Counter:
-    """Count, per table and parent table, the values that name a row the parent lacks.
-
-    SQLite reports these whether or not it enforces foreign keys. Each one is a reference
-    in the data to a record the data does not contain. The keys are (table, parent) pairs.
-    """
-    return Counter(
-        (table, parent) for table, _, parent, _ in connection.execute("pragma foreign_key_check")
-    )
+    """Per (table, parent table), the values that name a row the parent lacks: references in
+    the data to records the data does not contain."""
+    return Counter((table, parent) for table, _, parent, _ in connection.execute("pragma foreign_key_check"))
 
 
 def save(connection: sqlite3.Connection, path: Path) -> None:
@@ -430,31 +368,135 @@ def save(connection: sqlite3.Connection, path: Path) -> None:
     connection.execute("vacuum into ?", (str(path),))
 
 
+# Datasette metadata. The keys are those Datasette 0.65 reads from its metadata file.
+# Datasette 1.0 reads the table settings from datasette.yaml instead.
+
+
+def search_tables(connection: sqlite3.Connection) -> set[str]:
+    """The full-text tables, which Datasette hides by itself, and their shadow tables."""
+    virtual = [
+        name for (name,) in connection.execute("select name from sqlite_master where sql like 'CREATE VIRTUAL TABLE%'")
+    ]
+    return {
+        name
+        for name in table_columns(connection)
+        if any(name == table or name.startswith(f"{table}_") for table in virtual)
+    }
+
+
+def facets(connection: sqlite3.Connection, view: SchemaView, table: str, slots: dict[str, Any], rows: int) -> list[str]:
+    """The enum and reference columns of ``table`` with two to thirty distinct values."""
+    classes, enums = view.all_classes(), view.all_enums()
+    chosen = []
+    for column, slot in slots.items():
+        if slot.range not in enums and slot.range not in classes:
+            continue
+        (distinct,) = connection.execute(f"select count(distinct {quote(column)}) from {quote(table)}").fetchone()
+        if 2 <= distinct <= min(FACET_LIMIT, rows - 1):
+            chosen.append(column)
+    return chosen
+
+
+def database_metadata(connection: sqlite3.Connection, view: SchemaView, description: str) -> dict[str, Any]:
+    """One database's metadata: its description, each full table's description, label column,
+    facets and column descriptions, and each empty class table hidden."""
+    tables = table_columns(connection)
+    hidden_by_datasette = search_tables(connection)
+    counts = {
+        table: connection.execute(f"select count(*) from {quote(table)}").fetchone()[0]
+        for table in tables
+        if table not in hidden_by_datasette
+    }
+    classes = view.all_classes()
+    entries: dict[str, dict[str, Any]] = {}
+    for table in sorted(t for t, count in counts.items() if count and t in classes):
+        slots = {slot.alias or slot.name: slot for slot in view.class_induced_slots(table)}
+        key = view.get_identifier_slot(table)
+        plan = table_plan(view, tables, table, key.name) if key else {}
+        own = {t.column: slots[t.column] for t in plan.values() if t.key_column is None and t.column in slots}
+        entry: dict[str, Any] = {"description": plain(classes[table].description)}
+        label, _ = text_columns(view, table, tables[table])
+        if label:
+            entry["label_column"] = label
+        chosen = facets(connection, view, table, own, counts[table])
+        if chosen:
+            entry["facets"] = chosen
+        columns = {column: plain(slot.description) for column, slot in own.items() if slot.description}
+        if columns:
+            entry["columns"] = columns
+        entries[table] = entry
+        for name, target in plan.items():
+            if target.key_column is None or not counts.get(target.table):
+                continue
+            entries[target.table] = {
+                "description": f"Links each {table} row to its {name} values, one value per row.",
+                "columns": {
+                    target.key_column: f"The {table} row.",
+                    target.column: plain(view.induced_slot(name, table).description) or f"One {name} value.",
+                },
+            }
+    # Datasette also hides every table whose name starts with a hidden table's name, so an
+    # empty table whose name begins a full one's is left visible rather than hiding both.
+    full = [table for table, count in counts.items() if count]
+    for table in sorted(t for t, count in counts.items() if not count):
+        if not any(other.startswith(table) for other in full):
+            entries[table] = {"hidden": True}
+    return {"description": description, "tables": entries}
+
+
+def build_metadata(view: SchemaView, path: Path) -> dict[str, Any]:
+    schema = view.schema
+    metadata: dict[str, Any] = {"title": schema.title or schema.name, "description": plain(schema.description)}
+    if schema.version:
+        metadata["source"] = f"{schema.name} {schema.version}"
+        metadata["source_url"] = schema.id
+    if schema.license:
+        metadata["license"] = schema.license
+        if schema.license.startswith(("http://", "https://")):
+            metadata["license_url"] = schema.license
+    connection = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        description = f"The records of the {schema.name} schema, read from {settings.DATA}."
+        metadata["databases"] = {path.stem: database_metadata(connection, view, description)}
+    finally:
+        connection.close()
+    return metadata
+
+
+def write_metadata(view: SchemaView, path: Path) -> Path:
+    """Write ``metadata.yaml`` beside the database, where ``datasette serve`` reads it."""
+    target = path.parent / METADATA_FILE
+    body = yaml.safe_dump(build_metadata(view, path), sort_keys=False, allow_unicode=True, width=100)
+    target.write_text("# Written by `just build-browse` from the schema and the database; not edited.\n" + body, encoding="utf-8")
+    return target
+
+
 @dataclass
 class BuildReport:
-    """One database's build: where it is, what it holds and how long it took."""
-
     path: Path
+    metadata: Path
     load: LoadReport
-    # The DDL's tables and foreign keys, and those left once the empty link tables are gone.
     ddl_tables: int
     ddl_foreign_keys: int
     tables: int
     foreign_keys: int
     searchable: list[str]
     dangling: Counter
+    ddl_seconds: float
     seconds: float
 
 
-def build_database(
-    byod: bool, ddl: str, view: SchemaView, data_dir: Path = DATA_DIR
-) -> BuildReport:
-    """Build the SQLite file for ``byod`` from ``ddl`` and the records the library loads."""
-    from lib.store.loader import load_container, rows_by_class
+def build(data_dir: Path = DATA_DIR, rows: dict[str, list[dict[str, Any]]] | None = None) -> BuildReport:
+    """Build the database and its metadata from the project's data source."""
+    from .schema import schema_view
+    from .sources import rows_by_class
 
     started = time.perf_counter()
-    path = database_path(byod, data_dir)
-    rows = rows_by_class(load_container(byod))
+    view = schema_view()
+    ddl = generate_ddl(view, data_dir / DDL_FILE)
+    ddl_seconds = time.perf_counter() - started
+    rows = rows if rows is not None else rows_by_class()
+    path = database_path(view, data_dir)
     connection = create_database(ddl)
     try:
         ddl_tables = len(table_columns(connection))
@@ -468,8 +510,10 @@ def build_database(
         save(connection, path)
     finally:
         connection.close()
+    metadata = write_metadata(view, path)
     return BuildReport(
         path=path,
+        metadata=metadata,
         load=load,
         ddl_tables=ddl_tables,
         ddl_foreign_keys=ddl_foreign_keys,
@@ -477,27 +521,6 @@ def build_database(
         foreign_keys=foreign_keys,
         searchable=searchable,
         dangling=dangling,
+        ddl_seconds=ddl_seconds,
         seconds=time.perf_counter() - started,
     )
-
-
-@dataclass
-class Build:
-    """A whole build: the DDL step, each database, and the metadata written after them."""
-
-    ddl_seconds: float
-    databases: list[BuildReport]
-    metadata: Path
-
-
-def build_all(data_dir: Path = DATA_DIR, which: Iterable[bool] = (False, True)) -> Build:
-    """Build the requested databases from one DDL, then the metadata for all that exist."""
-    from lib.api.exposure import schema_view
-    from lib.browse.metadata import write_metadata
-
-    view = schema_view()
-    started = time.perf_counter()
-    ddl = generate_ddl(view, data_dir / DDL_FILE)
-    ddl_seconds = time.perf_counter() - started
-    reports = [build_database(byod, ddl, view, data_dir) for byod in which]
-    return Build(ddl_seconds, reports, write_metadata(view, data_dir))

@@ -8,7 +8,7 @@ on:
       - "lib/api/**"
       - "lib/cli/**"
       - "lib/store/**"
-      - "lib/browse/**"
+      - "ai-risk-ontology-linkmo/**"
       - "lib/test/**"
       - "scripts/**"
       - "byo/**"
@@ -21,7 +21,7 @@ on:
       - "lib/api/**"
       - "lib/cli/**"
       - "lib/store/**"
-      - "lib/browse/**"
+      - "ai-risk-ontology-linkmo/**"
       - "lib/test/**"
       - "scripts/**"
       - "byo/**"
@@ -79,8 +79,8 @@ jobs:
       # --locked fails the run if uv.lock is out of step with pyproject.toml,
       # rather than silently resolving something the lockfile never pinned. CI
       # then tests the same dependency set a developer gets from `uv sync`. The
-      # browse extra (Datasette and sqlite-utils) is what lib/test/test_browse.py
-      # needs; without it those tests skip.
+      # browse extra (Datasette and sqlite-utils) is what the linkmo project's
+      # browse tests need; without it those tests skip.
       - name: Install dependencies
         run: uv sync --locked --extra test --extra browse
 
@@ -106,3 +106,9 @@ jobs:
       # session-scoped `api_server` fixture in lib/test/conftest.py.
       - name: Run test suite (API mode, not slow)
         run: uv run pytest lib/test -v -m "not slow" --tb=short
+
+      # The linkmo project's own tests, with the README's count cases, run on this
+      # environment, which has ai-atlas-nexus, rather than on one of the project's own.
+      - name: Run the linkmo project's tests
+        working-directory: ai-risk-ontology-linkmo
+        run: uv run --project .. python -m pytest --tb=short

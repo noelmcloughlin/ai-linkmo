@@ -12,7 +12,7 @@ import type { NexusRecord } from "$types/yaml";
 type JsonObject = Record<string, unknown>;
 
 /** The fields of an ENDPOINTS entry that locate a class in the JSON Schema. */
-export type FormEndpoint = { key: string; type?: string; byo?: string };
+export type FormEndpoint = { key: string; type?: string; collection?: string };
 
 /** One endpoint's records, in the shape dataState keeps them. */
 export type RecordList = { key: string; items?: NexusRecord[] };
@@ -107,7 +107,7 @@ export function findClassName(
   }
   const container = isObject(defs.Container) ? defs.Container : {};
   const slots = isObject(container.properties) ? container.properties : {};
-  const slot = slots[endpoint.byo || endpoint.key];
+  const slot = slots[endpoint.collection || endpoint.key];
   const items = isObject(slot) && isObject(slot.items) ? slot.items : undefined;
   if (items === undefined) {
     return undefined;

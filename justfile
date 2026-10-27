@@ -3,8 +3,18 @@
 # gen-openapi and gen-ui-config write files the repository keeps under version control, so
 # that a reader sees the current contract or UI list without running the server. The others
 # build local artefacts that are never committed, such as the graph export, the DuckDB store,
-# the browse databases and the schema's pages. Run `just --list` to see them. The
+# the browse database and the schema's pages. Run `just --list` to see them. The
 # knowledge-bundle recipes live in .lokf/justfile.
+
+# The linkmo project in ai-risk-ontology-linkmo/ builds the contract, the entity list, the
+# browse database and the schema's pages. Its recipes run on this project's environment,
+# which has ai-atlas-nexus already, rather than building one of their own.
+host := "uv run --project '" + justfile_directory() + "'"
+export LINKMO_PYTHON := env("LINKMO_PYTHON", host + " python")
+export LINKMO_BROWSE_PYTHON := env("LINKMO_BROWSE_PYTHON", host + " --extra browse python")
+export LINKMO_DATASETTE := env("LINKMO_DATASETTE", host + " --extra browse datasette")
+export LINKMO_GEN_DOC := env("LINKMO_GEN_DOC", host + " gen-doc")
+linkmo := just_executable() + " --justfile ai-risk-ontology-linkmo/justfile"
 
 # List available recipes
 default:
@@ -12,11 +22,11 @@ default:
 
 # Write the API contract, FastAPI's /openapi.json, to docs/openapi.json without a server.
 gen-openapi:
-    uv run python scripts/export_openapi.py docs/openapi.json
+    {{ linkmo }} gen-openapi ../docs/openapi.json
 
 # Write lib/frontend/src/lib/entities.json, the web UI's entity list, from the exposure file.
 gen-ui-config:
-    uv run python scripts/gen_ui_config.py lib/frontend/src/lib/entities.json
+    {{ linkmo }} gen-ui-config ../lib/frontend/src/lib/entities.json
 
 # Fetch the Cypher export that ai-atlas-nexus commits, pinned to the installed version.
 fetch-cypher:
@@ -38,20 +48,18 @@ index-store:
 dump-store:
     uv run python scripts/dump_store.py lib/store/data/dump
 
-# Build the SQLite databases and the Datasette metadata under lib/browse/data.
+# Build the SQLite database and its Datasette metadata under ai-risk-ontology-linkmo/browse.
 build-browse:
-    uv run --extra browse python scripts/build_browse.py
+    {{ linkmo }} build-browse
 
-# Serve lib/browse/data with Datasette on http://127.0.0.1:8001, building it first if it is missing.
+# Serve the browse database with Datasette on http://127.0.0.1:8001, building it if it is missing.
 browse:
-    test -f lib/browse/data/metadata.yaml || just build-browse
-    uv run --extra browse datasette serve lib/browse/data
+    {{ linkmo }} browse
 
-# Write one example per class that has records to docs/elements/examples, and validate them.
+# Write one example per class with records to ai-risk-ontology-linkmo/docs/elements/examples.
 gen-examples:
-    uv run python scripts/gen_examples.py docs/elements/examples --validate
+    {{ linkmo }} gen-examples
 
-# Write the schema's pages to docs/elements with gen-doc, each class page with its example.
-gen-doc: gen-examples
-    rm -f docs/elements/*.md
-    uv run gen-doc --render-imports --example-directory docs/elements/examples --directory docs/elements "$(uv run python -c 'from lib.api.exposure import schema_directory; print(schema_directory() / "ai-risk-ontology.yaml")')"
+# Write the schema's pages to ai-risk-ontology-linkmo/docs/elements, each with its example.
+gen-doc:
+    {{ linkmo }} gen-doc

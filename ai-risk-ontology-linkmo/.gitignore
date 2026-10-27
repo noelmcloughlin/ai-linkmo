@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+# Built by `just build-browse` and `just gen-doc`, never committed.
+browse/
+docs/elements/

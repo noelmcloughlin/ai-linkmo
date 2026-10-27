@@ -76,10 +76,10 @@
   <rect x="560" y="158" width="480" height="84" rx="8" class="chip"/>
   <text x="576" y="182" class="bt">Exposure view</text>
   <text x="692" y="182" class="tag">exposure.py</text>
-  <text x="576" y="206" class="b"><tspan class="mono">api.yaml</tspan> ⨝ schema slots</text>
+  <text x="576" y="206" class="b"><tspan class="mono">exposure.yaml</tspan> ⨝ schema slots</text>
   <text x="576" y="228" class="b">→ one route, one CLI command, one filter per slot</text>
 
-  <text x="560" y="268" class="m">one data source, picked by AI_LINKMO_DATA_SOURCE</text>
+  <text x="560" y="268" class="m">one data source, picked by AI_LINKMO_BACKEND</text>
   <rect x="560" y="278" width="232" height="86" rx="8" class="chip"/>
   <text x="574" y="302" class="bt">AIAtlasNexus library</text>
   <text x="574" y="324" class="b">in process</text>
@@ -97,10 +97,10 @@
   <text x="576" y="466" class="mono">entities.json ✓</text><text x="820" y="466" class="m">UI entity list</text>
   <text x="576" y="494" class="mono">crosswalk CSVs</text><text x="820" y="494" class="m">framework ↔ framework</text>
   <text x="576" y="522" class="mono">ai-risk-ontology.cypher</text><text x="820" y="522" class="m">graph import</text>
-  <text x="576" y="550" class="mono">atlas + byod .sqlite</text><text x="820" y="550" class="m">browse tables</text>
+  <text x="576" y="550" class="mono">ai-risk-ontology.sqlite</text><text x="820" y="550" class="m">browse tables</text>
   <line x1="576" y1="572" x2="1024" y2="572" stroke="var(--line)" stroke-width="0.6"/>
   <text x="576" y="598" class="m">CI keeps the doors in step: CLI ≡ API · contract ≡ server</text>
-  <text x="576" y="618" class="m">UI list ≡ api.yaml · every CLI example runs as a test</text>
+  <text x="576" y="618" class="m">UI list ≡ exposure.yaml · every CLI example runs as a test</text>
 
   <!-- ===== Doors ===== -->
   <rect x="1120" y="138" width="440" height="94" rx="12" class="door"/>

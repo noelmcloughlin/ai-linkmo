@@ -1,25 +1,30 @@
 """The committed contract is the one the server serves, and the references render.
 
-``docs/openapi.json`` is written by ``just gen-openapi``. If the exposure file or the schema
-changes and the file is not regenerated, the first test fails and says so.
+``docs/openapi.json`` is written by ``just gen-openapi``, which runs the linkmo project's
+export script. If the exposure file or the schema changes and the file is not regenerated,
+the first test fails and says so.
 """
 
 from __future__ import annotations
 
+import importlib.util
 import json
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
-from scripts.export_openapi import build_contract, render
-
-PUBLISHED = Path(__file__).resolve().parents[2] / "docs" / "openapi.json"
+ROOT = Path(__file__).resolve().parents[2]
+PUBLISHED = ROOT / "docs" / "openapi.json"
+SCRIPT = ROOT / "ai-risk-ontology-linkmo" / "scripts" / "export_openapi.py"
 
 
 def test_the_published_contract_is_current():
+    spec = importlib.util.spec_from_file_location("linkmo_export_openapi", SCRIPT)
+    export = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(export)
     assert PUBLISHED.is_file(), "run `just gen-openapi` to publish the contract"
-    assert PUBLISHED.read_text(encoding="utf-8") == render(build_contract()), (
+    assert PUBLISHED.read_text(encoding="utf-8") == export.render(export.build_contract()), (
         "docs/openapi.json is behind the exposure file or the schema; run `just gen-openapi`"
     )
 

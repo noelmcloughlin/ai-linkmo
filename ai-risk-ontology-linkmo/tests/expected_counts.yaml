@@ -1,0 +1,209 @@
+# The questions this project's data must answer, and how many records each returns.
+#
+# Each case is a command line without the command's name. tests/test_counts.py runs it
+# through the command line in local mode and through the API, and both must return the
+# count. tests/test_cli_api_identity.py checks that both return the same JSON. A case may
+# also give `validation_errors`, the number of records the datamodel rejected. Add cases
+# as the data becomes stable. The linkmo template created this file once and never
+# overwrites it.
+# The cases are ai-linkmo 0.2.0's README examples, from lib/test/test_cli_examples.py,
+# less the two that read the bring-your-own data, whose counts change with byo/data.
+cases:
+  - args: [taxonomy]
+    count: 14
+  - args: [taxonomy, nist-ai-rmf]
+    count: 1
+  - args: [taxonomy, "--hasDocumentation", NIST.AI.600-1]
+    count: 1
+  - args: [risk]
+    count: 630
+  - args: [risk, "--isDefinedByTaxonomy", nist-ai-rmf]
+    count: 12
+  - args: [risk, "--isPartOf", granite-guardian-harm-group]
+    count: 7
+  - args: [risk, "--risk_type", inference]
+    count: 18
+  - args: [risk, "--descriptor", "specific to generative AI"]
+    count: 31
+  - args: [risk, "--phase", training-tuning]
+    count: 0
+  - args: [risk, atlas-toxic-output, "--related_ids"]
+    count: 14
+  - args: [risk, atlas-toxic-output, "--related"]
+    count: 14
+  - args: [risk, atlas-toxic-output, "--related", "--isDefinedByTaxonomy", nist-ai-rmf]
+    count: 2
+  - args: [group]
+    count: 183
+  - args: [group, "--type", CapabilityGroup]
+    count: 8
+  - args: [group, "--isDefinedByTaxonomy", ai-risk-taxonomy]
+    count: 59
+  - args: [group, ai-risk-taxonomy-deception]
+    count: 1
+  - args: [obligation]
+    count: 79
+  - args: [obligation, "--isDefinedByTaxonomy", aiuc1]
+    count: 79
+  - args: [obligation, "--hasEvidenceCategory", TECHNICAL_IMPLEMENTATION]
+    count: 48
+  - args: [obligation, "--hasTypicalLocation", "Engineering Practice"]
+    count: 6
+  - args: [obligation, "--hasTypicalLocation", "Engineering Tooling"]
+    count: 9
+  - args: [obligation, aiuc1-ctrl-b002-1]
+    count: 1
+  - args: [recommendation]
+    count: 50
+  - args: [recommendation, "--hasEvidenceCategory", LEGAL_POLICIES]
+    count: 3
+  - args: [recommendation, "--hasEvidenceCategory", OPERATIONAL_PRACTICES]
+    count: 15
+  - args: [recommendation, "--hasTypicalLocation", "Internal policies"]
+    count: 3
+  - args: [principle]
+    count: 32
+  - args: [principle, "--isDefinedByTaxonomy", aiuc1]
+    count: 6
+  - args: [principle, "--hasDocumentation", AIUC-1-Jan-2026]
+    count: 6
+  - args: [principle, principle-un-do-no-harm]
+    count: 1
+  - args: [model]
+    count: 58
+  - args: [model, "--isPartOf", shieldgemma]
+    count: 3
+  - args: [model, "--hasRiskControl", gg-groundedness-detection]
+    count: 5
+  - args: [model, "--isProvidedBy", google]
+    count: 3
+  - args: [model, "--hasDocumentation", granite-guardian-paper]
+    count: 7
+  - args: [model, "--hasLicense", gemma-terms-of-use]
+    count: 3
+  - args: [model, "--performsTask", code-generation]
+    count: 24
+  - args: [model, "--hasInputModality", modality-text]
+    count: 32
+  - args: [model, "--hasOutputModality", modality-text]
+    count: 32
+  - args: [task]
+    count: 52
+  - args: [task, table-question-answering]
+    count: 1
+  - args: [task, "--isDefinedByTaxonomy", hf-ml-tasks]
+    count: 47
+  - args: [task, "--isPartOf", hf-ml-tasks-group-multimodal]
+    count: 9
+  - args: [task, "--requiresCapability", ibm-cap-contextual-understanding]
+    count: 10
+  - args: [evaluation]
+    count: 70
+  - args: [evaluation, "--hasDocumentation", arxiv.org/2310.12941]
+    count: 1
+  - args: [evaluation, ai_eval_PopQA]
+    count: 1
+  - args: [evaluation, "--hasDataset", truthfulqa/truthful_qa]
+    count: 1
+  - args: [evaluation, "--hasTasks", text-generation]
+    count: 11
+  - args: [evaluation, "--hasLicense", license-cc-by-4.0]
+    count: 3
+  - args: [evaluation, "--hasRelatedRisk", atlas-hallucination]
+    count: 2
+  - args: [evaluation, "--related", "--hasRelatedRisk", mit-ai-causal-risk-timing-post-deployment]
+    count: 25
+  - args: [dataset]
+    count: 54
+  - args: [dataset, CybersecurityBenchmarks_datasets_frr]
+    count: 1
+  - args: [dataset, "--hasLicense", license-apache-2.0]
+    count: 11
+  - args: [dataset, "--hasDocumentation", repo_nyu-mll_BBQ]
+    count: 1
+  - args: [dataset, "--isProvidedBy", bigcode]
+    count: 1
+  - args: [adapter]
+    count: 26
+  - args: [adapter, ibm-factuality-adapter-granite-3.2-5b-harm-correction]
+    count: 1
+  - args: [adapter, "--hasDocumentation", granite-guardian-paper]
+    count: 2
+  - args: [adapter, "--hasAdapterType", LORA]
+    count: 19
+  - args: [adapter, "--implementsCapability", ibm-cap-contextual-understanding]
+    count: 5
+  - args: [adapter, "--adaptsModel", granite-guardian-3.3-8b-instruct]
+    count: 12
+  - args: [adapter, "--hasLicense", license-apache-2.0]
+    count: 3
+  - args: [adapter, "--hasRelatedRisk", granite-relevance]
+    count: 1
+  - args: [adapter, "--hasRelatedRisk", granite-relevance, "--related"]
+    count: 0
+  - args: [intrinsic]
+    count: 16
+  - args: [intrinsic, "--hasDocumentation", arxiv.org/2504.11704]
+    count: 8
+  - args: [intrinsic, ibm-factuality-intrinsic-jailbreak]
+    count: 1
+  - args: [intrinsic, "--hasAdapter", ibm-factuality-adapter-granite-3.3-8b-instruct-lora-citation-generation]
+    count: 1
+  - args: [intrinsic, "--isDefinedByVocabulary", ibm-factuality]
+    count: 16
+  - args: [intrinsic, "--hasRelatedRisk", nist-confabulation]
+    count: 3
+  - args: [intrinsic, "--related", "--hasRelatedRisk", granite-answer-relevance]
+    count: 6
+  - args: [action]
+    count: 1085
+  - args: [action, "--isDefinedByTaxonomy", nist-ai-rmf]
+    count: 212
+  - args: [action, "--hasAiActorTask", "Human Factors"]
+    count: 22
+  - args: [action, "--hasRelatedRisk", nist-human-ai-configuration]
+    count: 53
+  - args: [action, "--related_ids", "--hasRelatedRisk", atlas-toxic-output]
+    count: 47
+  - args: [control]
+    count: 1102
+  - args: [control, "--isDefinedByTaxonomy", shieldgemma-taxonomy]
+    count: 4
+  - args: [control, gg-function-call-detection]
+    count: 1
+  - args: [control, "--detectsRiskConcept", shieldgemma-dangerous-content]
+    count: 1
+  - args: [control, "--hasRelatedRisk", shieldgemma-hate-speech]
+    count: 1
+  - args: [control, "--related", "--hasRelatedRisk", atlas-toxic-output]
+    count: 4
+  - args: [incident]
+    count: 38
+  - args: [incident, "--isDefinedByTaxonomy", ibm-risk-atlas]
+    count: 38
+  - args: [incident, ibm-risk-atlas-ri-fake-legal-cases]
+    count: 1
+  - args: [incident, "--hasRelatedRisk", atlas-dangerous-use]
+    count: 2
+  - args: [incident, "--refersToRisk", atlas-evasion-attack]
+    count: 1
+  - args: [incident, "--hasRelatedRisk", atlas-dangerous-use, "--related"]
+    count: 0
+  - args: [document]
+    count: 97
+  - args: [document, repo_stanford_air_bench_2024]
+    count: 1
+  - args: [document, "--hasLicense", license-cc-by-4.0]
+    count: 15
+  - args: [stakeholder]
+    count: 14
+  - args: [stakeholder, "--isDefinedByTaxonomy", csiro-responsible-ai-patterns]
+    count: 14
+  - args: [stakeholder, csiro-stakeholder-ai-technology-producers]
+    count: 1
+  - args: [stakeholder, "--isPartOf", csiro-stakeholder-group-organization-level]
+    count: 2
+  - args: [organization]
+    count: 6
+  - args: [organization, "--grants_license", license-cc-by-4.0]
+    count: 0

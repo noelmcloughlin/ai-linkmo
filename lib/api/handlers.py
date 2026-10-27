@@ -1,10 +1,11 @@
-"""The handlers behind the API's endpoints.
+"""ai-linkmo's own answers behind the linkmo project's endpoints.
 
-``query_class`` answers every class listing that ``lib/api/api.yaml`` exposes; the API
-kernel in ``lib/api/server_kernel.py`` routes each listing to it, and the CLI calls it
-directly in local mode. The functions after it, ``graph``, ``schemaview``, ``crosswalk``,
-``ares``, ``inference``, ``byo`` and ``byo_put``, are the hand-written operations the
-overlay of the same file describes.
+``query_records`` finds the records of every class listing that
+``ai-risk-ontology-linkmo/exposure.yaml`` exposes, with the related-risk lookups and the
+bring-your-own data; the project's data source, ``src/ai_linkmo/atlas.py``, passes each
+question here. The functions after it, ``search``, ``graph``, ``schemaview``,
+``crosswalk``, ``ares``, ``inference``, ``byo`` and ``byo_put``, are the hand-written
+operations the overlay of the same file binds through ``src/ai_linkmo/hand.py``.
 
 Importing ``ai_atlas_nexus`` at module level hangs in some environments, so the ontology
 models are resolved lazily through ``_get_model``.
@@ -27,7 +28,6 @@ from lib.cli.utils import (
     clear_ran_cache,
     get_ran_instance,
     initialize_ran,
-    validate_and_serialize_entities,
     validate_taxonomy,
 )
 
@@ -122,8 +122,8 @@ def _safe_export_segment(value: str, field: str) -> str:
 # CLASS LISTINGS
 # ============================================================================
 #
-# Every exposed class is served by ``query_class``. The class and its filters come from
-# lib/api/api.yaml and the schema through ``load_exposure``. The
+# Every exposed class is served by ``query_records``. The class and its filters come from
+# the exposure file and the schema through ``load_exposure``. The
 # only per-class knowledge kept here is how the library looks records up by a related risk.
 
 
@@ -206,7 +206,7 @@ def _library_instances(ran, model_cls) -> list:
     ]
 
 
-def query_class(
+def query_records(
     class_name: str,
     *,
     byod: bool = False,
@@ -214,17 +214,17 @@ def query_class(
     related: bool = False,
     related_ids: bool = False,
     **filters: Any,
-) -> Dict[str, Any]:
-    """List, filter or fetch the records of one exposed class.
+) -> list:
+    """The records of one exposed class, as the library's or the store's model instances.
 
     ``filters`` are slot names of the class with the value a record must carry. With ``id``
-    the answer is ``{"item": record}``; otherwise it is the envelope the web UI reads,
-    ``{"items", "count", "validation_errors"}``. ``hasRelatedRisk`` on a class marked
-    ``related`` in api.yaml switches to the library's related-risk lookup, and ``related``
-    widens that to every risk related to the given one. A risk's own ``id`` with ``related``
-    returns the risks related to it.
+    the answer is the one record that has it, or none. ``hasRelatedRisk`` on a class that
+    takes the related parameters switches to the library's related-risk lookup, and
+    ``related`` widens that to every risk related to the given one. A risk's own ``id`` with
+    ``related`` returns the risks related to it, and ``related_ids`` returns ids alone.
+    ``src/ai_linkmo/atlas.py`` passes the linkmo kernels' questions here.
     """
-    from lib.api.exposure import load_exposure
+    from ai_linkmo.exposure import load_exposure
 
     exposed = load_exposure().classes.get(class_name)
     if exposed is None:
@@ -240,7 +240,8 @@ def query_class(
     taxonomy = filters.get("isDefinedByTaxonomy")
     model_cls = _get_model(class_name)
     active = {k: v for k, v in filters.items() if v is not None}
-    risk_id = active.pop("hasRelatedRisk", None) if exposed.related else None
+    takes_related = exposed.parameter("related") is not None
+    risk_id = active.pop("hasRelatedRisk", None) if takes_related else None
     # The related lookups always run on the library; the plain listings run on the store
     # when it is the configured source, and then the library is never loaded at all.
     related_lookup = (class_name == "Risk" and id and (related or related_ids)) or risk_id is not None
@@ -259,33 +260,29 @@ def query_class(
                 records = [r for r in records if r.isDefinedByTaxonomy == taxonomy]
         elif risk_id is not None:
             records = _related_records(ran, exposed, risk_id, related or related_ids, active)
-        elif store:
-            multivalued = {p.name for p in exposed.parameters if p.multivalued}
-            # Each row is built with its own class's model, as the library's instances are.
-            records = [
-                _get_model(name)(**row)
-                for name, row in store_records(class_name, active, multivalued, byod)
-            ]
-            if id:
-                record = next((r for r in records if getattr(r, "id", None) == id), None)
-                return {"item": record.model_dump() if record is not None else None}
         else:
-            records = [
-                r
-                for r in _library_instances(ran, model_cls)
-                if all(_matches(r, k, v) for k, v in active.items())
-            ]
+            if store:
+                multivalued = {p.name for p in exposed.parameters if p.multivalued}
+                # Each row is built with its own class's model, as the library's instances are.
+                records = [
+                    _get_model(name)(**row)
+                    for name, row in store_records(class_name, active, multivalued, byod)
+                ]
+            else:
+                records = [
+                    r
+                    for r in _library_instances(ran, model_cls)
+                    if all(_matches(r, k, v) for k, v in active.items())
+                ]
             if id:
-                record = next((r for r in records if getattr(r, "id", None) == id), None)
-                return {"item": record.model_dump() if record is not None else None}
+                return [r for r in records if getattr(r, "id", None) == id][:1]
         if related_ids:
             records = [r.id for r in records if hasattr(r, "id")]
-        serialized, errors, _ = validate_and_serialize_entities(records, model_cls)
-        return {"items": serialized, "count": len(serialized), "validation_errors": errors}
+        return records
     except HTTPException:
         raise
     except Exception:
-        logger.exception("query_class failed for %s", class_name)
+        logger.exception("query_records failed for %s", class_name)
         raise HTTPException(status_code=500, detail=f"Failed to fetch {class_name}.")
 
 

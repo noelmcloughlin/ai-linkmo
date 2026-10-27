@@ -24,11 +24,11 @@ The dev server proxies API endpoint paths (`/classes`, `/risk`, `/action`,
 ## Generated entity list
 
 `src/lib/entities.json` is written by `just gen-ui-config` (from the project root)
-out of `lib/api/api.yaml`, the file that says which ontology classes the API
+out of `ai-risk-ontology-linkmo/exposure.yaml`, the file that says which ontology classes the API
 exposes. Each entry carries the endpoint key, which is also the API route, the
-class name, the bring-your-own-data section, and default filter and prominent
-field lists derived from the schema. Do not edit it by hand: rerun the recipe
-when `api.yaml` or the installed `ai-atlas-nexus` changes, and
+class name, the `collection` that holds its records in a data file, and default
+filter and prominent field lists derived from the schema. Do not edit it by hand:
+rerun the recipe when the exposure file or the installed `ai-atlas-nexus` changes, and
 `lib/test/test_ui_config.py` fails while it is behind. The hand-written part is
 the overlay in [`src/lib/constants.ts`](src/lib/constants.ts): the accordion
 groups, label overrides, and the filters shown per endpoint.
@@ -72,7 +72,7 @@ Reactive filter state management using Svelte 5 runes:
 - Generates dropdown options
 - Owns filter validation and application logic
 - Extend functionality by adding new filter fields here
-- Aligned to the classes `lib/api/api.yaml` exposes; the filter names are the schema's slot names
+- Aligned to the classes the exposure file exposes; the filter names are the schema's slot names
 
 ## Project Structure
 
@@ -145,7 +145,7 @@ static/                           # Static assets served at /
 ## Extending Functionality
 
 1. **Add a new entity type:**
-   - Expose the class in `lib/api/api.yaml` and run `just gen-ui-config`
+   - Expose the class in `ai-risk-ontology-linkmo/exposure.yaml` and run `just gen-ui-config`
    - Add the key to `ENDPOINT_GROUPS` in `constants.ts` and to `API_ENDPOINTS` in `vite.config.ts`
 
 2. **Customize UI:**

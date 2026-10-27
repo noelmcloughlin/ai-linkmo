@@ -1,14 +1,15 @@
 """The command-line door of AI-LinkMO.
 
-The command tree is built from data, not written by hand. ``lib/api/api.yaml`` names the
-classes the project exposes and the operations written by hand; the LinkML schema inside the
-installed ``ai_atlas_nexus`` package gives each class its slots. ``lib.api.exposure`` joins
-the two, and this module turns the result into one click command per exposed class, with one
-option per slot, plus one command per hand path. Nothing here reads YAML or ``SchemaView``.
+The command tree is built from data, not written by hand. The linkmo project's exposure
+file, ``ai-risk-ontology-linkmo/exposure.yaml``, names the classes the project exposes and
+the operations written by hand; the LinkML schema inside the installed ``ai_atlas_nexus``
+package gives each class its slots. ``ai_linkmo.exposure`` joins the two, and this module
+turns the result into one click command per exposed class, with one option per slot, plus
+one command per hand path. Nothing here reads YAML or ``SchemaView``.
 
 Every command runs in one of two modes. API mode, the default, sends the request to the
 running server and prints what comes back. Local mode loads the ontology in this process and
-calls the handler directly; it is slower by about ten seconds but needs no server.
+calls the handler the API routes to; it is slower by about ten seconds but needs no server.
 """
 
 from __future__ import annotations
@@ -30,7 +31,7 @@ import requests
 from rich.console import Console
 from rich.json import JSON as RichJSON
 
-from lib.api.exposure import ExposedClass, Exposure, Parameter, load_exposure
+from ai_linkmo.exposure import ExposedClass, Exposure, Parameter, load_exposure
 from lib.cli.utils import (
     detect_server_url,
     display_error,
@@ -328,7 +329,7 @@ def _hand_command(path: str, methods: dict[str, Any]) -> click.Command | None:
         scope=scope,
         path=path,
         method=method,
-        operation_id=operation.get("operationId", f"handlers.{scope}"),
+        operation_id=operation.get("operationId", f"hand.{scope}"),
     )
     return _command(target, operation.get("summary", scope), params)
 
@@ -485,9 +486,9 @@ def call_api_server(
 
 
 def call_local_handler(target: Target, request: dict[str, Any], settings: Settings) -> None:
-    """Call the handler in this process. A class scope goes through ``query_class``; a hand
-    path goes to the function its ``operationId`` names, with the arguments its signature
-    accepts."""
+    """Call the handler in this process. A class scope goes through the linkmo project's
+    ``query_class``, the handler the API routes to; a hand path goes to the function its
+    ``operationId`` names in ``ai_linkmo.hand``, with the arguments its signature accepts."""
     from fastapi import HTTPException
 
     if not settings.verbose:
@@ -496,18 +497,23 @@ def call_local_handler(target: Target, request: dict[str, Any], settings: Settin
         logging.disable(logging.CRITICAL)
 
     try:
-        handlers = importlib.import_module("lib.api.handlers")
+        from ai_linkmo.handlers import QueryError, query_class
+
         if target.class_name is not None:
-            func = handlers.query_class
+            func = query_class
             call_args = dict(request, class_name=target.class_name)
         else:
-            func = getattr(handlers, target.operation_id.split(".")[-1])
+            hand = importlib.import_module("ai_linkmo.hand")
+            func = getattr(hand, target.operation_id.split(".")[-1])
             accepted = set(inspect.signature(func).parameters)
             call_args = {k: v for k, v in request.items() if k in accepted}
         try:
             result = func(**call_args)
         except HTTPException as e:
             display_error("API Error", f"[{e.status_code}] {e.detail}")
+            sys.exit(1)
+        except QueryError as e:
+            display_error("API Error", f"[{e.status}] {e.detail}")
             sys.exit(1)
         display_result(result, count_only=settings.count, pretty=settings.show_pretty)
     except ModuleNotFoundError as e:

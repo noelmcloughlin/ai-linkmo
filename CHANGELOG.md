@@ -6,6 +6,17 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 ## [Unreleased]
 
+### Changed
+
+- **The linkmo template serves the API, the CLI's commands and the browse build.** Its project in `ai-risk-ontology-linkmo/` replaces `lib/api/api.yaml`, the API kernel and `lib/browse/`, and answers every listing through `lib/api/handlers.py`, so the related-risk lookups and `byod` work as before.
+- **`AI_LINKMO_DATA_SOURCE` is now `AI_LINKMO_BACKEND`**, with the same values, because the template's settings use the old name.
+- **The web UI's entity list calls each Container slot `collection`**, the template's name, instead of `byo`.
+- **Responses change in three places.** Records leave empty slots out instead of writing `null`, `/version` reports the schema and the datamodel instead of ai-atlas-nexus and the git commit, and the hand paths' operation ids are `hand.*`.
+
+### Removed
+
+- **The browse database of the bring-your-own data.** `just build-browse` writes one database, of the packaged data, under `ai-risk-ontology-linkmo/browse`.
+
 ## [0.4.15] - 2026-10-27
 
 ### Fixed

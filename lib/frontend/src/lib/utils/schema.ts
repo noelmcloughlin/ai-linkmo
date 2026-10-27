@@ -71,9 +71,9 @@ export async function getSchemaFieldsFromJSON(): Promise<
       if (defs[classKey]?.properties) {
         props = defs[classKey].properties;
       } else {
-        // Use endpoint.byo if available, otherwise fall back to endpoint.key
-        // byo represents the actual Container property name (e.g., 'controls', 'actions')
-        const containerKey = endpoint.byo || endpoint.key;
+        // The endpoint's collection is the Container property that holds its records
+        // (e.g., 'controls', 'actions'); without one, fall back to endpoint.key.
+        const containerKey = endpoint.collection || endpoint.key;
         const containerProp = defs?.Container?.properties?.[containerKey];
         if (
           containerProp &&

@@ -9,9 +9,9 @@ def test_version_shape(api_server: str) -> None:
     response = requests.get(f"{api_server}/version", timeout=5)
     assert response.status_code == 200
     payload = response.json()
-    assert set(payload.keys()) >= {"api", "ai_atlas_nexus"}
+    assert set(payload.keys()) >= {"api", "schema", "datamodel"}
     assert isinstance(payload["api"], str) and payload["api"]
-    assert isinstance(payload["ai_atlas_nexus"], str) and payload["ai_atlas_nexus"]
+    assert isinstance(payload["schema"], str) and payload["schema"]
 
 
 def test_ready_probe(api_server: str) -> None:
