@@ -66,12 +66,12 @@ describe("findClassName", () => {
   });
 
   it("falls back to the items of the endpoint's Container slot", () => {
-    expect(findClassName(jsonSchema, { key: "nothing", collection: "actions" })).toBe(
-      "Action",
-    );
-    expect(findClassName(jsonSchema, { key: "nothing", collection: "groups" })).toBe(
-      "RiskControlGroup",
-    );
+    expect(
+      findClassName(jsonSchema, { key: "nothing", collection: "actions" }),
+    ).toBe("Action");
+    expect(
+      findClassName(jsonSchema, { key: "nothing", collection: "groups" }),
+    ).toBe("RiskControlGroup");
   });
 
   it("returns undefined when the schema has no such class", () => {
