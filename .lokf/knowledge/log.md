@@ -2,6 +2,8 @@
 
 ## 2026-10-27
 
+* **Changed**: the source map's exclusions name `ai-risk-ontology-linkmo/docs/elements` and the project's `scripts/gen_examples.py`, where 0.5.0 moved them, and are split into shorter sentences and a list.
+* **Changed**: the FastAPI backend names the file of count cases, `expected_counts.yaml`, as `lib/api/README.md` now does, in place of the README.
 * **Prose**: reworded 3 concept bodies in plain English: `services/cli`, `services/fastapi-backend` and `services/datasette-browse`. No fact, link, number or frontmatter changed.
 * **Changed**: the FastAPI backend names the linkmo project's folder and its answers file as sources, so the coverage sweep counts them.
 * **Changed**: `./ai` now runs the linkmo project's generated command line, so the CLI concept cites `ai-risk-ontology-linkmo/src/ai_linkmo/cli.py` and `AI_LINKMO_MODE`; `lib/cli/` and `lib/api/api.yaml` are gone.

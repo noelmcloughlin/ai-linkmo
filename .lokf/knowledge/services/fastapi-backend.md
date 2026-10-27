@@ -21,7 +21,7 @@ verified:
     at: "2026-09-25T20:33:34Z"
 generated:
   by: process:ktl-librarian
-  at: "2026-10-27T17:36:56Z"
+  at: "2026-10-27T17:57:49Z"
 sources:
   - resource: ai-risk-ontology-linkmo
     title: The linkmo project the linkmo copier template generated, with the exposure file, the kernels, the server, the browse build and its tests
@@ -49,4 +49,4 @@ The `byod` parameter adds the files under `byo/data/`, among them the FINOS AIGF
 
 Run it locally with `uv run uvicorn lib.api.server:app --reload` (the endpoint above is the development default). The overlay declares an `ApiKeyAuth` scheme on `PUT /byo`, but the demo server does not enforce it, so keep it on localhost.
 
-The linkmo project's tests check the exposure, the generated endpoints and the README's count cases, and `lib/test/test_endpoints.py` and `test_data_source.py` check the probes and the two data sources.
+The linkmo project's tests check the exposure, the generated endpoints and the count cases in `ai-risk-ontology-linkmo/tests/expected_counts.yaml`, and `lib/test/test_endpoints.py` and `test_data_source.py` check the probes and the two data sources.

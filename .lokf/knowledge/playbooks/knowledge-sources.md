@@ -7,7 +7,7 @@ description: "The librarian's scrape map: every repository location and external
 resource: https://github.com/noelmcloughlin/ai-linkmo
 generated:
   by: process:ktl-librarian
-  at: "2026-10-27T17:36:28Z"
+  at: "2026-10-27T17:57:49Z"
 verified:
   - by: process:ktl-librarian
     at: "2026-10-18T00:17:24Z"
@@ -49,10 +49,14 @@ These are not knowledge sources, and are left out on purpose:
 - `lib/frontend/STATUS.md`: transient dev notes.
 - The `.lokf/` sidecar itself, including its automation workflows (`.github/workflows/knowledge-*.yaml`) and the sync's pull request template (`.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md`).
 - The bundle's website under `website/`, which ktl-website builds from this bundle and the docs.
-- Repository plumbing with no claim of its own: `justfile`, whose recipes the rows above name, `uv.lock`, `LICENSE`, `.editorconfig`, `.gitignore`, `.markdownlint-cli2.jsonc`, `lychee.toml`, `.releaserc.json`, `.github/scripts/`, `.github/dependabot.yml`, `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md` and `.github/workflows/lint-and-docs.yaml`, added 2026-10-26 (#123) to lint shell scripts, workflow files and prose rather than to state a fact.
+- Repository plumbing with no claim of its own: `justfile`, whose recipes the rows above name, `uv.lock`, `LICENSE`, `.editorconfig`, `.gitignore`, `.markdownlint-cli2.jsonc`, `lychee.toml`, `.releaserc.json`, `.github/scripts/`, `.github/dependabot.yml`, `.github/ISSUE_TEMPLATE/`, `.github/pull_request_template.md` and `.github/workflows/lint-and-docs.yaml`. That workflow, added 2026-10-26 (#123), lints shell scripts, workflow files and prose rather than stating a fact.
 - `llms.txt`, which tells an agent to read this bundle first.
 
-Also excluded, decided 2026-10-14: the schema's pages that `just gen-doc` writes to `docs/elements` (generated from the AI Risk Ontology, carried by `references/ai-risk-ontology`, never committed), the per-class examples from the data that `scripts/gen_examples.py` writes there first, and the `just gen-openapi` copy `docs/openapi.json` beyond its row above.
+Also excluded, decided 2026-10-14:
+
+- the schema's pages that `just gen-doc` writes to `ai-risk-ontology-linkmo/docs/elements`, which are generated from the AI Risk Ontology, carried by `references/ai-risk-ontology` and never committed;
+- the per-class examples from the data that `ai-risk-ontology-linkmo/scripts/gen_examples.py` writes there first;
+- the `just gen-openapi` copy, `docs/openapi.json`, beyond its row above.
 
 Also excluded, re-decided 2026-09-25 after the README moved its detail into `docs/`:
 
