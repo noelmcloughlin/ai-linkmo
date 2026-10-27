@@ -1,9 +1,9 @@
 """The command line, built from the schema and the exposure file.
 
-The command tree is data, not code. ``exposure.py`` joins the exposure file and the schema,
-and this module turns the result into one click command per exposed class, with one
-option per slot of the class, plus one command per operation written by hand in the
-exposure file's overlay. Nothing here reads YAML or SchemaView.
+The command tree is data, not code. ``exposure.py`` joins the exposure file and the schema.
+This module turns the result into one click command per exposed class, with one option
+per slot of the class, plus one command per hand-written operation in the exposure file's
+overlay. Nothing here reads YAML or SchemaView.
 
 Every command runs in one of two modes. Local mode, the default, reads the data in this
 process. API mode sends the same question to a running server and prints its answer.

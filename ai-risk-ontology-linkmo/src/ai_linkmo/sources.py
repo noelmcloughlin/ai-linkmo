@@ -7,15 +7,18 @@ the slot equals the value or, for a multivalued slot, when its list holds the va
 ``YamlDirectory`` reads every ``.yaml``, ``.yml`` and ``.json`` file under a directory once.
 A file whose name starts with a class name and a dash, as in ``Person-001.yaml``, holds
 records of that class. Any other file holds an instance of the root class, or a list of
-them, whose collection slots hold the records. Two records that share an identifier are one record when
-one's class is the other's or an ancestor of it, such as a record and the mapping rows
-another file adds to it, and they are merged before they are validated: a list gains the
-values it lacks, any other value is replaced. Records of unrelated classes that happen to
-share a value are both kept. Each record is then built with
-the model of its own class. The record's designator slot names that class when it has
-one. Otherwise the model is the first of the slot's range and its subclasses that accepts
-the record, which is the choice pydantic makes for a union of them. A record no model
-accepts is left out and its error is kept for the listing's ``validation_errors``.
+them, whose collection slots hold the records.
+
+Two records that share an identifier are one record when one's class is the other's or an
+ancestor of it, such as a record and the mapping rows another file adds to it. They are
+merged before they are validated: a list gains the values it lacks, and any other value is
+replaced. Records of unrelated classes that happen to share a value are both kept.
+
+Each record is then built with the model of its own class. The record's designator slot
+names that class when it has one. Otherwise the model is the first of the slot's range and
+its subclasses that accepts the record, which is the choice pydantic makes for a union of
+them. A record no model accepts is left out, and its error is kept for the listing's
+``validation_errors``.
 
 ``ObjectSource`` wraps any object with a ``query(class_name, **filters)`` method and
 passes the question on unchanged, including the parameters the exposure file adds.
