@@ -1,0 +1,16 @@
+# Changes here will be overwritten by Copier; do not edit by hand
+_commit: v0.1.3
+_src_path: gh:noelmcloughlin/linkmo
+api: fastapi
+cli_framework: click
+command_name: ai
+data_path: pkg:ai_atlas_nexus/data/knowledge_graph
+data_source: yaml
+datamodel_module: ai_atlas_nexus.ai_risk_ontology.datamodel.ai_risk_ontology
+exposure_file: exposure.yaml
+linkmo_dir: ai-risk-ontology-linkmo
+project_slug: ai-risk-ontology
+python_package: ai_risk_ontology_linkmo
+root_class: ''
+schema_path: pkg:ai_atlas_nexus/ai_risk_ontology/schema/ai-risk-ontology.yaml
+sidecar_answers_file: .linkml/.copier-answers.yml

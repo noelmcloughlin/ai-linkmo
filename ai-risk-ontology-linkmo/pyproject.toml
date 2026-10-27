@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-risk-ontology-linkmo"
+version = "0.1.0"
+description = "A command line and an HTTP API over the ai-risk-ontology schema and its data"
+readme = "README.md"
+requires-python = ">=3.11"
+# linkml, the package of generators, is left out on purpose. The kernels need only
+# linkml-runtime, and gen-pydantic runs in the LinkML sidecar's own environment. linkml
+# 1.12.0 requires pyshexc>=0.10.3, whose only release, 0.10.3.post1, requires
+# chardet>=7.4.1, so it cannot be installed beside a package that pins chardet==5.2.0, as
+# ai-atlas-nexus 1.2.5 does. Without it, such a data source stays installable.
+dependencies = [
+    "click>=8.2",
+    "fastapi>=0.124",
+    "uvicorn>=0.30",
+    "linkml-runtime>=1.10,<2",
+    "pydantic>=2.11,<3",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+ai = "ai_risk_ontology_linkmo.cli:main"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.27",
+    "pytest>=8.0",
+]
+# The browse build and the schema's pages need linkml, for gen-sqltables, gen-doc and the
+# validator. Beside a package that pins chardet==5.2.0, the resolver can choose linkml 1.11
+# at most for these groups, for the reason given above. Datasette stays below 1.0 because
+# 1.0 reads the hidden tables, label columns and facets from datasette.yaml, not from the
+# metadata file the browse build writes.
+browse = [
+    "datasette>=0.65,<1",
+    "linkml>=1.9",
+    "sqlite-utils>=4.2.1",
+]
+docs = [
+    "linkml>=1.9",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_risk_ontology_linkmo"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+addopts = ["--strict-markers", "--tb=short"]
+filterwarnings = ["ignore::DeprecationWarning"]

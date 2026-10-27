@@ -1,0 +1,45 @@
+# The exposure file of ai-risk-ontology-linkmo.
+#
+# It says which classes of the schema the command line and the API expose, under which
+# path, and which operations written by hand exist beside them. Both kernels read it
+# through src/ai_risk_ontology_linkmo/exposure.py. Everything else about a class, such as
+# its filters, comes from the schema itself.
+#
+# The shape follows the configuration proposed for LinkML's gen-openapi in
+# linkml/linkml#3871: `expose.classes` names the classes, `exclude.classes` leaves some
+# out, and `overlay` is merged into the generated OpenAPI document. The linkmo template
+# created this file once and never overwrites it.
+generator_args:
+  openapi:
+    expose:
+      # With no `classes` key, every class that a collection slot of the root class
+      # holds is exposed, under a path made from its name. `just exposure` prints that
+      # list in this format. Copy it here to set the paths, labels and operation ids.
+      #
+      # classes:
+      #   Person:
+      #     path: /person
+      #     operation_id: list_person
+      #     label: People
+      #
+      # `parameters` adds overlay parameters beside the slots, on every class here or
+      # on one class in its own entry. Only a Python data source understands them.
+      parameters: []
+    exclude:
+      classes: []
+    overlay:
+      info:
+        title: ai-risk-ontology-linkmo API
+        version: 0.1.0
+      paths:
+        /summary:
+          get:
+            summary: Count the records of each exposed class
+            operationId: hand.summary
+            parameters:
+              - in: query
+                name: scope
+                schema:
+                  type: string
+                required: false
+                description: One class only, named by its command

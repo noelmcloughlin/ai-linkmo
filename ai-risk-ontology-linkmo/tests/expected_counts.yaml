@@ -1,0 +1,14 @@
+# The questions this project's data must answer, and how many records each returns.
+#
+# Each case is a command line without the command's name. tests/test_counts.py runs it
+# through the command line in local mode and through the API, and both must return the
+# count. tests/test_cli_api_identity.py checks that both return the same JSON. A case may
+# also give `validation_errors`, the number of records the datamodel rejected. Add cases
+# as the data becomes stable. The linkmo template created this file once and never
+# overwrites it.
+cases: []
+# cases:
+#   - args: [person]
+#     count: 12
+#   - args: [person, --name, Ada]
+#     count: 1
