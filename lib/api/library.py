@@ -1,13 +1,13 @@
 """The AIAtlasNexus library instances that the handlers share.
 
-There are two: the packaged ontology, and the packaged ontology with the
-bring-your-own-data files under ``byo/data/``. Each is built on first use and
-kept for the life of the process, because building one parses every YAML file
-and takes about ten seconds. The server builds the first at startup through
-the linkmo project's data source, ``src/ai_linkmo/atlas.py``.
+There are two: one of the packaged ontology, and one of the packaged ontology
+with the bring-your-own-data files under ``byo/data/``. Each is built on first
+use and kept for the life of the process, because building one parses every
+YAML file. The server builds the first at startup through the linkmo project's
+data source, ``src/ai_linkmo/atlas.py``.
 
-``ai_atlas_nexus`` is imported only when an instance is first built, since the
-import alone loads PyTorch.
+``ai_atlas_nexus`` is imported only when an instance is first built, so a
+process that never asks the library does not pay for the import.
 """
 
 import logging
@@ -19,8 +19,8 @@ from fastapi import HTTPException
 if TYPE_CHECKING:
     from ai_atlas_nexus import AIAtlasNexus  # noqa: F401
 
-# Absolute, so the instance reads the right files whatever the current
-# directory of whoever started the process.
+# The path is absolute, so the instance reads the right files from any working
+# directory.
 BYOD_PATH = str(Path(__file__).resolve().parent.parent.parent / "byo" / "data")
 
 # One instance per value of byod.
