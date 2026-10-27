@@ -17,3 +17,17 @@ feedback.md.*
 # knowledge-apply.sh applies and removes it. A run that stopped midway can
 # leave it behind, and it is never bundle content.
 patch.yaml
+
+# knowledge-federate.py keeps .cache/federation/validators.json here on a
+# domain host: what each served member's site last served, for a conditional
+# request. It downloads the release zips it checks to a temporary folder,
+# which it removes.
+# knowledge-ingest.py keeps the mirror of a confidential entry under
+# .cache/mirror/, which is never committed.
+.cache/
+
+# knowledge-apply.sh stages the concepts it is about to write here for lokf
+# validate, and removes the folder after. A pen killed during the check can
+# leave it behind. The scheduled librarian refuses any run that changed a
+# file git sees.
+.pen-check-*/

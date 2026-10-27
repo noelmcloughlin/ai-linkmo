@@ -1,21 +1,26 @@
 ---
 type: Dataset
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/datasets/nist-sp-800-53-r5
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/nist-sp-800-53-r5
 title: NIST SP 800-53 r5 controls dataset
 description: NIST Special Publication 800-53 revision 5 security and privacy controls encoded as a risk-control-group taxonomy.
 resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/byo/data/nist_sp_800_53_r5.yaml
 tags:
-  - byod
-  - ai-governance
+- byod
+- ai-governance
 timestamp: "2026-08-12T00:00:00Z"
 derivedFrom:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/nist-sp-800-53-r5
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/nist-sp-800-53-r5
 source:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/finos
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:33:34Z"
+- by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-10-17T00:27:17Z"
+sources:
+- resource: byo/data/nist_sp_800_53_r5.yaml
 ---
 
 # Overview

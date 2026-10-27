@@ -24,8 +24,8 @@ podman run --device nvidia.com/gpu=all \
   docker.io/vllm/vllm-openai --model facebook/opt-125m --gpu_memory_utilization="0.8"
 ```
 
-The container above also listens on port 8000, which is the FastAPI backend's port; run one of them elsewhere.
+The container above also listens on port 8000, which is the FastAPI backend's port. Run one of them elsewhere.
 
 ## ARES evaluation
 
-ARES is an evaluation framework for Retrieval-Augmented Generation (RAG) systems. An [extension for ai-atlas-nexus](https://github.com/ibm/ai-atlas-nexus-extensions/tree/main/ran-ares-integration) exists, but it cannot be installed here until an upstream pull request merges.
+ARES is an evaluation framework for Retrieval-Augmented Generation (RAG) systems. An [extension for ai-atlas-nexus](https://github.com/ibm/ai-atlas-nexus-extensions/tree/main/ran-ares-integration) exists, but it cannot be installed here until an upstream pull request is merged.

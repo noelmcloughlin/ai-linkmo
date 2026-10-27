@@ -1,6 +1,6 @@
 # Repository layout
 
-[The README](../README.md) says what AI-LinkMO is for. This is the tree behind it. Three toolchains live here: Python and uv at the root, Node in `lib/frontend/`, and a second uv project in `.lokf/`. [CONTRIBUTING.md](../CONTRIBUTING.md) has the dev setup and the pre-PR checklist.
+[The README](../README.md) says what AI-LinkMO is for. This is the tree behind it. Three toolchains live here: Python and uv at the root, Node in `lib/frontend/`, and a second uv project in `.lokf/`. [CONTRIBUTING.md](../CONTRIBUTING.md) has the development setup and the checklist to run before a pull request.
 
 ```text
 ai                      the CLI entry point (runs lib/cli through uv)
@@ -15,7 +15,6 @@ lib/test/               pytest suite; its API-mode CLI cases are the documented 
 graph/                  the exported ontology and crosswalk CSVs; cypher/ receives the fetched Neo4j export, not committed
 byo/data/               nine governance frameworks encoded for the AI Risk Ontology
 byo/notes/EXAMPLES.md   a scripted walk through all four access patterns
-byo/images/             screenshots of each door, and the architecture diagram
 docs/
   openapi.json              the API contract, written by `just gen-openapi` and checked against the server
   elements/                 the schema's pages, one example on each class page, written by `just gen-doc`, not committed
@@ -28,12 +27,14 @@ docs/
   for-the-curious.md        what this adds over AI Atlas Nexus, what it leaves out, where it could go
   status.md                 status and caveats, the full list
   releasing.md              how this repository releases
+  threat-model.md           why the application and the automation are held as SECURITY.md says
   repository-layout.md      this page
-.lokf/                  the sidecar: this repository's own knowledge bundle (knowledge/) and its tooling
+.assets/                screenshots of each door, the architecture diagram, and the logos
+.lokf/                  the sidecar: this repository's own knowledge bundle (knowledge/) and its tooling; its README has the layout
 knowledge_bundle        -> .lokf/knowledge, the bundle under a visible name, for folder pickers and Obsidian
 .github/workflows/      tests, lint, the knowledge-bundle gates, releases
 ```
 
 ## Tests
 
-The test suite runs 101 CLI cases in API mode and in local mode, and starts the API server for you. `uv run pytest lib/test -m "not slow"` is what CI runs, about two minutes; `./scripts/tests.sh` has the narrower modes. The browse tests need the `browse` extra and skip without it, so CI installs it beside `test`. The web UI (`npm run check`, `npm run lint`, `npm test` in `lib/frontend/`) and the bundle (`cd .lokf && just lokf-validate`) have their own gates. [lib/test/README.md](../lib/test/README.md) has the detail.
+The test suite runs 101 CLI cases in API mode and in local mode, and starts the API server for you. CI runs `uv run pytest lib/test -m "not slow"`, which takes about two minutes. `./scripts/tests.sh` has the narrower modes. The browse tests need the `browse` extra and skip without it, so CI installs it beside `test`. The web UI (`npm run check`, `npm run lint`, `npm test` in `lib/frontend/`) and the bundle (`cd .lokf && just lokf-validate`) have their own gates. [lib/test/README.md](../lib/test/README.md) has the detail. The `slow` and `byod_required` markers are defined in `pyproject.toml` under `[tool.pytest.ini_options]`; `pytest-timeout` is installed, but no default timeout is set.

@@ -1,6 +1,6 @@
 # How this repository releases
 
-No release has been cut yet; `pyproject.toml` says 0.1.0, matching the `v0.1.0` baseline tag. [CHANGELOG.md](../CHANGELOG.md)'s `## [Unreleased]` section is written as changes happen, and [`semantic-release.yml`](../.github/workflows/semantic-release.yml) does the rest on each merge to `main`: it computes the next version from [Conventional Commits](https://www.conventionalcommits.org/), promotes that section into a dated heading, bumps `pyproject.toml` and `uv.lock`, and publishes a GitHub Release from the same text, once a person approves it in the `release` Environment. Only `feat:`, `fix:` and `security:` cut a release. Once `KNOWLEDGE_RELEASE_ENABLED` is set, each release also carries the `.lokf/knowledge/` bundle as a zip, when it changed.
+`pyproject.toml` holds the current version, and the `v0.1.0` tag is the baseline the first release counted from. [CHANGELOG.md](../CHANGELOG.md)'s `## [Unreleased]` section is written as changes happen, and [`semantic-release.yml`](../.github/workflows/semantic-release.yml) does the rest on each merge to `main`. It computes the next version from [Conventional Commits](https://www.conventionalcommits.org/), promotes that section into a dated heading, and bumps `pyproject.toml` and `uv.lock`. Then it publishes a GitHub Release from the same text, once a person approves it in the `release` Environment. Only `feat:`, `fix:` and `security:` commits, and breaking changes, cut a release. Once `KNOWLEDGE_RELEASE_ENABLED` is set, each release also carries the `.lokf/knowledge/` bundle as a zip, when it changed.
 
 ## The version stays below 1.0.0
 
@@ -8,4 +8,4 @@ This is a demo, and the shapes of the API, the web UI and the CLI will change. T
 
 ## For maintainers
 
-[CONTRIBUTING.md](../CONTRIBUTING.md#releasing-maintainers) has the steps: what to write in the changelog, how to type a commit or a pull-request title so it releases, and the `release` Environment's reviewers. The shared design behind the pipeline, which this repository has in common with [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder) and the two Obsidian plugins, is [that repository's releasing page](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/main/docs/releasing.md).
+[CONTRIBUTING.md](../CONTRIBUTING.md#releasing-maintainers) has the steps: what to write in the changelog, how to type a commit or a pull-request title so it releases, and the `release` Environment's reviewers. [That repository's releasing page](https://w3id.org/ktl/docs/releasing/) describes the design behind the pipeline, which this repository shares with [knowledge-trust-ladder](https://github.com/noelmcloughlin/knowledge-trust-ladder) and the two Obsidian plugins.

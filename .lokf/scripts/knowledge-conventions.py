@@ -9,14 +9,14 @@
 # 13 and 14 (see that script's header for the list).
 #
 # Rules 2, 3, 7 and 9 are questions about a document's YAML that a real
-# parser answers outright, where grep and awk could only approximate. Is this
+# parser can decide, where grep and awk could only approximate. Is this
 # scalar quoted, is this key a list or a mapping, do two files share an id,
 # does the block even parse? An unquoted `at:` is only visible as a
 # `datetime` once something parses the document. A flow-style
 # `verified: { by: ... }` or a multi-line flow item is where a line-oriented
 # regex used to guess wrong.
 #
-# Rule 4 is a body rule that goes with them. Rule 10 exists because the
+# Rule 4 is a body rule, checked with them. Rule 10 exists because the
 # provenance gates do read the frontmatter line by line: it keeps the fields
 # they read to spellings a line reader and a parser agree on. Rule 12 compares
 # a concept's title and description, which only a parser reads whole, with
@@ -25,26 +25,30 @@
 # knowledge-apply.sh writes the whole frontmatter back and a requoted value is
 # no change. Rule 14 walks the commits after a base and compares each concept
 # that gains a person's confirmation with the same file in every parent, as
-# parsed values too. Rules 1, 5, 6, 8 and 11 stay in the shell script: they are git
-# and filesystem facts, and need not wait on uv.
+# parsed values too. The shell half checks rules 1, 5, 6, 8 and 11: they are
+# git and filesystem facts, and need no uv.
 #
-# Usage: knowledge-conventions.py <bundle-dir> [--since <commit>]. Same contract as the shell
-# half: one line per finding on stdout, exit 1 if any; "OK" and exit 0 if
-# none. Invoked by knowledge-conventions.sh through `uv run`, which reads the
-# dependency block above and needs nothing preinstalled; run directly it
-# needs python3 and pyyaml.
+# Usage: knowledge-conventions.py <bundle-dir> [--since <commit>]
+#
+# Same contract as the shell half: one line per finding on stdout, exit 1 if
+# any; "OK" and exit 0 if none. The shell half runs it with the sidecar's
+# .venv, or through `uv run`, which installs what the dependency block above
+# names. Run directly, it needs python3 3.9 or later and pyyaml.
 #
 # That block names one PyYAML release, and `exclude-newer` takes no file
 # uploaded after its date. A registry never replaces a file, so every run
 # installs the files that were there when the pin was set, and this gate runs
-# what a person reviewed. Move the version and the date together, here and in
+# what a person reviewed. The .venv holds what uv.lock pins, by hash, which a
+# person reviewed too. Move the version and the date together, here and in
 # knowledge-apply.py; the skills repository's contract holds the two equal.
 
 from __future__ import annotations
 
+import json
 import re
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -58,6 +62,13 @@ INDEX_BULLET = re.compile(r"^\* \[([^\]]*)\]\(([^)]+)\) - (.*)$")
 # The fields the provenance gates read line by line: a concept's id, and the
 # actor, time and revision of each event.
 GATE_FIELDS = {"id", "by", "at", "revision"}
+# Rule 2's one shape for a time: UTC to the second, as `date -u
+# +%Y-%m-%dT%H:%M:%SZ` writes it, and as every writer here does. In it the
+# federation build reads the moment knowledge-report.sh and rule 11 read, and
+# the workspace's stored queries, which compare times as written, put two of
+# them in order. A time in a shape a script cannot read counts there as no
+# time, so a person's event spelt that way would confirm every later edit.
+UTC_TIME = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z")
 # What a person's confirmation does not cover, for rule 13. In the
 # frontmatter these are the trust, lifecycle and usage fields, which record
 # who checked what and when rather than what the concept claims. In the body
@@ -137,17 +148,33 @@ def split_frontmatter(text: str) -> tuple[str, str] | None:
     return None
 
 
-def find_unquoted_at(node, where: str) -> list[str]:
-    findings: list[str] = []
+def find_odd_at(node, where: str) -> list[tuple[str, object]]:
+    """Each `at:` that is not a quoted time in rule 2's shape, with where it sits."""
+    found: list[tuple[str, object]] = []
     if isinstance(node, dict):
         for key, value in node.items():
-            if key == "at" and not isinstance(value, str):
-                findings.append(f"{where}at")
-            findings.extend(find_unquoted_at(value, f"{where}{key}."))
+            if key == "at" and not utc_time(value):
+                found.append((f"{where}at", value))
+            found.extend(find_odd_at(value, f"{where}{key}."))
     elif isinstance(node, list):
         for index, item in enumerate(node):
-            findings.extend(find_unquoted_at(item, f"{where}[{index}]."))
-    return findings
+            found.extend(find_odd_at(item, f"{where}[{index}]."))
+    return found
+
+
+def utc_time(value) -> bool:
+    """A string in rule 2's shape that names a real moment.
+
+    The pattern alone passes 30 February, which the report reads and the
+    build cannot, and 24:00, which only some Pythons read.
+    """
+    if not isinstance(value, str) or not UTC_TIME.fullmatch(value):
+        return False
+    try:
+        datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    except ValueError:
+        return False
+    return True
 
 
 def moment(value) -> str:
@@ -163,9 +190,26 @@ def moment(value) -> str:
     return ""
 
 
-def claims(frontmatter: dict, body: str):
-    """What a person confirms: the frontmatter without NOT_CLAIMS, and the body without its open questions and its lokf:related block, with blank lines and trailing spaces evened out."""
+def under(value, base: str):
+    """A value with each IRI under `base` written as the path after it, in every string it holds."""
+    if isinstance(value, str):
+        return value.replace(base, "<base_iri>/")
+    if isinstance(value, list):
+        return [under(v, base) for v in value]
+    if isinstance(value, dict):
+        return {k: under(v, base) for k, v in value.items()}
+    return value
+
+
+def claims(frontmatter: dict, body: str, base: str = ""):
+    """What a person confirms: the frontmatter without NOT_CLAIMS, and the body without its open questions and its lokf:related block, with blank lines and trailing spaces evened out.
+
+    With a `base`, each IRI under it counts as its path after it, so a
+    concept that moved with the bundle's `base_iri` still says the same.
+    """
     kept = {k: v for k, v in frontmatter.items() if k not in NOT_CLAIMS}
+    if base:
+        kept, body = under(kept, base), under(body, base)
     if isinstance(kept.get("sources"), list):  # a source's usage_count is a usage signal too
         kept["sources"] = [{k: v for k, v in s.items() if k != "usage_count"} if isinstance(s, dict) else s for s in kept["sources"]]
     out: list[str] = []
@@ -196,14 +240,23 @@ def git(cwd: Path, *args: str) -> str | None:
     return done.stdout if done.returncode == 0 else None
 
 
-def unstamped_edit(path: Path, frontmatter: dict, body: str) -> str | None:
+def base_iri(text: str | None) -> str:
+    """The `base_iri` in the frontmatter of a bundle's root index.md, or ''."""
+    found = parsed(text) if text else None
+    value = found[0].get("base_iri") if found else None
+    return value if isinstance(value, str) else ""
+
+
+def unstamped_edit(path: Path, frontmatter: dict, body: str, bundle: Path) -> str | None:
     """Rule 13: a concept that reads as confirmed by a person still holds the claims they confirmed.
 
     The text they confirmed is the concept at the newest commit that recorded
     the time of its latest confirmation. Any later commit can only be an
     edit after it, so the rule can miss one but never flags a concept that
     person saw. Outside git, or before that commit exists, there is nothing
-    to compare and nothing is said.
+    to compare and nothing is said. A move of the bundle's `base_iri` is no
+    edit: the ids and relation targets it carries along are compared by
+    their paths under the base each commit held.
     """
     if frontmatter.get("status") == "deprecated":
         return None
@@ -236,6 +289,12 @@ def unstamped_edit(path: Path, frontmatter: dict, body: str) -> str | None:
         return None
     if not isinstance(frontmatter_then, dict) or claims(frontmatter_then, split[1]) == claims(frontmatter, body):
         return None
+    index = bundle.resolve() / "index.md"
+    base_now = base_iri(index.read_text(encoding="utf-8", errors="replace")) if index.is_file() else ""
+    base_then = base_iri(git(index.parent, "show", f"{commit}:./index.md"))
+    if base_now and base_then and base_now != base_then:
+        if claims(frontmatter_then, split[1], base_then) == claims(frontmatter, body, base_now):
+            return None
     return (
         f"{path}: changed since {by} confirmed it ({confirmed_at[:10]}, in {commit[:7]}), and `generated` was not "
         "restamped, so it still reads as confirmed - knowledge-apply.sh restamps every change it writes; by hand, "
@@ -334,7 +393,7 @@ def index_bullets(index: Path, cache: dict[Path, dict[str, tuple[str, str]]]) ->
     return cache[index]
 
 
-def check_file(path: Path, ids: dict[str, list[Path]], entries: dict[Path, tuple[str, str]]) -> list[str]:
+def check_file(path: Path, bundle: Path, ids: dict[str, list[Path]], entries: dict[Path, tuple[str, str]]) -> list[str]:
     findings: list[str] = []
     raw = path.read_bytes()
     if raw.startswith(b"\xef\xbb\xbf"):
@@ -367,10 +426,21 @@ def check_file(path: Path, ids: dict[str, list[Path]], entries: dict[Path, tuple
     for what in plain_spellings(fm_text):
         findings.append(f"{path}: frontmatter uses {what} - write it plainly, so the gate reads the event a parser reads")
 
-    # 2. every `at:` quoted: unquoted, YAML resolves it to a datetime, a
-    #    date or a number, and only a string reaches every consumer the same.
-    for where in find_unquoted_at(frontmatter, ""):
-        findings.append(f"{path}: unquoted timestamp at {where}")
+    # 2. every `at:` a quoted time in one shape: unquoted, YAML resolves it to
+    #    a datetime, a date or a number, and only a string reaches every
+    #    consumer the same. In any other shape not every consumer reads it
+    #    alike, as UTC_TIME says. The finding prints the time as JSON writes
+    #    it, so it stays on one line and shows a character no reader would
+    #    see. The fix respells the same moment, since a new time from the
+    #    clock would re-date the event.
+    for where, value in find_odd_at(frontmatter, ""):
+        if isinstance(value, str):
+            findings.append(
+                f"{path}: timestamp {json.dumps(value[:40])} at {where} is not a UTC time to the second, such as "
+                '"2026-09-08T14:00:00Z" - write the same moment in that shape, in quotes'
+            )
+        else:
+            findings.append(f"{path}: unquoted timestamp at {where}")
 
     # 3. verified is a list, never a bare mapping, and carries at most one
     #    process:ktl-librarian event.
@@ -413,7 +483,7 @@ def check_file(path: Path, ids: dict[str, list[Path]], entries: dict[Path, tuple
 
     # 13. a concept that reads as confirmed by a person still says what that
     #     person confirmed: an edit since then restamps `generated`.
-    finding = unstamped_edit(path, frontmatter, body)
+    finding = unstamped_edit(path, frontmatter, body, bundle)
     if finding:
         findings.append(finding)
 
@@ -438,7 +508,7 @@ def main(argv: list[str]) -> int:
     for path in sorted(bundle.rglob("*.md")):
         if ".obsidian" in path.parts or path.name in RESERVED:
             continue
-        findings.extend(check_file(path, ids, entries))
+        findings.extend(check_file(path, bundle, ids, entries))
 
     # 12. an index bullet that names a concept says what the concept says. A
     #     reader chooses from the index before opening anything, so a bullet

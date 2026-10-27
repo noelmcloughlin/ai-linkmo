@@ -38,7 +38,7 @@ This is the Microsoft 365 Copilot build of the ktl-docent skill from [knowledge-
 | Confirmed by a person | any `verified[].by` starts with `human:` |
 | Checked by automation only | `verified` holds events, none by a `human:` actor |
 | Nobody has checked this yet | no `verified` key, or one with no events |
-| Still a draft | `status: draft` |
+| Still a draft / Reopened | `status: draft` with no `human:` `verified` event / with one: say the confirmation first, then when it was reopened, by whom, and how many questions wait |
 | Edited since a person last confirmed it | `generated.at` is later than the latest `human:` `verified[].at` |
 | Past its review date | `stale_after` is on or before today |
 | Retired | `status: deprecated` |
@@ -64,6 +64,8 @@ A bare `verified: { by, at }` counts as one event. Absent `status` means stable.
 | "What's the endpoint / version / schema of X?" | a `Service` (`endpoint`, `documentation`), `Dataset`/`Table` (`fields`, `distribution`), then its `resource` as a source link |
 
 Several concepts that give different answers: say so, prefer the one *confirmed by a person*, and report a Disagreement when nothing settles it. A *retired* concept is the right answer to "What did X used to be?"; label it retired.
+
+For a younger reader, such as a child, a class or a teenager, use the band of age the asker names: 8 to 12, or 13 to 18. Never ask a reader's age. Prefer a concept under `knowledge/young-readers/` whose `tags` carry that band, and give the label of the adult concept it names under `derivedFrom` too. With no such concept, answer from the adult concept in shorter sentences and plainer words, with every fact, number and name exact, and keep the labels and the footer word for word.
 
 ## Source links
 

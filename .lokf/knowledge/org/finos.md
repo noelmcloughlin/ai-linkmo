@@ -1,14 +1,17 @@
 ---
 type: Organization
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/org/finos
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/org/finos
 title: FINOS
 description: The Fintech Open Source Foundation - publisher of the AI Governance Framework and the curated framework datasets this repository ships as BYOD files.
 resource: https://w3id.org/finos
 timestamp: "2026-08-12T00:00:00Z"
 verified:
-  - by: process:ktl-librarian
-    at: "2026-09-25T20:33:34Z"
+- by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
+generated:
+  by: process:ktl-librarian
+  at: "2026-10-17T00:24:57Z"
 ---
 
 # FINOS

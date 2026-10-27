@@ -66,9 +66,10 @@ set -u
 # widened by the host's locale. A no-op where the option is unknown (bash 3.2).
 shopt -s globasciiranges 2>/dev/null || :
 # Byte-oriented awk, sort and comm, so this gate reads raw bytes on any awk and
-# in any locale: the frontmatter reader strips a byte order mark by its bytes
-# (a UTF-8 gawk would otherwise read those three bytes as one character and the
-# strip would miss), and `sort` feeds `comm` a byte order it agrees with.
+# in any locale. The frontmatter reader strips a byte order mark by its bytes,
+# since a UTF-8 gawk would otherwise read those three bytes as one character
+# and the strip would miss. And `sort` feeds `comm` a byte order it agrees
+# with.
 export LC_ALL=C
 
 unattended=0
@@ -161,7 +162,7 @@ human_events() {  # path -> events, reading the concept on stdin
     inev = 0; by = ""; at = ""; rev = "" }
   function flow(s,  n, parts, i) { emit(); inev = 1; gsub(/[{}]/, "", s); n = split(s, parts, ",")
     for (i = 1; i <= n; i++) kv(parts[i]); emit() }
-  # A flow verified/generated may span lines - valid YAML that a block-only
+  # A flow verified/generated may span lines: valid YAML that a block-only
   # reader skips, which would let a forged confirmation past the gate.
   # Accumulate from the opener to its closing bracket, then parse: a sequence
   # into its events, a mapping as one event.
@@ -198,7 +199,7 @@ events_in() {  # ref, paths on stdin -> the human events of those paths at that 
   done | sort
 }
 # The paths a commit changes against any of its parents. Without -m, git
-# lists nothing at all for a merge commit. With core.quotePath on, a name
+# lists nothing for a merge commit. With core.quotePath on, a name
 # with a byte above 0x7f would come C-quoted and `.md$` would miss it, so it
 # is off. Git still quotes `"`, `\` and control characters, and the caller
 # refuses those.
@@ -288,7 +289,8 @@ if [ "$unattended" -eq 1 ]; then
 fi
 
 # The range, oldest first, and the ids whose key file it adds, changes or
-# removes: a confirmation by one of them in the same range fails outright.
+# removes: a confirmation by one of them in the same range fails before its
+# signature is checked.
 commits="$(git rev-list --reverse "$base..$head" 2>/dev/null)" || { echo "cannot resolve $base..$head" >&2; exit 2; }
 rekeyed=""
 for sha in $commits; do

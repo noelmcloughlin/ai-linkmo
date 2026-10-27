@@ -2,9 +2,139 @@
 
 All notable changes to this project are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Nothing has been released yet. The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts so the first real release is `0.2.0` rather than `1.0.0`. AI-LinkMO is a demo and stays below 1.0.0 deliberately - a breaking change bumps the minor version here. See [CONTRIBUTING.md](CONTRIBUTING.md#releasing-maintainers).
+The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts, so the first release was `0.2.0` rather than `1.0.0`. AI-LinkMO is a demo and stays below 1.0.0 deliberately - a breaking change bumps the minor version here. See [CONTRIBUTING.md](CONTRIBUTING.md#releasing-maintainers).
 
 ## [Unreleased]
+
+## [0.4.15] - 2026-10-27
+
+### Fixed
+
+- **A `!` after the type marks a breaking change.** `.releaserc.json` names the Conventional Commits preset, so a `feat!:` commit bumps the minor version instead of releasing nothing.
+
+## [0.4.14] - 2026-10-27
+
+### Security
+
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.56.2](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.56.1...v0.56.2).** The release changed `.lokf/.gitignore` here.
+
+## [0.4.13] - 2026-10-26
+
+### Security
+
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.56.1](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.55.2...v0.56.1).** The release changed `.github/workflows/knowledge-registrar.yaml`, `.github/workflows/knowledge-librarian.yaml`, `.github/workflows/knowledge-release.yaml`, `.lokf/scripts/knowledge-preflight.sh`, `.lokf/scripts/knowledge-sync.sh`, `website/astro.config.mjs`, `website/scripts/check-links.mjs`, `website/scripts/config.mjs`, `website/scripts/markdown-ktl.mjs`, `website/scripts/raw-html.mjs`, `website/scripts/routes.mjs`, `website/scripts/sync.mjs`, `website/src/components/ConceptCard.astro`, `website/src/components/ConceptPreviews.astro`, `website/src/components/KnowledgeGraph.astro`, `website/src/components/Mermaid.astro`, `website/src/components/Neighbourhood.astro`, `website/src/components/TrustChart.astro`, `website/src/content.config.ts`, `website/src/pages/og/[...route].ts`, `website/src/styles/catalogue.css` and `.github/workflows/knowledge-website.yaml` here.
+
+## [0.4.12] - 2026-10-23
+
+### Security
+
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.55.2](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/d5c7817f57ac4e68cd48721a309825afaacd8994...v0.55.2).** The release changed `.github/workflows/knowledge-registrar.yaml`, `.github/workflows/knowledge-release.yaml`, `.github/workflows/knowledge-sync.yaml`, `.lokf/scripts/knowledge-librarian.sh`, `.lokf/scripts/knowledge-conventions.sh`, `.lokf/scripts/knowledge-conventions.py`, `.lokf/scripts/knowledge-preflight.sh`, `.lokf/scripts/knowledge-provenance.sh`, `.lokf/scripts/knowledge-feedback.sh`, `.lokf/scripts/knowledge-apply.sh`, `.lokf/scripts/knowledge-apply.py`, `.lokf/scripts/knowledge-report.sh`, `.lokf/scripts/knowledge-sync.sh`, `.lokf/.gitignore`, `.lokf/justfile`, `website/package-lock.json`, `website/package.json` and `website/src/components/KnowledgeGraph.astro` here.
+
+## [0.4.11] - 2026-10-21
+
+### Security
+
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.53.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/2801e26f2fc99675eb395b639670ec789e49eb08...d5c7817f57ac4e68cd48721a309825afaacd8994).** The release changed `.github/workflows/knowledge-librarian.yaml`, `.github/workflows/knowledge-sync.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md`, `.lokf/scripts/knowledge-librarian.sh`, `.lokf/scripts/knowledge-apply.py`, `.lokf/scripts/knowledge-sync.sh`, `.lokf/.gitignore`, `website/scripts/config.mjs`, `website/scripts/markdown-ktl.mjs`, `website/scripts/sync.mjs`, `website/src/components/KnowledgeGraph.astro`, `website/src/pages/graph.astro`, `.github/workflows/knowledge-website.yaml` and `website/scripts/raw-html.mjs` here.
+
+## [0.4.10] - 2026-10-19
+
+### Security
+
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.52.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/b7d15e5c58554d6af4b71dfe35ef2a6bfe8c45d8...2801e26f2fc99675eb395b639670ec789e49eb08).** The release changed `.github/workflows/knowledge-registrar.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md`, `.lokf/scripts/knowledge-conventions.sh`, `.lokf/scripts/knowledge-conventions.py`, `.lokf/scripts/knowledge-preflight.sh`, `.lokf/scripts/knowledge-report.sh` and `.lokf/scripts/knowledge-sync.sh` here.
+
+## [0.4.9] - 2026-10-17
+
+### Security
+
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.47.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/13f847f1988ec1a7f1c41f63cc3f1945c2010231...b7d15e5c58554d6af4b71dfe35ef2a6bfe8c45d8).** The release changed `.lokf/scripts/knowledge-preflight.sh`, `.github/workflows/knowledge-sync.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md` and `.lokf/scripts/knowledge-sync.sh` here.
+
+## [0.4.8] - 2026-10-17
+
+### Security
+
+- **The sidecar copies and the skills pin match `v0.46.0`.** The release changed `.github/workflows/knowledge-release.yaml`, `.lokf/scripts/knowledge-federate.py`, `website/package-lock.json` and `website/package.json` here; its [changelog](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/13f847f1988ec1a7f1c41f63cc3f1945c2010231/CHANGELOG.md) says how.
+
+## [0.4.7] - 2026-10-17
+
+### Security
+
+- **The sidecar copies and the skills pin match `v0.45.1`.** The release changed `.lokf/scripts/knowledge-apply.py` and `.lokf/scripts/knowledge-federate.py` here; its [changelog](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/d38e52b20d99c21ff201be9252a01b1da28fff57/CHANGELOG.md) says how.
+
+## [0.4.6] - 2026-10-16
+
+### Security
+
+- **The sidecar copies and the skills pin match `v0.45.0`.** The release changed `.lokf/scripts/knowledge-report.sh`, `.lokf/m365/ktl-docent-m365.md`, `website/scripts/sync.mjs`, `website/src/components/ConceptCard.astro`, `website/src/content.config.ts` and `website/src/styles/catalogue.css` here; its [changelog](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/08c13b5e30a6e0c4c6a2373658ee2c3ebbf4ae8e/CHANGELOG.md) says how.
+
+## [0.4.5] - 2026-10-16
+
+### Security
+
+- **The sidecar's toolkit lock takes the patched PyJWT, urllib3, httpx2, httpcore2 and mcp.** It closes the open security alerts on `.lokf/uv.lock`, apart from one PyJWT advisory that has no fixed release yet. The app's own dependencies are unchanged.
+
+## [0.4.4] - 2026-10-16
+
+### Security
+
+- **The sidecar copies, the website's copies and the skills pin match `v0.44.0`.** The site's link check ends an address at a backtick, so an address in a code span no longer fails the build, and the site takes mermaid 12.2.
+
+## [0.4.3] - 2026-10-15
+
+### Changed
+
+- **The README links the website.** It names the site and its knowledge pages, and the quick start, the architecture page and the status page open there rather than as Markdown files on GitHub. No application change.
+
+## [0.4.2] - 2026-10-15
+
+### Security
+
+- **The website's copies and the skills pin match `v0.43.0`.** The site serves the whole bundle as `llms-full.txt`, the bundle log as an Atom feed, and each docs page as Markdown beside it. A concept page links its history and licence and opens the knowledge graph on the concept, and a link to a concept previews it on hover and on focus. A release page links the repository, the docs and the bundle at the release's tag, and a page and its retelling offer each other as reading levels. No application change.
+
+## [0.4.1] - 2026-10-14
+
+### Security
+
+- **The sidecar copies, the website's copies and the skills pin match `v0.42.0`.** Conventions rule 13 no longer reads a move of the bundle's `base_iri` as an edit of every confirmed concept, and a data page opens Datasette Lite in a new tab. No application change.
+
+## [0.4.0] - 2026-10-14
+
+### Added
+
+- **The website serves the data to browse in Datasette Lite.** The two databases `just build-browse` writes sit under *Browse the data*, and the site's build runs the recipe. No application change.
+
+## [0.3.2] - 2026-10-14
+
+### Security
+
+- **The sidecar copies, the website's copies and the skills pin match `v0.41.0`.** The scheduled librarian takes an agent that wants its prompt somewhere other than after `-p`, named by the repository variable `AGENT_PROMPT_FLAG`. It writes its patch with the agent's own file tool, so an agent refused a shell write no longer gives up. Both came with the `v0.40.0` copies, which 0.3.1 included without an entry. The website's copies show the schema's pages under a Schema topic and draw their class diagrams, and its workflow also runs weekly and on a change to a justfile, a `pyproject.toml` or a `uv.lock`. No application change.
+
+## [0.3.1] - 2026-10-14
+
+### Changed
+
+- **Four docs pages lose their dead sentences.** The crosswalk, graph, contribution and status paragraphs say the fact and stop. No application change.
+
+## [0.3.0] - 2026-10-14
+
+### Added
+
+- **A website for the knowledge bundle, in `website/`, laid down by the ktl-website skill.** Each concept has a page with its trust label, beside a health page, the knowledge graph and search by trust and type. The four files `lokf export` writes are served under `/knowledge/`, and the README, the docs pages and this changelog become pages too. `knowledge-website.yaml` builds it on every pull request and publishes it to GitHub Pages once `KNOWLEDGE_WEBSITE_ENABLED` is `true`.
+
+### Changed
+
+- **The README is a doorway, in the style of Knowledge Trust Ladder's.** It keeps the couplet, the tagline, the opening paragraph and the agents note, and links the quick start, the architecture page and the caveats. The catalogue story, the four doors, where the project sits and the credits moved to `docs/architecture.md`, and the install and quick start steps to `docs/install.md`. No application change.
+
+## [0.2.2] - 2026-10-14
+
+### Security
+
+- **The sidecar copies and the skills pin match `v0.39.0`.** The preflight looks for ktl-website among the installed skills. The librarian and release workflows say their variables go under Repository variables, never on an environment, which neither job can read, and the scheduled librarian installs a ktl-librarian whose setup page says the same. No application change.
+
+## [0.2.1] - 2026-10-13
+
+### Security
+
+- **The sidecar copies and the skills pin match `v0.38.2`.** The registrar, librarian and release workflows run the justfile's `lokf-check-refs` recipe, and their actions move to newer pinned releases. The docent's Copilot instructions prefer a retelling for a younger reader, and give the adult concept's label with it. The pen no longer adds a second "edited since" note to a log line that already has one. The scheduled librarian installs a ktl-librarian that retells a confirmed concept for younger readers when the curation policy declares a band. No application change.
 
 ## [0.2.0] - 2026-10-10
 

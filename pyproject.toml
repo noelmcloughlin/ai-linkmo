@@ -1,6 +1,6 @@
 [project]
 name = "ai-linkmo"
-version = "0.2.0"
+version = "0.4.15"
 description = "One linked AI-governance model, four ways in: CLI, API, web UI and graph"
 readme = "README.md"
 license = "Apache-2.0"
@@ -23,7 +23,7 @@ dependencies = [
     "charset-normalizer>=2.0.0,<3.6.0",
     "chardet>=4.0.0,<6.0.0",
     "linkml-store>=0.3.2",
-    "sqlalchemy<2.1",
+    "sqlalchemy<2.2",
 ]
 
 [project.optional-dependencies]

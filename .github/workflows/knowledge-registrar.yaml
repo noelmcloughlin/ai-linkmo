@@ -29,7 +29,7 @@ name: Knowledge Registrar
 # never the pull request's text. What this file does not prove is that the
 # named person read the source. The skills repository's docs/three-lines.md
 # places this job as the second line of defence and says what remains open:
-# https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/main/docs/three-lines.md
+# https://w3id.org/ktl/docs/three-lines/
 on:
   pull_request:
     paths:
@@ -40,7 +40,7 @@ on:
     - cron: "0 6 * * 1" # Mondays at 06:00 UTC
   workflow_dispatch:
 
-# Least-privilege default: no token scope at all unless a job opts in, the
+# Least-privilege default: no token scope unless a job opts in, the
 # same default knowledge-librarian.yaml already sets. Each job below names
 # exactly what it needs.
 permissions: {}
@@ -58,7 +58,7 @@ jobs:
       contents: read
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
 
@@ -73,7 +73,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           python-version: "3.12"
 
@@ -91,9 +91,14 @@ jobs:
       # resolves every target in the bundle's own namespace, taking the
       # relation slots from the schema. It is part of `lokf validate`, so it
       # rides on this step rather than validating the same bundle twice. A
-      # host with a domain schema passes `--schema` here too.
+      # host with a domain schema names it as `schema :=` in the justfile, and
+      # the recipe passes it; the workflow runs the recipe so no host edits this line.
       - name: Validate the knowledge bundle and its relation targets
-        run: uv run lokf validate --check-refs knowledge
+        # just from uv.lock, checked against its hash, where the host's
+        # pyproject.toml names rust-just; else uvx fetches the same version.
+        run: |
+          if grep -qx 'name = "rust-just"' uv.lock; then uv run --locked just lokf-check-refs
+          else uvx --from rust-just==1.47.0 just lokf-check-refs; fi
         working-directory: .lokf
 
       # `lokf validate` reads a concept body as an opaque string and never
@@ -211,7 +216,7 @@ jobs:
           # copy does not. An added line would not do: a re-dated `at`, a moved
           # `revision` or a flow-style event adds no `by:` line, and a
           # `by: human:` in a body code fence or a send-back note is not an
-          # event at all.
+          # event.
           #
           # Any event present at head and absent at base names an actor who
           # must stand behind it. So does a `verified` event present at base
@@ -229,7 +234,7 @@ jobs:
               inev = 0; by = ""; at = ""; rev = "" }
             function flow(s,  n, parts, i) { emit(); inev = 1; gsub(/[{}]/, "", s); n = split(s, parts, ",")
               for (i = 1; i <= n; i++) kv(parts[i]); emit() }
-            # A flow verified/generated may span lines - valid YAML a
+            # A flow verified/generated may span lines: valid YAML a
             # block-only reader skips, which would let a forged confirmation
             # past the gate. Accumulate to the closing bracket, then parse: a
             # sequence into its events, a mapping as one. Matches
@@ -281,7 +286,7 @@ jobs:
           # Against every parent: a merge that brings in another curator's
           # confirmation claims nothing, and one that adds an event neither
           # side held is read like any other commit. Without -m, git lists no
-          # paths at all for a merge.
+          # paths for a merge.
           new_in_commit() {  # sha -> actors of events at sha that none of its parents holds
             { git -c core.quotePath=false diff-tree --no-commit-id --name-only -r -m "$1" -- .lokf/knowledge knowledge_bundle | tee -a "$listed" | grep '\.md$' | sort -u > "$paths"
               events_in "$1" < "$paths" | comm -13 <(for p in $(git rev-parse "$1^@"); do events_in "$p" < "$paths"; done | sort -u) - | cut -f2; } || true

@@ -1,22 +1,25 @@
 ---
 type: GlossaryTerm
 genre: reference
-id: https://github.com/noelmcloughlin/ai-linkmo/knowledge/glossary/evaluation
+id: https://noelmcloughlin.github.io/ai-linkmo/knowledge/glossary/evaluation
 title: Evaluation
 definition: A benchmark or test that measures a risk or a capability, linked to the datasets and tasks it uses.
 description: A benchmark or test measuring a risk or a capability, linked to its datasets and tasks; served by the /evaluation endpoint.
-resource: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/key-concepts.md
+resource: docs/key-concepts.md
 tags:
-  - glossary
-  - ontology
+- glossary
+- ontology
 generated:
   by: process:ktl-librarian
-  at: "2026-09-25T20:31:05Z"
+  at: "2026-10-17T00:24:57Z"
 status: draft
 definedBy:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/references/ai-risk-ontology
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 relatedTo:
-  - https://github.com/noelmcloughlin/ai-linkmo/knowledge/glossary/risk
+- https://noelmcloughlin.github.io/ai-linkmo/knowledge/glossary/risk
+verified:
+- by: process:ktl-librarian
+  at: "2026-10-16T23:49:47Z"
 ---
 
 # Evaluation

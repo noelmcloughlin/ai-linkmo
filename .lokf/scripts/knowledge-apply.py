@@ -12,25 +12,36 @@
 # reaches the bundle is what this script allows. It:
 #   - stamps `generated` from the clock;
 #   - keeps a concept's description and its two index bullets equal;
-#   - files each log line under the day's heading;
+#   - files each log line under the day's heading, once however many
+#     operations give the same line;
+#   - writes a bare web address in a log line or an open question as an
+#     autolink, <https://...>, which Markdown linters ask for;
 #   - moves a feedback entry an operation says it handled out of feedback.md
 #     and into the ledger of questions readers asked, ten to a patch at most;
 #   - refuses an operation that would write a `human:` actor, rewrite text a
-#     person wrote, or delete a concept a person confirmed or left a note on.
+#     person wrote, or delete a concept a person confirmed or left a note on;
+#   - refuses a patch whose concepts `lokf validate` rejects, with --dry-run
+#     too, when the sidecar's .venv holds the toolkit, and says when it could
+#     not check them.
 # Nothing is written unless every operation passes.
 #
 # Two things hold for every concept it writes, whatever the operations were.
 # A person's record is the same after as before: each `human:` event and each
 # note in a person's name, read as knowledge-provenance.sh --unattended reads
 # them. And a frontmatter value the operation did not name keeps the text the
-# file held: YAML reads `1.10`, `0123456`, `12:30:00`, `yes` and an unquoted
-# time as a number, a boolean or a date, and written back from that they
-# would read `1.1`, `42798`, `45000`, `true` and a time in another shape.
+# file held. YAML reads `1.10`, `0123456`, `12:30:00`, `yes` and an unquoted
+# time as a number, a boolean or a date. Written back from that, they would
+# read `1.1`, `42798`, `45000`, `true` and a time in another shape.
 #
 # `--format` prints the patch file's shape. So the format comes from the
 # script that enforces it, and a host needs no particular release of the skill
 # to learn it. ktl-librarian's references/patch.md carries the same block, and
 # the repository contract checks that the two are equal.
+#
+# A patch may carry one `log` line of its own. It stands in for the line of
+# every operation that gives none, so a change made the same way to many
+# concepts is logged once rather than once for each. An operation's own `log`
+# still wins.
 #
 # A patch may also carry `handoff`: at most ten lines for the person who
 # reviews the change, in the librarian's own words. They are never written to
@@ -42,17 +53,20 @@
 # The dependency block above names one PyYAML release, and `exclude-newer`
 # takes no file uploaded after its date, so every run installs the files
 # that were there when the pin was set. Move the two together, here and in
-# knowledge-conventions.py.
+# knowledge-conventions.py. knowledge-apply.sh runs the script with the
+# sidecar's .venv first, which holds what uv.lock pins.
 #
 # Operations (each a mapping under `ops:` with `op:` and `path:`):
 #   create    frontmatter + body for a concept that does not exist yet
 #   patch     edits (replace / insert_after / append) and `set` frontmatter keys
-#   rewrite   a whole new body; the lokf:related block and open questions carry over
+#   rewrite   a whole new body, and `set` as on patch; the lokf:related block and open questions carry over
 #   question  one open question, in the curator's shape, with this run's actor
 #   resolve   withdraws one open question this run's actor asked; never a person's note
 #   recheck   this run's own `verified` event, replacing its previous one
 #   delete    the concept, its index bullets, and a log line saying why
 #   reindex   both index bullets re-derived from the frontmatter; the concept itself is not touched
+# An operation may carry only the keys it reads, which KEYS below lists. Any
+# other key is refused by name, so no key is dropped without a word.
 #
 # Usage: knowledge-apply.py [--dry-run] [--keep] [--handoff <file>] --root <repo-root> [<patch-file>]
 #        knowledge-apply.py --format
@@ -66,6 +80,8 @@ import argparse
 import datetime as dt
 import os
 import re
+import shutil
+import subprocess
 import sys
 import tempfile
 import unicodedata
@@ -90,12 +106,34 @@ DENIED_CREATE = {"generated", "verified", "status", "stale_after", "timestamp", 
 RELATED_START, RELATED_END = "<!-- lokf:related -->", "<!-- /lokf:related -->"
 OPEN_Q = "## Open questions"
 BULLET_RE = re.compile(r"^- \d{4}-\d{2}-\d{2}, (\S+?): ")  # an open question's actor, in the shape the curator writes
+# A web address that is not already an autolink, a link's target or a link's
+# text: no `<`, `](` or `[` before it. A pair of parentheses inside it stays
+# in it, as Wikipedia's addresses need, and its last character is no
+# punctuation, so a full stop, a comma or a closing parenthesis after it
+# stays in the sentence.
+BARE_URL_RE = re.compile(r"(?<!\]\()(?<![<\[\w/])https?://(?:[^\s<>`()]|\([^\s<>`()]*\))*(?:[^\s<>`().,;:!?'\"]|\([^\s<>`()]*\))")
 HEADING_RE = re.compile(r"^(#{1,6})[ \t]+(.*\S)[ \t]*$")  # a Markdown heading: its level and its text
 OWN_BULLET_RE = re.compile(r"^\* \[[^\]]*\]\([^)]+\)(?: - .*)?$")  # any concept's own index bullet: its link alone, then its description
 FEEDBACK_KIND_RE = re.compile(r"^- \*\*(Miss|Disagreement)\*\* ")
 HANDOFF_LINES, HANDOFF_CHARS = 10, 300
 FEEDBACK_ENTRIES = 10  # the reader entries one patch may handle; the rest wait for the next run
-OPS = {"create", "patch", "rewrite", "question", "resolve", "recheck", "delete", "reindex"}
+# The keys each operation reads besides `op` and `path`. The script refuses
+# any other key, naming it, because a key it skipped would pass a dry run and
+# change nothing. A `set` on a rewrite was once dropped that way. Every
+# operation that writes a log line reads the keys in LOGGED, and every one
+# that stamps `generated` reads `revision`.
+LOGGED = ("log", "from_feedback", "asked")
+KEYS = {
+    "create": ("frontmatter", "body", "revision", *LOGGED),
+    "patch": ("edits", "set", "revision", *LOGGED),
+    "rewrite": ("body", "set", "revision", *LOGGED),
+    "question": ("text", *LOGGED),
+    "resolve": ("target", *LOGGED),
+    "recheck": (),
+    "delete": LOGGED,
+    "reindex": (),
+}
+OPS = set(KEYS)
 EDITS = {"replace", "insert_after", "append"}
 LEDGER_HEAD = (
     "# Questions readers asked\n"
@@ -107,6 +145,7 @@ LEDGER_HEAD = (
 # What `--format` prints. ktl-librarian's references/patch.md carries the same
 # block, and check 19 of the repository contract holds the two equal.
 FORMAT = r'''by: process:ktl-librarian        # optional; the actor every stamp carries, always process:<id>
+log: "**Changed**: each service concept now cites its source by repository path."   # optional; the line for every operation that gives none, written once
 ops:
   - op: create                   # a concept that does not exist yet
     path: services/orders-api.md # lowercase, under a folder, .md; the id is base_iri plus this path
@@ -141,6 +180,8 @@ ops:
     body: |
       # Overview
       ...
+    set:                         # optional; frontmatter keys to set, as on patch
+      description: How a release is cut and published by the release workflow.
     log: "the release page was rewritten around the new workflow"
 
   - op: question                 # one open question in the curator's shape; sets status: draft
@@ -207,6 +248,13 @@ class Dumper(yaml.SafeDumper):
     def choose_scalar_style(self):
         style = super().choose_scalar_style()
         return '"' if style == "'" else style
+
+    def increase_indent(self, flow=False, indentless=False):
+        # PyYAML writes a list under a key with its dashes at the key's own
+        # column, as the YAML specification's examples do. People indent it,
+        # and yamllint's default rules reject the other form, so every list
+        # is indented under its key.
+        return super().increase_indent(flow, False)
 
 
 Dumper.add_representer(Plain, lambda dumper, text: dumper.represent_scalar(text.tag, str(text)))
@@ -316,6 +364,12 @@ def questions_span(body: str):
     return None
 
 
+def autolinked(text: str) -> str:
+    """The line with each bare web address outside a code span written as an autolink, <https://...>. Markdown linters refuse a bare one (markdownlint's MD034), and the curator reads the line in a rendered view, where an autolink is a link."""
+    parts = re.split(r"(`[^`]*`)", text)
+    return "".join(part if part.startswith("`") else BARE_URL_RE.sub(r"<\g<0>>", part) for part in parts)
+
+
 def clean_question(value, what: str) -> str:
     """A reader's question as the ledger holds it: one line, no character a reader cannot see, no backtick to close the code span it sits in, and no longer than a question is."""
     text = shown(one_line(value, what)).replace("`", "'")
@@ -409,7 +463,7 @@ class Concept:
 
 
 class Bundle:
-    def __init__(self, root: Path, by: str, now: str, today: str):
+    def __init__(self, root: Path, by: str, now: str, today: str, log: str | None = None):
         self.root = root
         self.knowledge = root / ".lokf" / "knowledge"
         self.feedback = root / ".lokf" / "feedback.md"
@@ -418,6 +472,7 @@ class Bundle:
         self.concepts: dict[str, Concept] = {}
         self.indexes: dict[Path, str] = {}
         self.log_lines: list[str] = []
+        self.patch_log = log  # the patch's own line, already labelled, for each operation that gives none
         self.feedback_handled: list[str] = []
         self.ledger_lines: list[str] = []
         self.demoted: list[str] = []  # concepts a person confirmed that this run edited
@@ -501,21 +556,27 @@ class Bundle:
             raise Refused(f"{path}: patch changes nothing")
         for edit in edits:
             self.apply_edit(c, edit)
-        denied = sorted(k for k in sets if k.lower() in DENIED_SET)
-        if denied:
-            raise Refused(f"{path}: set may not touch {', '.join(denied)}; those belong to the script, the curator or the schema")
-        for k, v in sets.items():
-            if k in ("title", "description"):
-                v = one_line(v, f"{path}: {k}")
-                if k == "title" and ("[" in v or "]" in v):
-                    raise Refused(f"{path}: a title may not contain square brackets")
-            c.fm[k] = v
+        self.set_frontmatter(c, sets)
         c.fm["generated"] = self.stamp(op)
         c.touched = True
         if c.confirmed_by_person() and path not in self.demoted:
             self.demoted.append(path)
         self.index_set(path, c.title(), c.description())
         self.log(op, None, c)
+
+    def set_frontmatter(self, c: Concept, sets) -> None:
+        """Sets the frontmatter keys an operation's `set` names. `patch` and `rewrite` both call it, so the two refuse the same keys and check a title and a description the same way. Each calls it before it stamps `generated` and rewrites the index bullets, so the bullets carry a changed title or description."""
+        if not isinstance(sets, dict):
+            raise Refused(f"{c.path}: set is a mapping of frontmatter keys to their values")
+        denied = sorted(k for k in sets if k.lower() in DENIED_SET)
+        if denied:
+            raise Refused(f"{c.path}: set may not touch {', '.join(denied)}; those belong to the script, the curator or the schema")
+        for k, v in sets.items():
+            if k in ("title", "description"):
+                v = one_line(v, f"{c.path}: {k}")
+                if k == "title" and ("[" in v or "]" in v):
+                    raise Refused(f"{c.path}: a title may not contain square brackets")
+            c.fm[k] = v
 
     def apply_edit(self, c: Concept, edit) -> None:
         if not isinstance(edit, dict) or len(edit) != 1 or next(iter(edit)) not in EDITS:
@@ -585,6 +646,7 @@ class Bundle:
         if questions and questions_span(new) is None:
             new = new.rstrip("\n") + "\n\n" + c.body[questions[0]:questions[1]].strip("\n") + "\n"
         c.body = new
+        self.set_frontmatter(c, op.get("set", {}))
         c.fm["generated"] = self.stamp(op)
         c.touched = True
         if c.confirmed_by_person() and path not in self.demoted:
@@ -595,7 +657,7 @@ class Bundle:
     def question(self, op: dict) -> None:
         path = op["path"]
         c = self.concept(path, must_exist=True)
-        text = shown(one_line(op.get("text"), f"{path}: question text"))
+        text = autolinked(shown(one_line(op.get("text"), f"{path}: question text")))
         if not text:
             raise Refused(f"{path}: question text has no visible characters")
         bullet = f"- {self.today}, {self.by}: {text}"
@@ -689,11 +751,14 @@ class Bundle:
         folder_text = self.index_text(folder_file, f"# {section}\n")
         if not folder_text.strip():  # an empty file starts from its heading, as a new one does
             folder_text = f"# {section}\n"
+        # The " - " in a bullet introduces the description. A concept with no
+        # description gets its link alone, so no bullet ends in a bare dash.
+        tail = f" - {description}" if description else ""
         self.indexes[folder_file] = self.place_bullet(
-            folder_text, name, None if title is None else f"* [{title}]({name}) - {description}", path, f"{folder}/index.md")
+            folder_text, name, None if title is None else f"* [{title}]({name}){tail}", path, f"{folder}/index.md")
         self.indexes[root_file] = self.place_bullet(
             self.index_text(root_file, ""), path,
-            None if title is None else f"* [{title}]({path}) - {description}", path, "index.md",
+            None if title is None else f"* [{title}]({path}){tail}", path, "index.md",
             section=(section, f"]({folder}/index.md)"))
 
     @staticmethod
@@ -810,18 +875,19 @@ class Bundle:
 
     def log(self, op: dict, default: str | None, c: Concept | None = None, label: str = "Changed") -> None:
         text = op.get("log")
+        shared = text is None and self.patch_log is not None
         if text is not None:
-            text = shown(one_line(text, f"{op['path']}: log"))
-            if not text:
-                raise Refused(f"{op['path']}: log line has no visible characters")
-        if text is None and default is None:
-            raise Refused(f"{op['path']}: {op['op']} needs a log line naming what changed and why")
-        if text is None:
+            text = log_line(text, f"{op['path']}: log", label)
+        elif shared:
+            text = self.patch_log
+        elif default is None:
+            raise Refused(f"{op['path']}: {op['op']} needs a log line naming what changed and why, its own or the patch's")
+        else:
             text = default
-        elif not text.startswith("**"):
-            text = f"**{label}**: {text}"
-        if c is not None and c.confirmed_by_person() and "edited since" not in text:
-            text += " Edited since a person confirmed it; the label says so until the curator looks again."
+        if c is not None and c.confirmed_by_person() and "edited since" not in text.lower():
+            # The patch's line speaks for many concepts, so the note names the
+            # one a person had confirmed.
+            text += f" `{c.path}` was edited since a person confirmed it; the label says so until the curator looks again." if shared else " Edited since a person confirmed it; the label says so until the curator looks again."
         fb = op.get("from_feedback")
         asked = op.get("asked")
         if asked is not None and fb is None:
@@ -842,11 +908,14 @@ class Bundle:
             if asked is not None:
                 line += ": `" + clean_question(asked, f"{op['path']}: asked") + "`"
             self.ledger_lines.append(line)
-        self.log_lines.append("* " + text)
+        self.log_lines.append("* " + autolinked(text))
 
     def log_text(self) -> str | None:
         if not self.log_lines:
             return None
+        # A line given by many operations, the patch's own or the same words
+        # in each, is written once, where it first appears.
+        self.log_lines = list(dict.fromkeys(self.log_lines))
         file = self.knowledge / "log.md"
         lines = file.read_text(encoding="utf-8").split("\n") if file.is_file() else ["# Change Log", ""]
         first = next((k for k, line in enumerate(lines) if line.startswith("## ")), None)
@@ -904,6 +973,89 @@ def check_path(path) -> str:
     return path
 
 
+def log_line(text, what: str, label: str = "Changed") -> str:
+    """One log line as log.md shows it: a single line of visible text, given the operation's label, or `**Changed**`, when it brings none of its own."""
+    text = shown(one_line(text, what))
+    if not text:
+        raise Refused(f"{what} line has no visible characters")
+    return text if text.startswith("**") else f"**{label}**: {text}"
+
+
+def check_keys(op: dict) -> None:
+    """Refuses a key the operation does not read, and names it, along with the keys the operation does read."""
+    known = ("op", "path", *KEYS[op["op"]])
+    unknown = sorted(str(k) for k in op if k not in known)
+    if unknown:
+        raise Refused(f"{op['path']}: {op['op']} does not take {', '.join(unknown)}; it takes {', '.join(known)}")
+
+
+# The justfile line that names a domain schema, as the sidecar's template
+# writes it: `schema := "<path relative to .lokf/>"`, empty for none. The
+# release workflow and knowledge-federate.py read only this form. A `schema`
+# line in any other form is reported, not read as no schema: validating a
+# domain's concepts against LOKF core alone would refuse every valid one.
+SCHEMA_LINE = re.compile(r'^schema := "([^"]*)"$', re.M)
+ANY_SCHEMA_LINE = re.compile(r"^(export\s+)?schema\s*:=", re.M)
+# The prefixes `lokf validate` gives a finding that fails the check. A failure
+# with neither, such as a toolkit without LinkML or a schema file that is not
+# there, is the toolkit's, and says nothing about the patch.
+FAILING = ("[ERROR]", "[FATAL]")
+
+
+def schema_findings(root: Path, files: dict) -> tuple:
+    """What `lokf validate` says of the concepts about to be written.
+
+    The rules above check what an operation may change, not the shape the
+    schema gives a slot, so a `sources` entry written as a bare string would
+    pass them and fail the validator after the write. The concepts are staged
+    in a folder inside .lokf/, so the validator finds the sidecar's
+    pyproject.toml as it does for the bundle. The validator runs with the
+    domain schema the justfile names, from that schema's folder, as the
+    justfile's recipes run it. The toolkit is the sidecar's .venv, which needs
+    no network. The check is skipped, and the note says why, when the .venv
+    holds no toolkit, when the toolkit cannot run, or when the justfile's
+    schema line is not in the form the release reads. Returns the findings
+    and a note.
+
+    """
+    lokf_dir = root / ".lokf"
+    exe = next((p for p in (lokf_dir / ".venv" / "bin" / "lokf", lokf_dir / ".venv" / "Scripts" / "lokf.exe") if p.is_file()), None)
+    if exe is None:
+        return [], "schema not checked: the lokf toolkit is not installed in .lokf/.venv; run uv sync in .lokf/"
+    cmd, cwd = [str(exe), "validate"], lokf_dir
+    justfile = lokf_dir / "justfile"
+    recipes = justfile.read_text(encoding="utf-8") if justfile.is_file() else ""
+    named = SCHEMA_LINE.search(recipes)
+    if named is None and ANY_SCHEMA_LINE.search(recipes):
+        return [], 'schema not checked: the justfile\'s schema line is not in the form schema := "<file>"'
+    if named and named.group(1):
+        schema = (lokf_dir / named.group(1)).resolve()
+        cmd, cwd = cmd + ["--schema", schema.name], schema.parent
+    stage = Path(tempfile.mkdtemp(dir=str(lokf_dir), prefix=".pen-check-"))
+    staged = stage / "knowledge"
+    try:
+        for rel, text in files.items():
+            file = staged / rel
+            file.parent.mkdir(parents=True, exist_ok=True)
+            file.write_text(text, encoding="utf-8", newline="\n")
+        done = subprocess.run(cmd + [str(staged)], cwd=str(cwd), capture_output=True, text=True,
+                              encoding="utf-8", errors="replace", timeout=600)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return [], f"schema not checked: lokf validate could not run ({exc})"
+    finally:
+        shutil.rmtree(stage, ignore_errors=True)
+    if done.returncode == 0:
+        return [], "schema checked: lokf validate accepts every concept this patch writes"
+    out = (done.stdout + done.stderr).replace(str(staged), ".lokf/knowledge")
+    lines = [shown(line) for line in out.splitlines() if line.strip()]
+    if not any(line.startswith(FAILING) for line in lines):
+        return [], f"schema not checked: lokf validate could not run ({lines[0][:200] if lines else f'exit {done.returncode}'})"
+    # The validator echoes a rejected concept whole on one line, and gives the
+    # reason and a hint on the lines after, so each line is cut at 240
+    # characters and all of them are kept.
+    return [f"schema: {line[:240]}{' ...' if len(line) > 240 else ''}" for line in lines], ""
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(prog="knowledge-apply.py", add_help=True)
     ap.add_argument("--root")
@@ -918,6 +1070,16 @@ def main(argv: list[str]) -> int:
         return 0
     if not a.root:
         print("--root <repo-root> is required", file=sys.stderr)
+        return 2
+    # In the agent's step of a scheduled run the wrapper sets this, and applies
+    # the patch file itself once the agent has finished. A write here would
+    # delete the file and leave a bundle the wrapper refuses, so the pen only
+    # checks, and says so.
+    deferred = os.environ.get("KNOWLEDGE_PEN_DRY_RUN_ONLY") == "1"
+    if deferred and not a.dry_run:
+        print("refused: this is the agent's step of a scheduled run, where the pen only checks the patch file (--dry-run). "
+              "Leave .lokf/patch.yaml in place: the wrapper applies it after the agent finishes, and the workflow then validates the bundle. "
+              "Nothing was written.", file=sys.stderr)
         return 2
     root = Path(a.root).resolve()
     patch_file = Path(a.patch).resolve() if a.patch else root / ".lokf" / "patch.yaml"
@@ -950,10 +1112,16 @@ def main(argv: list[str]) -> int:
         handoff = handoff_lines(doc.get("handoff"))
     except Refused as exc:
         findings.append(str(exc))
+    patch_log = None
+    if doc.get("log") is not None:
+        try:
+            patch_log = log_line(doc["log"], "log")
+        except Refused as exc:
+            findings.append(str(exc))
     bundle = None
     if not findings:
         try:
-            bundle = Bundle(root, by, now.strftime("%Y-%m-%dT%H:%M:%SZ"), now.strftime("%Y-%m-%d"))
+            bundle = Bundle(root, by, now.strftime("%Y-%m-%dT%H:%M:%SZ"), now.strftime("%Y-%m-%d"), patch_log)
         except Refused as exc:
             findings.append(str(exc))
     if bundle is not None:
@@ -962,6 +1130,7 @@ def main(argv: list[str]) -> int:
                 if not isinstance(op, dict) or op.get("op") not in OPS:
                     raise Refused(f"op {n}: each operation is a mapping whose op is one of {', '.join(sorted(OPS))}")
                 check_path(op.get("path"))
+                check_keys(op)
                 getattr(bundle, op["op"])(op)
             except Refused as exc:
                 findings.append(f"op {n}: {exc}")
@@ -1003,6 +1172,17 @@ def main(argv: list[str]) -> int:
     ledger_text = bundle.ledger_text()
     if ledger_text is not None:
         writes.append((bundle.ledger, ledger_text))
+    concepts = {path: dump(c.fm, c.body) for path, c in bundle.concepts.items() if c.touched and not c.deleted}
+    schema_note = ""
+    if concepts:
+        top = bundle.knowledge / "index.md"
+        concepts["index.md"] = bundle.indexes.get(top) or top.read_text(encoding="utf-8")
+        found, schema_note = schema_findings(root, concepts)
+        if found:
+            for line in found:
+                print(line)
+            print(f"refused: lokf validate rejects what this patch would write ({len(found)} line(s)); nothing was written")
+            return 1
     # The hand-off goes first, outside the bundle, so a file that cannot be
     # written stops the run before the bundle is touched.
     if a.handoff and not a.dry_run:
@@ -1018,7 +1198,7 @@ def main(argv: list[str]) -> int:
     else:
         # Write every changed file to a temporary file beside it first. Only
         # once all of them are written does the run put them in place, so a
-        # write that fails - a read-only file, a full disk - stops the run with
+        # write that fails (a read-only file, a full disk) stops the run with
         # the bundle untouched, rather than leaving it half applied.
         staged: dict[Path, str] = {}
         try:
@@ -1054,7 +1234,15 @@ def main(argv: list[str]) -> int:
             print(f"  {line}")
     if bundle.demoted:
         print(f"confirmed by a person, and edited {'by this patch' if a.dry_run else 'here'}: {', '.join(bundle.demoted)}; each reads as edited since that confirmation until the curator looks again")
-    print(f"{'OK (dry run)' if a.dry_run else 'OK'} - {len(doc['ops'])} operation(s) by {by} at {bundle.now}; now run lokf validate --check-refs and knowledge-conventions.sh")
+    if not a.dry_run:
+        after = "now run lokf validate --check-refs and knowledge-conventions.sh"
+    elif deferred:
+        after = "leave the patch file in place: the wrapper applies it after you finish, and the workflow validates the bundle"
+    else:
+        after = "nothing was written: apply it without --dry-run, then run lokf validate --check-refs and knowledge-conventions.sh"
+    if schema_note:
+        print(schema_note)
+    print(f"{'OK (dry run)' if a.dry_run else 'OK'} - {len(doc['ops'])} operation(s) by {by} at {bundle.now}; {after}")
     return 0
 
 

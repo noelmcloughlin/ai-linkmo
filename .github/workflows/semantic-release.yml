@@ -50,7 +50,7 @@ jobs:
       contents: read
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
 
@@ -59,7 +59,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
@@ -68,20 +68,27 @@ jobs:
           npm install --no-save --no-audit --no-fund --ignore-scripts \
             semantic-release@25.0.9 \
             @semantic-release/commit-analyzer@13.0.1 \
+            conventional-changelog-conventionalcommits@8.0.0 \
             @semantic-release/exec@7.1.0 \
             @semantic-release/git@11.0.1 \
             @semantic-release/github@12.0.9
 
       # Would these commits release? The types are .releaserc.json's: the
-      # Angular preset's feat/fix plus this repository's `security`, and any
-      # type marked breaking by a `!` or a BREAKING CHANGE footer. Both checks
-      # below key off this one answer.
+      # Conventional Commits preset's feat/fix plus this repository's
+      # `security`, and any type marked breaking by a `!` or a BREAKING CHANGE
+      # footer. The preset is named because the default, angular, does not
+      # read the `!`, so it would skip a `feat!:` commit altogether. Both
+      # checks below key off this one answer.
+      # Only the pull request's own commits count: HEAD is GitHub's trial
+      # merge with today's main, so on a branch that main has moved past,
+      # "$BASE..HEAD" would read main's commits too.
       - name: Read whether these commits would release
         id: commits
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          if git log --format='%s%n%b' "$BASE..HEAD" \
+          if git log --format='%s%n%b' "$(git merge-base "$BASE" "$HEAD_SHA")..$HEAD_SHA" \
             | grep -qE '^((feat|fix|security)(\([^)]*\))?!?:|[a-z]+(\([^)]*\))?!:|BREAKING CHANGE:)'; then
             echo "releases=true" >> "$GITHUB_OUTPUT"
           else
@@ -136,7 +143,7 @@ jobs:
       actions: write # dispatch knowledge-release.yaml for the new tag
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@e14015d583714f6e62063499dc959a02595150a1 # v2.21.1
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
 
@@ -150,7 +157,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
@@ -159,6 +166,7 @@ jobs:
           npm install --no-save --no-audit --no-fund --ignore-scripts \
             semantic-release@25.0.9 \
             @semantic-release/commit-analyzer@13.0.1 \
+            conventional-changelog-conventionalcommits@8.0.0 \
             @semantic-release/exec@7.1.0 \
             @semantic-release/git@11.0.1 \
             @semantic-release/github@12.0.9
