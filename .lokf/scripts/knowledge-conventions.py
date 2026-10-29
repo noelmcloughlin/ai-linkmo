@@ -6,7 +6,7 @@
 # exclude-newer = "2025-10-01T00:00:00Z"
 # ///
 # The parser's half of knowledge-conventions.sh: rules 2, 3, 4, 7, 9, 10, 12,
-# 13 and 14 (see that script's header for the list).
+# 13, 14, 15, 16, 17 and 18 (see that script's header for the list).
 #
 # Rules 2, 3, 7 and 9 are questions about a document's YAML that a real
 # parser can decide, where grep and awk could only approximate. Is this
@@ -25,8 +25,17 @@
 # knowledge-apply.sh writes the whole frontmatter back and a requoted value is
 # no change. Rule 14 walks the commits after a base and compares each concept
 # that gains a person's confirmation with the same file in every parent, as
-# parsed values too. The shell half checks rules 1, 5, 6, 8 and 11: they are
-# git and filesystem facts, and need no uv.
+# parsed values too. Rule 18 reads each exclusion beside the concept's
+# sources, which a line reader cannot pair. The shell half checks rules 1, 5,
+# 6, 8 and 11: they are git and filesystem facts, and need no uv.
+#
+# Rules 15, 16 and 17 join one parsed thing to another. Rule 15 reads
+# `resource` and `sources` as parsed values, so a key with no value counts as
+# absent. Rule 16 reads each `sources[].id` and its `resource` from the
+# frontmatter and the footnotes from the body, and keeps one table of ids for
+# the whole bundle, since one id names one source node in the graph. Rule 17
+# reads the title of every concept, and then the bullets of log.md, so a
+# logged write is held to a file the bundle holds.
 #
 # Usage: knowledge-conventions.py <bundle-dir> [--since <commit>]
 #
@@ -38,9 +47,11 @@
 # That block names one PyYAML release, and `exclude-newer` takes no file
 # uploaded after its date. A registry never replaces a file, so every run
 # installs the files that were there when the pin was set, and this gate runs
-# what a person reviewed. The .venv holds what uv.lock pins, by hash, which a
-# person reviewed too. Move the version and the date together, here and in
-# knowledge-apply.py; the skills repository's contract holds the two equal.
+# what a person reviewed. Behind a mirror with no upload times, the shell
+# half lifts the date but keeps the version. The .venv holds what uv.lock
+# pins, by hash, which a person reviewed too. Move the version and the date
+# together, here and in knowledge-apply.py; the skills repository's contract
+# holds the two equal.
 
 from __future__ import annotations
 
@@ -76,6 +87,26 @@ UTC_TIME = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z")
 # frontmatter.
 NOT_CLAIMS = {"generated", "verified", "status", "stale_after", "timestamp", "usage_window"}
 RELATED_START, RELATED_END = "<!-- lokf:related -->", "<!-- /lokf:related -->"
+# A base commit as `--since` may name it: no leading dash, so git never reads
+# it as an option.
+COMMIT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/~^-]*")
+# Rule 16's shape for a `sources[].id`: what rule 8 allows in a path segment.
+# Under LOKF's published context the id becomes the IRI of the source's node
+# under the bundle base, so it is held to the shape a path is.
+SOURCE_ID = re.compile(r"[a-z0-9][a-z0-9._-]*")
+# A footnote reference, and a definition line, which Markdown reads at the
+# start of a line with at most three spaces before it.
+FOOTNOTE = re.compile(r"\[\^([^\]\s]+)\]")
+FOOTNOTE_DEFINITION = re.compile(r"^ {0,3}\[\^([^\]\s]+)\]:[ \t]*(.*)$")
+CODE_SPAN = re.compile(r"`[^`]*`")
+# Rule 17's log lines: a day heading in rule 1's shape, the three bullet kinds
+# the rule reads, and a Markdown link.
+DAY_HEADING = re.compile(r"^## (\d{4}-\d{2}-\d{2})$")
+LOG_BULLET = re.compile(r"^[*-] \*\*(Added|Deprecation|Removal)\*\*:[ \t]*(.*)$")
+MARKDOWN_LINK = re.compile(r"\[([^\]]*)\]\(([^)]+)\)")
+# What may follow a concept's title in an Added bullet: the end of the line,
+# or one of these, as the pen writes `**Added**: <title>, from ...`.
+AFTER_TITLE = ",.:; "
 
 
 def plain_spellings(fm_text: str) -> list[str]:
@@ -188,6 +219,26 @@ def moment(value) -> str:
     if re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z", value):
         return value[:19] + "Z"
     return ""
+
+
+def listed(frontmatter: dict, field: str) -> list[tuple[int, dict]]:
+    """The mapping entries of a list field with their positions in it, a bare mapping read as a one-item list."""
+    found = frontmatter.get(field) or []
+    if isinstance(found, dict):
+        found = [found]
+    if not isinstance(found, list):
+        return []
+    return [(i, e) for i, e in enumerate(found) if isinstance(e, dict)]
+
+
+def same_material(value) -> str | None:
+    """A resource as rule 18 compares it, as `lokf validate` does: `./docs/a.md`, `docs/a.md` and `docs/a.md/` name one material."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    key = value.strip()
+    while key.startswith("./"):
+        key = key[2:]
+    return key.rstrip("/") or key
 
 
 def under(value, base: str):
@@ -338,7 +389,7 @@ def verdict_edits(bundle: Path, since: str) -> list[str]:
     that brings in a confirmation made elsewhere adds nothing new, so it is
     never read as one. Outside git, or with no such base, nothing is said.
     """
-    if since.startswith("-") or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/~^-]*", since):
+    if not COMMIT.fullmatch(since):
         return [f"rule 14: '{since}' is not a commit - pass the base the pull request was opened against"]
     real = bundle.resolve()
     top = git(real, "rev-parse", "--show-toplevel")
@@ -379,6 +430,168 @@ def verdict_edits(bundle: Path, since: str) -> list[str]:
     return findings
 
 
+def footnotes(path: Path, frontmatter: dict, body: str, source_ids: dict[str, dict[str, list[Path]]]) -> list[str]:
+    """Rule 16: each footnote in the body joins a claim to one of the concept's `sources` entries, by that entry's `id`.
+
+    A reference `[^label]` and a definition line `[^label]: text` each use
+    an id the entry list holds. Each id is cited at least once, each cited
+    label has its definition line, and the definition holds the entry's
+    `resource` verbatim, so a reader sees the source beside the claim and
+    the footnote cannot drift from its entry. A footnote mark in a code
+    fence or a code span is an example, not a reference. Each id is recorded
+    in `source_ids` with its resource, for the check across the bundle in
+    main: one id names one resource.
+    """
+    findings: list[str] = []
+    sources = frontmatter.get("sources")
+    entries = [sources] if isinstance(sources, dict) else sources if isinstance(sources, list) else []
+    ids: dict[str, str] = {}
+    for entry in entries:
+        if not isinstance(entry, dict) or entry.get("id") is None:
+            continue
+        label = str(entry["id"])
+        resource = entry.get("resource")
+        resource = resource if isinstance(resource, str) else ""
+        if not SOURCE_ID.fullmatch(label):
+            findings.append(
+                f"{path}: sources[].id {json.dumps(label)} is not lowercase a-z, 0-9, '.', '_', '-' - "
+                "the id mints the source's node under the bundle base, so write it as rule 8 has a path written"
+            )
+        ids.setdefault(label, resource)
+        source_ids.setdefault(label, {}).setdefault(resource, []).append(path)
+    referenced: set[str] = set()
+    defined: dict[str, str] = {}
+    fenced = False
+    for line in body.split("\n"):
+        if line.startswith("```") or line.startswith("~~~"):
+            fenced = not fenced
+            continue
+        if fenced:
+            continue
+        m = FOOTNOTE_DEFINITION.match(line)
+        if m:
+            defined.setdefault(m.group(1), m.group(2))
+            continue
+        referenced.update(FOOTNOTE.findall(CODE_SPAN.sub("", line)))
+    for label in sorted((referenced | set(defined)) - set(ids)):
+        findings.append(
+            f"{path}: footnote [^{label}] names no sources[].id - give the entry it cites the id {label}, "
+            "or cite an id the frontmatter holds"
+        )
+    for label, resource in sorted(ids.items()):
+        if label not in referenced:
+            findings.append(f"{path}: sources[].id {label} is cited by no footnote - write [^{label}] after a claim it backs, or drop the id")
+        elif label not in defined:
+            findings.append(
+                f'{path}: footnote [^{label}] has no definition line - add "[^{label}]: {resource}, <where in it>" at the end of the body'
+            )
+        if label in defined and resource and resource not in defined[label]:
+            findings.append(
+                f"{path}: footnote definition [^{label}] does not quote its resource {resource} - "
+                "write the resource value in it verbatim, so the footnote cannot drift from its entry"
+            )
+    return findings
+
+
+def bullet_target(text: str, bundle: Path) -> tuple[Path | None, str]:
+    """The file a log bullet links, and the link's text, or (None, '') when it holds no link to a file.
+
+    The first link decides, and its path is read as successors() in
+    knowledge-report.sh reads a Deprecation line: against the bundle root,
+    with one leading `../` or `./` stripped.
+    """
+    m = MARKDOWN_LINK.search(text)
+    if m is None or "://" in m.group(2):
+        return None, ""
+    return bundle / re.sub(r"^(\.\./|\./)", "", m.group(2)), " ".join(m.group(1).split())
+
+
+def bullet_head(text: str) -> str:
+    """A log bullet's text up to its first ',', '.', ':' or ';', links replaced by their text and whitespace collapsed: the title as the pen writes an Added or a Removal line."""
+    plain = MARKDOWN_LINK.sub(lambda m: m.group(1), text)
+    return " ".join(re.split(r"[,.:;]", plain, maxsplit=1)[0].split())
+
+
+def bullet_names(bullet: dict, bundle: Path) -> set[str]:
+    """What a bullet names, for matching an Added or Deprecation bullet with a Removal: the linked path, the link's text and the head."""
+    path, link_text = bullet_target(bullet["text"], bundle)
+    found = {str(path), link_text} if path is not None else set()
+    found.add(bullet_head(bullet["text"]))
+    return found - {""}
+
+
+def starts_with_title(text: str, titles: set[str]) -> bool:
+    """The text, whitespace collapsed, starts with a concept's title, followed by the end of the line or one of AFTER_TITLE."""
+    collapsed = " ".join(text.split())
+    return any(collapsed.startswith(t) and (len(collapsed) == len(t) or collapsed[len(t)] in AFTER_TITLE) for t in titles if t)
+
+
+def logged_writes(bundle: Path, titles: set[str], since: str) -> list[str]:
+    """Rule 17: each `**Added**` and `**Deprecation**` bullet in log.md names a concept the bundle holds.
+
+    A bullet that holds a Markdown link names the concept its first link
+    resolves to, as bullet_target reads it. Any other bullet starts with a
+    concept's title, as the pen writes an Added line. With `--since`, the
+    bullets read are the ones `git diff` shows added to log.md since that
+    base, in the working tree; without it, or where git cannot diff, the
+    ones under the newest day heading, where the latest run's claims sit. A
+    `**Removal**` bullet under the same or a newer day that names the same
+    path or title excuses a bullet whose concept is gone. A wrapped bullet
+    is read with its continuation lines joined.
+    """
+    log = bundle / "log.md"
+    if not log.is_file():
+        return []
+    text = log.read_bytes().decode("utf-8", errors="replace").lstrip("\ufeff").replace("\r\n", "\n").replace("\r", "\n")
+    bullets: list[dict] = []
+    day = first_day = ""
+    current: dict | None = None
+    for line in text.split("\n"):
+        if line.startswith("## "):
+            m = DAY_HEADING.match(line)
+            day = m.group(1) if m else ""  # under a heading rule 1 reports, nothing is read
+            first_day = first_day or day
+            current = None
+            continue
+        b = LOG_BULLET.match(line)
+        if b and day:
+            current = {"day": day, "kind": b.group(1), "text": b.group(2), "line": line}
+            bullets.append(current)
+        elif current is not None and line[:1] in (" ", "\t") and line.strip():
+            current["text"] += " " + line.strip()
+        else:
+            current = None
+    diff = None
+    if since and COMMIT.fullmatch(since):
+        diff = git(log.resolve().parent, "diff", "--no-color", "--no-ext-diff", "--unified=0", since, "--", "log.md")
+    if diff is not None:
+        added = {line[1:] for line in diff.split("\n") if line.startswith("+") and not line.startswith("+++")}
+        chosen = [b for b in bullets if b["line"] in added]
+    else:
+        chosen = [b for b in bullets if b["day"] == first_day]
+    findings: list[str] = []
+    for b in chosen:
+        if b["kind"] == "Removal":
+            continue
+        path, _ = bullet_target(b["text"], bundle)
+        if path is not None:
+            if path.is_file():
+                continue
+            which = "the retired concept" if b["kind"] == "Deprecation" else "the concept it names"
+            what = f"links {path}, which the bundle lacks - link {which}, or log its removal"
+        else:
+            if starts_with_title(b["text"], titles):
+                continue
+            what = (
+                f"names no concept the bundle holds: {' '.join(b['text'].split())[:60]} - "
+                "start it with the concept's title, or link the concept"
+            )
+        if any(bullet_names(r, bundle) & bullet_names(b, bundle) for r in bullets if r["kind"] == "Removal" and r["day"] >= b["day"]):
+            continue
+        findings.append(f"{log}: {b['kind']} bullet under {b['day']} {what}")
+    return findings
+
+
 def index_bullets(index: Path, cache: dict[Path, dict[str, tuple[str, str]]]) -> dict[str, tuple[str, str]]:
     """The bullets of one index.md, as link -> (title, description), each with its whitespace collapsed."""
     if index not in cache:
@@ -393,7 +606,14 @@ def index_bullets(index: Path, cache: dict[Path, dict[str, tuple[str, str]]]) ->
     return cache[index]
 
 
-def check_file(path: Path, bundle: Path, ids: dict[str, list[Path]], entries: dict[Path, tuple[str, str]]) -> list[str]:
+def check_file(
+    path: Path,
+    bundle: Path,
+    ids: dict[str, list[Path]],
+    entries: dict[Path, tuple[str, str]],
+    titles: set[str],
+    source_ids: dict[str, dict[str, list[Path]]],
+) -> list[str]:
     findings: list[str] = []
     raw = path.read_bytes()
     if raw.startswith(b"\xef\xbb\xbf"):
@@ -470,6 +690,20 @@ def check_file(path: Path, bundle: Path, ids: dict[str, list[Path]], entries: di
         if in_section and line.startswith("- ") and not OPEN_QUESTION.match(line):
             findings.append(f"{path}: open question not '- YYYY-MM-DD, <actor>: ...': {line[:60]}")
 
+    # 18. each exclusion says why the material was left out, and no material
+    #     is both a source and an exclusion of one concept.
+    used = {same_material(s.get("resource")) for _, s in listed(frontmatter, "sources")}
+    for i, exclusion in listed(frontmatter, "exclusions"):
+        reason = exclusion.get("reason")
+        if not isinstance(reason, str) or not reason.strip():
+            findings.append(f"{path}: exclusions[{i}] gives no reason - say in a sentence why the material was left out")
+        key = same_material(exclusion.get("resource"))
+        if key is not None and key in used:
+            findings.append(
+                f"{path}: exclusions[{i}].resource {json.dumps(exclusion.get('resource'))} is also one of its sources - "
+                "a concept cannot derive from a material and leave it out; keep one"
+            )
+
     # 7. one file per id: collected here, reported once every file is read.
     concept_id = frontmatter.get("id")
     if isinstance(concept_id, str) and concept_id:
@@ -480,12 +714,30 @@ def check_file(path: Path, bundle: Path, ids: dict[str, list[Path]], entries: di
     title, description = frontmatter.get("title"), frontmatter.get("description")
     if isinstance(title, str) and isinstance(description, str):
         entries[path] = (" ".join(title.split()), " ".join(description.split()))
+    if isinstance(title, str):
+        titles.add(" ".join(title.split()))  # for rule 17
 
     # 13. a concept that reads as confirmed by a person still says what that
     #     person confirmed: an edit since then restamps `generated`.
     finding = unstamped_edit(path, frontmatter, body, bundle)
     if finding:
         findings.append(finding)
+
+    # 15. the concept names where it came from: a `resource`, or a `sources`
+    #     entry. The librarian's refresh follows those back to the origin,
+    #     and the coverage count credits a file to a concept through them, so
+    #     a concept with neither can be neither re-verified nor counted.
+    resource, sources = frontmatter.get("resource"), frontmatter.get("sources")
+    has_resource = isinstance(resource, str) and bool(resource.strip())
+    has_sources = isinstance(sources, dict) or (isinstance(sources, list) and bool(sources))
+    if not has_resource and not has_sources:
+        findings.append(
+            f"{path}: neither resource nor sources names where it came from - "
+            "name the source of truth it was derived from, as resource or as a sources entry"
+        )
+
+    # 16. each footnote joins a claim to a `sources` entry by its id.
+    findings.extend(footnotes(path, frontmatter, body, source_ids))
 
     return findings
 
@@ -505,10 +757,12 @@ def main(argv: list[str]) -> int:
     findings: list[str] = []
     ids: dict[str, list[Path]] = {}
     entries: dict[Path, tuple[str, str]] = {}
+    titles: set[str] = set()
+    source_ids: dict[str, dict[str, list[Path]]] = {}
     for path in sorted(bundle.rglob("*.md")):
         if ".obsidian" in path.parts or path.name in RESERVED:
             continue
-        findings.extend(check_file(path, bundle, ids, entries))
+        findings.extend(check_file(path, bundle, ids, entries, titles, source_ids))
 
     # 12. an index bullet that names a concept says what the concept says. A
     #     reader chooses from the index before opening anything, so a bullet
@@ -535,12 +789,28 @@ def main(argv: list[str]) -> int:
                 "a sync conflict copy or a pasted duplicate; keep one"
             )
 
+    # 16. across the bundle, one id names one resource. Under LOKF's published
+    #     context a Source id, resolved against the bundle base, becomes the
+    #     IRI of the source's node, so one id for two resources merges them
+    #     into one RDF node, and a query then credits each claim to both.
+    for label, by_resource in sorted(source_ids.items()):
+        if len(by_resource) > 1:
+            where = "; ".join(f"{resource or '(no resource)'} in {' '.join(str(p) for p in paths)}" for resource, paths in by_resource.items())
+            findings.append(
+                f"id {label} names more than one resource: {where} - "
+                "one id names one resource across the bundle, since the id mints one source node under the bundle base"
+            )
+
     # 14. a commit after the base that records a person's confirmation
     #     changes only the verdict, unless that person also wrote the text.
     #     Asked for a pull request's commits only: on a branch's whole
     #     history a squash merge folds an edit and a confirmation into one.
     if since:
         findings.extend(verdict_edits(bundle, since))
+
+    # 17. each Added and Deprecation bullet the latest run logged names a
+    #     concept the bundle holds, read since the base when one is given.
+    findings.extend(logged_writes(bundle, titles, since))
 
     for line in findings:
         print(line)
