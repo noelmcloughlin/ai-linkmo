@@ -52,9 +52,11 @@
 #
 # The dependency block above names one PyYAML release, and `exclude-newer`
 # takes no file uploaded after its date, so every run installs the files
-# that were there when the pin was set. Move the two together, here and in
-# knowledge-conventions.py. knowledge-apply.sh runs the script with the
-# sidecar's .venv first, which holds what uv.lock pins.
+# that were there when the pin was set. Behind a mirror with no upload
+# times, knowledge-apply.sh lifts the date but keeps the version. Move the
+# two together, here and in knowledge-conventions.py. knowledge-apply.sh
+# runs the script with the sidecar's .venv first, which holds what uv.lock
+# pins.
 #
 # Operations (each a mapping under `ops:` with `op:` and `path:`):
 #   create    frontmatter + body for a concept that does not exist yet

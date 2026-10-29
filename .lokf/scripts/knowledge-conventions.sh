@@ -30,9 +30,9 @@
 #      URLs are never fetched.
 #   6. A commit-shaped `revision` on a `generated` or `verified` event names
 #      a commit in this repository that holds the concept's local `resource`.
-#      The field is proposed for lokf 0.9.0. The released 0.8.0 validator
-#      rejects it, so the skills write it only where `lokf validate` accepts
-#      it. ETags, digests and version labels pin URLs and are not checked.
+#      The field arrived in lokf 0.9.0, and the 0.8.0 validator rejects it,
+#      so the skills write it only where `lokf validate` accepts it. ETags,
+#      digests and version labels pin URLs and are not checked.
 #      The rule needs the full history, and reports a shallow clone.
 #   7. One file per `id`. A sync client's conflict copy (OneDrive, Dropbox,
 #      Drive, iCloud) or a pasted duplicate carries the same `id`, passes
@@ -96,32 +96,68 @@
 #      `--since` the rule is skipped, since on a branch's whole history a
 #      squash merge folds a librarian's edit and a later confirmation into
 #      one commit.
+#  15. Every concept names where it came from: a top-level `resource`, or a
+#      `sources` list with an entry. The librarian's refresh follows those
+#      back to the origin, and the coverage count credits a file to a concept
+#      through them, so a concept with neither can be neither re-verified
+#      nor counted.
+#  16. A footnote joins a claim to a source. In a body, outside a code fence
+#      or a code span, each `[^label]` reference and each `[^label]: text`
+#      definition line uses the `id` of one of the concept's `sources`
+#      entries. Each id is cited at least once, each cited label has its
+#      definition line, and the definition holds the entry's `resource`
+#      verbatim, so a reader sees the source beside the claim and the
+#      footnote cannot drift from its entry. An id is lowercase a-z, 0-9,
+#      `.`, `_` and `-`, as rule 8 has a path. It names one resource across
+#      the bundle: under LOKF's published context a Source id becomes the
+#      IRI of the source's node under the bundle base, so one id for two
+#      resources merges them into one RDF node. OKF v0.2 section 5.1 says a
+#      footnote whose label equals `id` attributes the claim to that entry.
+#  17. A logged write has a file behind it. Each `**Added**` and
+#      `**Deprecation**` bullet in log.md names a concept the bundle holds:
+#      by its first link, read as knowledge-report.sh reads a Deprecation
+#      line, or by starting with a concept's title, as the pen writes an
+#      Added line. With `--since <commit>` the bullets added since the base
+#      are read; without it, those under the newest day heading, where the
+#      latest run's claims sit. A `**Removal**` bullet under the same or a
+#      newer day heading excuses a bullet whose concept is gone.
+#  18. Each `exclusions` entry (lokf 0.9.0 and later) gives a `reason` that is
+#      not blank, and no material is both a source and an exclusion of one
+#      concept. An exclusion records that someone looked at a material and
+#      set it aside, so a blank reason leaves a reviewer nothing to check, and
+#      a material listed both ways is derived from and left out at once.
+#      Paths are compared as `lokf validate` compares them, so `./docs/a.md`,
+#      `docs/a.md` and `docs/a.md/` name one material. The toolkit only warns
+#      of the second; this gate fails it.
 #
-# Rules 2, 3, 8 and 10 are house rules, stricter than the format. OKF permits
-# an unquoted datetime, a bare `verified` mapping, any file name and any YAML.
+# Rules 2, 3, 8, 10 and 18 are house rules, stricter than the format. OKF
+# permits an unquoted datetime, a bare `verified` mapping, any file name and
+# any YAML, and LOKF a blank reason and a material listed both ways.
 # Every reader here reads a bare mapping as a one-item list, as it MUST: the
 # toolkit, both plugins and the gates. This bundle asks more of itself so that:
 #   - an event is always appended to a list and never converted first;
 #   - a datetime reaches every consumer as the same string;
 #   - a name never collides on a case-insensitive host;
-#   - an event reads the same to a line reader as to a parser.
+#   - an event reads the same to a line reader as to a parser;
+#   - an exclusion always says why, and never contradicts a source.
 # A bundle written to the letter of OKF may fail them; that is a policy of the
 # gate, not a defect in the bundle.
 #
-# Rules 2, 3, 7, 9, 10 and 12 are checks on a document's YAML that need a
+# Rules 2, 3, 7, 9, 10, 12 and 18 are checks on a document's YAML that need a
 # parser, and rule 4 is checked with them. So the Python half,
 # knowledge-conventions.py in the same directory, checks them. This shell
 # half checks rules 1, 5, 6, 8 and 11 itself: they are git and filesystem
 # facts, which grep and awk can check wherever bash and git run, with no
 # toolchain. Rules 13 and 14 read git too, but they compare parsed values,
-# so the Python half checks them as well.
+# so the Python half checks them as well. Rules 15, 16 and 17 join parsed
+# frontmatter to a body and to log.md, so the Python half checks them too.
 #
 # This script runs the Python half with the sidecar's .venv when the .venv
-# holds pyyaml and is Python 3.9 or later. Otherwise it runs the Python half
-# through `uv run`. knowledge-apply.sh says why the .venv is tried first.
-# Without either runner, the shell half still runs and says so. A runner that
-# cannot start the Python half, such as `uv run` refused by a package mirror,
-# is reported as a runner failure, not as a finding, and the script exits 2.
+# holds pyyaml and is Python 3.9 or later, and otherwise through `uv run`
+# after uv_ready. knowledge-apply.sh explains both. Without uv, the shell
+# half still runs and says so. When uv cannot install the packages, or a
+# runner cannot start the Python half, the script reports a runner failure,
+# not a finding, and exits 2.
 #
 # Files are read with carriage returns removed and a leading byte order mark
 # stripped, so a Windows checkout (`core.autocrlf`) reads the same as CI. The
@@ -285,23 +321,50 @@ while IFS= read -r f; do
   fi
 done < <(find "$bundle/" -name '*.md' -not -path '*/.obsidian/*' | sort)
 
-# ---- 2, 3, 4, 7, 9, 10, 12, 13, 14. the Python half ----------------------------
+# ---- 2, 3, 4, 7, 9, 10, 12, 13, 14, 15, 16, 17, 18. the Python half ------------
 here="$(dirname "$0")"
 py="$here/knowledge-conventions.py"
-rules="rules 2, 3, 4, 7, 9, 10, 12 and 13"
-[ -z "$since" ] || rules="rules 2, 3, 4, 7, 9, 10, 12, 13 and 14"
+rules="rules 2, 3, 4, 7, 9, 10, 12, 13, 15, 16, 17 and 18"
+[ -z "$since" ] || rules="rules 2, 3, 4, 7, 9, 10, 12, 13, 14, 15, 16, 17 and 18"
+uvflags=(); uverr=""; uvhint="Run uv sync in .lokf/ to pin them by hash."
+uv_ready() {
+  local err names name again unpinned lifted=""
+  command -v uv >/dev/null 2>&1 || return 1
+  uv sync --offline --quiet --script "$1" >/dev/null 2>&1 && return 0
+  until err="$(uv sync --color never --script "$1" ${uvflags[@]+"${uvflags[@]}"} 2>&1 >/dev/null)"; do
+    names="$(printf '%s\n' "$err" | sed -n 's/^warning: \([^ ]*\) is missing an upload date.*/\1/p' | tr -d '\140' | sed 's/-[0-9].*//' | tr '[:upper:]' '[:lower:]' | tr '_.' '--' | sort -u)"
+    again=""; unpinned=""
+    for name in $names; do
+      case " $lifted " in *" $name "*) again=1 ;; esac
+      case "$name" in *[!a-z0-9-]*) unpinned="$unpinned $name"; continue ;; esac
+      grep -qiE "^# dependencies = .*\"${name//-/[-_.]}==" "$1" || unpinned="$unpinned $name"
+    done
+    if [ -z "$names" ] || [ -n "$again$unpinned" ]; then
+      uverr="$(printf '%s\n' "$err" | grep -v ' is missing an upload date' || true)"
+      [ -z "$unpinned" ] || uverr+=$'\n'"${0##*/}: the package index serves no upload times for$unpinned, which the script's header does not pin with ==, so exclude-newer stays."
+      return 1
+    fi
+    for name in $names; do uvflags+=(--exclude-newer-package "$name=false"); lifted="$lifted $name"; done
+  done
+  [ -z "$lifted" ] || echo "${0##*/}: the package index serves no upload times, so exclude-newer is lifted for$lifted. The versions stay pinned. $uvhint" >&2
+  return 0
+}
 venv="$root/.lokf/.venv/bin/python"; [ -e "$venv" ] || venv="$root/.lokf/.venv/Scripts/python.exe"
 runner=""
+skipped=""; unrun=0
 if [ -x "$venv" ] && "$venv" -c 'import sys; assert sys.version_info >= (3, 9); import yaml' >/dev/null 2>&1; then
   runner="$venv"
-elif command -v uv >/dev/null 2>&1; then
+elif uv_ready "$py"; then
   runner=uv
+elif command -v uv >/dev/null 2>&1; then
+  unrun=1
+  [ -z "$uverr" ] || printf '%s\n' "$uverr" >&2
+  echo "$rules not checked: uv could not run $py, because it could not install its packages. Run uv sync in .lokf/ and this script uses that .venv." >&2
 fi
-skipped=""; unrun=0
 if [ -n "$runner" ]; then
   rc=0
   if [ "$runner" = uv ]; then
-    out="$(uv run --quiet "$py" "$bundle" ${since:+--since "$since"} 2>&1)" || rc=$?
+    out="$(uv run --quiet ${uvflags[@]+"${uvflags[@]}"} "$py" "$bundle" ${since:+--since "$since"} 2>&1)" || rc=$?
   else
     out="$("$runner" "$py" "$bundle" ${since:+--since "$since"} 2>&1)" || rc=$?
   fi
@@ -316,7 +379,7 @@ if [ -n "$runner" ]; then
        [ "$runner" = uv ] && hint=" Behind a package mirror, run uv sync in .lokf/ and this script uses that .venv."
        echo "$rules not checked: $runner could not run $py (exit $rc).$hint" >&2 ;;
   esac
-else
+elif [ "$unrun" -eq 0 ]; then
   skipped="$rules not checked: uv not found"
   echo "$skipped - install uv, or run $py directly with python3 3.9 or later and pyyaml" >&2
 fi

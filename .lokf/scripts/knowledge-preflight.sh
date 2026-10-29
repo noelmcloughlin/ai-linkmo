@@ -247,7 +247,7 @@ if have uv; then
     info just-pin "uv.lock pins no just, so the workflows fetch rust-just by version; uv add rust-just==1.47.0 in .lokf/ pins it by hash"
   fi
 else
-  miss toolkit "uv not installed - lokf validate, convert and query unavailable, and the conventions script skips its parser's half (rules 2, 3, 4, 7, 9, 10, 12, 13, 14); only the manual schema cross-check remains" "lokf validate and nine of the fourteen conventions (every skill's audit)"
+  miss toolkit "uv not installed - lokf validate, convert and query unavailable, and the conventions script skips its parser's half (rules 2, 3, 4, 7, 9, 10, 12, 13, 14, 15, 16, 17, 18); only the manual schema cross-check remains" "lokf validate and thirteen of the eighteen conventions (every skill's audit)"
 fi
 
 # The gate, the release and the scheduled librarian install the toolkit with
