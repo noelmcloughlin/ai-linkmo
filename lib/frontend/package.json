@@ -17,7 +17,7 @@
   "dependencies": {
     "@sjsf/ajv8-validator": "3.9.1",
     "@sjsf/daisyui5-theme": "3.9.0",
-    "@sjsf/form": "3.9.0",
+    "@sjsf/form": "3.9.1",
     "ajv": "8.20.0",
     "daisyui": "^5.7.50",
     "debounce": "^3.0.0",
