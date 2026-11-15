@@ -1,0 +1,14 @@
+{{- $to := "" -}}
+{{- with .Params.toUrl }}{{ $to = . | relURL }}{{ else }}{{ $to = index (partialCached "routes.html" "routes") .Params.to | default "" }}{{ end -}}
+{{- if not $to }}{{ errorf "site.toml's redirects send %s to %s, which is no file a page of the site is built from" .Path .Params.to }}{{ end -}}
+<!doctype html>
+<html lang="{{ site.Language.Locale }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ .Title }}</title>
+  <link rel="canonical" href="{{ $to | absURL }}">
+  <meta name="robots" content="noindex">
+  <meta http-equiv="refresh" content="0; url={{ $to }}">
+</head>
+<body><p>This page has moved to <a href="{{ $to }}">{{ $to }}</a>.</p></body>
+</html>

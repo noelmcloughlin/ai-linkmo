@@ -1,0 +1,81 @@
+# This repository's own values for the knowledge website. hugo.toml beside
+# this file holds everything that is the same on every site. The ktl-website
+# skill wrote this file once and never replaces it.
+
+# The site's address: the owner's GitHub Pages domain and the repository's
+# name under it. A user site (the <owner>.github.io repository) or a custom
+# domain has no name after the domain: "https://docs.example.org/".
+baseURL = "https://noelmcloughlin.github.io/ai-linkmo/"
+
+# The site's title, in the header and on every social card.
+title = "AI-LinkMO"
+
+[params]
+# One sentence, for search engines and link previews.
+description = "A reference implementation of operational AI governance, demonstrating four DevSecOps-ready access patterns (CLI, FastAPI, Svelte web UI, and graph database) over open AI-governance data."
+# The repository. Links to files that are not pages go here.
+repo = "https://github.com/noelmcloughlin/ai-linkmo"
+
+schema = "pkg:ai_atlas_nexus/ai_risk_ontology/schema/ai-risk-ontology.yaml"
+schemaProject = "ai-risk-ontology-linkmo"
+browse = "ai-risk-ontology-linkmo/browse"
+browseBuild = "just build-browse"
+
+# Everything below is optional. The site finds the README, the docs, the
+# figures, the changelog, a LinkML schema and a workspace by itself.
+
+# The default branch, when it is not main, and the tag a release carries,
+# when it is not v<version>.
+# branch = "master"
+# releaseTag = "{version}"
+
+# A logo of the repository's own, as files under .assets/. Left out, the
+# site shows the Knowledge Trust Ladder logo.
+# logo = ".assets/logo.svg"
+# logoDark = ".assets/logo-dark.svg"
+
+# The folder the README, docs/, the changelog and .assets/ come from, when it
+# is not the repository's root, such as a fork's .linkml/ sidecar.
+# source = ".linkml"
+# The folder of a LinkML project whose src/<name>/schema/ the site shows,
+# when it is neither the root nor .linkml/.
+# linkml = "my-project"
+# Or the schema file itself, when no src/<name>/schema/ holds it: a path
+# from the root, or pkg:<package>/<path> for one inside a Python package
+# that the environment of the uv project schemaProject names holds.
+# schema = "pkg:my_package/schema/my_schema.yaml"
+# schemaProject = "my-project"
+
+# The data: a folder of SQLite databases and their Datasette metadata, from
+# the repository's root, served under browse/ with a page that opens each in
+# Datasette Lite, and the command that writes the folder when it holds no
+# database. The databases go on the public site, so none is served until
+# this is set.
+# browse = "my-project/browse"
+# browseBuild = "just build-browse"
+
+# More folders under docs/ that are not pages.
+# docsExclude = ["templates-linkml", "elements", "drafts"]
+
+# The docs pages in groups of your choosing, each page by its path under
+# docs/ without .md. Left out, the pages at the top of docs/ are one group
+# and each folder is a group of its own. With groups, the build stops when
+# one names a missing page or a page is in no group.
+# [[params.docsGroups]]
+# label = "Start here"
+# pages = ["install", "usage"]
+
+# Old addresses, each sent on to the page built from a repository file. One
+# ending in /* stands for every page of the schema. Hugo lowercases a
+# table's keys, so an address with capitals takes the list form below.
+# [params.redirects]
+# "about" = "docs/about.md"
+# "elements/*" = "schema/*"
+#
+# [[params.redirects]]
+# from = "elements/OldName"
+# to = "website/generated/schema/classes/NewName.md"
+
+[[params.redirects]]
+from = "schema/*"
+to = "schema/*"

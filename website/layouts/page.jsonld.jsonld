@@ -1,0 +1,2 @@
+{{- /* The concept's own entry in concepts.jsonld, with the bundle's context. */ -}}
+{{- with index (partialCached "jsonld.html" "jsonld") .Params.concept.id }}{{ jsonify (dict "indent" "  ") . }}{{ end }}

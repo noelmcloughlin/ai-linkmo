@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="{{ site.Language.Locale }}">
+<head>
+  <meta charset="utf-8">
+  {{- /*
+    Raw HTML in the repository's Markdown reaches the page as written. This
+    policy keeps it from running anything: a script loads only from the
+    site's own /js/ and /pagefind/ folders, which no repository file is
+    served under, so an inline script, an event handler, a javascript:
+    address or a script a concept names cannot run. Frames, plugins and
+    forms are refused. The preview server adds its own reload script, so the
+    policy is left off there.
+  */ -}}
+  {{- if not hugo.IsServer }}
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src {{ "js/" | absURL }} {{ "pagefind/" | absURL }} 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
+  {{- end }}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {{- $title := partial "title.html" . }}
+  {{- /* The logo: the repository's own, from .assets/, when site.toml names one, else the Knowledge Trust Ladder logo the site carries. */ -}}
+  {{- $logo := "brand/knowledge-trust-ladder-logo.svg" }}
+  {{- $logoDark := "brand/knowledge-trust-ladder-logo-dark.svg" }}
+  {{- with site.Params.logo }}{{ $logo = strings.TrimPrefix "." . }}{{ $logoDark = strings.TrimPrefix "." (site.Params.logoDark | default .) }}{{ end }}
+  {{- $description := .Description | default .Params.description | default site.Params.description }}
+  <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ $title }} | {{ site.Title }}{{ end }}</title>
+  <meta name="description" content="{{ $description }}">
+  <link rel="canonical" href="{{ .Permalink }}">
+  <link rel="icon" href="{{ $logo | relURL }}">
+  <meta property="og:title" content="{{ $title }}">
+  <meta property="og:description" content="{{ $description }}">
+  <meta property="og:type" content="{{ cond .IsHome "website" "article" }}">
+  <meta property="og:url" content="{{ .Permalink }}">
+  <meta property="og:site_name" content="{{ site.Title }}">
+  {{- with partial "card.html" . }}
+  <meta property="og:image" content="{{ .Permalink }}">
+  <meta name="twitter:card" content="summary_large_image">
+  {{- end }}
+  <link rel="alternate" type="application/atom+xml" title="{{ site.Title }}: bundle log" href="{{ "knowledge/log.xml" | relURL }}">
+  {{- /* The page as Markdown: a docs page's or the README's with full addresses, a concept's file as the bundle holds it. */ -}}
+  {{- with partialCached "markdown-file.html" . .RelPermalink }}
+  <link rel="alternate" type="text/markdown" href="{{ .RelPermalink }}">
+  {{- else }}{{ with .Params.conceptId }}
+  <link rel="alternate" type="text/markdown" href="{{ printf "knowledge/%s.md" . | relURL }}">
+  {{- end }}{{ end }}
+  {{- with .OutputFormats.Get "jsonld" }}
+  <link rel="alternate" type="application/ld+json" href="{{ .RelPermalink }}">
+  {{- /* The concept's record as data in the page, without its body, which the page already shows. */ -}}
+  {{- $record := dict }}
+  {{- range $k, $v := index (partialCached "jsonld.html" "jsonld") $.Params.concept.id }}{{ if ne $k "body" }}{{ $record = merge $record (dict $k $v) }}{{ end }}{{ end }}
+  {{- with $record }}
+  <script type="application/ld+json">{{ . }}</script>
+  {{- end }}
+  {{- end }}
+  {{- /* The stylesheets keep one address across builds, so a page the browser kept from before a deploy still finds them. */ -}}
+  {{- $light := css.ChromaStyles (dict "targetPath" "css/code-light.css" "style" "github" "mode" "light") }}
+  {{- $dark := css.ChromaStyles (dict "targetPath" "css/code-dark.css" "style" "github" "mode" "dark") | minify }}
+  {{- $css := slice (resources.Get "css/site.css") $light (resources.Get "css/custom.css") | resources.Concat "css/site.css" | minify }}
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}?v={{ crypto.SHA256 $css.Content | truncate 8 "" }}">
+  <link rel="stylesheet" href="{{ $dark.RelPermalink }}" media="(prefers-color-scheme: dark)" id="code-dark">
+  <link rel="stylesheet" href="{{ "pagefind/pagefind-ui.css" | relURL }}">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="{{ "fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2" | relURL }}">
+  {{- $js := resources.Get "js/site.js" | minify }}
+  <script src="{{ $js.RelPermalink }}?v={{ crypto.SHA256 $js.Content | truncate 8 "" }}"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top">
+    <a class="brand" href="{{ "" | relURL }}">
+      <picture>
+        {{- if ne $logoDark $logo }}<source media="(prefers-color-scheme: dark)" srcset="{{ $logoDark | relURL }}">{{ end }}
+        <img src="{{ $logo | relURL }}" alt="" width="28" height="28">
+      </picture>
+      {{ site.Title }}
+    </a>
+    <div id="search" data-bundle="{{ "pagefind/" | relURL }}"></div>
+    {{- /* The Display menu is a popover, so the browser closes it on a click outside it or on Escape. site.js shows its button, which does nothing without the script. */ -}}
+    <button class="top__button" type="button" popovertarget="prefs" id="prefs-open" hidden>Display</button>
+    <div class="prefs" id="prefs" popover>
+      {{- range $set := slice
+          (dict "name" "theme" "legend" "Theme" "choices" (slice (slice "auto" "System") (slice "light" "Light") (slice "dark" "Dark")))
+          (dict "name" "size" "legend" "Text size" "choices" (slice (slice "medium" "Medium") (slice "large" "Large") (slice "larger" "Larger"))) }}
+      <fieldset>
+        <legend>{{ $set.legend }}</legend>
+        <div class="seg">
+          {{- range $set.choices }}
+          <label><input type="radio" name="{{ $set.name }}" value="{{ index . 0 }}">{{ index . 1 }}</label>
+          {{- end }}
+        </div>
+      </fieldset>
+      {{- end }}
+    </div>
+    <a class="top__button top__github" href="{{ site.Params.repo }}">GitHub</a>
+    <a class="top__button top__menu" href="#nav">Menu</a>
+  </header>
+  <div class="layout">
+    <nav id="nav" class="sidebar" aria-label="Site">
+      <a class="sidebar__close" href="#main">Close the menu</a>
+      {{- partialCached "sidebar.html" (partial "nav-key.html" .) (partial "nav-key.html" .) }}
+    </nav>
+    {{- /* Search leaves out the release pages and the schema's slots and types, which would outnumber everything else. */ -}}
+    {{- /* A page that retells another has no line in the navigation, so site.js marks the line of the page it retells. */ -}}
+    {{- $retells := "" }}
+    {{- with index (partialCached "levels.html" "levels") .RelPermalink }}{{ with (index . 0).page }}{{ if ne .Path $.Path }}{{ $retells = .RelPermalink }}{{ end }}{{ end }}{{ end }}
+    <main id="main" tabindex="-1"{{ if not (or (hasPrefix .Path "/changelog") (in (slice "slots" "types") .Params.schemaKind)) }} data-pagefind-body{{ end }}{{ with $retells }} data-retells="{{ . }}"{{ end }}>
+      {{- partial "tools.html" . }}
+      {{- block "main" . }}{{ end }}
+      {{- /* One empty region on every build, so clean-html.py can tell a build whose marks the minifier dropped. */ -}}
+      {{- if .IsHome }}{{ with site.Params.rawmark }}{{ printf "<!--# raw %s --><!--# /raw %s -->" . . | safeHTML }}{{ end }}{{ end }}
+      {{- partial "pager.html" . }}
+    </main>
+    {{- /* The page has the width to itself. Only a concept has something to set beside its words: its neighbours. */ -}}
+    {{- if .Params.conceptId }}{{ partial "neighbourhood.html" . }}{{ end }}
+  </div>
+  <script src="{{ "pagefind/pagefind-ui.js" | relURL }}" defer></script>
+  {{- if .Store.Get "hasMermaid" }}
+  {{- with partial "vendor.html" "mermaid" }}<script src="{{ .RelPermalink }}" defer></script>{{ end }}
+  {{- end }}
+  {{- block "scripts" . }}{{ end }}
+</body>
+</html>

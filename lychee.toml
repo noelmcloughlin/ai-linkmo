@@ -36,5 +36,5 @@ exclude_path = [
   "(^|/)docs/elements/",
   # What the website's build writes, with links that resolve only once the
   # site is served; website/'s own link check covers them (ktl-website Step 2).
-  "(^|/)website/(dist|public|src/content|src/generated|node_modules)/",
+  "(^|/)website/(dist|generated|resources|\\.venv)/",
 ]

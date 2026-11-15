@@ -1,0 +1,21 @@
+{{- /*
+  Where a page sits in the navigation: the heading of its docs group
+  ("docs:<label>"), its bundle group (that group's path) or its kind of
+  schema element ("schema:<kind>"), or the part of the site alone ("guide",
+  "bundle"). A docs page that retells another sits where that page sits. A
+  changelog page and the data page sit under none, and their key is "".
+*/ -}}
+{{- $key := "" -}}
+{{- $full := . -}}
+{{- with index (partialCached "levels.html" "levels") .RelPermalink }}{{ $full = (index . 0).page }}{{ end -}}
+{{- if and (hasPrefix .Path "/docs/") (ne $full.Path .Path) }}{{ $key = partial "nav-key.html" $full -}}
+{{- else if and .Params.conceptId .Parent }}{{ $key = .Parent.Path -}}
+{{- else if and .IsSection (hasPrefix .Path "/knowledge/") }}{{ $key = .Path -}}
+{{- else if or (hasPrefix .Path "/knowledge") (in (slice "/health" "/graph") .Path) }}{{ $key = "bundle" -}}
+{{- else if .Params.schemaKind }}{{ $key = printf "schema:%s" .Params.schemaKind -}}
+{{- else if hasPrefix .Path "/docs" -}}
+  {{- $key = "guide" -}}
+  {{- with index (partialCached "docs-groups.html" "docs").by .Path }}{{ $key = printf "docs:%s" . }}{{ end -}}
+{{- else if not (or (hasPrefix .Path "/changelog") (hasPrefix .Path "/browse")) }}{{ $key = "guide" -}}
+{{- end -}}
+{{- return $key -}}

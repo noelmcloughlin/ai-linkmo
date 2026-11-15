@@ -1,0 +1,8 @@
+{{- /*
+  Markdown from the repository, with each Hugo shortcode in it made literal
+  text. Hugo runs {{< name >}} and {{% name %}} wherever they stand, in a
+  code block too, and stops the build when it has no such template, so a page
+  that shows one would otherwise break the site. markdown.html undoes this
+  for the text served as Markdown.
+*/ -}}
+{{- return (replaceRE `(?s)\{\{([<%])(.*?)([>%])\}\}` "{{$1/*$2*/$3}}" .) -}}

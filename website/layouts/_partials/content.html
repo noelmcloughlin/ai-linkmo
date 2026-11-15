@@ -1,0 +1,2 @@
+{{- /* The page's body, with its raw HTML's addresses resolved by raw.html. */ -}}
+{{- return (partial "raw.html" (dict "html" .Content "from" (partial "repo-path.html" .))) -}}

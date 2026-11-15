@@ -1,0 +1,15 @@
+{{- /*
+  The page's social card, drawn at build time: its title, the site's name,
+  and for a concept its trust label, on assets/card.png. A release page and
+  a redirect get none. A schema's slots and types, which can number in the
+  thousands, share the home page's card, as search leaves them out.
+*/ -}}
+{{- if or .Params.release .Params.to .Params.toUrl }}{{ return false }}{{ end -}}
+{{- if in (slice "slots" "types") .Params.schemaKind }}{{ return partial "card.html" site.Home }}{{ end -}}
+{{- $title := partial "title.html" . -}}
+{{- $line := site.Title -}}
+{{- with .Params.conceptId }}{{ $line = printf "%s  ·  %s" site.Title ((index (partialCached "concepts.html" "concepts").id .).trust.rung | strings.FirstUpper) }}{{ end -}}
+{{- $card := resources.Get "card.png" | images.Filter
+    (images.Text $title (dict "color" "#1d1d1b" "size" 68 "linespacing" 14 "x" 90 "y" 150))
+    (images.Text $line (dict "color" "#185fa5" "size" 34 "x" 90 "y" 520)) -}}
+{{- return ($card | resources.Copy (printf "og%s.png" (cond .IsHome "/index" .Path))) -}}

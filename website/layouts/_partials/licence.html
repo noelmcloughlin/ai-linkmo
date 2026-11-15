@@ -1,0 +1,9 @@
+{{- /* A licence as a link: a Creative Commons address by its short name, such as "CC BY 4.0", anything else as written. */ -}}
+{{- if hasPrefix . "http" -}}
+  {{- $name := . -}}
+  {{- with findRESubmatch `creativecommons\.org/(?:licenses/([a-z-]+)|publicdomain/(zero))/([0-9.]+)` . 1 -}}
+    {{- $m := index . 0 -}}
+    {{- $name = cond (ne (index $m 2) "") (printf "CC0 %s" (index $m 3)) (printf "CC %s %s" (upper (index $m 1)) (index $m 3)) -}}
+  {{- end -}}
+  <a href="{{ . }}" rel="license">{{ $name }}</a>
+{{- else -}}{{ . }}{{- end -}}

@@ -1,0 +1,49 @@
+{{- /*
+  The docs pages: one per Markdown file under docs/, at /docs/<name>/. A
+  folder's index.md is that folder's own page. A folder `params.docsExclude`
+  names is left out. A file's frontmatter is read as data: its `title` and
+  `description` are used, and no other key reaches Hugo, so a file that sets
+  `url`, `draft` or `layout` changes nothing here. A page's title is the
+  frontmatter's, or the file's first `# ` heading, which then stays the
+  page's h1.
+*/ -}}
+{{- $exclude := site.Params.docsExclude | default slice -}}
+{{- $any := false -}}
+{{- $index := false -}}
+{{- range resources.Match "docs/**.md" -}}
+  {{- $rel := strings.TrimPrefix "/docs/" .Name -}}
+  {{- $skip := false -}}
+  {{- range $exclude }}{{ if hasPrefix $rel (printf "%s/" (strings.TrimSuffix "/" .)) }}{{ $skip = true }}{{ end }}{{ end -}}
+  {{- if not $skip -}}
+    {{- $any = true -}}
+    {{- $fm := dict -}}
+    {{- $body := .Content -}}
+    {{- with findRESubmatch `(?s)\A---\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\z)(.*)\z` .Content 1 -}}
+      {{- with try (index . 0 1 | transform.Unmarshal) }}{{ with .Value }}{{ if reflect.IsMap . }}{{ $fm = . }}{{ end }}{{ end }}{{ end -}}
+      {{- $body = index . 0 2 -}}
+    {{- end -}}
+    {{- $name := strings.TrimSuffix ".md" $rel -}}
+    {{- $title := "" -}}
+    {{- $shift := false -}}
+    {{- with $fm.title -}}
+      {{- $title = string . -}}
+      {{- $shift = true -}}
+      {{- $body = strings.TrimPrefix (printf "# %s\n" $title) (strings.TrimLeft "\r\n" $body) -}}
+    {{- else -}}
+      {{- with findRESubmatch `(?m)^# +(.+?)\s*$` $body 1 -}}{{- $title = index . 0 1 | replaceRE "[*`]" "" | replaceRE `\[([^\]]+)\]\([^)]*\)` "$1" -}}{{- end -}}
+    {{- end -}}
+    {{- /* A dot in a name, as in architecture.en-simple, is kept in the address and kept out of the path, where Hugo would read it as a language or a format. */ -}}
+    {{- $page := dict "kind" "page" "path" (replace $name "." "-") "url" (printf "/docs/%s/" (replace $name " " "-" | lower)) -}}
+    {{- if eq (path.Base $name) "index" -}}
+      {{- $page = dict "kind" "section" "path" (path.Dir $name) -}}
+      {{- if eq $name "index" }}{{ $index = true }}{{ end -}}
+    {{- end -}}
+    {{- $.AddPage (merge $page (dict
+        "title" (or $title (path.Base $name | humanize))
+        "params" (dict "docName" $name "repoPath" (path.Join (strings.Trim (site.Params.source | default "") "/") "docs" $rel) "shift" $shift "description" (or $fm.description "" | string))
+        "content" (dict "value" (partial "literal.html" $body)))) -}}
+  {{- end -}}
+{{- end -}}
+{{- if and $any (not $index) -}}
+  {{- $.AddPage (dict "kind" "section" "path" "." "title" "Guide") -}}
+{{- end -}}

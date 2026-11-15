@@ -1,0 +1,16 @@
+{{- /*
+  A library from `params.vendor`, fetched once at build time, checked against
+  its SHA-256 and published under /js/vendor/. A file that does not match
+  stops the build.
+*/ -}}
+{{- $v := index site.Params.vendor . -}}
+{{- $out := false -}}
+{{- with try (resources.GetRemote $v.url) -}}
+  {{- with .Err }}{{ errorf "vendor %s: cannot fetch %s: %s" $ $v.url . }}{{ end -}}
+  {{- with .Value -}}
+    {{- $got := crypto.SHA256 .Content -}}
+    {{- if ne $got $v.sha256 }}{{ errorf "vendor %s: %s has SHA-256 %s, not the %s that hugo.toml names" $ $v.url $got $v.sha256 }}{{ end -}}
+    {{- $out = . | resources.Copy (printf "js/vendor/%s.js" $) -}}
+  {{- else }}{{ errorf "vendor %s: nothing at %s" $ $v.url }}{{ end -}}
+{{- end -}}
+{{- return $out -}}

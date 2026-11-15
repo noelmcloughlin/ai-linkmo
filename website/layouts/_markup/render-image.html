@@ -1,0 +1,3 @@
+{{- $src := partial "route.html" (dict "from" (partial "repo-path.html" .Page) "url" .Destination "image" true) -}}
+<img src="{{ $src }}" alt="{{ .PlainText }}"{{ with .Title }} title="{{ . }}"{{ end }} loading="lazy">
+{{- /**/ -}}

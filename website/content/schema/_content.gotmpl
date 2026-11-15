@@ -1,0 +1,34 @@
+{{- /*
+  The schema's pages, when prepare.sh found a LinkML schema and ran gen-doc
+  on it: gen-doc's index as this section's page, with the schema's diagram
+  set before its first table; a page listing each kind of element; and
+  gen-doc's own page per class, enumeration, slot, type and subset. Each is
+  tidied by gendoc.html. A page's `repoPath` is the generated file, so the
+  links gen-doc wrote between its pages resolve as every other link does.
+  An element's page states its address, which keeps its name's case as
+  written, /schema/classes/Person/: the links in gen-doc's diagrams rely on
+  that.
+*/ -}}
+{{- $base := printf "%s/generated/schema" (path.Base hugo.WorkingDir) -}}
+{{- with resources.Get "gendoc/_index.md" -}}
+  {{- $doc := partial "gendoc.html" . -}}
+  {{- $body := $doc.body -}}
+  {{- /* Mermaid refuses a diagram of more than 50,000 characters, so a longer one is left out. */ -}}
+  {{- with resources.Get "gendoc/diagram.mmd" -}}
+    {{- if lt (len .Content) 40000 }}{{ $body = replace $body "\n## " (printf "\n## Diagram\n\n```mermaid\n%s\n```\n\n## " .Content) 1 }}{{ end -}}
+  {{- end -}}
+  {{- $.AddPage (dict "kind" "section" "path" "." "title" ($doc.heading | default "Schema") "content" (dict "value" (partial "literal.html" $body))
+      "params" (dict "schemaKind" "schema" "repoPath" (printf "%s/_index.md" $base) "description" $doc.description)) -}}
+  {{- range $kind, $title := dict "classes" "Classes" "enums" "Enumerations" "slots" "Slots" "types" "Types" "subsets" "Subsets" -}}
+    {{- with resources.Match (printf "gendoc/%s/*.md" $kind) -}}
+      {{- $.AddPage (dict "kind" "section" "path" $kind "title" $title "params" (dict "schemaKind" $kind)) -}}
+      {{- range . -}}
+        {{- $name := path.BaseName .Name -}}
+        {{- $doc := partial "gendoc.html" . -}}
+        {{- $.AddPage (dict "kind" "page" "path" (printf "%s/%s" $kind $name) "url" (printf "/schema/%s/%s/" $kind $name) "title" $name "content" (dict "value" (partial "literal.html" $doc.body))
+            "params" (dict "schemaKind" $kind "schemaName" $name "repoPath" (printf "%s/%s/%s.md" $base $kind $name)
+              "description" $doc.description "deprecated" (strings.Contains $doc.heading "DEPRECATED"))) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}

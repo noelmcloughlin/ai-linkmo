@@ -1,8 +1,9 @@
-# Everything below is written by `npm run sync` or `astro build`; the
-# sources are the README, docs/, .assets/ and the bundle, never these.
+# Everything below is written by scripts/build.sh. The sources are the
+# README, docs/, .assets/, the changelog, the schema and the bundle.
+.venv/
+generated/
 dist/
-.astro/
-node_modules/
-public/
-src/content/docs/
-src/generated/
+resources/
+.hugo_build.lock
+static/pagefind/
+.preview/

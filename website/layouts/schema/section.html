@@ -1,0 +1,32 @@
+{{ define "main" }}
+{{- /* The schema's overview: where its file is, its diagram, and gen-doc's index of every element by kind. A kind's own page lists that kind alone. */ -}}
+<article class="prose">
+  {{- if ne .Params.schemaKind "schema" }}
+  <p class="eyebrow" data-pagefind-ignore><a href="{{ .Parent.RelPermalink }}">{{ .Parent.Title }}</a></p>
+  <h1>{{ .Title }}</h1>
+  <ul class="concept-list">
+    {{- range .RegularPages.ByTitle }}
+    <li><a href="{{ .RelPermalink }}"><code translate="no">{{ .Title }}</code></a>{{ if .Params.deprecated }} <span class="chip">deprecated</span>{{ end }}
+      {{- with .Params.description }}<br><span class="muted">{{ partial "inline.html" . }}</span>{{ end }}</li>
+    {{- end }}
+  </ul>
+  {{- else }}
+  <p class="eyebrow" data-pagefind-ignore><span data-pagefind-filter="Type:Schema">LinkML schema</span></p>
+  <h1>{{ .Title }}</h1>
+  {{- with .Params.description }}<p class="lead">{{ partial "inline.html" . }}</p>{{ end }}
+  {{- with partialCached "schema-file.html" "schema-file" }}
+  {{- if .domain }}
+  <p data-pagefind-ignore>This repository holds no LinkML schema of its own, so the site shows the domain vocabulary its knowledge bundle is written in, which adds to LOKF {{ .core }}.</p>
+  {{- else if .core }}
+  <p data-pagefind-ignore>This repository holds no LinkML schema of its own, so the site shows the one its knowledge bundle is written in, LOKF {{ .core }}.</p>
+  {{- end }}
+  <p data-pagefind-ignore>Schema file: <a href="{{ .file.RelPermalink }}"><code>{{ path.Base .file.RelPermalink }}</code></a>, from
+  {{- if .path }} <a href="{{ printf "%s/blob/%s/%s" site.Params.repo (site.Params.ref | default site.Params.branch) .path }}"><code>{{ .path }}</code></a>
+  {{- else if eq .package "lokf" }} the <a href="https://pypi.org/project/lokf/{{ .core }}/"><code>lokf</code> {{ .core }}</a> package the sidecar installs
+  {{- else }} the <code>{{ .package }}</code> package
+  {{- end }}</p>
+  {{- end }}
+  {{ partial "content.html" . }}
+  {{- end }}
+</article>
+{{ end }}

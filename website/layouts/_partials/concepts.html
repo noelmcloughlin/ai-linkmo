@@ -1,0 +1,17 @@
+{{- /*
+  The bundle's concepts three ways: by id, by IRI and by page address, each
+  with its page and its trust; and the edges `lokf export` wrote. Called
+  cached, so every list, link and map reads one table.
+*/ -}}
+{{- $s := newScratch -}}
+{{- range $k := slice "id" "iri" "url" }}{{ $s.Set $k dict }}{{ end -}}
+{{- range $p := site.RegularPages -}}
+  {{- with $p.Params.conceptId -}}
+    {{- $c := dict "id" . "page" $p "trust" (partial "trust.html" .) -}}
+    {{- $s.SetInMap "id" . $c -}}
+    {{- $s.SetInMap "url" $p.RelPermalink $c -}}
+    {{- with $p.Params.concept.id }}{{ $s.SetInMap "iri" . $c }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- $graph := os.ReadFile "generated/knowledge/graph.json" | transform.Unmarshal -}}
+{{- return (dict "id" ($s.Get "id") "iri" ($s.Get "iri") "url" ($s.Get "url") "edges" $graph.edges) -}}

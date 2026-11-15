@@ -1,0 +1,15 @@
+{{- /*
+  The data page, when site.toml names a data folder and prepare.sh served
+  its databases under browse/. Each database has a section with its size, a
+  download link and a link that opens it in Datasette Lite, which runs
+  Datasette in the reader's browser.
+*/ -}}
+{{- if os.FileExists "generated/browse.json" -}}
+  {{- $data := os.ReadFile "generated/browse.json" | transform.Unmarshal -}}
+  {{- $n := len $data.databases -}}
+  {{- $count := string $n -}}
+  {{- if lt $n 10 }}{{ $count = index (slice "no" "one" "two" "three" "four" "five" "six" "seven" "eight" "nine") $n }}{{ end -}}
+  {{- $which := printf "%s SQLite database%s" $count (cond (eq $n 1) "" "s") -}}
+  {{- $.AddPage (dict "kind" "section" "path" "." "title" "Browse the data"
+      "params" (dict "browse" $data "which" $which "description" (printf "The repository's data as %s, to open in Datasette Lite or download." $which))) -}}
+{{- end -}}
