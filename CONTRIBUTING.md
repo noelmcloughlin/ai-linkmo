@@ -61,7 +61,7 @@ npx skills add noelmcloughlin/knowledge-trust-ladder --skill ktl-curator --yes  
 - **Lock files are part of the change.** CI checks `uv.lock` and `.lokf/uv.lock` with `--locked`; a dependency edit that does not update its lock fails the run.
 - **`lint-and-docs.yaml` is easy to trip locally**: ShellCheck, `actionlint`, markdownlint against `.markdownlint-cli2.jsonc`, link-checking against `lychee.toml`, codespell over every `*.md`, and this file's word budget.
 - **Dependabot bumps actions and dependencies** (`.github/dependabot.yml`), never a person. Every action is pinned to a commit SHA, the version in a trailing comment, never to a tag.
-- **The skills pin moves with the sidecar copies.** A weekly [`knowledge-sync.yaml`](.github/workflows/knowledge-sync.yaml) pull request moves `TRUST_LADDER_SKILLS_REF` and `TRUST_LADDER_SKILLS_SHA` to the newest release and refreshes every copy it lists; to move sooner, run `.lokf/scripts/knowledge-sync.sh --branch <tag>`. Never move the pin alone: the install step installs nothing when the two disagree.
+- **The ktl pin and the sidecar copies move together.** The weekly [`knowledge-sync.yaml`](.github/workflows/knowledge-sync.yaml) pull request moves both; to move sooner, run `.lokf/scripts/knowledge-sync.sh --pr <tag>`. Never move `ktl==` in `.lokf/pyproject.toml` alone.
 - **If your change alters behaviour** (not just wording), add an entry under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
 - Keep changes focused, say what and why, and fill in the PR template's checklist.
 

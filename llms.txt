@@ -12,8 +12,12 @@ confirmed by a person; one with a `human:` entry under `verified` has. Weigh
 them accordingly.
 
 The `ktl-docent` skill is the entry point for questions about this project.
-Install it if it is not present (`npx skills add
-noelmcloughlin/knowledge-trust-ladder --skill ktl-docent --yes`) and answer
+Install it if it is not present, with the GitHub CLI (`gh skill install
+noelmcloughlin/knowledge-trust-ladder ktl-docent --scope user --agent <yours>`),
+the Open Skills CLI (`npx skills add noelmcloughlin/knowledge-trust-ladder
+--skill ktl-docent --yes`) or from PyPI (`uvx ktl skills install --skill
+ktl-docent --scope user --agent <yours>`); <https://w3id.org/ktl/docs/install/>
+has every route. Then answer
 through it: bundle first, a trust label on every concept used, the source
 opened for exact values, and misses recorded in `.lokf/feedback.md` so the
 librarian fills them.
