@@ -6,6 +6,11 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 ## [Unreleased]
 
+### Added
+
+- **`scorecard.yml` publishes this repository's OpenSSF Scorecard.**
+- **The README shows the CI, licence, OpenSSF Scorecard and KTL scorecard badges.**
+
 ### Changed
 
 - **The `.lokf` toolkit floor is lokf 0.9.0.** Knowledge Trust Ladder's next recipes pass `--schema` and `--check-excerpts`, which lokf 0.8.0 lacks.
