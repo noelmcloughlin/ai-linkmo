@@ -21,7 +21,7 @@ These limitations are known and accepted for now. Each becomes a vulnerability o
 - The write endpoints, `PUT /byo` and `export=true` on `/graph` and `/crosswalk`, are unauthenticated, and the server does not enforce the `X-API-Key` scheme `/openapi.json` declares.
 - The web UI's login is a persona picker, not authentication.
 - The UI fetches persona avatars from `ui-avatars.com`, a third-party origin.
-- No CodeQL or dependency-vulnerability scanning is configured.
+- No dependency-vulnerability scanning is configured. `codeql.yml` runs CodeQL.
 - `graph/` holds committed generated output that the export commands rewrite in place.
 
 ## What executes here
