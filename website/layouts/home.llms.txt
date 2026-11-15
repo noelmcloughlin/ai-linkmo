@@ -1,0 +1,32 @@
+# {{ site.Title }}
+
+> {{ site.Params.description }}
+
+{{ with site.GetPage "/knowledge" }}{{ .Params.concept.description }}{{ end }} Every page of this site is built from a file of the repository at {{ site.Params.repo }}. Each concept of the knowledge bundle says how far it has been checked: confirmed by a person, checked by automation only, or checked by nobody. Weigh each accordingly.
+
+## The knowledge bundle as data
+
+{{ range $f := slice "concepts.jsonld" "graph.json" "graph.nt" "datasets.jsonld" -}}
+- [{{ $f }}]({{ printf "knowledge/%s" $f | absURL }})
+{{ end -}}
+- [Every concept in one file]({{ "llms-full.txt" | absURL }})
+{{- with site.GetPage "/browse" }}
+- [Browse the data]({{ .Permalink }}): the repository's data as {{ .Params.which }}, to open in Datasette Lite or download{{ end }}
+
+{{ with partialCached "schema-file.html" "schema-file" -}}
+## The schema
+
+- [{{ (site.GetPage "/schema").Title }}]({{ .file.Permalink }}): {{ if .domain }}the domain vocabulary the knowledge bundle is written in, which adds to LOKF core{{ else if .core }}LOKF core, the LinkML schema the knowledge bundle is written in{{ else if .package }}the LinkML schema as the {{ .package }} package holds it{{ else }}the LinkML schema as the repository holds it{{ end }}. Its classes, enumerations, slots and types have a page each under {{ "schema/" | absURL }}
+
+{{ end -}}
+## Docs
+{{ with site.Home }}{{ with partialCached "markdown-file.html" . .RelPermalink }}
+- [The home page]({{ .Permalink }}): the README{{ end }}{{ end }}
+{{- with site.GetPage "/docs" }}{{ $d := . }}{{ if .Params.docName }}{{ with partialCached "markdown-file.html" $d $d.RelPermalink }}
+- [{{ $d.Title }}]({{ .Permalink }}){{ end }}{{ end }}{{ end }}
+{{- range (partialCached "docs-groups.html" "docs").list }}{{ range $p := .pages }}{{ with partialCached "markdown-file.html" $p $p.RelPermalink }}
+- [{{ $p.Title }}]({{ .Permalink }}){{ end }}{{ end }}{{ end }}
+
+## Concepts
+{{ range (partialCached "concepts.html" "concepts").id }}
+- [{{ .page.Title }}]({{ printf "knowledge/%s.md" .id | absURL }}): {{ .page.Params.concept.description }} ({{ .trust.label }}){{ end }}

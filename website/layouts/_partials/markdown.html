@@ -1,0 +1,59 @@
+{{- /*
+  Markdown written in a repository file, as text read away from the site:
+  every link, image and raw-HTML address becomes a full one, since the text
+  has no address of its own to resolve them against. A link goes where
+  route.html sends it from the page, and a link to a heading of the page
+  itself goes to that heading on the page. Fenced code is left as written,
+  and so is each shortcode literal.html made literal. With "shift" true,
+  each heading moves down a level, under a title set above the text.
+  Takes (dict "page" <the page> "text" <the Markdown> "from" <the file's
+  repository path>), and "shift".
+*/ -}}
+{{- $at := dict "page" .page.Permalink "from" .from -}}
+{{- $lines := slice -}}
+{{- $fence := "" -}}
+{{- range split (replaceRE `(?s)\{\{([<%])/\*(.*?)\*/([>%])\}\}` "{{$1$2$3}}" .text) "\n" -}}
+  {{- $line := . -}}
+  {{- $prose := not $fence -}}
+  {{- /* A fence opens with three or more backticks or tildes, quoted or not, and closes with as many of the same alone on a line. */ -}}
+  {{- with findRESubmatch "^(?:[ \t]*>)*[ \t]*(`{3,}|~{3,})(.*)$" $line 1 -}}
+    {{- $mark := index . 0 1 -}}
+    {{- if not $fence -}}
+      {{- $fence = $mark -}}
+    {{- else if and (hasPrefix $mark (substr $fence 0 1)) (ge (len $mark) (len $fence)) (not (strings.TrimSpace (index . 0 2))) -}}
+      {{- $fence = "" -}}
+    {{- end -}}
+    {{- $prose = false -}}
+  {{- end -}}
+  {{- if $prose -}}
+    {{- /* A code span is set aside while the line's addresses change, and put back after. */ -}}
+    {{- $spans := findRE "``[^`].*?``|`[^`]+`" $line -}}
+    {{- range $i, $span := $spans }}{{ $line = replace $line $span (printf "\x00%d\x00" $i) }}{{ end -}}
+    {{- /* An inline link or image: [words](address "title"), the address bare or in angle brackets. */ -}}
+    {{- range findRESubmatch `(!?)\[((?:[^\[\]]|\[[^\[\]]*\])*)\]\((<[^>]*>|[^)\s]+)((?:\s+(?:"[^"]*"|'[^']*'))?)\)` $line -}}
+      {{- $url := index . 3 -}}
+      {{- $angle := hasPrefix $url "<" -}}
+      {{- if $angle }}{{ $url = $url | strings.TrimPrefix "<" | strings.TrimSuffix ">" }}{{ end -}}
+      {{- $full := partial "full-url.html" (merge $at (dict "url" $url "image" (eq (index . 1) "!"))) -}}
+      {{- $line = replace $line (index . 0) (printf "%s[%s](%s%s)" (index . 1) (index . 2) (cond $angle (printf "<%s>" $full) $full) (index . 4)) -}}
+    {{- end -}}
+    {{- /* A link reference definition: [label]: address "title". */ -}}
+    {{- with findRESubmatch `^( {0,3}\[[^\]]+\]:[ \t]*)(<[^>]*>|\S+)(.*)$` $line 1 -}}
+      {{- $url := index . 0 2 | strings.TrimPrefix "<" | strings.TrimSuffix ">" -}}
+      {{- $line = printf "%s%s%s" (index . 0 1) (partial "full-url.html" (merge $at (dict "url" $url))) (index . 0 3) -}}
+    {{- end -}}
+    {{- /* A src, srcset or href in raw HTML, quoted either way. */ -}}
+    {{- range findRESubmatch `(\s)(src|srcset|href)=("([^"]*)"|'([^']*)')` $line -}}
+      {{- $urls := slice -}}
+      {{- range cond (eq (index . 2) "srcset") (split (or (index . 4) (index . 5)) ",") (slice (or (index . 4) (index . 5))) -}}
+        {{- $parts := split (strings.TrimSpace .) " " -}}
+        {{- $urls = $urls | append (delimit (slice (partial "full-url.html" (merge $at (dict "url" (index $parts 0) "image" true))) | append (after 1 $parts)) " ") -}}
+      {{- end -}}
+      {{- $line = replace $line (index . 0) (printf `%s%s="%s"` (index . 1) (index . 2) (delimit $urls ", ")) -}}
+    {{- end -}}
+    {{- range $i, $span := $spans }}{{ $line = replace $line (printf "\x00%d\x00" $i) $span }}{{ end -}}
+    {{- if $.shift }}{{ $line = replaceRE `^(#{1,5}) ` "#$1 " $line }}{{ end -}}
+  {{- end -}}
+  {{- $lines = $lines | append $line -}}
+{{- end -}}
+{{- return (delimit $lines "\n") -}}

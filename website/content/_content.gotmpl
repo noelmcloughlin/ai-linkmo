@@ -1,0 +1,48 @@
+{{- /*
+  The home page, from the README, its frontmatter read as data, so no key in
+  it can move or hide the page. With no README, the home page opens with the
+  bundle's own introduction.
+*/ -}}
+{{- with resources.Get "readme/README.md" -}}
+  {{- $body := .Content | replaceRE `(?s)\A---\r?\n.*?\r?\n---[ \t]*(?:\r?\n|\z)` "" -}}
+  {{- $title := "" -}}
+  {{- with findRESubmatch `(?m)^# +(.+?)\s*$` $body 1 }}{{ $title = index . 0 1 | replaceRE "[*_`]" "" | replaceRE `\[([^\]]+)\]\([^)]*\)` "$1" }}{{ end -}}
+  {{- $.AddPage (dict "kind" "home" "path" "/" "title" $title
+      "params" (dict "repoPath" (path.Join (strings.Trim (site.Params.source | default "") "/") "README.md"))
+      "content" (dict "value" (partial "literal.html" $body))) -}}
+{{- end -}}
+{{- /*
+  A page at each old address `params.redirects` names, which sends the
+  browser to the page built from the repository file named. An entry such as
+  "elements/*" = "schema/*" stands for every page of the schema: the old
+  address of each class, slot, enumeration and type, whatever its kind, goes
+  to its page, and the bare old folder to the schema's overview. "schema/*"
+  itself keeps the addresses of a site that had every element in one folder.
+  Hugo lowercases a table's keys, so an old address with capitals goes in
+  the list form, [[params.redirects]] with `from` and `to`, which keeps its
+  case. A site with a schema of its own has "elements/*" with no setting: it
+  is the address mkdocs gave each element, and the one a schema's
+  persistent identifiers resolve to. LOKF core's identifiers resolve
+  elsewhere.
+*/ -}}
+{{- $redirects := slice -}}
+{{- with site.Params.redirects -}}
+  {{- if reflect.IsMap . }}{{ range $k, $v := . }}{{ $redirects = $redirects | append (dict "from" $k "to" $v) }}{{ end }}{{ else }}{{ $redirects = . }}{{ end -}}
+{{- end -}}
+{{- if and (resources.Get "gendoc/_index.md") (not (resources.Get "gendoc/core.txt")) (not (where $redirects "from" "elements/*")) }}{{ $redirects = $redirects | append (dict "from" "elements/*" "to" "schema/*") }}{{ end -}}
+{{- range $redirects -}}
+  {{- $from := .from -}}{{- $to := .to -}}
+  {{- $moved := dict "kind" "page" "title" "This page has moved" "layout" "redirect" "sitemap" (dict "disable" true) -}}
+  {{- if hasSuffix $from "/*" -}}
+    {{- $old := strings.TrimSuffix "/*" $from -}}
+    {{- if ne $old "schema" }}{{ $.AddPage (merge $moved (dict "path" $old "params" (dict "toUrl" "schema/"))) }}{{ end -}}
+    {{- range $kind := slice "classes" "enums" "slots" "types" "subsets" -}}
+      {{- range resources.Match (printf "gendoc/%s/*.md" $kind) -}}
+        {{- $name := path.BaseName .Name -}}
+        {{- $.AddPage (merge $moved (dict "path" (printf "%s/moved-%s-%s" $old $kind $name) "url" (printf "/%s/%s/" $old $name) "params" (dict "toUrl" (printf "schema/%s/%s/" $kind $name)))) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- else -}}
+    {{- $.AddPage (merge $moved (dict "path" $from "url" (printf "/%s/" (strings.Trim $from "/")) "params" (dict "to" $to))) -}}
+  {{- end -}}
+{{- end -}}

@@ -1,0 +1,2 @@
+{{- /* Plain text with Markdown code spans: escaped, then the spans set as code. */ -}}
+{{- return (. | htmlEscape | replaceRE "`([^`]+)`" "<code>$1</code>" | safeHTML) -}}

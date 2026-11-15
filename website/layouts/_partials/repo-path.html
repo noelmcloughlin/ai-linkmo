@@ -1,0 +1,6 @@
+{{- /* The file a page is built from, as a path from the repository root, or "". Links in the page resolve from it. */ -}}
+{{- $out := .Params.repoPath | default "" -}}
+{{- if and (not $out) .File (ne .File.Ext "gotmpl") -}}
+  {{- $out = strings.TrimPrefix (printf "%s/" (path.Dir hugo.WorkingDir)) .File.Filename -}}
+{{- end -}}
+{{- return $out -}}

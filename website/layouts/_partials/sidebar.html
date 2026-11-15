@@ -1,0 +1,83 @@
+{{- /*
+  The site's navigation, in parts: the guide, the schema when the repository
+  holds one, and the knowledge bundle. A part is a heading that opens and
+  closes, and so is each group inside it. A page that retells another has no
+  line of its own: the page it retells offers it. The parts share one `name` and the
+  groups another, so the browser closes the others when one opens, with no
+  script. The page passes its key from nav-key.html, and its part and its
+  group are the ones drawn open. Called cached by that key, so the links are
+  built once per group, not per page; site.js marks the current page's link.
+  The data, when the site serves it, and the changelog come last.
+*/ -}}
+{{- $open := . -}}
+{{- $part := cond (hasPrefix $open "docs:") "guide" (cond (hasPrefix $open "/knowledge") "bundle" (index (split $open ":") 0)) -}}
+<details class="section" name="part"{{ if eq $part "guide" }} open{{ end }}>
+  <summary>{{ partial "icon.html" "guide" }}Guide</summary>
+  <ul>
+    <li><a href="{{ "" | relURL }}">Home</a></li>
+    {{- with site.GetPage "/docs" }}{{ if .Params.docName }}
+    <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+    {{- end }}{{ end }}
+  </ul>
+  {{- range (partialCached "docs-groups.html" "docs").list }}
+  <details name="group"{{ if eq $open (printf "docs:%s" .label) }} open{{ end }}>
+    <summary>{{ .label }}</summary>
+    <ul>
+      {{- range .pages }}
+      <li><a href="{{ .RelPermalink }}">{{ cond .IsSection "Overview" .Title }}</a></li>
+      {{- end }}
+    </ul>
+  </details>
+  {{- end }}
+</details>
+{{- with site.GetPage "/schema" }}
+<details class="section" name="part"{{ if eq $part "schema" }} open{{ end }}>
+  <summary>{{ partial "icon.html" "schema" }}Schema</summary>
+  <ul>
+    <li><a href="{{ .RelPermalink }}">Overview</a></li>
+  </ul>
+  {{- range $kind := slice "classes" "enums" "slots" "types" "subsets" }}
+  {{- with site.GetPage (printf "/schema/%s" $kind) }}
+  <details name="group"{{ if eq $open (printf "schema:%s" $kind) }} open{{ end }}>
+    <summary>{{ .Title }} <span class="count">{{ len .RegularPages }}</span></summary>
+    <ul>
+      <li><a href="{{ .RelPermalink }}">All {{ .Title | lower }}</a></li>
+      {{- range .RegularPages.ByTitle }}
+      <li><a href="{{ .RelPermalink }}" translate="no">{{ .Title }}</a></li>
+      {{- end }}
+    </ul>
+  </details>
+  {{- end }}
+  {{- end }}
+</details>
+{{- end }}
+{{- with site.GetPage "/knowledge" }}
+<details class="section" name="part"{{ if eq $part "bundle" }} open{{ end }}>
+  <summary>{{ partial "icon.html" "bundle" }}Knowledge bundle</summary>
+  <ul>
+    <li><a href="{{ .RelPermalink }}">About the bundle</a></li>
+    <li><a href="{{ "health/" | relURL }}">Bundle health</a></li>
+    <li class="nav-graph"><a href="{{ "graph/" | relURL }}">{{ partial "icon.html" "graph" }}Knowledge graph</a></li>
+    <li><a href="{{ "knowledge/log/" | relURL }}">Bundle log</a></li>
+  </ul>
+  {{- $all := partialCached "concepts.html" "concepts" }}
+  {{- range .Sections.ByTitle }}
+  <details name="group"{{ if eq $open .Path }} open{{ end }}>
+    <summary>{{ .Title }} <span class="count">{{ len .RegularPages }}</span></summary>
+    <ul>
+      <li><a href="{{ .RelPermalink }}">Overview</a></li>
+      {{- range .RegularPages.ByTitle }}
+        {{- $t := (index $all.id .Params.conceptId).trust }}
+        <li><a href="{{ .RelPermalink }}" title="{{ $t.label }}"><span class="dot dot--{{ $t.tone }}"></span>{{ .Title }}</a></li>
+      {{- end }}
+    </ul>
+  </details>
+  {{- end }}
+</details>
+{{- end }}
+{{- with site.GetPage "/browse" }}
+<a class="section--link" href="{{ .RelPermalink }}">{{ partial "icon.html" "data" }}Browse the data</a>
+{{- end }}
+{{- with site.GetPage "/changelog" }}
+<a class="section--link" href="{{ .RelPermalink }}">{{ partial "icon.html" "changelog" }}Changelog</a>
+{{- end }}

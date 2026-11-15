@@ -1,0 +1,51 @@
+{{- /*
+  The concept's neighbours, set beside its words and drawn at build time
+  with no script. They read down one line: the concepts that point at this
+  one, then this one, then the concepts it points at. Each neighbour is a
+  link with its trust dot, its whole title and the relation that joins the
+  two. A neighbour joined both ways is listed once, among those this concept
+  points at. A retired concept that points here is left out, as the report
+  counts it for none. A concept with no neighbour draws nothing.
+*/ -}}
+{{- $all := partialCached "concepts.html" "concepts" -}}
+{{- $iri := .Params.concept.id -}}
+{{- $s := newScratch -}}
+{{- $s.Set "in" dict -}}
+{{- $s.Set "out" dict -}}
+{{- range $e := $all.edges -}}
+  {{- $side := cond (eq $e.data.source $iri) "out" (cond (eq $e.data.target $iri) "in" "") -}}
+  {{- $other := cond (eq $side "out") $e.data.target $e.data.source -}}
+  {{- if and $side (ne $other $iri) -}}
+    {{- with index $all.iri $other -}}
+      {{- if not (and (eq $side "in") (eq .trust.tone "retired")) -}}
+      {{- $s.SetInMap $side .id (index ($s.Get $side) .id | default slice | append (partial "slot-name.html" $e.data.slot | lower) | uniq) -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $out := $s.Get "out" -}}
+{{- $in := dict -}}
+{{- range $id, $slots := $s.Get "in" }}{{ if not (isset $out $id) }}{{ $in = merge $in (dict $id $slots) }}{{ end }}{{ end -}}
+{{- if or $in $out }}
+<aside class="aside" aria-labelledby="hood" data-pagefind-ignore>
+  <h2 class="hood__title" id="hood">Neighbourhood</h2>
+  {{- range $side := slice "in" "out" }}
+  {{- $list := cond (eq $side "in") $in $out }}
+  {{- if eq $side "out" }}
+  <p class="hood__self">{{ $.Title }}</p>
+  {{- end }}
+  {{- with $list }}
+  {{- $n := len . }}
+  <p class="hood__count">{{ if eq $side "in" }}{{ $n }} {{ cond (eq $n 1) "concept points" "concepts point" }} here{{ else }}It points at {{ $n }} {{ cond (eq $n 1) "concept" "concepts" }}{{ end }}</p>
+  <ul class="hood">
+    {{- range $id, $slots := . }}
+    {{- $c := index $all.id $id }}
+    <li><a href="{{ $c.page.RelPermalink }}" title="{{ $c.trust.label | strings.FirstUpper }}"><span class="dot dot--{{ $c.trust.tone }}"></span>{{ $c.page.Title }}</a>
+      <span class="hood__slot">{{ delimit $slots ", " }}{{ if and (eq $side "out") (isset ($s.Get "in") $id) }}, and back{{ end }}</span></li>
+    {{- end }}
+  </ul>
+  {{- end }}
+  {{- end }}
+  <p class="hood__more"><a href="{{ "graph/" | relURL }}?concept={{ .Params.conceptId }}">Open it in the knowledge graph</a></p>
+</aside>
+{{- end }}

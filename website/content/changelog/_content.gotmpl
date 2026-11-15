@@ -1,0 +1,40 @@
+{{- /*
+  A page per release, from the Keep a Changelog file: each `## [version] -
+  date` section becomes /changelog/version/<version>/, with the dots of the
+  version as hyphens. A release whose tag git has links the repository as it
+  stood. What is not yet released stays on the section's own page, under an
+  Unreleased heading. A link
+  to a release's heading, as GitHub names it, goes to the release's page.
+*/ -}}
+{{- $tags := slice -}}
+{{- with os.ReadFile "generated/tags.txt" }}{{ $tags = split (strings.TrimSpace .) "\n" }}{{ end -}}
+{{- $repo := site.Params.repo -}}
+{{- with resources.Get "changelog/CHANGELOG.md" -}}
+  {{- $parts := split .Content "\n## [" -}}
+  {{- $intro := index $parts 0 | replaceRE `(?m)\A# .*$` "" -}}
+  {{- $unreleased := "" -}}
+  {{- range after 1 $parts -}}
+    {{- $head := index (split . "\n") 0 -}}
+    {{- $body := strings.TrimPrefix $head . -}}
+    {{- with findRESubmatch `^([^\]]+)\] - (\d{4}-\d{2}-\d{2})` $head 1 -}}
+      {{- $version := index . 0 1 -}}
+      {{- $tag := replace (site.Params.releaseTag | default "") "{version}" $version -}}
+      {{- $.AddPage (dict
+          "kind" "page"
+          "path" (printf "version/%s" (replace $version "." "-"))
+          "title" $version
+          "dates" (dict "date" (time.AsTime (index . 0 2)))
+          "params" (dict "repoPath" (path.Join (strings.Trim (site.Params.source | default "") "/") "CHANGELOG.md") "release" true "tag" (cond (in $tags $tag) $tag "") "anchor" (anchorize (printf "[%s" $head)))
+          "content" (dict "value" (partial "literal.html" $body))) -}}
+    {{- else -}}
+      {{- $unreleased = $body -}}
+    {{- end -}}
+  {{- end -}}
+  {{- with strings.TrimSpace $unreleased }}{{ $intro = printf "%s\n\n## Unreleased\n\n%s\n" $intro . }}{{ end -}}
+  {{- $.AddPage (dict
+      "kind" "section"
+      "path" "."
+      "title" "Changelog"
+      "params" (dict "repoPath" (path.Join (strings.Trim (site.Params.source | default "") "/") "CHANGELOG.md"))
+      "content" (dict "value" (partial "literal.html" $intro))) -}}
+{{- end -}}

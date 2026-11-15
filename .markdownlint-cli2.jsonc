@@ -18,9 +18,9 @@
     "docs/elements/**",
     // What the website's build writes from the files above (ktl-website Step 2).
     "website/dist/**",
-    "website/public/**",
-    "website/src/content/**",
-    "website/src/generated/**"
+    "website/generated/**",
+    "website/resources/**",
+    "website/.venv/**"
   ],
   // Rules disabled for reasons specific to this repo's content, not because
   // the underlying style guidance is wrong in general:

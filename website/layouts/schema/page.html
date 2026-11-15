@@ -1,0 +1,10 @@
+{{ define "main" }}
+{{- /* One element of the schema, as gen-doc wrote it: a class's diagram and slots or an enumeration's values, where the element is used, its mappings, and its YAML as written and as induced. */ -}}
+{{- $word := index (dict "classes" "Class" "enums" "Enumeration" "slots" "Slot" "types" "Type" "subsets" "Subset") .Params.schemaKind -}}
+<article class="prose">
+  <p class="eyebrow" data-pagefind-ignore><a href="{{ .Parent.RelPermalink }}" data-pagefind-filter="Type:Schema {{ $word | lower }}">{{ $word }}</a> in <a href="{{ .Parent.Parent.RelPermalink }}">{{ .Parent.Parent.Title }}</a></p>
+  <h1 translate="no">{{ .Title }}{{ if .Params.deprecated }} <span class="chip">deprecated</span>{{ end }}</h1>
+  {{- with .Params.description }}<p class="lead">{{ partial "inline.html" . }}</p>{{ end }}
+  {{ partial "content.html" . }}
+</article>
+{{ end }}

@@ -1,0 +1,16 @@
+{{- /*
+  A link written in a repository file, as an address that works anywhere: a
+  link to a heading goes to that heading on the page, and every other link
+  where route.html sends it, with the site's own scheme and host before a
+  path. Takes (dict "url" "from" "page"), and "image" true for an image.
+*/ -}}
+{{- $out := .url -}}
+{{- if hasPrefix .url "#" -}}
+  {{- $out = printf "%s%s" .page .url -}}
+{{- else if .url -}}
+  {{- $out = partial "route.html" (dict "from" .from "url" .url "image" .image) -}}
+  {{- if and (hasPrefix $out "/") (not (hasPrefix $out "//")) -}}
+    {{- with urls.Parse site.BaseURL }}{{ $out = printf "%s://%s%s" .Scheme .Host $out }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

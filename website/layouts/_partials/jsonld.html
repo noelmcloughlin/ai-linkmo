@@ -1,0 +1,8 @@
+{{- /* Each concept's entry in concepts.jsonld, by IRI, with the bundle's context. Called cached. */ -}}
+{{- $all := os.ReadFile "generated/knowledge/concepts.jsonld" | transform.Unmarshal -}}
+{{- $s := newScratch -}}
+{{- $s.Set "docs" dict -}}
+{{- range index $all "@graph" -}}
+  {{- $s.SetInMap "docs" (or .id (index . "@id")) (merge (dict "@context" (index $all "@context")) .) -}}
+{{- end -}}
+{{- return ($s.Get "docs") -}}

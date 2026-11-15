@@ -35,6 +35,19 @@ updates:
     commit-message:
       prefix: "chore(lokf)"
 
+  # The knowledge website's build tools, Hugo and Pagefind (website/pyproject.toml
+  # and uv.lock). One weekly pull request for both; knowledge-website.yaml builds
+  # it and checks every link.
+  - package-ecosystem: "uv"
+    directory: "/website"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore(website)"
+    groups:
+      website:
+        patterns: ["*"]
+
   # The Svelte frontend's toolchain and runtime dependencies. Dev dependencies
   # are grouped so a routine week is one PR to review rather than a dozen;
   # runtime ones (svelte, tailwind, the UI libraries) stay separate because

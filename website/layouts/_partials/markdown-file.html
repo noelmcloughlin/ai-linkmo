@@ -1,0 +1,24 @@
+{{- /*
+  A docs page, or the home page, as Markdown beside it, for a reader or a
+  model that wants the words without the site: at the path the repository
+  holds it under, docs/<name>.md, or at index.md for the README. It is the
+  file from its # title down, with every address made full by markdown.html.
+  Returns the published file, or false for any other page. Called cached by
+  the page's address.
+*/ -}}
+{{- $out := false -}}
+{{- $from := partial "repo-path.html" . -}}
+{{- $at := "" -}}
+{{- $rel := partial "site-path.html" $from -}}
+{{- if and (hasPrefix $rel "docs/") (hasSuffix $rel ".md") }}{{ $at = $rel }}{{ else if and .IsHome (eq $rel "README.md") }}{{ $at = "index.md" }}{{ end -}}
+{{- with $at -}}
+  {{- $text := $.RawContent -}}
+  {{- if $.Params.shift -}}
+    {{- $text = printf "# %s\n\n%s" $.Title (strings.TrimLeft "\r\n" $text) -}}
+  {{- else -}}
+    {{- with findRESubmatch `(?ms)^# .*` $text 1 }}{{ $text = index . 0 0 }}{{ end -}}
+  {{- end -}}
+  {{- $md := partial "markdown.html" (dict "page" $ "text" $text "from" $from) -}}
+  {{- $out = resources.FromString $at (printf "%s\n" (strings.TrimSpace $md)) -}}
+{{- end -}}
+{{- return $out -}}

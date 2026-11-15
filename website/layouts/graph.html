@@ -1,0 +1,54 @@
+{{ define "main" }}
+{{- /* What graph.json does not hold, by concept id: each concept's page, trust tone and label. */ -}}
+{{- $extra := dict -}}
+{{- range (partialCached "concepts.html" "concepts").id }}{{ $extra = merge $extra (dict .id (dict "url" .page.RelPermalink "tone" .trust.tone "trust" (.trust.label | strings.FirstUpper))) }}{{ end -}}
+{{- /* A domain host has the federation workflow, which serves the host's workspace beside the site after the build. */ -}}
+{{- $workspace := resources.Get "host/knowledge-federation.yaml" -}}
+<article class="prose wide">
+  {{- /* The page has two views. graph.js shows the heading and the words of the one the address asks for; the docs call a domain's federated bundles its context workspace. */ -}}
+  <h1 data-workspace="Context workspace">{{ .Title }}</h1>
+  <p data-for="bundle">Every concept and typed relation <code>lokf export</code> wrote to <a href="{{ "knowledge/graph.json" | relURL }}">graph.json</a>. The concept with the most relations is in the middle, and each of the others is on a ring, near the concepts it is related to. A click on a concept shows its record.
+    {{- if not $workspace }} This repository federates no other bundle, so it has no workspace to draw.{{ end }}</p>
+  {{- if $workspace }}
+  <p data-for="workspace" hidden>Every bundle this domain federates, from the <a href="{{ "workspace/graph.json" | relURL }}">graph.json</a> of the <a href="{{ "workspace/index.md" | relURL }}">workspace</a> the federation workflow serves. Each bundle has a room of its own, drawn as its own graph is, and a link between two bundles is dashed. A click on a concept shows its record.</p>
+  {{- end }}
+  <noscript><p>The graph needs JavaScript. The file above holds the same concepts and relations.</p></noscript>
+  <div id="graph" class="graph" data-src="{{ "knowledge/graph.json" | relURL }}"{{ if $workspace }} data-workspace="{{ "workspace/graph.json" | relURL }}"{{ end }} data-extra="{{ $extra | jsonify }}" data-tones="{{ partial "tones.html" . | jsonify }}">
+    <div class="graph__bar">
+      <nav class="seg" aria-label="Which graph to draw">
+        <a href="{{ .RelPermalink }}" data-view="bundle">This bundle</a>
+        {{- if $workspace }}
+        <a href="{{ .RelPermalink }}?graph=workspace" data-view="workspace">The workspace</a>
+        {{- else }}
+        <span role="link" aria-disabled="true" title="This repository federates no other bundle, so it has no workspace">The workspace</span>
+        {{- end }}
+      </nav>
+      <input type="search" id="graph-search" placeholder="Find a concept" autocomplete="off" aria-label="Find a concept by its title; Enter opens the first match">
+      <button type="button" data-do="out" aria-label="Zoom out">−</button>
+      <button type="button" data-do="in" aria-label="Zoom in">+</button>
+      <button type="button" data-do="fit">Fit</button>
+      <button type="button" data-do="full" aria-pressed="false">Full screen</button>
+      <p class="graph__status muted" role="status"></p>
+    </div>
+    <div class="graph__body">
+      <section class="graph__filters" aria-label="What the graph shows"></section>
+      <div class="graph__stage">
+        <div id="cy" class="graph__canvas"></div>
+        <p class="graph__note" hidden></p>
+        <section id="graph-detail" class="graph__detail" aria-label="The concept's record" tabindex="-1" hidden>
+          <button type="button" class="graph__close" aria-label="Close the record">×</button>
+          <h2></h2>
+          <p class="muted"></p>
+          <p><span class="label"></span></p>
+          <p><a href="#">Open the concept page</a></p>
+          <div></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</article>
+{{ end }}
+{{ define "scripts" }}
+{{- with partial "vendor.html" "cytoscape" }}<script src="{{ .RelPermalink }}" defer></script>{{ end }}
+{{- with resources.Get "js/graph.js" | minify }}<script src="{{ .RelPermalink }}?v={{ crypto.SHA256 .Content | truncate 8 "" }}" defer></script>{{ end }}
+{{ end }}

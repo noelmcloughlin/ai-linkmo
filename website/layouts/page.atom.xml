@@ -1,0 +1,28 @@
+{{- /*
+  The bundle log as an Atom feed: an entry for each of its newest thirty
+  days, a day being a `## YYYY-MM-DD` section, each as the log page shows it.
+*/ -}}
+{{- printf `<?xml version="1.0" encoding="utf-8"?>` | safeHTML }}
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{{ site.Title }}: bundle log</title>
+  <id>{{ .Permalink }}</id>
+  <link href="{{ .Permalink }}"/>
+  <link rel="self" href="{{ (.OutputFormats.Get "atom").Permalink }}"/>
+  <author><name>{{ site.Title }}</name></author>
+  {{- /* Each day's heading is preceded by a NUL, and its date by another, so the page splits into date and words by turns. */ -}}
+  {{- $parts := split (replaceRE `<h([23]) id="(\d{4}-\d{2}-\d{2})"` "\x00$2\x00<h$1 id=\"$2\"" (string .Content)) "\x00" }}
+  {{- $days := slice }}
+  {{- range $i, $part := $parts }}{{ if and (gt $i 0) (not (modBool $i 2)) }}{{ $days = $days | append (dict "date" $part "html" (index $parts (add $i 1) | replaceRE `(?s)\A<h[23][^>]*>.*?</h[23]>` "")) }}{{ end }}{{ end }}
+  {{- range $i, $day := first 30 $days }}
+  {{- if eq $i 0 }}
+  <updated>{{ $day.date }}T00:00:00Z</updated>
+  {{- end }}
+  <entry>
+    <title>{{ $day.date }}</title>
+    <id>{{ $.Permalink }}#{{ $day.date }}</id>
+    <link href="{{ $.Permalink }}#{{ $day.date }}"/>
+    <updated>{{ $day.date }}T00:00:00Z</updated>
+    <content type="html">{{ $day.html }}</content>
+  </entry>
+  {{- end }}
+</feed>

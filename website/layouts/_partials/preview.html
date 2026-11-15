@@ -1,0 +1,3 @@
+{{- /* What a link to a concept shows before the reader follows it: its trust label, then its definition. */ -}}
+{{- $c := .page.Params.concept -}}
+{{- return (printf "%s. %s" (.trust.label | strings.FirstUpper) (or $c.definition $c.description "") | strings.TrimSpace) -}}

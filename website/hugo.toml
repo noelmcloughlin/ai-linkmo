@@ -1,0 +1,163 @@
+# The knowledge website, built by Hugo. This file is the same in every
+# repository, and the ktl-website skill replaces it on a repair. The values
+# that are this repository's own (its address, its title, its repository) are
+# in site.toml beside it, which scripts/build.sh reads after this file.
+#
+# Hugo reads the repository's own files through the mounts below, so no step
+# copies pages into content/. scripts/prepare.sh runs first, for `lokf
+# export`, the trust labels and the pages gen-doc writes for a LinkML schema.
+#
+# A served file the browser would run as a page of the site's origin, which
+# every project site of the owner shares, is never published: an HTML or XML
+# document, and an SVG that prepare.sh finds a script in.
+locale = "en"
+disableKinds = ["taxonomy", "term", "rss"]
+enableRobotsTXT = true
+publishDir = "dist"
+
+[params]
+# The branch an "Edit this page" link opens. Links to repository files name
+# the commit of the build instead, which build.sh passes as HUGO_PARAMS_REF.
+branch = "main"
+# The tag a release carries. A release page links the repository at that tag
+# when git has it.
+releaseTag = "v{version}"
+# Folders under docs/ that are not pages of the site: the templates and the
+# pages LinkML's gen-doc keeps there. The schema's pages are built afresh.
+docsExclude = ["templates-linkml", "elements"]
+
+# The libraries the graph page and Mermaid diagrams need. Hugo fetches each
+# once at build time, checks it against its hash and serves it from the site,
+# so no page calls a CDN. Where the CDN is blocked, give `url` a mirror's
+# address in site.toml.
+[params.vendor.cytoscape]
+url = "https://cdn.jsdelivr.net/npm/cytoscape@3.34.4/dist/cytoscape.min.js"
+sha256 = "081591ab735b2b6a3b31a3c60f8f3a3e2fee8c92939e0c7820ad1208571b6cd8"
+[params.vendor.mermaid]
+url = "https://cdn.jsdelivr.net/npm/mermaid@12.2.0/dist/mermaid.min.js"
+sha256 = "a8a6a6f805b074a8261a2825c86f99c8054acb3b35f50bb7e24a4f9f2c3c3b9f"
+
+[markup.goldmark.renderer]
+# The README and docs hold <picture> and <img> tags, as GitHub renders them,
+# so raw HTML passes. scripts/clean-html.py then cleans it to the tags GitHub
+# allows, and the Content-Security-Policy in baseof.html stops any script,
+# event handler or frame from running.
+unsafe = true
+
+# The minifier keeps every end tag, so scripts/clean-html.py finds each
+# element of a page's raw HTML where the page ends it.
+[minify.tdewolff.html]
+keepEndTags = true
+
+[markup.goldmark.parser]
+autoHeadingIDType = "github"
+
+[markup.highlight]
+noClasses = false
+
+[outputFormats.llms]
+mediaType = "text/plain"
+baseName = "llms"
+isPlainText = true
+notAlternative = true
+[outputFormats.llmsfull]
+mediaType = "text/plain"
+baseName = "llms-full"
+isPlainText = true
+notAlternative = true
+[outputFormats.atom]
+mediaType = "application/atom+xml"
+ugly = true
+notAlternative = true
+[outputFormats.jsonld]
+mediaType = "application/ld+json"
+ugly = true
+isPlainText = true
+notAlternative = true
+[outputFormats.badge]
+mediaType = "application/json"
+baseName = "badge"
+isPlainText = true
+notAlternative = true
+[mediaTypes."application/atom+xml"]
+suffixes = ["xml"]
+[mediaTypes."application/ld+json"]
+suffixes = ["jsonld"]
+
+[outputs]
+home = ["html", "llms", "llmsfull", "badge"]
+
+[security.funcs]
+getenv = ["^HUGO_"]
+
+[[module.mounts]]
+source = "content"
+target = "content"
+
+# The README, the docs, the bundle and the changelog are read by the content
+# adapters in content/, content/docs/, content/knowledge/ and
+# content/changelog/, which write the home page and a page per file, per
+# concept and per release. A file's own frontmatter is data there, so no key
+# in it can move, hide or redirect a page.
+[[module.mounts]]
+source = "../README.md"
+target = "assets/readme/README.md"
+[[module.mounts]]
+source = "../docs"
+target = "assets/docs"
+files = ["! .**", "! **/.**", "! **.{html,htm,xhtml,xht,xml,xsl,xslt,shtml,mht,mhtml}"]
+[[module.mounts]]
+source = "assets"
+target = "assets"
+[[module.mounts]]
+source = "../.lokf/knowledge"
+target = "assets/bundle"
+files = ["! .**", "! **/.**"]
+[[module.mounts]]
+source = "../CHANGELOG.md"
+target = "assets/changelog/CHANGELOG.md"
+# The ingest's committed lock, for where each mirrored source came from.
+[[module.mounts]]
+source = "../.lokf/ingest.lock.yaml"
+target = "assets/ingest/ingest.lock.yaml"
+
+# What the site shows only when the repository has it. A mount whose source
+# is missing mounts nothing, so neither needs a setting, and nor do the
+# README, the docs, the changelog and the figures above and below. The first is the
+# folder of pages prepare.sh has gen-doc write for a LinkML schema, or for
+# the bundle's domain vocabulary or LOKF core when the repository holds none. The second is the
+# workflow of a domain host, whose graph page offers the workspace that
+# workflow serves at workspace/.
+[[module.mounts]]
+source = "generated/schema"
+target = "assets/gendoc"
+[[module.mounts]]
+source = "../.github/workflows/knowledge-federation.yaml"
+target = "assets/host/knowledge-federation.yaml"
+
+# Served as they are: the figures, each bundle file as raw Markdown beside
+# its page, the other files of the docs folder, and the four export files. A
+# docs page's Markdown is written by markdown-file.html, with full addresses.
+# No file or folder whose name starts with a dot is served.
+[[module.mounts]]
+source = "static"
+target = "static"
+[[module.mounts]]
+source = "../.assets"
+target = "static/assets"
+files = ["! .**", "! **/.**", "! **.{html,htm,xhtml,xht,xml,xsl,xslt,shtml,mht,mhtml}"]
+[[module.mounts]]
+source = "../.lokf/knowledge"
+target = "static/knowledge"
+files = ["! .**", "! **/.**", "! **.{html,htm,xhtml,xht,xml,xsl,xslt,shtml,mht,mhtml}"]
+[[module.mounts]]
+source = "../docs"
+target = "static/docs"
+files = ["! .**", "! **/.**", "! **.md", "! **.{html,htm,xhtml,xht,xml,xsl,xslt,shtml,mht,mhtml}"]
+[[module.mounts]]
+source = "generated/knowledge"
+target = "static/knowledge"
+# The data site.toml names, which prepare.sh copies here, with its metadata.
+[[module.mounts]]
+source = "generated/browse"
+target = "static/browse"

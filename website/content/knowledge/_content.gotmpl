@@ -1,0 +1,66 @@
+{{- /*
+  The bundle's pages: one per concept, one per group folder from its
+  index.md, the bundle's own index.md as this section's page, and the log.
+  A concept's frontmatter goes under `params.concept` and never to Hugo's own
+  keys, so a concept that sets `url`, `aliases`, `draft` or `layout` changes
+  nothing here. A new group folder needs no line anywhere.
+*/ -}}
+{{- $files := resources.Match "bundle/**.md" -}}
+{{- $ids := slice -}}
+{{- range $files }}{{ $ids = $ids | append (.Name | strings.TrimPrefix "/bundle/" | strings.TrimSuffix ".md") }}{{ end -}}
+{{- range $files -}}
+  {{- $rel := strings.TrimPrefix "/bundle/" .Name -}}
+  {{- $fm := dict -}}
+  {{- $body := .Content -}}
+  {{- with findRESubmatch `(?s)\A---\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\z)(.*)\z` .Content 1 -}}
+    {{- $fm = index . 0 1 | transform.Unmarshal -}}
+    {{- $body = index . 0 2 -}}
+  {{- end -}}
+  {{- $id := strings.TrimSuffix ".md" $rel -}}
+  {{- $page := dict "kind" "page" "path" $id -}}
+  {{- /* Hugo writes a path in lower case. An id with a capital states its address, since the bundle's IRIs resolve to it as written. */ -}}
+  {{- if ne $id (lower $id) }}{{ $page = merge $page (dict "url" (printf "/knowledge/%s/" $id)) }}{{ end -}}
+  {{- $outputs := slice "html" "jsonld" -}}
+  {{- if eq (path.Base $id) "index" -}}
+    {{- $page = dict "kind" "section" "path" (path.Dir $id) -}}
+    {{- $id = "" -}}
+    {{- $outputs = slice "html" -}}
+  {{- else if eq $id "log" -}}
+    {{- $id = "" -}}
+    {{- $outputs = slice "html" "atom" -}}
+  {{- end -}}
+  {{- /* The title: the frontmatter's, or the file's first `# ` heading, which then stays the page's h1. */ -}}
+  {{- $title := $fm.title -}}
+  {{- $shift := false -}}
+  {{- if $title -}}
+    {{- $shift = true -}}
+    {{- $body = strings.TrimPrefix (printf "# %s\n" $title) (strings.TrimLeft "\r\n" $body) -}}
+  {{- else -}}
+    {{- with findRESubmatch `(?m)^# +(.+?)\s*$` $body 1 -}}{{- $title = index . 0 1 | replaceRE "[*_`]" "" -}}{{- end -}}
+  {{- end -}}
+  {{- /*
+    An Obsidian wikilink, [[name]], [[name#heading]] or [[name|words]],
+    becomes a Markdown link when the name is one other concept's id or the
+    end of it. Any other [[text]] stays as it was written.
+  */ -}}
+  {{- range findRESubmatch `\[\[([^\]|#]+)(#[^\]|]*)?(?:\|([^\]]+))?\]\]` $body -}}
+    {{- $want := index . 1 | strings.TrimSpace | strings.TrimSuffix ".md" -}}
+    {{- $hits := slice -}}
+    {{- range $ids }}{{ if and (ne . $id) (or (eq . $want) (hasSuffix . (printf "/%s" $want))) }}{{ $hits = $hits | append . }}{{ end }}{{ end -}}
+    {{- if eq (len $hits) 1 -}}
+      {{- $to := printf "%s%s.md%s" (strings.Repeat (strings.Count "/" $rel) "../") (index $hits 0) (index . 2) -}}
+      {{- $body = replace $body (index . 0) (printf "[%s](%s)" (or (index . 3) $want) $to) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $params := dict
+      "concept" $fm
+      "conceptId" $id
+      "repoPath" (printf ".lokf/knowledge/%s" $rel)
+      "shift" $shift
+      "description" (or $fm.description "") -}}
+  {{- $.AddPage (merge $page (dict
+      "title" (or $title (path.Base $rel))
+      "outputs" $outputs
+      "params" $params
+      "content" (dict "value" (partial "literal.html" $body)))) -}}
+{{- end -}}

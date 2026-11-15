@@ -1,0 +1,62 @@
+{{- /*
+  The docs pages in the groups the navigation shows. With `params.docsGroups`
+  in site.toml the groups are those, and the build stops when one names a
+  page that is not there or a page is in no group, so a new page cannot go
+  missing. With none, the pages at the top of docs/ are one group, Guides,
+  and each folder is a group named by its index.md or by the folder, its
+  pages by title. A page that retells another is in no group: the page it
+  retells offers it. Returns (dict "list" "by"): the groups in order, each a
+  (dict "label" "pages"), and each page's group label by the page's path.
+  Called cached.
+*/ -}}
+{{- $retold := dict -}}
+{{- range partialCached "levels.html" "levels" }}{{ range after 1 . }}{{ $retold = merge $retold (dict .page.RelPermalink true) }}{{ end }}{{ end -}}
+{{- $docs := dict -}}
+{{- range $p := site.Pages }}{{ with $p.Params.docName }}{{ $docs = merge $docs (dict . $p) }}{{ end }}{{ end -}}
+{{- $list := slice -}}
+{{- $by := dict -}}
+{{- with site.Params.docsGroups -}}
+  {{- range . -}}
+    {{- $label := .label -}}
+    {{- $pages := slice -}}
+    {{- range .pages -}}
+      {{- with index $docs . -}}
+        {{- $pages = $pages | append . -}}
+        {{- $by = merge $by (dict .Path $label) -}}
+      {{- else -}}
+        {{- errorf "site.toml's docsGroups names docs/%s.md, which is not there" . -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $list = $list | append (dict "label" $label "pages" $pages) -}}
+  {{- end -}}
+  {{- range $name, $p := $docs -}}
+    {{- if and $p.IsPage (not (index $retold $p.RelPermalink)) (not (index $by $p.Path)) -}}
+      {{- errorf "docs/%s.md is in no group of site.toml's docsGroups, so the navigation would not list it" $name -}}
+    {{- end -}}
+  {{- end -}}
+{{- else -}}
+  {{- $s := newScratch -}}
+  {{- $s.Set "keys" dict -}}
+  {{- range $name, $p := $docs -}}
+    {{- if and $p.IsPage (not (index $retold $p.RelPermalink)) -}}
+      {{- $key := cond (strings.Contains $name "/") (index (split $name "/") 0) "" -}}
+      {{- $s.Add (printf "group:%s" $key) (slice (dict "title" $p.Title "page" $p)) -}}
+      {{- $s.SetInMap "keys" $key true -}}
+    {{- end -}}
+  {{- end -}}
+  {{- range $key, $_ := $s.Get "keys" -}}
+    {{- $label := cond (eq $key "") "Guides" ($key | humanize) -}}
+    {{- $pages := slice -}}
+    {{- with index $docs (printf "%s/index" $key) -}}
+      {{- $label = .Title -}}
+      {{- $pages = $pages | append . -}}
+      {{- $by = merge $by (dict .Path $label) -}}
+    {{- end -}}
+    {{- range sort ($s.Get (printf "group:%s" $key)) "title" -}}
+      {{- $pages = $pages | append .page -}}
+      {{- $by = merge $by (dict .page.Path $label) -}}
+    {{- end -}}
+    {{- $list = $list | append (dict "label" $label "pages" $pages) -}}
+  {{- end -}}
+{{- end -}}
+{{- return (dict "list" $list "by" $by) -}}

@@ -1,0 +1,8 @@
+{{- if eq .Type "alert" -}}
+<div class="alert alert--{{ .AlertType }}" role="note">
+  <p class="alert__title">{{ .AlertTitle | default (.AlertType | strings.FirstUpper) }}</p>
+  {{ .Text }}
+</div>
+{{- else -}}
+<blockquote>{{ .Text }}</blockquote>
+{{- end -}}

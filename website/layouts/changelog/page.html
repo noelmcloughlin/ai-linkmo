@@ -1,0 +1,15 @@
+{{ define "main" }}
+<article class="prose">
+  <h1>{{ .Title }}</h1>
+  <p class="muted">Released <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 January 2006" }}</time>.
+    {{- with .Params.tag }}{{ $at := printf "%s/tree/%s" site.Params.repo . }}
+    As it stood at this release: <a href="{{ $at }}">the repository</a> · <a href="{{ $at }}/docs">the docs</a> · <a href="{{ $at }}/.lokf/knowledge">the knowledge bundle</a> · <a href="{{ printf "%s/releases/tag/%s" site.Params.repo . }}">the release</a>.
+    {{- end }}
+  </p>
+  {{ partial "content.html" . }}
+  <nav class="pager" aria-label="Older and newer release">
+    {{- with .PrevInSection }}<a rel="prev" href="{{ .RelPermalink }}"><span class="muted">Older</span>{{ .Title }}</a>{{ else }}<span></span>{{ end }}
+    {{- with .NextInSection }}<a rel="next" href="{{ .RelPermalink }}"><span class="muted">Newer</span>{{ .Title }}</a>{{ end }}
+  </nav>
+</article>
+{{ end }}
