@@ -66,10 +66,11 @@ updates:
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
 
-  # The release job's tools, which .github/release/package-lock.json pins
+  # The release job's tools, which .release/package-lock.json pins
   # with every package they pull in.
+  # Outside .github/, where Dependabot may change nothing but workflows.
   - package-ecosystem: npm
-    directory: "/.github/release"
+    directory: "/.release"
     schedule:
       interval: monthly
     commit-message:
