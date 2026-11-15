@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.14'",
@@ -13,12 +13,14 @@ name = "ai-linkmo-knowledge"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "ktl" },
     { name = "lokf", extra = ["build"] },
     { name = "rust-just" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "ktl", specifier = "==0.65.0" },
     { name = "lokf", extras = ["build"], specifier = ">=0.9.0" },
     { name = "rust-just", specifier = "==1.59.0" },
 ]
@@ -904,6 +906,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/19/74/a633ee74eb36c44aa6d1095e7cc5569bebf04342ee146178e2d36600708b/jsonschema_specifications-2025.9.1.tar.gz", hash = "sha256:b540987f239e745613c7a9176f3edb72b832a4ac465cf02712288397832b5e8d", size = 32855, upload-time = "2025-09-08T01:34:59.186Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/41/45/1a4ed80516f02155c51f51e8cedb3c1902296743db0bbc66608a0db2814f/jsonschema_specifications-2025.9.1-py3-none-any.whl", hash = "sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe", size = 18437, upload-time = "2025-09-08T01:34:57.871Z" },
+]
+
+[[package]]
+name = "ktl"
+version = "0.65.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/27/0f/0ff8e8cfa0661ee90b79e0eabeef8b3c8d0adcee60f3c326a48be690ad73/ktl-0.65.0.tar.gz", hash = "sha256:543a4fd9589e34a3677b2efc4d7e64167da7609c4aa159c1c2580824599c72f9", size = 828996, upload-time = "2026-11-15T01:08:43.708Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3e/38/9058cdc4d4aa845b9411dc319351fc701d4f88230039764aba8de5f98034/ktl-0.65.0-py3-none-any.whl", hash = "sha256:e2c28e28ea217169854460cf75c74756379bd581345500f90e490344acf117a3", size = 939700, upload-time = "2026-11-15T01:08:42.174Z" },
 ]
 
 [[package]]
