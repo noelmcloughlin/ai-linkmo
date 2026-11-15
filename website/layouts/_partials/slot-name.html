@@ -1,0 +1,2 @@
+{{- /* relatedTo reads "Related to". */ -}}
+{{- return (replaceRE `([a-z])([A-Z])` "$1 $2" . | lower | strings.FirstUpper) -}}

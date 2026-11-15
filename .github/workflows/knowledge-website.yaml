@@ -1,17 +1,17 @@
 name: Knowledge website
 
-# Builds the site in website/ from the knowledge bundle, the README, docs/,
-# the figures, the changelog and, when site.config.mjs shows them, the LinkML
-# schema's pages and the data, and publishes the default branch's build to
-# GitHub Pages. A pull request that touches any of them gets the same build,
-# link check included, and no deployment. A weekly run rebuilds the site
-# from the default branch. It catches what no push to the paths below brings:
-# a schema or data change elsewhere, and the changelog's promotion, whose
-# commit skips CI. website/README.md says what each page is built from. The
-# ktl-website skill installed both.
+# Builds the site in website/ (or in ktl-website/, where website/ was another
+# site's) from the knowledge bundle, the README, docs/, the figures, the
+# changelog and a LinkML schema, each when the repository has it, and
+# publishes the default branch's build to GitHub Pages. A pull request that
+# touches any of them gets the same build, link check included, and no
+# deployment. A weekly run rebuilds the site from the default branch. It
+# catches what no push to the paths below brings, such as the changelog's
+# promotion, whose commit skips CI. The site folder's README.md says what
+# each page is built from. The ktl-website skill installed both.
 #
-# Two jobs, for least privilege. `build` runs the third-party packages, npm's
-# and the lokf toolkit's, and the repository's own site code, under a
+# Two jobs, for least privilege. `build` runs the third-party tools, Hugo,
+# Pagefind and the lokf toolkit, and the repository's own site code, under a
 # read-only token. `deploy` runs harden-runner and GitHub's own deploy-pages
 # action and nothing else, holds the Pages scopes, and runs for the
 # default branch only, once the repository variable KNOWLEDGE_WEBSITE_ENABLED
@@ -29,35 +29,31 @@ on:
   push:
     paths:
       - "website/**"
+      - "ktl-website/**"
       - ".lokf/**"
       - "knowledge_bundle/**"
       - "README.md"
       - "docs/**"
       - ".assets/**"
       - "CHANGELOG.md"
-      - "llms.txt"
       - ".linkml/**"
-      - "**/[Jj]ustfile"
-      - "**/.justfile"
-      - "**/pyproject.toml"
-      - "**/uv.lock"
+      - "src/*/schema/**"
       - ".github/workflows/knowledge-website.yaml"
+      - ".github/workflows/knowledge-federation.yaml"
   pull_request:
     paths:
       - "website/**"
+      - "ktl-website/**"
       - ".lokf/**"
       - "knowledge_bundle/**"
       - "README.md"
       - "docs/**"
       - ".assets/**"
       - "CHANGELOG.md"
-      - "llms.txt"
       - ".linkml/**"
-      - "**/[Jj]ustfile"
-      - "**/.justfile"
-      - "**/pyproject.toml"
-      - "**/uv.lock"
+      - "src/*/schema/**"
       - ".github/workflows/knowledge-website.yaml"
+      - ".github/workflows/knowledge-federation.yaml"
   schedule:
     - cron: "23 5 * * 1" # Mondays at 05:23 UTC
   workflow_dispatch:
@@ -75,7 +71,8 @@ jobs:
     name: Build the site (read-only)
     # A push builds on the default branch only. A pull request or a dispatch always builds.
     if: github.event_name != 'push' || github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.KNOWLEDGE_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
@@ -95,37 +92,34 @@ jobs:
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
-          cache-dependency-glob: .lokf/uv.lock
-          # The downloaded wheels are pruned before the cache is saved. A
-          # schema or data command builds the project's own environment in
-          # the same cache, gigabytes for a project with machine-learning
-          # packages, and a repository's caches share 10 GB.
+          cache-dependency-glob: |
+            .lokf/uv.lock
+            website/uv.lock
+            ktl-website/uv.lock
           prune-cache: true
 
-      - name: Install the lokf toolkit the sidecar pins
-        run: uv sync --locked
-        working-directory: .lokf
-
-      - name: Use Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: website/package-lock.json
-
-      # A schema or a data folder that site.config.mjs shows is written by
-      # its own command, which the sync runs when the folder is missing, as it
-      # always is here. A LinkML project's commands are recipes for just, a
-      # command runner the runner image lacks. Where .lokf/uv.lock pins
-      # rust-just, the step links the copy it checked by hash, alone, so the
-      # sidecar's other commands stay off PATH; else it installs the same
-      # version by name. setup-uv puts the tool directory on PATH on Windows
-      # only, so the step adds it.
-      - name: Install just, when the site builds a folder with it
+      # The site is in website/, or in ktl-website/ where website/ was
+      # another site's when the skill installed it.
+      - name: Find the site's folder
+        id: site
         run: |
-          if node website/scripts/config.mjs | grep -q '"build": "just '; then
+          if [ -f ktl-website/site.toml ]; then echo "dir=ktl-website" >> "$GITHUB_OUTPUT"; else echo "dir=website" >> "$GITHUB_OUTPUT"; fi
+
+      # A data folder site.toml names is written by its own command, which
+      # prepare.sh runs when the folder holds no database, as it never does
+      # here. A LinkML project's commands are recipes for just, a command
+      # runner the runner image lacks. Where .lokf/uv.lock pins rust-just,
+      # the step links the copy uv checked by hash, alone, so the toolkit's
+      # other commands stay off PATH; else it installs the same version by
+      # name.
+      - name: Install just, when the site builds its data with it
+        env:
+          SITE_DIR: ${{ steps.site.outputs.dir }}
+        run: |
+          if grep -q '^browseBuild = "just ' "$SITE_DIR/site.toml"; then
+            mkdir -p "$HOME/.local/bin"
             if grep -qx 'name = "rust-just"' .lokf/uv.lock; then
-              mkdir -p "$HOME/.local/bin"
+              uv sync --project .lokf --frozen --quiet
               ln -sf "$PWD/.lokf/.venv/bin/just" "$HOME/.local/bin/just"
             else
               uv tool install rust-just==1.47.0
@@ -133,18 +127,18 @@ jobs:
             echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           fi
 
-      # `build` runs the sync first and the link check after.
+      # build.sh runs prepare.sh first, which runs `lokf export` and, for a
+      # LinkML schema, gen-doc, both from the toolkit .lokf/uv.lock pins. Then
+      # Hugo and Pagefind, from the site's own uv.lock, the cleaning of raw
+      # HTML, and the link check.
       - name: Build the site and check its links
-        working-directory: website
         env:
-          ASTRO_TELEMETRY_DISABLED: "1"
-        run: |
-          npm ci --ignore-scripts
-          npm run build
+          SITE_DIR: ${{ steps.site.outputs.dir }}
+        run: bash "$SITE_DIR/scripts/build.sh"
 
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
-          path: website/dist
+          path: ${{ steps.site.outputs.dir }}/dist
 
   deploy:
     name: Deploy to GitHub Pages
@@ -152,7 +146,8 @@ jobs:
     # no repository to compare the branch with, so it is let through by name.
     if: vars.KNOWLEDGE_WEBSITE_ENABLED == 'true' && (github.event_name == 'schedule' || (github.event_name != 'pull_request' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)))
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.KNOWLEDGE_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 10
     permissions:
       pages: write
       id-token: write
@@ -164,6 +159,18 @@ jobs:
         uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
+
+      # GitHub Pages can serve a private repository's site to anyone, and
+      # does on every plan but Enterprise Cloud, which can make it private.
+      - name: Say when a private repository's site is public
+        if: github.event.repository.private
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ "$(gh api "repos/$GH_REPO/pages" --jq .public 2>/dev/null)" != false ]; then
+            echo "::warning::This repository is private, and its Pages site is public or of unknown visibility, so anyone may read what the site shows. On GitHub Enterprise Cloud, set the site's visibility to private under Settings, Pages."
+          fi
 
       - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         id: deployment

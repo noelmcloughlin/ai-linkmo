@@ -1,0 +1,26 @@
+{{- /*
+  The schema file prepare.sh copied, served beside the schema's pages:
+  (dict "file" "path" "package" "core" "domain"), or false when there is no
+  schema. "path" is its path in the repository, empty for a file inside a
+  package. "package" names that package: the one site.toml's schema names
+  with pkg:, or lokf for LOKF core from the lokf package. "core" is LOKF
+  core's version when the repository has no schema of its own, and empty
+  otherwise. "domain" is true for the domain vocabulary in .lokf/schema/.
+*/ -}}
+{{- $out := false -}}
+{{- $path := "" }}{{ with resources.Get "gendoc/source.txt" }}{{ $path = .Content | strings.TrimSpace }}{{ end -}}
+{{- $core := "" }}{{ with resources.Get "gendoc/core.txt" }}{{ $core = .Content | strings.TrimSpace }}{{ end -}}
+{{- $name := cond (ne $path "") (path.Base $path) "lokf.yaml" -}}
+{{- $package := cond (eq $path "") "lokf" "" -}}
+{{- if hasPrefix $path "pkg:" }}{{ $package = index (split (strings.TrimPrefix "pkg:" $path) "/") 0 }}{{ $path = "" }}{{ end -}}
+{{- if or $path $package -}}
+  {{- /* The local files the schema imports, which prepare.sh copied beside it. */ -}}
+  {{- range resources.Match "gendoc/**.yaml" -}}
+    {{- $rel := strings.TrimPrefix "gendoc/" (strings.TrimPrefix "/" .Name) -}}
+    {{- if ne $rel $name }}{{ (. | resources.Copy (printf "schema/%s" $rel)).Publish }}{{ end -}}
+  {{- end -}}
+  {{- with resources.Get (printf "gendoc/%s" $name) -}}
+    {{- $out = dict "file" (. | resources.Copy (printf "schema/%s" $name)) "path" $path "package" $package "core" $core "domain" (eq $path ".lokf/schema/domain.yaml") -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

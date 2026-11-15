@@ -1,0 +1,10 @@
+{{ define "main" }}
+<article class="prose">
+  {{- if .Params.shift }}<h1>{{ .Title }}</h1>{{ end }}
+  {{- if .Params.conceptId }}{{ partial "concept-card.html" . }}{{ end }}
+  {{ partial "content.html" . }}
+  {{- with partial "repo-path.html" . }}{{ if hasPrefix (partial "site-path.html" .) "docs/" }}
+  <p class="edit" data-pagefind-ignore><a href="{{ printf "%s/edit/%s/%s" site.Params.repo site.Params.branch . }}">Edit this page</a></p>
+  {{- end }}{{ end }}
+</article>
+{{ end }}

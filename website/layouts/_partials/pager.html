@@ -1,0 +1,15 @@
+{{- /* The page before and the page after: in its docs group order for a docs page, by title in its group for a concept or an element of the schema. */ -}}
+{{- $list := slice -}}
+{{- if or .Params.conceptId .Params.schemaName -}}
+  {{- $list = .Parent.RegularPages.ByTitle -}}
+{{- else if .Params.docName -}}
+  {{- range (partialCached "docs-groups.html" "docs").list }}{{ range .pages }}{{ $list = $list | append . }}{{ end }}{{ end -}}
+{{- end -}}
+{{- $at := -1 -}}
+{{- range $i, $p := $list }}{{ if eq $p.Path $.Path }}{{ $at = $i }}{{ end }}{{ end -}}
+{{- if ge $at 0 }}
+<nav class="pager" aria-label="Previous and next page" data-pagefind-ignore>
+  {{- if gt $at 0 }}{{ with index $list (sub $at 1) }}<a rel="prev" href="{{ .RelPermalink }}"><span class="muted">Previous</span>{{ partial "title.html" . }}</a>{{ end }}{{ else }}<span></span>{{ end }}
+  {{- if lt (add $at 1) (len $list) }}{{ with index $list (add $at 1) }}<a rel="next" href="{{ .RelPermalink }}"><span class="muted">Next</span>{{ partial "title.html" . }}</a>{{ end }}{{ end }}
+</nav>
+{{- end }}

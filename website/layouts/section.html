@@ -1,0 +1,51 @@
+{{ define "main" }}
+{{- $all := partialCached "concepts.html" "concepts" }}
+<article class="prose">
+  {{- if not (and .Params.docName (not .Params.shift)) }}<h1>{{ partial "title.html" . }}</h1>{{ end }}
+  {{- if eq .Path "/knowledge" }}
+  {{- /* The bundle's own page: what its root file declares, then its index as written. */ -}}
+  {{- $c := .Params.concept }}
+  <p class="lead">{{ $c.description }}</p>
+  {{- /* The bundle's record as a catalogue card, its base IRI the call number: a bar of the ladder's states, the health figures, then the rest. */ -}}
+  {{- $tones := partial "tones.html" . }}
+  {{- $n := newScratch }}
+  {{- range $all.id }}{{ $n.Add .trust.tone 1 }}{{ end }}
+  {{- $health := "health/" | relURL }}
+  <section class="card card--bundle" aria-label="The bundle's record">
+    <header class="card__head">
+      <span><span class="chip chip--type">Knowledge bundle</span>{{ with $c.lokf_version }} <span class="chip">LOKF {{ . }}</span>{{ end }}</span>
+      {{- with $c.base_iri }}<code class="card__call" translate="no">{{ . }}</code>{{ end }}
+    </header>
+    <p class="card__caption"><a href="{{ $health }}">Health</a><span>{{ len $all.id }} concepts</span></p>
+    <p class="ladder" role="img" aria-label="{{ range $i, $t := $tones.order }}{{ if $i }}, {{ end }}{{ index $tones $t }}: {{ $n.Get $t | default 0 }}{{ end }}">
+      {{- range $t := $tones.order }}{{ with $n.Get $t }}<span class="ladder__part tone--{{ $t }}" style="flex-grow: {{ . }}" title="{{ index $tones $t }}: {{ . }}"></span>{{ end }}{{ end -}}
+    </p>
+    {{ partial "health-tiles.html" (dict "states" true) }}
+    <dl>
+      {{- with $c.license }}<dt>Licence</dt><dd>{{ partial "licence.html" . }}</dd>{{ end }}
+      {{- with $c.publisher }}<dt>Publisher</dt><dd>{{ or .name .id }}</dd>{{ end }}
+      <dt>As data</dt>
+      <dd class="card__files">{{ range $f := slice "concepts.jsonld" "graph.json" "graph.nt" "datasets.jsonld" }}<a class="chip" href="{{ printf "knowledge/%s" $f | relURL }}"><code>{{ $f }}</code></a> {{ end }}</dd>
+    </dl>
+  </section>
+  {{ partial "content.html" . }}
+  {{- else if hasPrefix .Path "/knowledge/" }}
+  {{- /* A group's page: its concepts by title, each with its trust label and description. */ -}}
+  <ul class="concept-list">
+    {{- range .RegularPages.ByTitle }}
+      {{- $t := (index $all.id .Params.conceptId).trust }}
+      <li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <span class="label label--{{ $t.tone }}">{{ $t.label }}</span><br><span class="muted">{{ partial "inline.html" (.Params.concept.description | default "") }}</span></li>
+    {{- end }}
+  </ul>
+  {{- else }}
+  {{- /* A docs folder's own page: its index.md when it has one, and for docs/ itself every page by its group. */ -}}
+  {{ partial "content.html" . }}
+  {{- if eq .Path "/docs" }}
+  {{- range (partialCached "docs-groups.html" "docs").list }}
+  <h2>{{ .label }}</h2>
+  <ul>{{ range .pages }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>{{ end }}</ul>
+  {{- end }}
+  {{- end }}
+  {{- end }}
+</article>
+{{ end }}

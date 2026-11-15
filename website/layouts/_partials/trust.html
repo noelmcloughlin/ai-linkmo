@@ -1,0 +1,16 @@
+{{- /*
+  A concept's trust, from its id: the label knowledge-report.sh printed, the
+  rung its first clause names, what follows the rung, the tone that colours
+  it, and the words for its state. The site never derives a label itself.
+*/ -}}
+{{- $labels := partialCached "labels.html" "labels" -}}
+{{- $label := index $labels . -}}
+{{- if not $label }}{{ errorf "knowledge-report.sh printed no label for %s.md; run scripts/prepare.sh again" . }}{{ $label = "nobody has checked this yet" }}{{ end -}}
+{{- $tone := "nobody" -}}
+{{- if hasPrefix $label "retired" }}{{ $tone = "retired" -}}
+{{- else if hasPrefix $label "confirmed by a person" }}{{ $tone = "person" -}}
+{{- else if hasPrefix $label "edited since a person" }}{{ $tone = "edited" -}}
+{{- else if hasPrefix $label "checked by automation" }}{{ $tone = "automation" -}}
+{{- end -}}
+{{- $parts := split (replaceRE `, (still a draft|reopened|past its review date|a reader disputed this)` "\x00$1" $label 1) "\x00" -}}
+{{- return (dict "label" $label "tone" $tone "rung" (index $parts 0) "also" (index $parts 1 | default "") "words" (index (partial "tones.html" .) $tone)) -}}

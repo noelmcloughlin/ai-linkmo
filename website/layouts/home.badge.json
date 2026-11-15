@@ -1,0 +1,15 @@
+{{- /*
+  The bundle's trust in one line, in the form a shields.io endpoint badge
+  reads: how many of its concepts a person confirmed, as "n of m", retired
+  ones aside, beside the Knowledge Trust Ladder's mark. A README shows it with
+  https://img.shields.io/endpoint?url=<site>/badge.json and links it to the
+  site's health page. The colour is the site's own: a person's blue once one
+  concept is confirmed, and its grey before.
+*/ -}}
+{{- $n := newScratch -}}
+{{- range (partialCached "concepts.html" "concepts").id }}{{ if ne .trust.tone "retired" }}{{ $n.Add "all" 1 }}{{ $n.Add .trust.tone 1 }}{{ end }}{{ end -}}
+{{- $all := $n.Get "all" | default 0 -}}
+{{- $person := $n.Get "person" | default 0 -}}
+{{- $message := cond (eq $all 0) "no concepts yet" (printf "%d of %d" $person $all) -}}
+{{- $mark := os.ReadFile "static/brand/knowledge-trust-ladder-logo.svg" | replaceRE `(?s)<!--.*?-->` "" | replaceRE `\s+` " " | strings.TrimSpace -}}
+{{- dict "schemaVersion" 1 "label" "KTL scorecard" "message" $message "color" (cond (gt $person 0) "0c447c" "5f5e5a") "logoSvg" $mark | jsonify -}}

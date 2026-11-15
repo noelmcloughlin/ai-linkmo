@@ -1,0 +1,357 @@
+/*
+  The site's one stylesheet. Each colour is written once as light-dark(), so
+  the page follows the system's scheme, and the reader's choice in the
+  Display menu overrides it by setting color-scheme alone. Every size is in
+  rem, so the browser's own text size and the menu's Text size both scale the
+  whole page. Large is the size a reader gets before choosing one. The paper and ink are the Astro site's Catalogue style: one
+  warm hue, hsl(45), at each lightness, so the page reads as a museum's wall
+  and not a screen's white. The trust colours are the Astro site's too.
+*/
+@font-face { font-family: "Atkinson Hyperlegible Next"; src: url("../fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2") format("woff2"); font-weight: 200 800; font-display: swap; }
+@font-face { font-family: "Atkinson Hyperlegible Next"; src: url("../fonts/atkinson-hyperlegible-next-latin-wght-italic.woff2") format("woff2"); font-weight: 200 800; font-style: italic; font-display: swap; }
+@font-face { font-family: "Source Serif 4"; src: url("../fonts/source-serif-4-latin-wght-normal.woff2") format("woff2"); font-weight: 200 900; font-display: swap; }
+:root {
+  color-scheme: light dark;
+  /* The wall, the ink, the quieter ink, a hairline, a border a control needs, a recess, a card's paper and the graph's table. */
+  --bg: light-dark(hsl(45 30% 96%), hsl(45 10% 10%)); --fg: light-dark(hsl(45 12% 11%), hsl(45 20% 89%)); --muted: light-dark(hsl(45 6% 33%), hsl(45 7% 66%));
+  --line: light-dark(hsl(45 14% 80%), hsl(45 7% 24%)); --rule: light-dark(hsl(45 6% 50%), hsl(45 5% 46%)); --panel: light-dark(hsl(45 24% 91.5%), hsl(45 9% 14%));
+  --card: light-dark(hsl(45 45% 99%), hsl(45 10% 12.5%)); --stage: light-dark(hsl(45 26% 93.5%), hsl(45 10% 12.5%));
+  /* What lies over the page and not on it: the search box and its results. It is lighter than any wall in either scheme. */
+  --raise: light-dark(#fff, hsl(45 8% 19%)); --scrim: light-dark(rgb(38 33 22 / .4), rgb(0 0 0 / .6));
+  /* A link is a blue quieter than the trust blue. The brand is the walnut of a display case, for what the reader is on and the one main button. */
+  --accent: light-dark(#2b5c8c, #9dbcdc); --brand: light-dark(hsl(32 28% 27%), hsl(38 38% 74%)); --tint: color-mix(in srgb, var(--brand) 14%, transparent);
+  --person-fg: light-dark(#0c447c, #93c0f2); --person-bg: light-dark(#e6f1fb, #142639);
+  --edited-fg: light-dark(#7a4e0b, #e4bd6e); --edited-bg: light-dark(#fbe7c9, #3a2c10);
+  --automation-fg: light-dark(#7a4e0b, #e4bd6e); --automation-bg: light-dark(#faeeda, #33290f);
+  --nobody-fg: light-dark(#5f5e5a, #aba9a0); --nobody-bg: light-dark(#ecebe5, #30302c);
+  --retired-fg: light-dark(#5f5e5a, #8a8880); --retired-bg: light-dark(#ecebe5, #262624);
+  --chart-person: light-dark(#185fa5, #5a9be0); --chart-edited: light-dark(#a8741a, #d59a3a); --chart-automation: light-dark(#7a4e0b, #e4bd6e);
+  --chart-nobody: light-dark(#7d7b73, #8f8d85); --chart-retired: light-dark(#7d7b73, #8f8d85);
+  --serif: "Source Serif 4", Georgia, serif;
+  --sans: "Atkinson Hyperlegible Next", system-ui, sans-serif;
+  --mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  --top: 3.5rem;
+  scroll-padding-top: calc(var(--top) + 1rem);
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+:root { font-size: 100%; }
+:root[data-size="large"] { font-size: 112.5%; }
+:root[data-size="larger"] { font-size: 125%; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 1rem/1.6 var(--sans); overflow-wrap: break-word; }
+/* A link's underline is fainter than its words until the pointer or the focus is on it. */
+a { color: var(--accent); text-underline-offset: .15em; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); }
+a:is(:hover, :focus-visible) { text-decoration-color: currentColor; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, pre, kbd { font-family: var(--mono); }
+mark { background: color-mix(in srgb, var(--chart-edited) 35%, transparent); color: inherit; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.muted { color: var(--muted); font-size: .9em; }
+.count { color: var(--muted); font: 400 .85rem var(--sans); }
+.icon { flex: none; }
+.skip { position: absolute; left: -100rem; z-index: 20; padding: .6rem 1rem; background: var(--bg); }
+.skip:focus { left: .5rem; top: .5rem; }
+.eyebrow { margin: 0 0 .3rem; color: var(--muted); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
+.eyebrow a { color: inherit; }
+
+/* The header: the brand, the search box, the Display menu and two links. */
+.top { position: sticky; top: 0; z-index: 10; display: flex; gap: .75rem; align-items: center; min-height: var(--top); padding: .4rem 1rem; background: var(--panel); border-bottom: 1px solid var(--line); }
+.brand { display: flex; gap: .5rem; align-items: center; margin-right: auto; font: 600 1.1rem var(--serif); color: var(--fg); text-decoration: none; }
+.top__button { padding: .35rem .6rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); color: var(--fg); font-size: .9rem; text-decoration: none; white-space: nowrap; }
+.top__menu, .sidebar__close { display: none; }
+#search { position: relative; width: 14rem; --pagefind-ui-scale: .7; --pagefind-ui-primary: var(--accent); --pagefind-ui-text: var(--fg); --pagefind-ui-background: var(--raise); --pagefind-ui-border: var(--rule); --pagefind-ui-tag: var(--panel); --pagefind-ui-border-width: 1px; --pagefind-ui-font: var(--sans); }
+#search .pagefind-ui__search-input::placeholder { color: var(--muted); opacity: 1; }
+/* The results are a layer of their own: a raised tone, a heavier edge, and the page behind them dimmed while they are open. */
+#search .pagefind-ui__drawer { position: absolute; right: 0; top: calc(100% + .4rem); width: min(38rem, calc(100vw - 2rem)); max-height: calc(100vh - 6rem); overflow: auto; padding: 0 1rem 1rem; background: var(--raise); border: 1px solid var(--rule); border-top: 3px solid var(--brand); border-radius: 8px; box-shadow: 0 18px 50px #0007; }
+#search .pagefind-ui__filter-panel { align-self: flex-start; margin: 1rem 0 0; padding: .2rem .8rem; border: 0; border-radius: 6px; background: var(--panel); }
+body:has(#search .pagefind-ui__drawer:not(.pagefind-ui__hidden))::after { content: ""; position: fixed; inset: 0; z-index: 9; background: var(--scrim); }
+
+/* The Display menu, under the header's right end. Each choice is a row of segments, and the one chosen is filled. */
+.prefs { position: fixed; inset: calc(var(--top) + .3rem) 1rem auto auto; margin: 0; padding: .7rem .8rem .8rem; background: var(--card); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 24px #0003; }
+.prefs fieldset { margin: 0; padding: 0; border: 0; }
+.prefs fieldset + fieldset { margin-top: .7rem; }
+.prefs legend { padding: 0 0 .25rem; color: var(--muted); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 7px; overflow: hidden; background: var(--card); font-size: .9rem; }
+.seg > * { flex: 1; padding: .3rem .8rem; color: var(--fg); text-align: center; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.seg > * + * { border-left: 1px solid var(--line); }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg > :is(:has(:checked), [aria-current]) { background: var(--brand); color: var(--bg); font-weight: 600; }
+.seg > :has(:focus-visible) { outline: 3px solid var(--accent); outline-offset: -3px; }
+.seg > [aria-disabled] { color: var(--muted); background: var(--panel); cursor: not-allowed; }
+
+/* Two columns: the navigation and the page. A concept's page has a third, for its neighbours. */
+.layout { display: grid; grid-template-columns: 17.5rem minmax(0, 1fr); gap: 2.5rem; max-width: 92rem; margin: 0 auto; padding: 0 1rem; }
+.layout:has(> .aside) { grid-template-columns: 17.5rem minmax(0, 1fr) 19rem; }
+main { min-width: 0; padding: 1.5rem 0 4rem; }
+.sidebar, .aside { position: sticky; top: var(--top); align-self: start; max-height: calc(100vh - var(--top)); overflow: auto; padding: 1rem 0 2rem; font-size: .92rem; }
+.aside { padding-top: 1.5rem; }
+.sidebar ul { list-style: none; margin: 0 0 .3rem; padding: 0; }
+.sidebar li a, .sidebar summary { display: block; padding: .28rem .5rem; border-radius: 6px; color: var(--fg); text-decoration: none; }
+.sidebar :is(li a, summary, .section--link):hover { background: color-mix(in srgb, var(--fg) 8%, transparent); }
+.sidebar .nav-graph a { display: flex; gap: .45rem; align-items: center; margin: .15rem 0; background: color-mix(in srgb, var(--brand) 9%, transparent); color: var(--brand); font-weight: 600; }
+.sidebar a[aria-current] { background: var(--tint); box-shadow: inset 3px 0 var(--brand); font-weight: 600; }
+.sidebar summary { font-weight: 600; cursor: pointer; list-style: none; }
+.sidebar summary::-webkit-details-marker { display: none; }
+.sidebar summary::before { content: "▸"; display: inline-block; width: 1rem; color: var(--muted); }
+.sidebar details[open] > summary::before { content: "▾"; }
+.sidebar details details ul { margin-left: 1rem; padding-left: .4rem; border-left: 1px solid var(--line); }
+.sidebar summary .count { float: right; }
+/* A part of the site: the guide, the schema, the bundle. Its heading is a case's label, and the open one is the case the reader stands in. */
+.section { margin-bottom: .4rem; border: 1px solid transparent; border-radius: 10px; }
+.section[open] { padding: 0 .35rem .45rem; background: var(--panel); border-color: var(--line); }
+.sidebar :is(.section > summary, .section--link) { display: flex; gap: .6rem; align-items: center; padding: .4rem .45rem; border-radius: 9px; font: 600 1.04rem var(--serif); color: var(--fg); text-decoration: none; }
+.section[open] > summary { margin: 0 -.35rem .25rem; }
+.sidebar .section:is([open], :not([open])) > summary::before { content: none; }
+.sidebar .section > summary::after { content: ""; width: .45rem; height: .45rem; margin: 0 .3rem 0 auto; border: solid var(--muted); border-width: 0 2px 2px 0; transform: rotate(-45deg); }
+.sidebar .section[open] > summary::after { transform: rotate(45deg); }
+.section .icon, .section--link .icon { box-sizing: content-box; padding: .3rem; border: 1px solid var(--line); border-radius: 7px; background: var(--card); color: var(--brand); }
+.section[open] > summary .icon { background: var(--brand); border-color: var(--brand); color: var(--bg); }
+.section--link { margin-top: .9rem; padding-top: .7rem; }
+/*
+  A concept's neighbours, down one line: those that point at it, the concept
+  itself, then those it points at. The line is each list's left edge, and it
+  ends in an arrowhead that shows which way the relations run.
+*/
+.hood__title { margin: .3rem 0 .6rem; font: 600 1.1rem var(--serif); }
+.hood__count { margin: .5rem 0 .3rem; color: var(--muted); font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; }
+.hood { position: relative; list-style: none; margin: 0 0 .7rem .5rem; padding: 0 0 .5rem .8rem; border-left: 2px solid var(--rule); }
+.hood::after { content: ""; position: absolute; left: -7px; bottom: -4px; border: 6px solid transparent; border-top-color: var(--rule); border-bottom-width: 0; }
+.hood li { padding: .25rem 0; line-height: 1.35; }
+.hood a { display: grid; grid-template-columns: 1.2rem 1fr; align-items: baseline; color: var(--fg); text-decoration: none; }
+.hood a:is(:hover, :focus-visible) { text-decoration: underline; }
+.hood__slot { display: block; padding-left: 1.2rem; color: var(--muted); font-size: .85rem; }
+.hood__self { margin: 0 0 .2rem; padding: .45rem .7rem; border-radius: 8px; background: var(--brand); color: var(--bg); font-weight: 600; line-height: 1.35; }
+.hood__more { margin: .8rem 0 0; }
+
+/* The page's own words. They keep to a line a reader can follow. A table, a diagram, long code and the home page's lead may run wider. */
+.prose { max-width: 62rem; }
+.prose > * { max-width: 46rem; }
+.prose > :is(table, .mermaid, .hero), .prose.wide > * { max-width: none; }
+.prose > .highlight { width: fit-content; min-width: min(46rem, 100%); max-width: 100%; }
+/* Above the words: the page's reading levels, and its sections, closed until the reader asks for them. */
+.tools { max-width: 46rem; font-size: .9rem; }
+.tools:has(.seg) { margin-bottom: 1.2rem; }
+/* Closed, the list of sections is a word at the right, and the title's line runs beside it. Open, it is a box above the title. */
+.toc { float: right; margin-left: 1rem; color: var(--muted); }
+.toc summary { padding: .3rem .1rem; cursor: pointer; }
+.toc[open] { float: none; clear: both; margin: 0 0 1.2rem; padding: .2rem .9rem .7rem; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+.tools .seg + .toc[open] { margin-top: .6rem; }
+.toc ul { list-style: none; margin: 0; padding-left: .9rem; }
+.toc nav > ul { padding-left: 0; columns: 2 14rem; }
+.toc li { break-inside: avoid; }
+.toc li a { display: block; padding: .15rem 0; color: var(--fg); text-decoration: none; }
+.toc li a:hover { text-decoration: underline; }
+.prose :is(h1, h2, h3, h4) { font-family: var(--serif); line-height: 1.25; text-wrap: balance; }
+.prose h1 { margin-top: 0; font-size: 2.1rem; }
+.prose h2 { margin-top: 2.2rem; padding-bottom: .2rem; border-bottom: 1px solid var(--line); }
+.prose h2 a { color: inherit; text-decoration: none; }
+.prose img { max-width: 100%; height: auto; }
+.prose pre { position: relative; overflow: auto; padding: .8rem 1rem; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); font-size: .88rem; }
+.prose :not(pre) > code { padding: .1em .3em; border-radius: 4px; background: var(--panel); font-size: .9em; }
+.prose table { display: block; overflow-x: auto; border-collapse: collapse; }
+.prose :is(th, td) { padding: .3rem .6rem; border: 1px solid var(--line); vertical-align: top; text-align: left; }
+.prose th { background: var(--panel); }
+.prose blockquote { margin-left: 0; padding-left: 1rem; border-left: 3px solid var(--line); color: var(--muted); }
+.anchor { margin-left: .4rem; color: var(--muted); text-decoration: none; opacity: 0; }
+:is(h2, h3, h4):hover .anchor, .anchor:focus-visible { opacity: 1; }
+.copy { position: absolute; top: .4rem; right: .4rem; padding: .1rem .5rem; border: 1px solid var(--line); border-radius: 4px; background: var(--card); color: var(--muted); font: .8rem var(--sans); opacity: 0; }
+pre:hover .copy, .copy:focus-visible { opacity: 1; }
+.lead { color: var(--muted); font-size: 1.1rem; }
+.alert { margin: 1rem 0; padding: .4rem 1rem; border-left: 4px solid var(--accent); border-radius: 0 6px 6px 0; background: var(--panel); }
+.alert__title { margin: .3rem 0; font-weight: 600; }
+.alert--warning, .alert--caution { border-color: var(--chart-edited); }
+/* The home page's five buttons, in one row of equal widths. One whose page the repository lacks keeps its place, greyed. */
+.actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: .6rem; margin: 0 0 1.5rem; }
+.button { padding: .45rem .6rem; border: 1px solid var(--brand); border-radius: 999px; background: var(--brand); color: var(--bg); text-align: center; text-decoration: none; font-weight: 600; white-space: nowrap; }
+.button--secondary { background: none; color: var(--brand); }
+.button--missing { border-style: dashed; border-color: var(--rule); background: none; color: var(--muted); font-weight: 400; cursor: not-allowed; }
+.actions > .muted { align-self: center; }
+/* A figure or a diagram at full size, over the dimmed page. It takes the window, and Escape or Close puts it away. */
+.figure { cursor: zoom-in; }
+.zoom { width: 96vw; height: 94vh; max-width: none; max-height: none; padding: 3rem 1rem 1rem; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); color: var(--fg); cursor: zoom-out; }
+.zoom[open] { display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center; }
+.zoom::backdrop { background: var(--scrim); }
+.zoom img { max-width: 100%; max-height: 100%; }
+.zoom__drawing { width: 100%; height: 100%; object-fit: contain; }
+/* A diagram fills the window too, and the wheel, a drag or the tools above it zoom and move it. A figure has Close alone. */
+.zoom__diagram { width: 100%; height: 100%; touch-action: none; user-select: none; cursor: grab; }
+.zoom__diagram:active { cursor: grabbing; }
+.zoom__tools { position: absolute; top: .6rem; right: .8rem; display: flex; gap: .4rem; margin: 0; }
+.zoom:not(.zoom--diagram) [data-do]:not([data-do="close"]) { display: none; }
+.zoom button { min-width: 2.2rem; padding: .3rem .8rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); color: var(--fg); font-size: .9rem; cursor: pointer; }
+.edit { margin-top: 3rem; font-size: .9rem; }
+.pager { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-width: 46rem; margin-top: 2rem; }
+.pager a { padding: .6rem .9rem; border: 1px solid var(--line); border-radius: 8px; background: var(--card); text-decoration: none; }
+.pager a[rel="next"] { text-align: right; grid-column: 2; }
+.pager .muted { display: block; }
+.prose details > summary { color: var(--muted); cursor: pointer; }
+
+/* The home page's lead when the repository holds a schema: the schema on exhibit, with a plaque for each of its first classes. Its title takes the walnut of the case, so it never reads as the page's own heading below it. */
+.hero { margin: 0 0 2.2rem; padding: 1.3rem 1.5rem 1.5rem; border: 1px solid var(--line); border-top: 4px solid var(--brand); border-radius: 10px; background: var(--card); box-shadow: 0 6px 18px -12px #0006; }
+.hero__title { margin: 0; font: 600 1.9rem/1.2 var(--serif); text-wrap: balance; }
+.hero__title a { color: var(--brand); text-decoration: none; }
+.hero__lead { margin: .5rem 0 0; color: var(--muted); font-size: 1.05rem; }
+.hero__counts { display: flex; flex-wrap: wrap; gap: .2rem 1.8rem; margin: 1rem 0 .8rem; padding: 0; list-style: none; color: var(--muted); }
+.hero__counts b { margin-right: .35rem; color: var(--fg); font: 600 1.5rem var(--serif); }
+.plaques { display: grid; grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.plaques a { display: block; height: 100%; padding: .5rem .7rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); text-decoration: none; }
+.plaques a:is(:hover, :focus-visible) { border-color: var(--brand); }
+.plaques code { padding: 0; background: none; font-size: .95rem; font-weight: 600; }
+.plaques span { display: block; color: var(--muted); font-size: .85rem; line-height: 1.4; }
+.hero .actions { margin: 1.2rem 0 0; }
+
+/* What a link to a concept shows on hover or focus: its trust label and definition. */
+a[data-preview] { position: relative; }
+a[data-preview]:is(:hover, :focus-visible)::after { content: attr(data-preview) / ""; position: absolute; left: 0; top: calc(100% + .3rem); z-index: 5; width: max-content; max-width: min(24rem, 80vw); padding: .5rem .7rem; border: 1px solid var(--line); border-radius: 8px; background: var(--card); color: var(--fg); box-shadow: 0 8px 24px #0003; font: 400 .85rem/1.45 var(--sans); white-space: normal; }
+
+/* Trust. A dot's shape says the state as well as its colour, so no reader depends on colour alone. */
+.dot { display: inline-block; flex: none; width: .7rem; height: .7rem; margin-right: .45rem; border: 2px solid var(--chart-nobody); border-radius: 50%; vertical-align: -.05em; }
+.dot--person { border-color: var(--chart-person); background: var(--chart-person); }
+.dot--edited { border-color: var(--chart-edited); background: linear-gradient(90deg, var(--chart-edited) 50%, transparent 50%); }
+.dot--automation { border-color: var(--chart-automation); }
+.dot--nobody { border-style: dotted; }
+.dot--retired { border-style: dotted; opacity: .6; }
+.label, .chip { display: inline-block; padding: .1rem .6rem; border-radius: 999px; font-size: .85rem; }
+.label { margin: 0; color: var(--nobody-fg); background: var(--nobody-bg); }
+.label--person { color: var(--person-fg); background: var(--person-bg); }
+.label--edited { color: var(--edited-fg); background: var(--edited-bg); }
+.label--automation { color: var(--automation-fg); background: var(--automation-bg); }
+.chip { border: 1px solid var(--line); color: var(--muted); }
+.chip--type { color: var(--fg); font-weight: 600; }
+/* A record as a catalogue card: a head with a double rule under it, on paper a step lighter than the wall. */
+.card { margin: 1rem 0 2rem; padding: 0 1rem .8rem; border: 1px solid var(--line); border-left: 4px solid var(--chart-nobody); border-radius: 8px; background: var(--card); box-shadow: 0 6px 18px -12px #0006; font-size: .92rem; }
+.card--person { border-left-color: var(--chart-person); }
+.card--edited { border-left-color: var(--chart-edited); }
+.card--automation { border-left-color: var(--chart-automation); }
+.card__head { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: space-between; align-items: baseline; margin: 0 -1rem; padding: .5rem 1rem; border-bottom: 3px double var(--line); border-radius: 0 8px 0 0; background: var(--panel); }
+.card__call { color: var(--muted); font-size: .8rem; }
+.card__trust { margin: .7rem 0; }
+.card__trust p { margin: .25rem 0; }
+.card__also { color: var(--edited-fg); }
+.card__definition { font: italic 1.05rem/1.5 var(--serif); }
+.card__more summary { cursor: pointer; color: var(--muted); }
+.card dl { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: .3rem 1rem; }
+.card > dl { margin: .8rem 0 0; }
+.card dt { color: var(--muted); }
+.card dd { margin: 0; overflow-wrap: anywhere; }
+.card ul { margin: 0; padding-left: 0; list-style: none; }
+.card__files a { margin: 0 .3rem .3rem 0; color: var(--fg); text-decoration: none; }
+.card__files a:is(:hover, :focus-visible) { border-color: var(--rule); background: var(--raise); }
+.card__files code { padding: 0; background: none; }
+/* The full record: a rule above its toggle, and a faint one between its rows. */
+.card__more { margin-top: .4rem; padding-top: .5rem; border-top: 1px solid var(--line); }
+.card__more > dl { gap: 0 1rem; }
+.card__more > dl > :is(dt, dd) { padding: .4rem 0; border-top: 1px dotted var(--line); }
+.card__more > dl > :is(dt, dd):nth-child(-n + 2) { border-top: 0; }
+.card__checks li { display: flex; align-items: baseline; flex-wrap: wrap; column-gap: .25rem; }
+/* The bundle's own card: the ladder as one bar, then the health figures as tiles. */
+.card--bundle { border-left-color: var(--brand); }
+.card--bundle .card__call { overflow-wrap: anywhere; }
+.card__caption { display: flex; justify-content: space-between; margin: .8rem 0 .35rem; color: var(--muted); font-size: .85rem; }
+.ladder { display: flex; gap: 2px; height: .7rem; margin: 0 0 .8rem; border-radius: 999px; overflow: hidden; }
+.ladder__part { min-width: 4px; background: var(--tone); }
+.ladder__part.tone--retired { background: repeating-linear-gradient(135deg, var(--tone) 0 3px, transparent 3px 6px); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: .5rem; margin: 0; padding: 0; list-style: none; }
+.tiles a { display: flex; flex-direction: column-reverse; justify-content: flex-end; height: 100%; padding: .45rem .7rem; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); text-decoration: none; }
+.tiles a:is(:hover, :focus-visible) { border-color: var(--rule); background: var(--raise); }
+.tiles__n { font: 600 1.35rem/1.2 var(--serif); font-variant-numeric: tabular-nums; }
+.tiles__words { color: var(--muted); font-size: .82rem; line-height: 1.3; }
+
+.excerpt { margin: .2rem 0 .5rem; font-size: .9em; }
+.mirror { margin: .2rem 0 .4rem; color: var(--muted); font-size: .9em; }
+.concept-list, .releases { padding-left: 0; list-style: none; }
+.concept-list li { margin-bottom: .7rem; }
+.tone--person { --tone: var(--chart-person); }
+.tone--edited { --tone: var(--chart-edited); }
+.tone--automation { --tone: var(--chart-automation); }
+.tone--nobody, .tone--retired { --tone: var(--chart-nobody); }
+
+/* The health page's bars, one per state of the ladder, inside its card. */
+.bars { display: grid; gap: .15rem; margin: .8rem 0 .4rem; }
+.bar { display: grid; grid-template-columns: 17rem 1fr 2.5rem; gap: .8rem; align-items: center; margin: 0 -.5rem; padding: .3rem .5rem; border-radius: 6px; color: var(--fg); }
+.bar:has(a):hover { background: var(--panel); }
+.bar__words { display: flex; align-items: center; }
+.bar__track { appearance: none; width: 100%; height: .7rem; border: 0; border-radius: 999px; background: var(--panel); overflow: hidden; }
+.bar__track::-webkit-progress-bar { background: var(--panel); }
+.bar__track::-webkit-progress-value { border-radius: 999px; background: var(--tone); }
+.bar__track::-moz-progress-bar { border-radius: 999px; background: var(--tone); }
+.bar__n { text-align: right; font: 600 1.05rem var(--serif); font-variant-numeric: tabular-nums; }
+.mermaid { border: 0 !important; background: none !important; }
+
+/*
+  The graph page: a bar of tools, then the filters beside the graph. The
+  filters are lists, one under another, each with its own All and None, so a
+  bundle of many types or relations scrolls and never wraps. The whole
+  explorer fills the screen when asked.
+*/
+.graph { display: grid; grid-template-rows: auto minmax(0, 1fr); gap: .6rem; }
+.graph__bar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.graph__bar :is(input, button), .filter button { padding: .3rem .65rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--card); color: var(--fg); font-size: .9rem; }
+.graph__bar input { width: 14rem; font: inherit; font-size: .9rem; }
+.graph__status { margin: 0 0 0 auto; }
+.graph__body { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: .6rem; height: max(26rem, calc(100vh - 19rem)); }
+.graph__filters { overflow: auto; padding: .3rem .6rem; border: 1px solid var(--line); border-radius: 8px; background: var(--card); font-size: .88rem; }
+.filter + .filter { border-top: 1px solid var(--line); }
+.filter summary { padding: .4rem 0; font-weight: 600; cursor: pointer; }
+.filter summary .count { margin-left: .3rem; }
+.filter__all { display: flex; gap: .4rem; margin: 0 0 .4rem; }
+.filter button { padding: .05rem .6rem; font-size: .8rem; }
+.filter ul { margin: 0 0 .6rem; padding: 0; list-style: none; }
+.filter label { display: flex; gap: .4rem; align-items: center; padding: .12rem 0; cursor: pointer; }
+.filter label .dot { margin: 0; }
+.filter label .count { margin-left: auto; padding-left: .5rem; font-variant-numeric: tabular-nums; }
+.filter input { margin: 0; accent-color: var(--brand); }
+.graph__stage { position: relative; min-height: 0; }
+.graph__canvas { height: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--stage); }
+.graph__note { position: absolute; inset: 40% 1rem auto; margin: 0; text-align: center; color: var(--muted); }
+.graph__detail { position: absolute; top: .6rem; right: .6rem; width: 18rem; max-height: calc(100% - 1.2rem); overflow: auto; padding: .7rem 1rem .9rem; border: 1px solid var(--line); border-radius: 8px; background: var(--card); box-shadow: 0 8px 24px #0003; font-size: .9rem; }
+.graph__detail:focus { outline: none; }
+.graph__detail h2 { margin: 0 1.6rem .2rem 0; padding: 0; border: 0; font-size: 1.1rem; }
+.graph__detail h3 { margin: .8rem 0 .1rem; color: var(--muted); font: 400 .78rem var(--sans); letter-spacing: .06em; text-transform: uppercase; }
+.graph__detail p { margin: .3rem 0; }
+.graph__detail .label { border-radius: 8px; }
+.graph__detail ul { margin: 0; padding: 0; list-style: none; }
+.graph__detail li button { display: flex; align-items: center; width: 100%; padding: .12rem 0; border: 0; background: none; color: var(--accent); text-align: left; }
+.graph__detail li button:hover { text-decoration: underline; }
+.graph__close { position: absolute; top: .4rem; right: .5rem; width: 1.8rem; height: 1.8rem; border: 0; border-radius: 6px; background: none; font-size: 1.2rem; line-height: 1; }
+.graph__close:hover { background: var(--panel); }
+.graph:fullscreen, .graph--fill { padding: .8rem; background: var(--bg); }
+.graph--fill { position: fixed; inset: 0; z-index: 30; }
+:is(.graph:fullscreen, .graph--fill) .graph__body { height: auto; }
+
+/*
+  Narrower screens: first a concept's neighbours move under its words, then
+  the navigation becomes a menu the header opens. A media query's rem is the
+  browser's own 16px, whatever the Text size, so each width is the one that
+  suits Large, the size a reader starts with.
+*/
+@media (max-width: 84rem) {
+  .layout, .layout:has(> .aside) { grid-template-columns: 16.5rem minmax(0, 1fr); }
+  .aside { position: static; grid-column: 2; max-width: 46rem; max-height: none; padding: 0 0 3rem; }
+  main:has(+ .aside) { padding-bottom: 0; }
+}
+@media (max-width: 56rem) {
+  .layout { display: block; }
+  .top { flex-wrap: wrap; }
+  .brand { flex: 1; min-width: 0; font-size: 1rem; }
+  .top__menu { display: inline-block; }
+  .top__github { display: none; }
+  #search { order: 5; width: 100%; }
+  .sidebar { display: none; }
+  /* The menu covers the page. align-self is set back, since on a positioned box "start" would shrink it to its links and leave the page showing under them. */
+  .sidebar:target { display: block; position: fixed; inset: 0; z-index: 15; align-self: stretch; max-height: none; padding: 1rem; background: var(--bg); }
+  .sidebar:target .sidebar__close { display: block; margin-bottom: .8rem; }
+  .bar { grid-template-columns: 1fr 2.5rem; } .bar__track { grid-column: 1 / -1; grid-row: 2; }
+  .card dl { grid-template-columns: minmax(0, 1fr); } .card__more > dl > dd { padding-top: 0; border-top: 0; }
+  .hero { padding: 1rem; }
+  .graph__body { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); height: auto; }
+  .graph__filters { max-height: 32vh; }
+  .graph__canvas { height: 62vh; }
+  :is(.graph:fullscreen, .graph--fill) .graph__canvas { height: 100%; }
+  .graph__bar input { flex: 1; min-width: 8rem; }
+  .graph__detail { inset: auto .4rem .4rem; width: auto; max-height: 55%; }
+}
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+@media (forced-colors: active) { .dot, .label, .chip, .card, .seg > * { forced-color-adjust: auto; border: 1px solid CanvasText; } .seg > :is(:has(:checked), [aria-current]) { background: Highlight; color: HighlightText; } }
+@media print { .top, .sidebar, .aside, .tools, .pager, .copy, .edit, .skip, .hero .actions { display: none !important; } .layout { display: block; } .card__more > dl { display: grid; } }

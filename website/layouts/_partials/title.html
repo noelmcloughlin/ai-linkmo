@@ -1,0 +1,9 @@
+{{- /* The page's title: its own, or the first `# ` heading of a README or docs page. */ -}}
+{{- $t := .Title -}}
+{{- if and (not $t) .File -}}
+  {{- with findRESubmatch `(?m)^# +(.+?)\s*$` .RawContent 1 -}}
+    {{- $t = index . 0 1 | markdownify | plainify | htmlUnescape -}}
+  {{- end -}}
+  {{- $t = $t | default .File.ContentBaseName -}}
+{{- end -}}
+{{- return $t -}}

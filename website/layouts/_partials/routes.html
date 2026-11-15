@@ -1,0 +1,9 @@
+{{- /* Every page by the repository path of the file it comes from. Called cached. */ -}}
+{{- $s := newScratch -}}
+{{- $s.Set "routes" dict -}}
+{{- range $p := site.Pages -}}
+  {{- if not $p.Params.release -}}
+    {{- with partial "repo-path.html" $p -}}{{- $s.SetInMap "routes" . $p.RelPermalink -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return ($s.Get "routes") -}}

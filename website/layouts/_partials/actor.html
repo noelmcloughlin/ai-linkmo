@@ -1,0 +1,4 @@
+{{- /* "human:name" reads "name (a person)", and "process:name" reads "name (automation)". */ -}}
+{{- $parts := split . ":" -}}
+{{- $kind := index (dict "human" "a person" "process" "automation") (index $parts 0) -}}
+{{- if $kind -}}<code>{{ delimit (after 1 $parts) ":" }}</code> <span class="muted">({{ $kind }})</span>{{- else -}}<code>{{ . }}</code>{{- end -}}

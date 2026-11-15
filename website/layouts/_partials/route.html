@@ -1,0 +1,40 @@
+{{- /*
+  Where a link written in a repository file goes: the page built from the
+  file it names, the figure under /assets/ or /docs/, or the file on GitHub:
+  its page there for a link, and the file itself for an image. A path that
+  starts with / is read from the repository's root, as GitHub reads it. A
+  link to a release's heading in the changelog goes to that release's page.
+  Takes (dict "from" <repo path of the file holding the link> "url" <the
+  link>), and "image" true for an image.
+*/ -}}
+{{- $out := .url -}}
+{{- $u := urls.Parse .url -}}
+{{- if and (not $u.IsAbs) (not $u.Host) $u.Path -}}
+  {{- $target := path.Join (path.Dir .from) $u.Path -}}
+  {{- if hasPrefix $u.Path "/" }}{{ $target = path.Join "." (strings.TrimPrefix "/" $u.Path) }}{{ end -}}
+  {{- $target = replaceRE `^knowledge_bundle(/|$)` ".lokf/knowledge$1" $target -}}
+  {{- if not (hasPrefix $target "..") -}}
+    {{- $routes := partialCached "routes.html" "routes" -}}
+    {{- $fragment := $u.Fragment -}}
+    {{- $rel := partial "site-path.html" $target -}}
+    {{- $page := or (index $routes $target) (index $routes (printf "%s/index.md" $target)) (index $routes (printf "%s/README.md" $target)) -}}
+    {{- if $page -}}
+      {{- $out = $page -}}
+      {{- if and (eq $rel "CHANGELOG.md") $fragment -}}
+        {{- range where site.RegularPages "Params.release" true }}{{ if eq .Params.anchor $fragment }}{{ $out = .RelPermalink }}{{ $fragment = "" }}{{ end }}{{ end -}}
+      {{- end -}}
+    {{- else if eq $target "." -}}
+      {{- $out = "" | relURL -}}
+    {{- else if hasPrefix $rel ".assets/" -}}
+      {{- $out = strings.TrimPrefix "." $rel | relURL -}}
+    {{- else if and (hasPrefix $rel "docs/") (not (hasSuffix $rel ".md")) (resources.Get $rel) -}}
+      {{- /* A file of the docs folder that is not a page, such as a figure, is served beside the pages. */ -}}
+      {{- $out = $rel | relURL -}}
+    {{- else -}}
+      {{- $kind := cond (eq .image true) "raw" (cond (eq (path.Ext $target) "") "tree" "blob") -}}
+      {{- $out = printf "%s/%s/%s/%s" site.Params.repo $kind (site.Params.ref | default site.Params.branch) $target -}}
+    {{- end -}}
+    {{- with $fragment -}}{{- $out = printf "%s#%s" $out . -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $out -}}

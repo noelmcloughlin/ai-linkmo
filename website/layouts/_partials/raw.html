@@ -1,0 +1,26 @@
+{{- /*
+  HTML rendered from a repository file, ready for the page. Render hooks
+  never see raw HTML, so each src, srcset and href in it that is relative,
+  or starts with / and does not name the site's own path as the hooks write
+  it, goes where route.html sends a link of that file. With the mark
+  build.sh passes, the HTML is set between two comments that
+  scripts/clean-html.py finds after the build, to clean its raw HTML to the
+  tags GitHub allows. Takes (dict "html" "from").
+*/ -}}
+{{- $html := string .html -}}
+{{- $from := .from -}}
+{{- $base := "" | relURL -}}
+{{- range findRESubmatch `(\s)(src|srcset|href)=("([^"]*)"|'([^']*)')` $html -}}
+  {{- $attr := index . 2 -}}
+  {{- $value := or (index . 4) (index . 5) -}}
+  {{- if and $value (not (findRE `^(?:[a-zA-Z][a-zA-Z0-9+.-]*:|//|#)` $value)) (not (and (hasPrefix $value "/") (hasPrefix $value $base))) -}}
+    {{- $urls := slice -}}
+    {{- range cond (eq $attr "srcset") (split $value ",") (slice $value) -}}
+      {{- $parts := split (strings.TrimSpace .) " " -}}
+      {{- $urls = $urls | append (delimit (slice (partial "route.html" (dict "from" $from "url" (index $parts 0) "image" (ne $attr "href"))) | append (after 1 $parts)) " ") -}}
+    {{- end -}}
+    {{- $html = replace $html (index . 0) (printf `%s%s="%s"` (index . 1) $attr (delimit $urls ", ")) -}}
+  {{- end -}}
+{{- end -}}
+{{- if strings.TrimSpace $html }}{{ with site.Params.rawmark }}{{ $html = printf "<!--# raw %s -->%s<!--# /raw %s -->" . $html . }}{{ end }}{{ end -}}
+{{- return ($html | safeHTML) -}}

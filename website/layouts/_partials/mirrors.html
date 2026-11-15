@@ -1,0 +1,28 @@
+{{- /*
+  What the ingest's committed lock, .lokf/ingest.lock.yaml, records of each
+  mirror file, by its path in the repository: where it came from, with a
+  link when that is a web address, the source's version and the day it was
+  fetched. The confidential cache's lock is never read, so no record kept
+  out of git reaches the site. Called cached.
+*/ -}}
+{{- $s := newScratch -}}
+{{- $s.Set "mirrors" dict -}}
+{{- with resources.Get "ingest/ingest.lock.yaml" -}}
+  {{- with try (transform.Unmarshal .) }}{{ with .Value }}{{ if reflect.IsMap . -}}
+    {{- range $entry := .entries -}}
+      {{- if reflect.IsMap $entry -}}
+        {{- range $item := $entry.items -}}
+          {{- if and (reflect.IsMap $item) $item.origin (hasPrefix (string ($item.path | default "")) ".lokf/mirror/") -}}
+            {{- $origin := string $item.origin -}}
+            {{- $s.SetInMap "mirrors" (string $item.path) (dict
+                "origin" $origin
+                "href" (cond (findRE `^https?://` $origin | len | lt 0) $origin "")
+                "version" (string ($item.version | default ""))
+                "retrieved" (substr (string ($item.retrieved_at | default "")) 0 10)) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end }}{{ end }}{{ end -}}
+{{- end -}}
+{{- return ($s.Get "mirrors") -}}

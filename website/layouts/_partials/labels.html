@@ -1,0 +1,9 @@
+{{- /* knowledge-report.sh labels, by concept id: "- Title (group/name.md) - label". Called cached. */ -}}
+{{- $s := newScratch -}}
+{{- $s.Set "labels" dict -}}
+{{- range split (os.ReadFile "generated/labels.txt") "\n" -}}
+  {{- range findRESubmatch `^- (.*) \(([^()]+)\.md\) - (.*)$` . 1 -}}
+    {{- $s.SetInMap "labels" (index . 2) (index . 3) -}}
+  {{- end -}}
+{{- end -}}
+{{- return ($s.Get "labels") -}}

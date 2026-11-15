@@ -1,0 +1,8 @@
+{{- /* A repository path as the site serves it. With params.source set, a path under that folder loses the folder, and any other path is "". Without it, the path itself. */ -}}
+{{- $src := strings.Trim (site.Params.source | default "") "/" -}}
+{{- $out := . -}}
+{{- if $src -}}
+  {{- $out = "" -}}
+  {{- if hasPrefix . (printf "%s/" $src) }}{{ $out = strings.TrimPrefix (printf "%s/" $src) . }}{{ end -}}
+{{- end -}}
+{{- return $out -}}

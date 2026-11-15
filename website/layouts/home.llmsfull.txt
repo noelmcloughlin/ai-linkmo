@@ -1,0 +1,20 @@
+# {{ site.Title }}: the knowledge bundle in full
+
+> {{ site.Params.description }}
+
+Each concept follows with its address, its trust label as `knowledge-report.sh` printed it, and its body as the bundle holds it, with every link a full address and its headings under the concept's title.
+{{ range (partialCached "concepts.html" "concepts").id }}
+
+---
+
+# {{ .page.Title }}
+
+- Address: {{ .page.Permalink }}
+- Trust: {{ .trust.label }}
+{{- with .page.Params.concept.type }}
+- Type: {{ . }}{{ end }}
+{{- with .page.Params.concept.definition }}
+- Definition: {{ . }}{{ end }}
+
+{{ $text := .page.RawContent }}{{ if not .page.Params.shift }}{{ $text = replaceRE `\A\s*# [^\n]*\n?` "" $text }}{{ end -}}
+{{ partial "markdown.html" (dict "page" .page "text" $text "from" .page.Params.repoPath "shift" true) | strings.TrimSpace }}{{ end }}

@@ -1,0 +1,40 @@
+{{- /*
+  The reading levels of each page that has a retelling, by page address: the
+  page itself as Full, then each retelling by who it is for. Nothing sets
+  this. A docs file named <page>.<language>-simple.md retells <page>.md
+  beside it, and its opening sentence says who it is for: "This page is for
+  readers aged 13 to 18." A concept retells the one concept it is
+  `derivedFrom` when it names its readers, in `audience` or in a tag such as
+  `audience-13-18`. Returns, by address, a list of (dict "page" "label")
+  whose first entry is the full page. Called cached.
+*/ -}}
+{{- $s := newScratch -}}
+{{- $s.Set "files" dict -}}
+{{- $s.Set "pairs" slice -}}
+{{- range $p := site.RegularPages }}{{ with partial "repo-path.html" $p }}{{ $s.SetInMap "files" . $p }}{{ end }}{{ end -}}
+{{- range $file, $p := $s.Get "files" -}}
+  {{- with findRESubmatch `^(.+)\.[a-z]{2,3}-simple\.md$` $file 1 -}}
+    {{- with index ($s.Get "files") (printf "%s.md" (index . 0 1)) -}}
+      {{- $label := "In shorter words" -}}
+      {{- with findRESubmatch `This page is for (readers aged \d+ to \d+)` $p.RawContent 1 }}{{ $label = printf "For %s" (index . 0 1) }}{{ end -}}
+      {{- $s.Add "pairs" (slice (dict "full" . "page" $p "label" $label)) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- $all := partialCached "concepts.html" "concepts" -}}
+{{- range $cc := $all.id -}}
+  {{- $c := $cc.page.Params.concept -}}
+  {{- $label := $c.audience -}}
+  {{- range $c.tags }}{{ with findRESubmatch `^audience-(\d+)-(\d+)$` . 1 }}{{ $label = printf "For readers aged %s to %s" (index . 0 1) (index . 0 2) }}{{ end }}{{ end -}}
+  {{- $from := $c.derivedFrom | default slice -}}
+  {{- if and $label (eq (len $from) 1) -}}
+    {{- with index $all.iri (index $from 0) }}{{ $s.Add "pairs" (slice (dict "full" .page "page" $cc.page "label" $label)) }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- $s.Set "levels" dict -}}
+{{- range $pair := $s.Get "pairs" -}}
+  {{- $list := slice (dict "page" $pair.full "label" "Full") -}}
+  {{- range $s.Get "pairs" }}{{ if eq .full.Path $pair.full.Path }}{{ $list = $list | append (dict "page" .page "label" .label) }}{{ end }}{{ end -}}
+  {{- range $list }}{{ $s.SetInMap "levels" .page.RelPermalink $list }}{{ end -}}
+{{- end -}}
+{{- return ($s.Get "levels") -}}

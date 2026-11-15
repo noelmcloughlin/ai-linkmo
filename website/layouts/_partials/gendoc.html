@@ -1,0 +1,30 @@
+{{- /*
+  One page gen-doc wrote, tidied for this site. gen-doc writes for mkdocs, so
+  the mkdocs frontmatter and its search wrapper go. The title's line and the
+  description under it are taken out and returned beside the body. A heading
+  over a table with no rows goes. Each <details> gets a summary, and the
+  blank lines that make the YAML inside it a code block. Takes the file as a
+  resource, and returns (dict "heading" "description" "body").
+*/ -}}
+{{- $body := .Content | replaceRE `(?s)\A---\n.*?\n---` "" | strings.TrimLeft " \t\r\n" -}}
+{{- $heading := "" -}}
+{{- with findRESubmatch `\A# +([^\n]*)\n` $body 1 -}}
+  {{- $heading = index . 0 1 | plainify | strings.TrimSpace -}}
+  {{- $body = replaceRE `\A#[^\n]*\n\s*` "" $body -}}
+{{- end -}}
+{{- /* The description is the first paragraph: plain on the index, and each line between underscores on an element's page. */ -}}
+{{- $description := "" -}}
+{{- with findRESubmatch `(?s)\A(.+?)\n[ \t]*\n` $body 1 -}}
+  {{- $first := index . 0 1 -}}
+  {{- if not (findRE `\A(URI:|Name:|[#|<])` $first) -}}
+    {{- $description = $first | replaceRE `(?m)^_|_[ \t]*$` "" | replaceRE `\s+` " " | strings.TrimSpace -}}
+    {{- $body = strings.TrimPrefix $first $body -}}
+  {{- end -}}
+{{- end -}}
+{{- $body = $body
+    | replaceRE `<div data-search-exclude markdown="1">` ""
+    | replaceRE `</div>\s*\z` ""
+    | replaceRE `(?m)^#{2,3} [^\n]+\n+\|[^\n]*\|\n\|[ :|-]+\|\n(?:[ \t]*\n|\z)` ""
+    | replaceRE `(?m)^<details>[ \t]*$` "<details data-pagefind-ignore>\n<summary>YAML</summary>\n"
+    | replaceRE `(?m)^</details>` "\n</details>" -}}
+{{- return (dict "heading" $heading "description" $description "body" $body) -}}

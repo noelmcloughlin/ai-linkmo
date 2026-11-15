@@ -1,0 +1,20 @@
+{{ define "main" }}
+{{- /* The data: each database with a link that opens it in Datasette Lite, with the metadata and its analytics off, and one that downloads it. */ -}}
+{{- $b := .Params.browse -}}
+<article class="prose">
+  <h1>{{ .Title }}</h1>
+  <p class="lead">This site serves the repository's data as {{ .Params.which }}{{ with $b.build }}, built by <code>{{ . }}</code>{{ end }}. <a href="https://github.com/simonw/datasette-lite">Datasette Lite</a> opens each one in your browser, where you can filter its tables, follow their links and run SQL. It downloads Datasette and the whole database first, so the first page takes a while to appear.</p>
+  {{- range $b.databases }}
+  {{- $query := dict "url" (printf "browse/%s" .file | absURL) "analytics" "off" }}
+  {{- if $b.metadata }}{{ $query = merge $query (dict "metadata" ("browse/metadata.json" | absURL)) }}{{ end }}
+  {{- $lite := printf "https://lite.datasette.io/?%s#/%s" (querify $query) (urlquery .name) }}
+  <h2 id="{{ .name | anchorize }}">{{ .title }}</h2>
+  {{- with .description }}<p>{{ . }}</p>{{ end }}
+  <p class="actions" data-pagefind-ignore>
+    <a class="button" href="{{ $lite }}" target="_blank" rel="noopener">Open in Datasette Lite</a>
+    <a class="button button--secondary" href="{{ printf "browse/%s" .file | relURL }}" download>Download {{ .file }}</a>
+    <span class="muted">{{ .size }}</span>
+  </p>
+  {{- end }}
+</article>
+{{ end }}

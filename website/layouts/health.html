@@ -1,0 +1,39 @@
+{{ define "main" }}
+{{- $all := partialCached "concepts.html" "concepts" -}}
+{{- $tones := partial "tones.html" . -}}
+{{- $s := newScratch -}}
+{{- range $all.id }}{{ $s.Add .trust.tone (slice .) }}{{ end -}}
+{{- $total := len $all.id -}}
+<article class="prose">
+  <h1>{{ .Title }}</h1>
+  {{- /* The ladder as a card: a bar per state, then the report's other figures. */}}
+  <section class="card card--bundle" aria-label="The bundle's health">
+    <header class="card__head">
+      <span><span class="chip chip--type">Trust ladder</span></span>
+      <span class="card__call">{{ $total }} concepts</span>
+    </header>
+    <div class="bars">
+      {{- range $tone := $tones.order }}
+      {{- $n := len ($s.Get $tone | default slice) }}
+      <div class="bar">
+        <span class="bar__words"><span class="dot dot--{{ $tone }}"></span>{{ if $n }}<a href="#{{ $tone }}">{{ index $tones $tone }}</a>{{ else }}{{ index $tones $tone }}{{ end }}</span>
+        <progress class="bar__track tone--{{ $tone }}" max="{{ $total }}" value="{{ $n }}" aria-label="{{ index $tones $tone }}: {{ $n }} of {{ $total }}">{{ $n }} of {{ $total }}</progress>
+        <span class="bar__n">{{ $n }}</span>
+      </div>
+      {{- end }}
+    </div>
+    <p class="card__caption">Also counted</p>
+    {{ partial "health-tiles.html" (dict "states" false) }}
+  </section>
+  {{- range $tone := $tones.order }}
+  {{- with $s.Get $tone }}
+  <h2 id="{{ $tone }}">{{ index $tones $tone }}: {{ len . }}</h2>
+  <ul class="concept-list">
+    {{- range sort . "id" }}
+    <li><span class="dot dot--{{ $tone }}"></span><a href="{{ .page.RelPermalink }}">{{ .page.Title }}</a> <span class="muted">{{ .trust.label }}</span></li>
+    {{- end }}
+  </ul>
+  {{- end }}
+  {{- end }}
+</article>
+{{ end }}

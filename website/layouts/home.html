@@ -1,0 +1,36 @@
+{{ define "main" }}
+<article class="prose">
+  {{- with and (not (resources.Get "gendoc/core.txt")) (site.GetPage "/schema") }}
+  {{- /* A repository that holds a LinkML schema of its own leads with it: the schema is what the visitor came to see. LOKF core, shown when it holds none, has only its button. */ -}}
+  <section class="hero" aria-label="The schema" data-pagefind-ignore>
+    <p class="eyebrow">On exhibit · LinkML schema</p>
+    <p class="hero__title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></p>
+    {{- with .Params.description }}<p class="hero__lead">{{ partial "inline.html" . }}</p>{{ end }}
+    <ul class="hero__counts">
+      {{- range .Sections }}
+      {{- $n := len .RegularPages }}
+      <li><b>{{ $n }}</b>{{ cond (eq $n 1) (.Title | singularize) .Title | lower }}</li>
+      {{- end }}
+    </ul>
+    {{- with .GetPage "classes" }}
+    <ul class="plaques">
+      {{- range first 6 .RegularPages.ByTitle }}
+      <li><a href="{{ .RelPermalink }}"><code translate="no">{{ .Title }}</code><span>{{ .Params.description | truncate 90 }}</span></a></li>
+      {{- end }}
+    </ul>
+    {{- end }}
+    {{ partial "heroes.html" . }}
+  </section>
+  {{- else }}
+  {{ partial "heroes.html" . }}
+  {{- end }}
+  {{- with partial "content.html" . }}
+  {{ . }}
+  {{- else }}
+  {{- /* A repository with no README opens with the bundle's own introduction. */ -}}
+  <h1>{{ site.Title }}</h1>
+  <p class="lead">{{ site.Params.description }}</p>
+  {{- with site.GetPage "/knowledge" }}{{ partial "content.html" . }}{{ end }}
+  {{- end }}
+</article>
+{{ end }}

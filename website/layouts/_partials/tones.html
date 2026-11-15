@@ -1,0 +1,8 @@
+{{- /* The ladder's states, top first, each with its words. */ -}}
+{{- return (dict
+  "person" "Confirmed by a person"
+  "edited" "Edited since a person confirmed it"
+  "automation" "Checked by automation only"
+  "nobody" "Nobody has checked"
+  "retired" "Retired"
+  "order" (slice "person" "edited" "automation" "nobody" "retired")) -}}

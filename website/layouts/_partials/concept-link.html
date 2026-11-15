@@ -1,0 +1,6 @@
+{{- /* A link to the concept an IRI names, with its trust dot and what a reader sees on hover, or the IRI itself. */ -}}
+{{- with index (partialCached "concepts.html" "concepts").iri . -}}
+  <a class="concept-link" href="{{ .page.RelPermalink }}" data-preview="{{ partial "preview.html" . }}"><span class="dot dot--{{ .trust.tone }}"></span>{{ .page.Title }}</a>
+{{- else -}}
+  <a href="{{ . }}">{{ . }}</a>
+{{- end -}}

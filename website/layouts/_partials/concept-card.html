@@ -1,0 +1,97 @@
+{{- /*
+  A concept's record as a catalogue card: its type, genre and tags, with its
+  id as the call number; its trust label in the report script's own words;
+  its definition; and the rest of its record, where a source the ingest
+  mirrored names where it came from. Search files the page under a Type, a
+  Genre and a Trust filter. A retired concept that points here is left out,
+  as the report counts it for none; its own card keeps the relation.
+*/ -}}
+{{- $c := .Params.concept -}}
+{{- $id := .Params.conceptId -}}
+{{- $all := partialCached "concepts.html" "concepts" -}}
+{{- $t := (index $all.id $id).trust -}}
+{{- $repo := site.Params.repo -}}
+{{- $ref := site.Params.ref | default site.Params.branch -}}
+{{- $type := partial "slot-name.html" ($c.type | default "Concept") -}}
+{{- $checks := $c.verified | default slice -}}
+{{- if reflect.IsMap $checks }}{{ $checks = slice $checks }}{{ end -}}
+<section class="card card--{{ $t.tone }}" aria-label="The concept's record">
+  {{- /* A genre that only repeats the type is filed for search and not shown twice. */}}
+  {{- $same := and $c.genre (eq (lower $c.genre) (lower $type)) }}
+  <header class="card__head" data-pagefind-ignore{{ if $same }} data-pagefind-filter="Genre:{{ $c.genre }}"{{ end }}>
+    <span>
+      <span class="chip chip--type" data-pagefind-filter="Type">{{ $type }}</span>
+      {{- if not $same }}{{ with $c.genre }} <span class="chip" data-pagefind-filter="Genre">{{ . }}</span>{{ end }}{{ end }}
+      {{- range $c.tags }} <span class="chip">{{ . }}</span>{{ end }}
+    </span>
+    <code class="card__call" translate="no">{{ $id }}</code>
+  </header>
+  <div class="card__trust" data-pagefind-ignore>
+    <p class="label label--{{ $t.tone }}" data-pagefind-filter="Trust:{{ $t.words }}">{{ $t.rung | strings.FirstUpper }}</p>
+    {{- with $t.also }}<p class="card__also">{{ . }}</p>{{ end }}
+    <p class="muted">
+      {{- with $c.generated }}Written {{ substr .at 0 10 }} by {{ partial "actor.html" .by }}. {{ end }}
+      {{- with last 1 $checks }}{{ with index . 0 }}Last checked {{ substr .at 0 10 }} by {{ partial "actor.html" .by }}.{{ end }}{{ end -}}
+    </p>
+  </div>
+  {{- with $c.definition }}
+  <p class="card__definition">{{ partial "inline.html" . }}</p>
+  {{- end }}
+  <details class="card__more" data-pagefind-ignore>
+    <summary>The full record</summary>
+    <dl>
+      <dt>Checks</dt>
+      <dd>
+        {{- with $checks }}<ul class="card__checks">
+          {{- range . }}<li><span class="dot dot--{{ cond (hasPrefix (string .by) "human:") "person" "automation" }}"></span>{{ substr .at 0 10 }} by {{ partial "actor.html" .by }}{{ with .revision }} at <code>{{ substr . 0 7 }}</code>{{ end }}{{ with .note }}: {{ . }}{{ end }}</li>{{ end -}}
+        </ul>{{ else }}none recorded{{ end -}}
+      </dd>
+      {{- with $c.stale_after }}<dt>Review by</dt><dd>{{ . }}</dd>{{ end }}
+      {{- $sources := $c.sources | default (cond (eq $c.resource nil) slice (slice $c.resource)) }}
+      {{- with $sources }}
+      <dt>Sources</dt>
+      <dd><ul>
+        {{- range . }}
+          {{- $at := . }}{{ if reflect.IsMap . }}{{ $at = or .resource .url .id }}{{ end }}{{ $at = string $at }}
+          {{- $path := $at | replaceRE `^\.(?:/|$)` "" | strings.TrimSuffix "/" }}
+          {{- $href := cond (findRE `^https?:` $at | len | lt 0) $at (cond (eq $path "") (printf "%s/tree/%s" $repo $ref) (printf "%s/blob/%s/%s" $repo $ref $path)) }}
+          <li><a href="{{ $href }}"><code>{{ cond (eq $path "") "the whole repository" $at }}</code></a>
+            {{- with index (partialCached "mirrors.html" "mirrors") $path }}{{ $m := . }}
+            <p class="mirror">A copy of {{ with $m.href }}<a href="{{ . }}">{{ $m.origin }}</a>{{ else }}<code>{{ $m.origin }}</code>{{ end }}
+              {{- with $m.version }}, version <code>{{ . }}</code>{{ end }}{{ with $m.retrieved }}, fetched {{ . }}{{ end }}.</p>
+            {{- end }}
+            {{- if reflect.IsMap . }}{{ with .excerpt }}<blockquote class="excerpt" title="The passage this concept quotes from the source">{{ . }}</blockquote>{{ end }}{{ end }}</li>
+        {{- end }}
+      </ul></dd>
+      {{- end }}
+      {{- $iri := $c.id }}
+      {{- $out := where $all.edges "data.source" $iri }}
+      {{- $slots := slice }}{{ range $out }}{{ $slots = $slots | append .data.slot }}{{ end }}
+      {{- range $slot := $slots | uniq | sort }}
+      <dt>{{ partial "slot-name.html" $slot }}</dt>
+      <dd><ul>{{ range where $out "data.slot" $slot }}<li>{{ partial "concept-link.html" .data.target }}</li>{{ end }}</ul></dd>
+      {{- end }}
+      {{- $in := slice }}
+      {{- range where $all.edges "data.target" $iri }}
+        {{- $from := index $all.iri .data.source }}
+        {{- if not (and $from (eq $from.trust.tone "retired")) }}{{ $in = $in | append . }}{{ end }}
+      {{- end }}
+      {{- with $in }}
+      <dt>Pointed to by</dt>
+      <dd><ul>{{ range . }}<li>{{ partial "concept-link.html" .data.source }} <span class="muted">({{ partial "slot-name.html" .data.slot | lower }})</span></li>{{ end }}</ul></dd>
+      {{- end }}
+      <dt>Graph</dt><dd><a href="{{ "graph/" | relURL }}?concept={{ $id }}">Open this concept in the knowledge graph</a></dd>
+      {{- with $iri }}<dt>IRI</dt><dd><code>{{ . }}</code></dd>{{ end }}
+      {{- with or $c.license (site.GetPage "/knowledge").Params.concept.license }}
+      <dt>Licence</dt><dd>{{ partial "licence.html" . }}</dd>
+      {{- end }}
+      <dt>Files</dt>
+      <dd class="card__files">
+        <a class="chip" href="{{ printf "knowledge/%s.md" $id | relURL }}">Markdown</a>
+        {{- with .OutputFormats.Get "jsonld" }} <a class="chip" href="{{ .RelPermalink }}">JSON-LD</a>{{ end }}
+        <a class="chip" href="{{ printf "%s/blob/%s/.lokf/knowledge/%s.md" $repo $ref $id }}">Source on GitHub</a>
+        <a class="chip" href="{{ printf "%s/commits/%s/.lokf/knowledge/%s.md" $repo $ref $id }}">History on GitHub</a>
+      </dd>
+    </dl>
+  </details>
+</section>

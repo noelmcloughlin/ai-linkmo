@@ -1,0 +1,43 @@
+{{- /*
+  The home page's five buttons, the same five in the same order on every
+  site: the schema, the bundle, the architecture page, the glossary and the
+  quick start. None is set anywhere. Each is looked for among the site's
+  pages, and one that is not there is greyed, with the reason on hover. The
+  quick start is the filled button. On a site without one, the first button
+  found is filled instead.
+*/ -}}
+{{- /* The quick start is a docs page of that name, or the first heading that says so: in the install page, then any docs page, then the README. */ -}}
+{{- $quick := "" -}}
+{{- range slice "/docs/quick-start" "/docs/quickstart" "/docs/getting-started" -}}
+  {{- if not $quick }}{{ with site.GetPage . }}{{ $quick = .RelPermalink }}{{ end }}{{ end -}}
+{{- end -}}
+{{- $pages := slice -}}
+{{- with site.GetPage "/docs/install" }}{{ $pages = $pages | append . }}{{ end -}}
+{{- range where site.RegularPages "Section" "docs" }}{{ $pages = $pages | append . }}{{ end -}}
+{{- range $page := $pages | append site.Home -}}
+  {{- range $id := slice "quick-start" "quickstart" "getting-started" "get-started" -}}
+    {{- if and (not $quick) ($page.Fragments.Identifiers.Contains $id) }}{{ $quick = printf "%s#%s" $page.RelPermalink $id }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- $link := dict -}}
+{{- range $key, $paths := dict "schema" (slice "/schema") "bundle" (slice "/knowledge") "architecture" (slice "/docs/architecture") "glossary" (slice "/knowledge/glossary" "/docs/glossary") -}}
+  {{- range $paths }}{{ if not (index $link $key) }}{{ with site.GetPage . }}{{ $link = merge $link (dict $key .RelPermalink) }}{{ end }}{{ end }}{{ end -}}
+{{- end -}}
+{{- $buttons := slice
+    (dict "text" "The schema" "link" $link.schema "missing" "This repository holds no LinkML schema")
+    (dict "text" "The bundle" "link" $link.bundle "missing" "This repository holds no knowledge bundle")
+    (dict "text" "Architecture" "link" $link.architecture "missing" "This repository has no docs/architecture.md")
+    (dict "text" "Glossary" "link" $link.glossary "missing" "The bundle has no glossary group")
+    (dict "text" "Quick start" "link" $quick "missing" "No docs page has a Quick start heading") -}}
+{{- $filled := "" -}}
+{{- if $quick }}{{ $filled = "Quick start" }}{{ end -}}
+{{- range $buttons }}{{ if and .link (not $filled) }}{{ $filled = .text }}{{ end }}{{ end -}}
+<p class="actions" data-pagefind-ignore>
+  {{- range $buttons }}
+  {{- if .link }}
+  <a class="button{{ if ne .text $filled }} button--secondary{{ end }}" href="{{ .link }}">{{ .text }}</a>
+  {{- else }}
+  <span class="button button--missing" role="link" aria-disabled="true" title="{{ .missing }}">{{ .text }}</span>
+  {{- end }}
+  {{- end }}
+</p>

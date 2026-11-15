@@ -1,0 +1,21 @@
+{{- /*
+  The report's health figures as tiles, each linking to the health page. A
+  figure whose words name a state of the ladder carries its dot and links to
+  that state's list when the state has concepts, as only then does the health
+  page give it a heading. Called with (dict "states" false) to leave those out,
+  where the ladder's own bars already show them.
+*/ -}}
+{{- $health := "health/" | relURL -}}
+{{- $n := newScratch -}}
+{{- range (partialCached "concepts.html" "concepts").id }}{{ $n.Add .trust.tone 1 }}{{ end -}}
+{{- $dot := dict "Confirmed by a person" "person" "Edited since confirmed" "edited" "Checked by automation only" "automation" "Nobody has checked" "nobody" "Retired" "retired" -}}
+<ul class="tiles">
+  {{- range split (os.ReadFile "generated/health.txt" | strings.TrimSpace) " · " }}
+  {{- with findRESubmatch `^(.*): (.*)$` . 1 }}
+  {{- $words := index . 0 1 }}{{ $tone := index $dot $words }}
+  {{- if or $.states (not $tone) }}
+  <li><a href="{{ $health }}{{ with $tone }}{{ if $n.Get . }}#{{ . }}{{ end }}{{ end }}"><span class="tiles__words">{{ with $tone }}<span class="dot dot--{{ . }}"></span>{{ end }}{{ $words }}</span><span class="tiles__n">{{ index . 0 2 }}</span></a></li>
+  {{- end }}
+  {{- end }}
+  {{- end }}
+</ul>
