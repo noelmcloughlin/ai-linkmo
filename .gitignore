@@ -155,3 +155,4 @@ graph/cypher/*.part
 lib/store/data/
 # The browse database with the bring-your-own data, beside the linkmo project's browse/.
 ai-risk-ontology-linkmo/browse-byod/
+/.github/release/node_modules/

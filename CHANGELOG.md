@@ -15,6 +15,7 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 ### Changed
 
 - **The `.lokf` toolkit floor is lokf 0.9.0.** Knowledge Trust Ladder's next recipes pass `--schema` and `--check-excerpts`, which lokf 0.8.0 lacks.
+- **The release job installs semantic-release with `npm ci` from `.github/release/package-lock.json`**, which pins every package it pulls in by hash.
 
 ### Security
 

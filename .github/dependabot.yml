@@ -53,3 +53,15 @@ updates:
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
 
+  # The release job's tools, which .github/release/package-lock.json pins
+  # with every package they pull in.
+  - package-ecosystem: npm
+    directory: "/.github/release"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci(release)"
+    groups:
+      release-tools:
+        patterns:
+          - "*"
