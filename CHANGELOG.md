@@ -10,6 +10,7 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 - **`scorecard.yml` publishes this repository's OpenSSF Scorecard.**
 - **The README shows the CI, licence, OpenSSF Scorecard and KTL scorecard badges.**
+- **`codeql.yml` scans the Python, the JavaScript and the workflows with CodeQL.**
 
 ### Changed
 
