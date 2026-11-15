@@ -10,6 +10,10 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 - **The `.lokf` toolkit floor is lokf 0.9.0.** Knowledge Trust Ladder's next recipes pass `--schema` and `--check-excerpts`, which lokf 0.8.0 lacks.
 
+### Security
+
+- **The sidecar copies are at Knowledge Trust Ladder [v0.65.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/v0.65.0/CHANGELOG.md), and `.lokf/pyproject.toml` pins `ktl==0.65.0`**, which the librarian installs its skill from. The Python scripts carry no `exclude-newer` date.
+
 ## [0.6.2] - 2026-10-29
 
 ### Security

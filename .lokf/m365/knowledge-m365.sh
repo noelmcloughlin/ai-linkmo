@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 # Build the Microsoft 365 Copilot custom skills: one per instructions file
-# beside this script, each with a snapshot of the knowledge bundle inside.
-#
-# Copilot runs a skill with no repository, shell or network, so the bundle
-# goes inside it. A new read-only role is just another .md file here.
-# The release workflow runs this and attaches each zip; elsewhere, run it by
-# hand. Nothing is written if any skill breaks Copilot's limits, and neither
-# the source bundle nor an earlier build is ever touched.
+# beside this script, each with a snapshot of the knowledge bundle inside,
+# since Copilot runs a skill with no repository, shell or network. A new
+# read-only role is another .md file here. The release workflow runs this
+# and attaches each zip. Elsewhere, run it by hand. It never changes the
+# source bundle or an earlier build.
 #
 # Usage: .lokf/m365/knowledge-m365.sh [--repo-url URL] [--ref REF] <bundle-dir> <out-dir>
 #   <bundle-dir>  the bundle folder (.lokf/knowledge); in a git clone, only
