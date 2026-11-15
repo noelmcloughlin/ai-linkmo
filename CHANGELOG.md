@@ -6,6 +6,8 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-15
+
 ### Changed
 
 - **The knowledge website is built with Hugo from the ktl-website templates**, set by `website/site.toml`, in place of the Astro site, and its Schema part shows the AI risk ontology from the `ai-atlas-nexus` package.
