@@ -70,7 +70,26 @@ gendoc() {
   # gen-doc prints a stray "None" when it ends.
   "${lokf[@]}" gen-doc --subfolder-type-separation --index-name _index -d "$out/schema" "$1" >/dev/null
   "${lokf[@]}" gen-erdiagram --format mermaid "$1" >"$out/schema/diagram.mmd"
-  cp "$1" "$out/schema/"
+  # Each local file it imports in turn goes beside it at the same relative
+  # path, so the served copy loads as the repository's does. An import from
+  # outside the schema's folder, or one named by a prefix, is not served.
+  "${lokf[@]}" python - "$1" "$out/schema" <<'PY'
+import shutil, sys
+from pathlib import Path
+import yaml
+top, out = Path(sys.argv[1]).resolve(), Path(sys.argv[2])
+todo, seen = [top], set()
+while todo:
+    f = todo.pop()
+    if f in seen or not f.is_file() or not f.is_relative_to(top.parent):
+        continue
+    seen.add(f)
+    (out / f.relative_to(top.parent)).parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(f, out / f.relative_to(top.parent))
+    for name in (yaml.safe_load(f.read_text(encoding="utf-8")) or {}).get("imports") or []:
+        if isinstance(name, str) and ":" not in name:
+            todo.append((f.parent / f"{name}.yaml").resolve())
+PY
 }
 # site.toml's schema is a path from the root, or pkg:<package>/<path> for a
 # schema inside a package that the environment of the uv project

@@ -14,6 +14,11 @@
 {{- $package := cond (eq $path "") "lokf" "" -}}
 {{- if hasPrefix $path "pkg:" }}{{ $package = index (split (strings.TrimPrefix "pkg:" $path) "/") 0 }}{{ $path = "" }}{{ end -}}
 {{- if or $path $package -}}
+  {{- /* The local files the schema imports, which prepare.sh copied beside it. */ -}}
+  {{- range resources.Match "gendoc/**.yaml" -}}
+    {{- $rel := strings.TrimPrefix "gendoc/" (strings.TrimPrefix "/" .Name) -}}
+    {{- if ne $rel $name }}{{ (. | resources.Copy (printf "schema/%s" $rel)).Publish }}{{ end -}}
+  {{- end -}}
   {{- with resources.Get (printf "gendoc/%s" $name) -}}
     {{- $out = dict "file" (. | resources.Copy (printf "schema/%s" $name)) "path" $path "package" $package "core" $core "domain" (eq $path ".lokf/schema/domain.yaml") -}}
   {{- end -}}
