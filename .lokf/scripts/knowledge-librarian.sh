@@ -2,36 +2,37 @@
 #
 # Wrapper for the scheduled knowledge-librarian loop (Karpathy rule).
 #
-# `.github/workflows/knowledge-librarian.yaml` invokes this script directly: a
-# fixed, reviewed path, not an arbitrary command from a repo variable. To turn
-# on the scheduled run, set the `KNOWLEDGE_LIBRARIAN_ENABLED` repository
-# variable to "true". Then set `AGENT_CLI` (repo variable or secret) to the
-# command that runs your coding agent non-interactively, for example the GitHub
-# Copilot CLI, Claude Code or an internal agent runner. The prompt follows
-# `-p` unless AGENT_PROMPT_FLAG names another flag, or `arg` for an agent that
-# takes the prompt as its last argument.
+# `.github/workflows/knowledge-librarian.yaml` runs this script at a fixed,
+# reviewed path, not a command from a repository variable, once the
+# repository variable `KNOWLEDGE_LIBRARIAN_ENABLED` is "true". `AGENT_CLI`, a
+# repository variable or secret, names the command that runs your coding
+# agent non-interactively, such as the GitHub Copilot CLI, Claude Code or an
+# internal agent runner.
 #
 # CONTRACT (the workflow relies on this):
-#   - The agent WRITES one file, .lokf/patch.yaml, and nothing else. After it
-#     returns, this script applies that file with knowledge-apply.sh. So
-#     .lokf/knowledge/, a handled feedback.md entry and the ledger line it
-#     becomes in questions.md change only through that script, and a run in
-#     which the agent changed any other path is refused.
-#   - What the pen refuses before it writes is then checked on the result, by
-#     knowledge-provenance.sh --unattended: a run that touched a person's
-#     event, note or text is refused too.
-#   - The lines the patch file holds for the reviewer, its `handoff`, reach
-#     the file KNOWLEDGE_HANDOFF_OUT names through the same script, cleaned.
-#     That file and the retrieval score's are removed once the agent returns,
-#     so what the workflow reads from them was written after it. The
-#     retrieval test calls the agent a second time, so the hand-off is
-#     written again after that call, as the pen left it.
-#   - It MUST NOT git commit, push, or open pull requests: the workflow owns
-#     that.
-#   - On success it exits 0 whether or not it changed anything; the workflow
-#     diffs the working tree to decide whether to open a pull request. A run that
-#     knowledge-report.sh finds quiet, when the caller allows a skip, ends
-#     with exit 0 before the agent is called.
+#   - The agent WRITES one file, .lokf/patch.yaml, and this script applies it
+#     with knowledge-apply.sh. So .lokf/knowledge/, a handled feedback.md
+#     entry and its ledger line in questions.md change only through that
+#     script. A run in which the agent changed any other path is refused, and
+#     so is one whose result touches a person's event, note or text, which
+#     knowledge-provenance.sh --unattended checks.
+#   - The pen and that gate run from copies taken out of HEAD before the agent
+#     runs, and a run in which the agent moved HEAD or changed those copies is
+#     refused. The agent shares this job's user, so a file outside git, such
+#     as .lokf/.venv, and a process it leaves running stay within its reach.
+#     So these checks only stop a bad run early. The boundary is the
+#     workflow's apply and publish jobs, on runners the agent never shared.
+#   - The workflow hands on the patch file's copy in KNOWLEDGE_PATCH_OUT, and
+#     nothing this job made from it, and its apply job runs the pen on it
+#     again. A patch file that is a link is refused, and a refused run leaves
+#     no copy.
+#   - The files the *_OUT variables name are removed once the agent returns,
+#     so the workflow reads only what was written after it.
+#   - It MUST NOT commit, push or open pull requests: the workflow does.
+#   - It exits 0 on success, whether or not it changed anything: the workflow
+#     diffs the working tree to decide on a pull request. When the caller
+#     allows a skip, a run that knowledge-report.sh finds quiet exits 0
+#     before the agent is called.
 #
 # Inputs (env):
 #   AGENT_CLI           command that runs the agent given a prompt via -p "<prompt>"
@@ -42,17 +43,18 @@
 #   AGENT_API_KEY_ENV   the name the agent reads that key from, such as
 #                       ANTHROPIC_API_KEY; required when AGENT_API_KEY is set
 #   KNOWLEDGE_SKIP_QUIET optional: "true" skips the agent when
-#                       knowledge-report.sh finds nothing waiting for it; the
-#                       workflow sets it on a scheduled run, never on one a
-#                       person starts
-#   KNOWLEDGE_DECLINED  optional: a file naming what a person declined, by
-#                       closing a pull request of the workflow's without
-#                       merging. knowledge-report.sh reads it, so the quiet
-#                       check and the agent's work list count none of those
-#                       changes until they change again. The workflow writes
-#                       it on a scheduled run only, never on one a person
-#                       starts
-#   KNOWLEDGE_HANDOFF_OUT  optional: a file to write the patch's hand-off lines to
+#                       knowledge-report.sh finds nothing waiting for it; set
+#                       on a scheduled run only
+#   KNOWLEDGE_DECLINED  optional: a file naming the changes a person declined
+#                       by closing a pull request of the workflow's unmerged.
+#                       knowledge-report.sh leaves them out of the quiet check
+#                       and the agent's work list until they change again. Set
+#                       on a scheduled run only
+#   KNOWLEDGE_HANDOFF_OUT  optional: a file the pen writes the patch's `handoff`
+#                       lines to, cleaned
+#   KNOWLEDGE_PATCH_OUT optional: a file to copy the agent's patch file to, as
+#                       it wrote it, once the checks pass and before the pen
+#                       applies it here
 #   KNOWLEDGE_RETRIEVAL optional: "true" scores, after the bundle is written,
 #                       whether the index leads an agent to the concept behind
 #                       each question readers asked (one more agent call)
@@ -64,25 +66,24 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repo_root"
 
-# The ktl-librarian skill may live under any of these skill-directory
-# conventions: the three install targets, plus bare skills/ for a repo that
-# publishes the skills it also uses. If this repo uses a different one, add it
-# here. A candidate list that does not match the repo fails this whole script
-# at run time, not when the sidecar is installed.
+# The skill may sit in any of the three install folders, or in skills/ in a
+# repository that publishes the skills it uses; add another here if needed.
+# .agents/skills/ is tried first: the scheduled workflow installs the pinned
+# skill there, and a copy the host committed elsewhere, perhaps an older
+# one, must not replace it.
 skill=""
-for candidate in .claude/skills/ktl-librarian/SKILL.md .github/skills/ktl-librarian/SKILL.md \
-                 .agents/skills/ktl-librarian/SKILL.md skills/ktl-librarian/SKILL.md; do
+for candidate in .agents/skills/ktl-librarian/SKILL.md .claude/skills/ktl-librarian/SKILL.md \
+                 .github/skills/ktl-librarian/SKILL.md skills/ktl-librarian/SKILL.md; do
   if [ -f "$candidate" ]; then skill="$candidate"; break; fi
 done
 [ -n "$skill" ] || {
-  echo "knowledge-librarian: ktl-librarian SKILL.md not found in .claude/skills/, .github/skills/, .agents/skills/, or skills/" >&2
+  echo "knowledge-librarian: ktl-librarian SKILL.md not found in .agents/skills/, .claude/skills/, .github/skills/, or skills/" >&2
   exit 2
 }
 
-# This wrapper writes the bundle through knowledge-apply.sh and nothing else.
-# A sidecar can lack that script when a newer copy was synced over an older
-# one, since a sync adds no file that was not there. So say it now, before an
-# agent run is spent on a patch nothing could apply.
+# A sync adds no file that was not there, so a sidecar synced from an older
+# copy can lack the pen. Say so now, before an agent run is spent on a patch
+# nothing could apply.
 if [ ! -f .lokf/scripts/knowledge-apply.sh ] || [ ! -f .lokf/scripts/knowledge-apply.py ]; then
   echo "knowledge-librarian: .lokf/scripts/knowledge-apply.sh and knowledge-apply.py are not both here, and the bundle is written through them alone; ktl-sidecar's repair path lays them down" >&2
   exit 2
@@ -100,27 +101,23 @@ EOF
   exit 2
 fi
 
-# The patch file's format comes from knowledge-apply.sh, which prints it
-# with --format, so the prompt below names no file inside the skill. That
-# matters because the skill a scheduled run installs is pinned one release
-# behind the scripts beside this one: a skill that predates the patch file
-# still gets a prompt it can follow. Say so when that is the case, since
-# nothing else would tell the operator why the skill and the prompt differ.
+# The prompt takes the patch file's format from knowledge-apply.sh --format
+# and names no file inside the skill, because a scheduled run installs a
+# skill pinned one release behind these scripts. Say so when that skill
+# predates the patch file: nothing else tells the operator why the two differ.
 if [ ! -f "$(dirname "$skill")/references/patch.md" ]; then
   echo "knowledge-librarian: $skill predates the patch file, so the prompt takes the format from knowledge-apply.sh --format; move the skills pin to a release that carries references/patch.md once one is tagged" >&2
 fi
 
-# The workflow passes the key under one fixed name, and the agent CLI reads it
-# under its own. Check the name here, before anything runs: it must look like a
-# credential (ending _API_KEY, _TOKEN or _KEY), so a slip cannot overwrite
-# PATH, BASH_ENV or LD_PRELOAD. It must not start GITHUB_, GH_, GIT_, RUNNER_ or
-# ACTIONS_, because gh, git and the runner read those names too, and the key
-# would reach them as well as the agent. The key moves into an unexported
+# The agent CLI reads the key under its own name. The name must end _API_KEY,
+# _TOKEN or _KEY, so a slip cannot overwrite PATH, BASH_ENV or LD_PRELOAD,
+# and must not start GITHUB_, GH_, GIT_, RUNNER_ or ACTIONS_, because gh, git
+# and the runner read those names too. The key moves into an unexported
 # variable, so the git commands this script runs never see it.
 key_name="${AGENT_API_KEY_ENV:-}"
 agent_key="${AGENT_API_KEY:-}"
 unset AGENT_API_KEY AGENT_API_KEY_ENV
-# The pen's dry-run-only switch belongs to the agent's process alone (see
+# Only the agent's process carries the pen's dry-run-only switch (see
 # run_agent): one set outside would stop this script applying the patch.
 unset KNOWLEDGE_PEN_DRY_RUN_ONLY
 if [ -n "$agent_key" ] || [ -n "$key_name" ]; then
@@ -139,9 +136,7 @@ if [ -n "$agent_key" ] || [ -n "$key_name" ]; then
   fi
 fi
 
-# How the prompt reaches the agent. Most agent CLIs take it after -p (Claude
-# Code, Copilot CLI, Gemini CLI); some take it as the last argument and give
-# -p another meaning (codex exec). Only a short flag, a long flag or the word
+# How the prompt reaches the agent. Only a short flag, a long flag or the word
 # arg is accepted, so the variable can add nothing but the prompt's position.
 prompt_flag="${AGENT_PROMPT_FLAG:--p}"
 if ! [[ "$prompt_flag" =~ ^(-[A-Za-z]|--[a-z][a-z0-9-]*|arg)$ ]]; then
@@ -149,10 +144,9 @@ if ! [[ "$prompt_flag" =~ ^(-[A-Za-z]|--[a-z][a-z0-9-]*|arg)$ ]]; then
   exit 2
 fi
 
-# Build the prompt. The agent should follow the skill verbatim, write only
-# .lokf/patch.yaml, and make no VCS operations.
-# The heredoc is unquoted so $skill expands. So any backtick in the text MUST
-# be escaped (\`), or bash runs it as a command and blanks the word.
+# Build the prompt. The heredoc is unquoted so that $skill expands. Any
+# backtick in the text MUST therefore be escaped (\`), or bash runs it as a
+# command and blanks the word.
 prompt="$(cat <<EOF
 You are the repository knowledge librarian. Follow this skill file verbatim:
   - $skill
@@ -195,40 +189,32 @@ EOF
 )"
 
 # Security rationale (for human and automated reviewers): AGENT_CLI is trusted
-# configuration, not untrusted input. A repo admin sets it in Settings, naming
-# their own agent command, and it is never derived from repo contents, pull
-# request data or model output. It is parsed into a quoted argv array and run
-# directly (see below), so bash does NOT re-evaluate it as source. Shell
-# metacharacters (; | & $() ``) are passed as inert arguments, not executed:
-# there is no eval and no `bash -c`. This step runs only in the workflow's
-# read-only `refresh` job (contents: read, no persisted credentials), and the
-# post-run check also fails if the agent wrote anything but .lokf/patch.yaml.
+# configuration that a repository admin sets in Settings, never repository
+# contents, pull request data or model output. It is split on whitespace,
+# with no globbing, and run as a quoted argv vector, with no eval and no
+# `bash -c`, so bash does NOT re-evaluate it and shell metacharacters
+# (; | & $() ``) are passed as inert arguments. Quotes inside it are not
+# honoured, so keep it to a command and its flags, or wrap richer logic in a
+# script. The agent runs only in the workflow's read-only `refresh` job
+# (contents: read, no persisted credentials).
 #
-# That check, and the AGENT_CLI invocation itself, live inside main() below,
-# called only from this file's last line. Bash reads a function body in full
-# before running any of it, so an agent that truncates this script mid-run
-# cannot make it skip anything after the agent call. Top-level statements, as
-# these once were, run only as far as the file's length on disk when bash
-# reaches them.
-#
-# Split AGENT_CLI into an argv array (whitespace word-split, no globbing) and
-# invoke it as a quoted vector rather than a re-expanded string. Handles the
-# usual "cmd --flags" form. Quotes *inside* AGENT_CLI are not honoured, so keep
-# it to a plain command plus flags, or wrap richer logic in its own script.
+# The agent call and the checks after it sit in main(), called only from
+# this file's last line. Bash reads a function body in full before running
+# any of it, so an agent that truncates this script mid-run cannot make it
+# skip anything after the agent call. A top-level statement runs only if the
+# file on disk still holds it when bash reaches it.
 read -r -a agent_cmd <<< "$AGENT_CLI"
 if [ "${#agent_cmd[@]}" -eq 0 ]; then
   echo "knowledge-librarian: AGENT_CLI has no command after parsing" >&2
   exit 2
 fi
 
-# Become the agent, with the given prompt where AGENT_PROMPT_FLAG says it
-# goes. Called with exec from a subshell, so only that subshell's environment
-# carries the key. It carries KNOWLEDGE_PEN_DRY_RUN_ONLY too, so the pen only
-# checks the patch file while the agent runs, and this script applies it after.
-# An agent that followed the skill's live-session step and applied its own
-# patch once lost the run's work: the pen deleted the file, and the check below
-# refused the bundle it wrote. The switch is a guard against that mistake, not
-# a boundary; the check below still is one.
+# Become the agent, by exec from a subshell, so only that subshell's
+# environment carries the key and KNOWLEDGE_PEN_DRY_RUN_ONLY. That switch
+# makes the pen only check a patch file, so an agent that follows the
+# skill's live-session step cannot apply its patch, which would make the pen
+# delete the file and the check below refuse the bundle it wrote. The switch
+# is a guard against that mistake, not a boundary.
 run_agent() {
   export KNOWLEDGE_PEN_DRY_RUN_ONLY=1
   if [ "$prompt_flag" = arg ]; then
@@ -237,16 +223,14 @@ run_agent() {
   exec "${agent_cmd[@]}" "$prompt_flag" "$1"
 }
 
-# Defence in depth: the prompt asks the agent to write only the patch file, but
-# nothing forces it. Record paths already dirty outside the bundle (for example
-# a uv.lock the workflow refreshed), so the agent answers only for *new* ones.
-# The allowed paths are the bundle under both its names, ktl-docent's
-# .lokf/feedback.md, and the ledger the pen moves a handled entry into,
-# .lokf/questions.md. The bundle's names are .lokf/knowledge/ and
-# knowledge_bundle/. By default the second is ktl-sidecar's doorway link, and
-# the pathspec matches nothing there. On a host rearranged by hand it is a real
-# folder, with .lokf/knowledge a link onto it, and git pathspecs do not
-# traverse a symlink, so both must be named.
+# The prompt asks the agent to write only the patch file, but nothing forces
+# it. Record the paths already dirty outside the bundle, such as a uv.lock the
+# workflow refreshed, so the agent answers only for *new* ones. The bundle,
+# ktl-docent's .lokf/feedback.md and the pen's ledger .lokf/questions.md are
+# allowed. The bundle is named twice, because a git pathspec does not
+# traverse a link. knowledge_bundle/ is usually the doorway link, where the
+# pathspec matches nothing, but on a host rearranged by hand it is the real
+# folder and .lokf/knowledge the link.
 outside_bundle() {
   git status --porcelain -- '.' \
     ':(exclude).lokf/knowledge' ':(exclude)knowledge_bundle' ':(exclude).lokf/feedback.md' ':(exclude).lokf/questions.md' \
@@ -258,60 +242,69 @@ changed_paths() {
   git status --porcelain -- '.' ':(exclude).lokf/patch.yaml' | cut -c4- | sort -u
 }
 
-# Snapshots of .git/config and .git/hooks/ taken before each agent call.
-# File-scope, not local, so the EXIT trap below can reach them.
+# Snapshots of .git/config, .git/hooks/ and .git/info/ taken before each agent
+# call, at file scope for the EXIT trap. The three live in the folder that
+# every work tree shares, where a linked work tree's `.git` file points. A
+# clone made without templates has no hooks/ or info/ folder, so each is put
+# back as it was, absent when it was absent.
 config_snapshot=""
 hooks_snapshot=""
+info_snapshot=""
+git_dir=""
+had_hooks=0
+had_info=0
 snapshot_git_state() {
+  git_dir="$(git rev-parse --git-common-dir)"
   config_snapshot="$(mktemp)"
   hooks_snapshot="$(mktemp -d)"
-  cp .git/config "$config_snapshot"
-  cp -a .git/hooks/. "$hooks_snapshot/"
+  info_snapshot="$(mktemp -d)"
+  cp "$git_dir/config" "$config_snapshot"
+  had_hooks=0; had_info=0
+  if [ -d "$git_dir/hooks" ]; then had_hooks=1; cp -a "$git_dir/hooks/." "$hooks_snapshot/"; fi
+  if [ -d "$git_dir/info" ]; then had_info=1; cp -a "$git_dir/info/." "$info_snapshot/"; fi
 }
 
-# Put .git/config and .git/hooks/ back as they were before the agent ran, then
-# forget the snapshot so a second call is a no-op. main() calls it right after
-# the agent returns, and the EXIT trap calls it for every other way out:
-# - the agent exiting non-zero, which `set -e` turns into this script's exit;
-# - the job being cancelled, the runner's SIGINT or SIGTERM, which the traps
-#   below turn into an exit;
-# - an error anywhere after the snapshot.
-# Without the trap, a failing agent left the config it had rewritten in the
-# checkout, for the workflow's next steps to read.
+# Put .git/config, .git/hooks/ and .git/info/ back as they were before the
+# agent ran, then forget the snapshot so a second call does nothing. main()
+# calls it when the agent returns. The EXIT trap calls it on every other way
+# out: a failing agent under `set -e`, a cancelled job (SIGINT or SIGTERM,
+# which the traps in main() turn into an exit), or another error. Without
+# the trap, a failing agent would leave its rewritten config for the
+# workflow's next steps.
 restore_git_state() {
   [ -n "$config_snapshot" ] || return 0
-  cp "$config_snapshot" .git/config
-  rm -rf .git/hooks
-  mkdir .git/hooks
-  cp -a "$hooks_snapshot/." .git/hooks/
-  rm -rf "$config_snapshot" "$hooks_snapshot"
+  cp "$config_snapshot" "$git_dir/config"
+  rm -rf "$git_dir/hooks"
+  if [ "$had_hooks" = 1 ]; then mkdir "$git_dir/hooks"; cp -a "$hooks_snapshot/." "$git_dir/hooks/"; fi
+  rm -rf "$git_dir/info"
+  if [ "$had_info" = 1 ]; then mkdir "$git_dir/info"; cp -a "$info_snapshot/." "$git_dir/info/"; fi
+  rm -rf "$config_snapshot" "$hooks_snapshot" "$info_snapshot"
   config_snapshot=""
   hooks_snapshot=""
+  info_snapshot=""
 }
 
-# Everything git can see of the working tree, as one checksum: which paths
+# Everything git can see of the working tree, as one digest: which paths
 # differ from HEAD, how the tracked ones differ, and what the untracked ones
-# hold. Two readings that agree mean nothing in the checkout changed between
-# them.
+# hold. It uses git object ids, because a changed file of the same length can
+# be made to match a checksum such as cksum's.
 tree_state() {
   {
     git status --porcelain --untracked-files=all
     git diff HEAD
-    git ls-files --others --exclude-standard | while IFS= read -r f; do cksum "$f"; done
-  } 2>/dev/null | cksum
+    git ls-files --others --exclude-standard | while IFS= read -r f; do printf '%s %s\n' "$(git hash-object --no-filters -- "$f")" "$f"; done
+  } 2>/dev/null | git hash-object --stdin
 }
 
-# The index-only retrieval test (knowledge-report.sh's `retrieval`), run only
-# when KNOWLEDGE_RETRIEVAL is "true". The bundle is written by now. The agent
-# answers one prompt, holding the table of contents and the questions readers
-# asked, from an empty directory, so the index is all it has. A program scores
-# its reply as one line, "n of m". The prompt carries readers' words. So
-# the reply is read for concept paths and for nothing else, the same
-# snapshot guards .git/config and .git/hooks/, and a call that changed
-# anything in the checkout refuses the run like any other stray write.
-# The hand-off file sits outside the checkout, where this call could write
-# too. So the lines the pen put there are held across the call and written
-# back after it, and the reviewer never reads a hand-off this call left.
+# The index-only retrieval test (knowledge-report.sh's `retrieval`). The
+# agent answers one prompt, holding the table of contents and the questions
+# readers asked, from an empty directory, so the index is all it has. A
+# program scores its reply as one line, "n of m". The prompt carries
+# readers' words, so the reply is read only for concept paths, the same
+# snapshot guards .git/config, .git/hooks/ and .git/info/, and a call that
+# changed anything in the checkout refuses the run. This call could also
+# write the hand-off file, outside the checkout, so the lines the pen put
+# there are written back after it.
 score_retrieval() {
   local prompt scratch before line handoff=""
   prompt="$(bash .lokf/scripts/knowledge-report.sh retrieval --prompt 2>/dev/null || true)"
@@ -340,31 +333,98 @@ score_retrieval() {
     rm -rf "$scratch"
     exit 3
   fi
+  if ! patch_out_intact; then
+    echo "knowledge-librarian: the retrieval call changed the copy of the patch file the workflow hands on - refusing" >&2
+    rm -rf "$scratch"
+    exit 3
+  fi
   line="$(bash .lokf/scripts/knowledge-report.sh retrieval "$scratch/reply" 2>/dev/null | sed -n 1p)"
   rm -rf "$scratch"
   echo "knowledge-librarian: $line"
   if [ -n "${KNOWLEDGE_RETRIEVAL_OUT:-}" ]; then rm -f "$KNOWLEDGE_RETRIEVAL_OUT"; printf '%s\n' "$line" > "$KNOWLEDGE_RETRIEVAL_OUT"; fi
 }
 
-# The files the workflow reads after this script: the hand-off and the
-# retrieval score. The agent could write anywhere this job can, those paths
-# included, and could leave a link there that sends a later write into the
-# checkout. So each is removed once the agent returns, and what the workflow
-# reads was put there after the agent, by the pen or the retrieval test.
+# The pen and the provenance gate, copied out of HEAD before the agent runs,
+# with their digests held in this script's memory, so a script the agent
+# rewrote never checks its work. File scope, so the EXIT trap can remove
+# them.
+tools_dir=""
+tools_sum=""
+tools=(knowledge-apply.sh knowledge-apply.py knowledge-provenance.sh)
+take_tools() {
+  local name
+  tools_dir="$(mktemp -d)"
+  for name in "${tools[@]}"; do
+    if ! git show "HEAD:./.lokf/scripts/$name" > "$tools_dir/$name" 2>/dev/null; then
+      rm -f "$tools_dir/$name"
+    fi
+  done
+  if [ ! -f "$tools_dir/knowledge-apply.sh" ] || [ ! -f "$tools_dir/knowledge-apply.py" ]; then
+    echo "knowledge-librarian: HEAD holds no .lokf/scripts/knowledge-apply.sh and knowledge-apply.py, and the patch is applied with HEAD's copies; commit them first" >&2
+    exit 2
+  fi
+  tools_sum="$(tools_digest)"
+}
+# Each copy's git object id, from its bytes only, for the reason tree_state
+# gives. Git runs from the repository, whose settings are restored by then,
+# and never from the copies' folder, where the agent could have left a .git
+# of its own.
+tools_digest() {
+  local name
+  for name in "${tools[@]}"; do
+    if [ -f "$tools_dir/$name" ] && [ ! -L "$tools_dir/$name" ]; then
+      printf '%s %s\n' "$(git hash-object --no-filters -- "$tools_dir/$name" 2>/dev/null)" "$name"
+    else
+      printf 'none %s\n' "$name"
+    fi
+  done
+}
+tools_intact() { [ -n "$tools_dir" ] && [ -n "$tools_sum" ] && [ "$(tools_digest)" = "$tools_sum" ]; }
+
+# Copy the patch file to KNOWLEDGE_PATCH_OUT, and hold its git object id in
+# memory. The copy is written beside the path and moved into place, so a
+# link left at the path is replaced, not followed. The retrieval call runs
+# later and could write there too, so the copy must still match the id when
+# that call returns.
+patch_sum=""
+hand_on_patch() {
+  local out="${KNOWLEDGE_PATCH_OUT:-}" tmp
+  [ -n "$out" ] || return 0
+  tmp="$(mktemp "$out.XXXXXX")"
+  cp .lokf/patch.yaml "$tmp"
+  mv -f "$tmp" "$out"
+  patch_sum="$(git hash-object --no-filters -- "$out")"
+}
+patch_out_intact() {
+  [ -z "$patch_sum" ] && return 0
+  [ -f "$KNOWLEDGE_PATCH_OUT" ] && [ ! -L "$KNOWLEDGE_PATCH_OUT" ] \
+    && [ "$(git hash-object --no-filters -- "$KNOWLEDGE_PATCH_OUT" 2>/dev/null)" = "$patch_sum" ]
+}
+
+# A run that ends in a refusal hands nothing on, so the copy is removed too.
+on_exit() {
+  local rc=$?
+  restore_git_state
+  [ -z "$tools_dir" ] || rm -rf "$tools_dir"
+  if [ "$rc" -ne 0 ] && [ -n "$patch_sum" ]; then rm -f "$KNOWLEDGE_PATCH_OUT"; fi
+}
+
+# The files the workflow reads after this script: the patch file's copy, the
+# hand-off and the retrieval score. The agent could leave a link at one of
+# them that sends a later write into the checkout, so each is removed once
+# the agent returns.
 clear_outputs() {
   local out
-  for out in "${KNOWLEDGE_HANDOFF_OUT:-}" "${KNOWLEDGE_RETRIEVAL_OUT:-}"; do
+  for out in "${KNOWLEDGE_PATCH_OUT:-}" "${KNOWLEDGE_HANDOFF_OUT:-}" "${KNOWLEDGE_RETRIEVAL_OUT:-}"; do
     [ -z "$out" ] || rm -f "$out"
   done
 }
 
 main() {
-  # A run with nothing to do ends here, before the agent is called, when the
-  # caller allows it. The workflow sets KNOWLEDGE_SKIP_QUIET on a scheduled
-  # run. knowledge-report.sh decides, from frontmatter and history, and runs
-  # from the checkout before any agent has touched it. Anything but a clear
-  # "quiet" runs the agent as before: work waiting, no history, or a report
-  # script too old to know the command.
+  # When the caller allows it, a run with nothing to do ends here, before the
+  # agent is called. knowledge-report.sh decides, on the checkout before any
+  # agent has touched it. Anything but a clear "quiet" runs the agent: work
+  # waiting, no history, or a report script too old to know the command.
   if [ "${KNOWLEDGE_SKIP_QUIET:-}" = true ] && [ -f .lokf/scripts/knowledge-report.sh ]; then
     local verdict rc=0
     verdict="$(bash .lokf/scripts/knowledge-report.sh quiet 2>/dev/null)" || rc=$?
@@ -375,38 +435,40 @@ main() {
     esac
   fi
 
-  # A local, well-formed AGENT_CLI can still run code that writes anywhere in
-  # this job's checkout, which is what the check above is for. But that check
-  # is only as good as the `git status` it reads. An agent that sets
-  # core.fsmonitor or core.hooksPath in .git/config, or drops a file in
-  # .git/hooks/, gets it run by *this script's own* later git commands. The
-  # workflow's detect and package steps share this job's checkout and run it
-  # too, after this script exits.
-  #
-  # So snapshot both around the agent call and restore them on every exit
-  # (success, agent failure, cancellation), and neither this check nor
-  # anything the workflow does afterwards can be defeated or taken over that
-  # way. Only SIGKILL escapes this, and a runner that kills the step with it
-  # also discards the job, so nothing reads the checkout after it. This is
-  # defence in depth, not the backstop: a person reviewing the pull request
-  # before merge is.
+  # The checks below are only as good as the `git status` they read. An
+  # agent that sets core.fsmonitor or core.hooksPath in .git/config, or adds
+  # a file to .git/hooks/, has *this script's* later git commands run its
+  # code. One that adds a rule to .git/info/exclude hides its writes from
+  # them. The workflow's detect and package steps read this checkout too,
+  # after this script exits. So the three are restored on every exit. Only
+  # SIGKILL escapes this, and a runner that kills the step with it also
+  # discards the job. This is defence in depth, not the backstop: a person
+  # reviewing the pull request before merge is.
   snapshot_git_state
-  trap restore_git_state EXIT
+  trap on_exit EXIT
+  take_tools
+  local head_before
+  head_before="$(git rev-parse HEAD)"
   # A signal caught by a trap does not end the shell, so these turn it into an
   # exit, which runs the EXIT trap above. Bash delivers them only once the
-  # foreground agent has itself exited, so the restore never races the agent.
+  # foreground agent has exited, so the restore never races the agent.
   trap 'exit 129' HUP
   trap 'exit 130' INT
   trap 'exit 143' TERM
 
-  local before_outside before_all
+  local before_outside before_all before_flags
   before_outside="$(outside_bundle)"
   before_all="$(changed_paths)"
+  # The checks below read `git status`, which says nothing of a file whose
+  # index entry is flagged skip-worktree or assume-unchanged. An agent that
+  # set a flag on a script here could replace it unseen, so the flags are
+  # read before and after. A sparse checkout has such entries of its own,
+  # and only a change to them is refused.
+  before_flags="$(git ls-files -v | grep -v '^H ' || true)"
 
   echo "knowledge-librarian: refreshing the .lokf/ bundle via AGENT_CLI"
-  # The subshell exports the key under the agent's own name and then becomes
-  # the agent, so only the agent's environment carries it. The key never
-  # appears in a process's argument list.
+  # The key reaches the agent through its environment, under the name it
+  # reads, and never appears in a process's argument list.
   (
     if [ -n "$key_name" ]; then export "$key_name=$agent_key"; fi
     run_agent "$prompt"
@@ -416,9 +478,28 @@ main() {
   restore_git_state
   clear_outputs
 
-  # The agent's one output is .lokf/patch.yaml. Anything else it changed,
-  # inside the bundle or out, is refused before the file is applied: the
-  # bundle changes only through knowledge-apply.sh, so a direct edit never
+  # The agent may not commit: a commit would move what the checks below
+  # compare with.
+  if [ "$(git rev-parse HEAD)" != "$head_before" ]; then
+    echo "knowledge-librarian: the agent moved HEAD, which the checks compare with - refusing" >&2
+    rm -f .lokf/patch.yaml
+    exit 3
+  fi
+  if ! tools_intact; then
+    echo "knowledge-librarian: the copies of the pen and the gate taken before the agent ran have changed - refusing" >&2
+    rm -f .lokf/patch.yaml
+    exit 3
+  fi
+
+  if [ "$(git ls-files -v | grep -v '^H ' || true)" != "$before_flags" ]; then
+    echo "knowledge-librarian: the agent changed which files git watches (a skip-worktree or assume-unchanged flag) - refusing:" >&2
+    comm -13 <(printf '%s\n' "$before_flags" | sort) <(git ls-files -v | grep -v '^H ' | sort) | sed '/^$/d; s/^/  /' >&2
+    rm -f .lokf/patch.yaml
+    exit 3
+  fi
+
+  # Anything but .lokf/patch.yaml that the agent changed, inside the bundle
+  # or out, is refused before the file is applied, so a direct edit never
   # reaches the publish job.
   local touched
   touched="$(comm -13 <(printf '%s\n' "$before_all") <(changed_paths))"
@@ -428,9 +509,15 @@ main() {
     rm -f .lokf/patch.yaml
     exit 3
   fi
+  if [ -L .lokf/patch.yaml ]; then
+    echo "knowledge-librarian: .lokf/patch.yaml is a link, and the agent writes the file itself - refusing" >&2
+    rm -f .lokf/patch.yaml
+    exit 3
+  fi
   if [ -f .lokf/patch.yaml ]; then
+    hand_on_patch
     echo "knowledge-librarian: applying .lokf/patch.yaml with knowledge-apply.sh"
-    if ! bash .lokf/scripts/knowledge-apply.sh ${KNOWLEDGE_HANDOFF_OUT:+--handoff "$KNOWLEDGE_HANDOFF_OUT"} .lokf/patch.yaml; then
+    if ! bash "$tools_dir/knowledge-apply.sh" --root "$repo_root" ${KNOWLEDGE_HANDOFF_OUT:+--handoff "$KNOWLEDGE_HANDOFF_OUT"} .lokf/patch.yaml; then
       echo "knowledge-librarian: knowledge-apply.sh refused the patch, so nothing was written" >&2
       rm -f .lokf/patch.yaml
       exit 4
@@ -447,11 +534,10 @@ main() {
     exit 3
   fi
 
-  # What the pen refuses before it writes, checked on the result: the change
-  # adds, changes and removes no person's event or note, and rewrites no text
-  # a person wrote. The publish job runs the same check on a checkout the
-  # agent never shared; this one fails fast.
-  if [ -f .lokf/scripts/knowledge-provenance.sh ] && ! bash .lokf/scripts/knowledge-provenance.sh --unattended; then
+  # The gate checks the result for what the pen refuses before it writes. The
+  # publish job runs the same check on a checkout the agent never shared, and
+  # this one fails fast.
+  if [ -f "$tools_dir/knowledge-provenance.sh" ] && ! bash "$tools_dir/knowledge-provenance.sh" --unattended; then
     echo "knowledge-librarian: the change touches a person's record - refusing" >&2
     exit 3
   fi

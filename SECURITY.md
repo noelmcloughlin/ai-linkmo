@@ -21,7 +21,7 @@ These limitations are known and accepted for now. Each becomes a vulnerability o
 - The write endpoints, `PUT /byo` and `export=true` on `/graph` and `/crosswalk`, are unauthenticated, and the server does not enforce the `X-API-Key` scheme `/openapi.json` declares.
 - The web UI's login is a persona picker, not authentication.
 - The UI fetches persona avatars from `ui-avatars.com`, a third-party origin.
-- No CodeQL or dependency-vulnerability scanning is configured.
+- No dependency-vulnerability scanning is configured. `codeql.yml` runs CodeQL.
 - `graph/` holds committed generated output that the export commands rewrite in place.
 
 ## What executes here
@@ -34,6 +34,7 @@ These limitations are known and accepted for now. Each becomes a vulnerability o
 | `knowledge-release.yaml`, which attaches the bundle to a release as a zip | Inert until dispatched or armed; only its `attach` job, which runs no third-party packages, can write. |
 | `knowledge-sync.yaml` and `.lokf/scripts/knowledge-sync.sh`, which open the weekly pull request that moves the skills pin and the copies | Only `publish` and `push-workflows` hold `KNOWLEDGE_SYNC_TOKEN`, from the `knowledge-sync` Environment; `push-workflows` waits for a `knowledge-sync-review` reviewer, and nothing from the release runs. [The sync workflow](https://w3id.org/ktl/docs/threat-model/#the-sync-workflow). |
 | `knowledge-website.yaml`, which builds and deploys the bundle's site | The build runs under a read-only token; only `deploy`, which runs GitHub's deploy-pages action alone, holds the Pages scopes. [The website](https://w3id.org/ktl/docs/threat-model/#the-website). |
+| `scorecard.yml` and `codeql.yml`, which publish the OpenSSF Scorecard and scan the code | Read-only checkout; only the upload of results can write: `security-events: write`, and for Scorecard `id-token: write`. |
 | `README.md`, `llms.txt`, `byo/` content, the knowledge bundle and `.lokf/feedback.md`, read by agents | Content, never instructions: each skill quotes what it did not author. [Prompt-injection guards](https://w3id.org/ktl/docs/threat-model/#prompt-injection-guards). |
 
 Every workflow declares `permissions: {}` at the top, pins its actions to commit SHAs that Dependabot keeps current, and runs harden-runner in audit mode. A ruleset on `main` blocks deletion and force-pushes and requires linear history, and secret scanning with push protection is on. Those are repository settings, not files: nothing in CI can assert them, so keeping them on is the maintainer's job.

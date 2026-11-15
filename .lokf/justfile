@@ -5,19 +5,20 @@
 
 bundle := "knowledge"
 
-# A domain schema the validator checks beside LOKF's: a LinkML file that
-# imports the pinned lokf.yaml and adds the host's own classes
-# (ktl-librarian/references/domain-schema.md), as a path relative to this
-# folder: "<slug>.yaml" beside the bundle, or
-# "../.linkml/src/<slug>/schema/<slug>.yaml" in a linkml-sidecar project.
-# Leave it empty for the core vocabulary alone. The two validate recipes run
-# from the schema's directory, because linkml-runtime before 1.12.0 resolves a
-# schema's relative imports from the working directory, and uv.lock may hold
-# such a version. The three workflows run these recipes, so a host sets its
-# schema on this one line and nowhere else.
+# This line names the domain vocabulary: a LinkML file that imports the
+# pinned lokf.yaml and adds the host's classes
+# (ktl-librarian/references/domain-vocabulary.md). Give its path from this
+# folder, as "schema/<slug>.yaml", beside lokf.yaml and each file it imports.
+# Copy a LinkML project's schema there first, through `lokf adapt` where it
+# must be. Leave it empty for the core vocabulary alone.
+#
+# The validate, convert and serve recipes pass it as --schema (lokf 0.9.0 or
+# later), and the workflows, the release and the website read only this line.
+# A lokf command given no --schema reads `[tool.lokf] schema` in
+# pyproject.toml instead: set that to the same path or leave it out. The
+# preflight warns when the two differ.
 schema := ""
-_validate := if schema == "" { "uv run lokf validate" } else { "cd " + quote(parent_directory(justfile_directory() / schema)) + " && uv run --project " + quote(justfile_directory()) + " lokf validate --schema " + quote(file_name(schema)) }
-_bundle := if schema == "" { bundle } else { quote(justfile_directory() / bundle) }
+_schema := if schema == "" { "" } else { "--schema " + quote(schema) }
 
 # List available recipes
 default:
@@ -27,32 +28,35 @@ default:
 lokf-install:
     uv sync
 
-# Assemble and validate the knowledge bundle against the LOKF schema (and the domain schema `schema` names)
+# Assemble and validate the knowledge bundle against the LOKF schema (and the domain vocabulary `schema` names)
 lokf-validate:
-    {{ _validate }} {{ _bundle }}
+    uv run lokf validate {{ _schema }} {{ bundle }}
 
 # Project the bundle (or a concept file) to RDF (Turtle) on stdout
 lokf-convert FILE=bundle:
-    uv run lokf convert --format ttl {{ FILE }}
+    uv run lokf convert {{ _schema }} --format ttl {{ FILE }}
 
 # Serve the bundle locally: SPARQL endpoint + live graph explorer
 lokf-serve:
-    uv run lokf serve {{ bundle }}
+    uv run lokf serve {{ _schema }} {{ bundle }}
 
-# Audit: every typed-relation target must resolve to a concept in the bundle.
 # Schema validation alone reads a fabricated or stale IRI as a valid string.
-# --check-refs (lokf 0.8.0+) takes the relation slots from the schema, so
-# reified `relations` entries and a domain schema's own slots are covered too.
-# Targets outside base_iri are left alone: `source` and `definedBy` are
-# documented as taking an external resource.
+# --check-refs takes the relation slots from the schema, so it covers reified
+# `relations` entries and a domain vocabulary's slots too. It leaves a target
+# outside base_iri alone, since `source` and `definedBy` take an external
+# resource. --check-excerpts (lokf 0.9.0 or later) finds each
+# `sources[].excerpt` in its local file, and counts an excerpt on a URL
+# without fetching it.
+#
+# Audit: every typed-relation target must resolve to a concept, and every local excerpt must match its file
 lokf-check-refs:
-    {{ _validate }} --check-refs {{ _bundle }}
+    uv run lokf validate {{ _schema }} --check-refs --check-excerpts {{ bundle }}
 
-# The knowledge_bundle doorway: the bundle under an ordinary, visible name at the
-# host root, for folder pickers and file managers that hide dot-folders and, for
-# Obsidian users, its "Open folder as vault" (open the link itself, never the host root).
-# Git carries the link; a sync service such as OneDrive does not, so a machine
-# may need it recreated. POSIX only; on Windows, run mklink /J knowledge_bundle .lokf\knowledge
+# The knowledge_bundle doorway shows the bundle under a visible name at the
+# host root, for tools that hide dot-folders: folder pickers, file managers
+# and the "Open folder as vault" of Obsidian. Git carries the link and a sync
+# service such as OneDrive does not, so a machine may need it recreated. This
+# recipe is POSIX only. On Windows, run mklink /J knowledge_bundle .lokf\knowledge
 
 # Create (or recreate) the knowledge_bundle -> .lokf/knowledge doorway link at the host root
 lokf-link:

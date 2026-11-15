@@ -53,12 +53,13 @@ concurrency:
 jobs:
   validate:
     name: Validate the LOKF bundle
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.KNOWLEDGE_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 15
     permissions:
       contents: read
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
         with:
           egress-policy: audit
 
@@ -72,10 +73,13 @@ jobs:
           # against the tree, and reports a shallow clone instead of passing it.
           fetch-depth: 0
 
+      # No uv cache, as in the release's `pack` job, so this gate runs the
+      # files .lokf/uv.lock names and not what another job left in a cache.
       - name: Set up uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: "3.12"
+          enable-cache: false
 
       # --locked installs what .lokf/uv.lock names, each file checked against
       # the hash recorded there, and fails when the lock is missing or behind
@@ -91,7 +95,7 @@ jobs:
       # resolves every target in the bundle's own namespace, taking the
       # relation slots from the schema. It is part of `lokf validate`, so it
       # rides on this step rather than validating the same bundle twice. A
-      # host with a domain schema names it as `schema :=` in the justfile, and
+      # host with a domain vocabulary names it as `schema :=` in the justfile, and
       # the recipe passes it; the workflow runs the recipe so no host edits this line.
       - name: Validate the knowledge bundle and its relation targets
         # just from uv.lock, checked against its hash, where the host's
@@ -121,7 +125,7 @@ jobs:
         run: |
           since=""
           if [ -n "$BASE_SHA" ]; then since="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"; fi
-          bash scripts/knowledge-conventions.sh knowledge ${since:+--since "$since"}
+          bash scripts/knowledge-conventions.sh knowledge --strict ${since:+--since "$since"}
         working-directory: .lokf
 
   provenance:
@@ -170,7 +174,8 @@ jobs:
     #     compared by fixed string only;
     #   - token scope is read-only and no credential is persisted.
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.KNOWLEDGE_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 10
     permissions:
       contents: read
       pull-requests: read
@@ -178,6 +183,11 @@ jobs:
       verdict: ${{ steps.check.outputs.verdict }}
       actors: ${{ steps.check.outputs.actors }}
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -228,44 +238,78 @@ jobs:
           human_events() {
             awk -v path="$1" '
             function val(s) { sub(/^[^:]*:[[:space:]]*/, "", s); gsub(/["'"'"']/, "", s); sub(/[[:space:]]+$/, "", s); return s }
+            # Nothing this reader cannot follow is taken for no event. The schema gives
+            # an event `by`, `at` and `revision` and no other key, so any other key is a
+            # spelling it cannot follow: a quoted `by`, a merge, an alias. Such an event,
+            # and one whose actor is outside the shape the schema allows, comes out as the actor
+            # (unreadable), which is no login, so each gate refuses it as it refuses any
+            # id it cannot check.
             function kv(l,  k) { k = l; sub(/:.*/, "", k); sub(/^[[:space:]]+/, "", k)
-              if (k == "by") by = val(l); else if (k == "at") at = val(l); else if (k == "revision") rev = val(l) }
-            function emit() { if (inev && by ~ /^human:/) { sub(/^human:/, "", by); out = out (cid ? cid : path) "\t" by "\t" at "\t" rev "\t" kind "\n" }
-              inev = 0; by = ""; at = ""; rev = "" }
+              if (k == "by") by = val(l); else if (k == "at") at = val(l); else if (k == "revision") rev = val(l); else odd = 1 }
+            function actor(a) { return a !~ /\\/ && (a ~ /^(human|process):[^[:space:]]+$/ || a ~ "^[^[:space:]/]+/[^[:space:]/]+$") }
+            # Two revisions of a file must differ here whenever they differ in what a
+            # parser could read, or an edit inside an unreadable block passes unseen.
+            # So a file holds one unreadable line, and that line carries everything up
+            # to the closing delimiter, with control bytes YAML forbids in place of
+            # its tabs and line ends.
+            function unread() { bad = 1 }
+            function emit() { if (inev && (odd || !actor(by))) { bad = 1; by = "" }
+              if (inev && by ~ /^human:/) { sub(/^human:/, "", by); out = out (cid ? cid : path) "\t" by "\t" at "\t" rev "\t" kind "\n" }
+              inev = 0; odd = 0; by = ""; at = ""; rev = "" }
             function flow(s,  n, parts, i) { emit(); inev = 1; gsub(/[{}]/, "", s); n = split(s, parts, ",")
-              for (i = 1; i <= n; i++) kv(parts[i]); emit() }
+              for (i = 1; i <= n; i++) if (parts[i] !~ /^[[:space:]]*$/) kv(parts[i]); emit() }
             # A flow verified/generated may span lines: valid YAML a
             # block-only reader skips, which would let a forged confirmation
             # past the gate. Accumulate to the closing bracket, then parse: a
             # sequence into its events, a mapping as one. Matches
             # knowledge-provenance.sh.
-            function flushflow(  b, n, items, i) { b = flowbuf
+            function flushflow(  b, n, items, i, q, tail) { b = flowbuf
+              if (b ~ /(^|[[:space:]])#/) unread()
+              q = b; gsub(/"[^"]*"/, "", q); gsub(/'"'"'[^'"'"']*'"'"'/, "", q)
+              if (q ~ /["'"'"']/) unread()
+              tail = b; while (match(tail, /"[^"]*"|'"'"'[^'"'"']*'"'"'/)) { if (substr(tail, RSTART, RLENGTH) ~ /[][{}]/) unread(); tail = substr(tail, RSTART + RLENGTH) }
+              tail = q; if (flowseq) sub(/^[^]]*\]/, "", tail); else sub(/^[^}]*\}/, "", tail)
+              if (tail !~ /^[[:space:]]*$/) unread()
               if (flowseq) { sub(/^\[/, "", b); sub(/\].*/, "", b) } else { sub(/^\{/, "", b); sub(/\}.*/, "", b) }
               sub(/^[[:space:]]+/, "", b); sub(/[[:space:]]+$/, "", b)
-              if (b != "") { if (flowseq) { n = split(b, items, /\}[[:space:]]*,/); for (i = 1; i <= n; i++) flow(items[i]) } else flow(b) }
+              if (b != "") { if (flowseq) { n = split(b, items, /\}[[:space:]]*,/); for (i = 1; i <= n; i++) if (items[i] !~ /^[[:space:]]*$/) flow(items[i]) } else flow(b) }
               inflow = 0; flowbuf = "" }
-            BEGIN { fm = 0; inv = 0; inev = 0; inflow = 0; cid = ""; out = "" }
-            { sub(/\r$/, "") }
+            BEGIN { fm = 0; inv = 0; inev = 0; inflow = 0; cid = ""; out = ""; odd = 0; bad = 0; plain = 0; dashes = 0; seen = 0 }
+            { sub(/\r$/, ""); line = $0; gsub(/\t/, "\002", line); raw[NR] = line }
             # A byte order mark or CRLF on the opener would make a block-only
             # reader see no "---", read no events, and wave a forged unsigned
             # event past the gate, though every YAML parser strips both and
             # sees it. Strip them (bytes, under LC_ALL=C). Matches
             # knowledge-provenance.sh.
-            NR == 1 { sub(/^\357\273\277/, ""); if ($0 == "---") { fm = 1; next } else exit }
+            NR == 1 { sub(/^\357\273\277/, ""); if ($0 == "---") { fm = 1; next } else plain = 1 }
+            # The toolkit opens a block at the first `---` in the file, on any line, with
+            # anything before it. So a file that opens any other way may still hold
+            # events this reader never sees. log.md holds none.
+            plain { dashes += gsub(/---/, "&"); next }
+            # A parser ends a line at a bare carriage return, U+0085, U+2028 and U+2029,
+            # and this reader does not, so an event can sit inside one line it reads.
+            /\r|\302\205|\342\200[\250\251]/ { unread() }
             inflow && $0 == "---" { flushflow(); exit }
             inflow { flowbuf = flowbuf " " $0; if (index($0, flowseq ? "]" : "}")) flushflow(); next }
             fm && $0 == "---" { emit(); exit }
+            # A block indented whole, and a top-level key no plain `key:` spells, such as
+            # a quoted key, `? key`, `<<:` or a flow mapping, can each hold an event.
+            !seen && /[^[:space:]]/ && !/^[[:space:]]*#/ { seen = 1; if (/^[[:space:]]/) unread() }
+            /^["'"'"'?{[<!&*:|>]/ || /^(verified|generated)[[:space:]]+:/ { emit(); inv = 0; unread(); next }
             /^id:/ { cid = val($0) }
-            /^(verified|generated):/ { emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated):[[:space:]]*/, "", rest)
+            /^(verified|generated):/ { emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated):[[:space:]]*/, "", rest); sub(/[[:space:]]+$/, "", rest)
               if (rest ~ /^\{/) { flowseq = 0; flowbuf = rest; inv = 0; if (index(rest, "}")) flushflow(); else inflow = 1 }
               else if (rest ~ /^\[/) { flowseq = 1; flowbuf = rest; inv = 0; if (index(rest, "]")) flushflow(); else inflow = 1 }
+              else if (rest != "" && rest !~ /^#/ && rest !~ /^(null|~)$/) unread()
               next }
+            inv && /^[[:space:]]*#/ { next }
             inv && /^[^[:space:]-]/ { emit(); inv = 0 }
+            inv && /^[[:space:]]*-[[:space:]]*(#.*)?$/ { emit(); inev = 1; next }
             inv && /^[[:space:]]*-[[:space:]]*\{/ { rest = $0; sub(/^[[:space:]]*-[[:space:]]*/, "", rest); flow(rest); next }
             inv && /^[[:space:]]*-[[:space:]]+/ { emit(); inev = 1; rest = $0; sub(/^[[:space:]]*-[[:space:]]+/, "", rest); kv(rest); next }
-            inv && !inev && /^[[:space:]]+[a-z_]+:/ { inev = 1; kv($0); next }
-            inv && inev && /^[[:space:]]+[a-z_]+:/ { kv($0); next }
-            END { emit(); printf "%s", out }'
+            inv && /^[[:space:]]+[a-z_]+:/ { inev = 1; kv($0); next }
+            inv && /^[[:space:]]+[^[:space:]#]/ { inev = 1; odd = 1; next }
+            END { if (plain && dashes >= 2 && path !~ /(^|\/)log\.md$/) unread(); emit(); printf "%s", out; if (bad) { printf "%s\t(unreadable)\t\t", cid ? cid : path; for (i = 1; i <= NR; i++) if (i in raw) printf "%s\001", raw[i]; printf "\tverified\n" } }'
           }
           paths="$(mktemp)"
           listed="$(mktemp)"  # every path git named under the bundle, quoted or not
@@ -330,12 +374,38 @@ jobs:
             exit 1
           fi
 
+          # The toolkit reads a symbolic link as the file it points at, and git
+          # holds it as the path it names. So a concept that is a link onto a
+          # file outside the bundle carries events this job never sees. The
+          # bundle's two names may be links onto each other, as the doorway and
+          # a host rearranged by hand have them. `.lokf` itself is always asked
+          # about: as a link it takes the whole bundle out of the paths this
+          # job lists. Matches knowledge-provenance.sh.
+          linked="$({ cat "$listed"; echo .lokf; } | sort -u | while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            case "$(git ls-tree "$HEAD_SHA" -- "$f" 2>/dev/null)" in 120000\ *) ;; *) continue ;; esac
+            case "$f:$(git show "$HEAD_SHA:$f" 2>/dev/null)" in
+              ".lokf/knowledge:../knowledge_bundle"|"knowledge_bundle:.lokf/knowledge") ;;
+              *) printf '%s\n' "$f" ;;
+            esac
+          done)"
+          if [ -n "$linked" ]; then
+            echo "unreadable: these bundle paths are symbolic links, so this gate cannot read them:"
+            printf '%s\n' "$linked" | sed 's/^/  /'
+            echo "A concept is a file of its own: replace each link with the file."
+            exit 1
+          fi
+
           if [ "${#actors[@]}" -eq 0 ]; then
             echo "No human confirmation is added, changed or removed in this pull request."
             echo "verdict=ok" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
+          if ! command -v gh >/dev/null; then
+            echo "unreadable: gh is not installed on this runner, and a person's confirmation is checked against GitHub's reviews and signatures with it."
+            exit 1
+          fi
           approvers="$(
             gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" --paginate \
               --jq '.[] | select(.state == "APPROVED") | .user.login'
@@ -358,6 +428,11 @@ jobs:
 
           unbacked=()
           for actor in "${actors[@]}"; do
+            if [ "$actor" = "(unreadable)" ]; then
+              echo "unbacked: this pull request changes frontmatter this gate cannot read, which may hold a person's record. Spell it as conventions rule 10 asks."
+              unbacked+=("$actor")
+              continue
+            fi
             # A GitHub login is letters, digits and hyphens; the schema's actor
             # pattern accepts more, and an id nobody can be looked up under
             # must not read as a person's confirmation.
@@ -488,10 +563,16 @@ jobs:
     # reviewers silently disables the whole gate.
     needs: provenance
     if: needs.provenance.outputs.verdict == 'unbacked'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.KNOWLEDGE_RUNNER || 'ubuntu-latest' }}
+    timeout-minutes: 10
     permissions: {}
     environment: ${{ vars.KNOWLEDGE_CURATION_ENVIRONMENT }}
     steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a # v2.22.4
+        with:
+          egress-policy: audit
+
       - name: Record what was attested to
         env:
           ACTORS: ${{ needs.provenance.outputs.actors }}

@@ -1,5 +1,9 @@
 # AI-LinkMO: AI Linked Data Model Operate
 
+[![CLI Tests](https://github.com/noelmcloughlin/ai-linkmo/actions/workflows/cli-tests.yml/badge.svg)](https://github.com/noelmcloughlin/ai-linkmo/actions/workflows/cli-tests.yml)
+[![Licence](https://img.shields.io/github/license/noelmcloughlin/ai-linkmo?label=licence)](LICENSE)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/noelmcloughlin/ai-linkmo/badge)](https://scorecard.dev/viewer/?uri=github.com/noelmcloughlin/ai-linkmo)
+
 > "Search out, to no one favour show; with heart that justice loves\
 > Consult, then act; this is the rule that right approves."\
 > — Thiruvalluvar, *Tirukkural* 541, *The Right Sceptre* (tr. G.U. Pope, 1886)

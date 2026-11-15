@@ -26,6 +26,10 @@ patch.yaml
 # .cache/mirror/, which is never committed.
 .cache/
 
+# The knowledge website before its move to Hugo wrote the domain vocabulary's
+# pages here with gen-doc. They are built, not written.
+docs/elements/
+
 # knowledge-apply.sh stages the concepts it is about to write here for lokf
 # validate, and removes the folder after. A pen killed during the check can
 # leave it behind. The scheduled librarian refuses any run that changed a
