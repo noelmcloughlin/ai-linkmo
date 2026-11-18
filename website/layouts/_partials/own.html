@@ -1,0 +1,9 @@
+{{- /*
+  Marks an element the site's own templates wrote with data-site, the
+  build's mark, which no repository file can know. clean-html.py keeps class
+  and data-* on marked elements alone, then drops the mark. Empty under the
+  preview server, which cleans nothing.
+*/ -}}
+{{- $out := "" -}}
+{{- with site.Params.rawmark }}{{ $out = printf ` data-site="%s"` . }}{{ end -}}
+{{- return ($out | safeHTMLAttr) -}}

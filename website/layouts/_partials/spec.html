@@ -1,0 +1,4 @@
+{{- /* The specification's page, the one built from a root SPEC.md, or false. A page at /spec/ from anything else, such as a redirect from an old address, is not it. Called cached. */ -}}
+{{- $out := false -}}
+{{- with site.GetPage "/spec" }}{{ if eq (partial "site-path.html" (partial "repo-path.html" .)) "SPEC.md" }}{{ $out = . }}{{ end }}{{ end -}}
+{{- return $out -}}

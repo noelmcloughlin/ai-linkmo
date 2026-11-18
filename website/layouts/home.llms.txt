@@ -22,6 +22,8 @@
 ## Docs
 {{ with site.Home }}{{ with partialCached "markdown-file.html" . .RelPermalink }}
 - [The home page]({{ .Permalink }}): the README{{ end }}{{ end }}
+{{- with partialCached "spec.html" "spec" }}{{ $s := . }}{{ with partialCached "markdown-file.html" $s $s.RelPermalink }}
+- [{{ $s.Title }}]({{ .Permalink }}){{ end }}{{ end }}
 {{- with site.GetPage "/docs" }}{{ $d := . }}{{ if .Params.docName }}{{ with partialCached "markdown-file.html" $d $d.RelPermalink }}
 - [{{ $d.Title }}]({{ .Permalink }}){{ end }}{{ end }}{{ end }}
 {{- range (partialCached "docs-groups.html" "docs").list }}{{ range $p := .pages }}{{ with partialCached "markdown-file.html" $p $p.RelPermalink }}

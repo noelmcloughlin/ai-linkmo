@@ -4,7 +4,9 @@
   quick start. None is set anywhere. Each is looked for among the site's
   pages, and one that is not there is greyed, with the reason on hover. The
   quick start is the filled button. On a site without one, the first button
-  found is filled instead.
+  found is filled instead. A sixth button, the specification's, follows the
+  architecture page's where the repository has a root SPEC.md, and is not
+  drawn where it has none.
 */ -}}
 {{- /* The quick start is a docs page of that name, or the first heading that says so: in the install page, then any docs page, then the README. */ -}}
 {{- $quick := "" -}}
@@ -23,10 +25,12 @@
 {{- range $key, $paths := dict "schema" (slice "/schema") "bundle" (slice "/knowledge") "architecture" (slice "/docs/architecture") "glossary" (slice "/knowledge/glossary" "/docs/glossary") -}}
   {{- range $paths }}{{ if not (index $link $key) }}{{ with site.GetPage . }}{{ $link = merge $link (dict $key .RelPermalink) }}{{ end }}{{ end }}{{ end -}}
 {{- end -}}
+{{- with partialCached "spec.html" "spec" }}{{ $link = merge $link (dict "spec" .RelPermalink) }}{{ end -}}
 {{- $buttons := slice
     (dict "text" "The schema" "link" $link.schema "missing" "This repository holds no LinkML schema")
     (dict "text" "The bundle" "link" $link.bundle "missing" "This repository holds no knowledge bundle")
     (dict "text" "Architecture" "link" $link.architecture "missing" "This repository has no docs/architecture.md")
+    (dict "text" "Specification" "link" $link.spec)
     (dict "text" "Glossary" "link" $link.glossary "missing" "The bundle has no glossary group")
     (dict "text" "Quick start" "link" $quick "missing" "No docs page has a Quick start heading") -}}
 {{- $filled := "" -}}
@@ -36,7 +40,7 @@
   {{- range $buttons }}
   {{- if .link }}
   <a class="button{{ if ne .text $filled }} button--secondary{{ end }}" href="{{ .link }}">{{ .text }}</a>
-  {{- else }}
+  {{- else if .missing }}
   <span class="button button--missing" role="link" aria-disabled="true" title="{{ .missing }}">{{ .text }}</span>
   {{- end }}
   {{- end }}

@@ -14,6 +14,8 @@
   {{- if not hugo.IsServer }}
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src {{ "js/" | absURL }} {{ "pagefind/" | absURL }} 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'none'">
   {{- end }}
+  {{- /* A remote https image, such as a README badge, loads from its own host: send no referrer. */}}
+  <meta name="referrer" content="no-referrer">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {{- $title := partial "title.html" . }}
   {{- /* The logo: the repository's own, from .assets/, when site.toml names one, else the Knowledge Trust Ladder logo the site carries. */ -}}
@@ -35,7 +37,7 @@
   <meta name="twitter:card" content="summary_large_image">
   {{- end }}
   <link rel="alternate" type="application/atom+xml" title="{{ site.Title }}: bundle log" href="{{ "knowledge/log.xml" | relURL }}">
-  {{- /* The page as Markdown: a docs page's or the README's with full addresses, a concept's file as the bundle holds it. */ -}}
+  {{- /* The page as Markdown: a docs page's, the README's or SPEC.md's with full addresses, a concept's file as the bundle holds it. */ -}}
   {{- with partialCached "markdown-file.html" . .RelPermalink }}
   <link rel="alternate" type="text/markdown" href="{{ .RelPermalink }}">
   {{- else }}{{ with .Params.conceptId }}

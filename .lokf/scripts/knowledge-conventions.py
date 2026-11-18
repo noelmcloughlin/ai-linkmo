@@ -16,7 +16,7 @@
 # Rules 15, 16 and 17 join the frontmatter to the body and to log.md. Rule
 # 4, a body rule, is checked with them.
 #
-# Usage: knowledge-conventions.py <bundle-dir> [--since <commit>]
+# Usage: knowledge-conventions.py <bundle-dir> [--since <commit> [--head <commit>]]
 #
 # Same contract as the shell half: one line per finding on stdout, exit 1 if
 # any; "OK" and exit 0 if none. The shell half runs it with the sidecar's
@@ -28,8 +28,8 @@
 # uv applies an `exclude-newer` date and the index serves no upload times,
 # the shell half lifts the date but keeps the version. The .venv holds what
 # uv.lock pins, by hash, which a person reviewed too.
-# Move the version and the date together, here and in knowledge-apply.py:
-# the skills repository's contract holds the two equal.
+# Move the version here and in knowledge-apply.py together: the skills
+# repository's contract holds the two equal.
 
 from __future__ import annotations
 
@@ -42,7 +42,10 @@ from pathlib import Path
 
 import yaml
 
-RESERVED = {"index.md", "log.md", "diataxis.md"}
+# An index and a log are no concept in any folder, as the toolkit reads them,
+# and KTL Registrar's diataxis.md is none at the bundle's root.
+RESERVED = {"index.md", "log.md"}
+ROOT_ONLY = {"diataxis.md"}
 OPEN_QUESTION = re.compile(r"^- \d{4}-\d{2}-\d{2}, (human|process):[^ :]+: ")
 # An index bullet in the shape knowledge-apply.sh writes: the title linked to
 # the concept, then its description. A line that lists two concepts is
@@ -82,6 +85,8 @@ COMMIT = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/~^-]*")
 # Rule 16's shape for a `sources[].id`: what rule 8 allows in a path segment,
 # since the id becomes the IRI of the source's node under the bundle base.
 SOURCE_ID = re.compile(r"[a-z0-9][a-z0-9._-]*")
+# A frontmatter delimiter as LOKF section 5 reads one.
+LOKF_DELIMITER = re.compile(r"---[ \t]*")
 # A footnote reference, and a definition line, which Markdown reads at the
 # start of a line with at most three spaces before it.
 FOOTNOTE = re.compile(r"\[\^([^\]\s]+)\]")
@@ -95,6 +100,11 @@ MARKDOWN_LINK = re.compile(r"\[([^\]]*)\]\(([^)]+)\)")
 # What may follow a concept's title in an Added bullet: the end of the line,
 # or one of these, as the pen writes `**Added**: <title>, from ...`.
 AFTER_TITLE = ",.:; "
+
+
+def reserved(path: Path, bundle: Path) -> bool:
+    """Whether a file under the bundle is one of its own and no concept."""
+    return path.name in RESERVED or (path.name in ROOT_ONLY and path.parent.resolve() == bundle.resolve())
 
 
 def plain_spellings(fm_text: str) -> list[str]:
@@ -136,6 +146,8 @@ def plain_spellings(fm_text: str) -> list[str]:
             findings.append(f"an alias (*{ev.anchor}) at {at(ev)}")
         elif getattr(ev, "anchor", None):
             findings.append(f"an anchor (&{ev.anchor}) at {at(ev)}")
+        if isinstance(ev, (yaml.MappingStartEvent, yaml.SequenceStartEvent)) and ev.tag is not None:
+            findings.append(f"a tag ({ev.tag}) on a collection at {at(ev)}")
         if isinstance(ev, yaml.ScalarEvent):
             if ev.tag is not None:
                 findings.append(f"a tag on '{ev.value}' at {at(ev)}")
@@ -144,6 +156,11 @@ def plain_spellings(fm_text: str) -> list[str]:
                 if ev.value == "<<" and ev.style is None:
                     findings.append(f"a merge key at {at(ev)}")
                 if ev.value in GATE_FIELDS | EVENT_KEYS:
+                    # Parsers settle a repeated key in different ways, and a
+                    # line reader takes whichever line it meets.
+                    if ev.value in top["keys"]:
+                        findings.append(f"a second {ev.value} key at {at(ev)}")
+                    top["keys"].add(ev.value)
                     if ev.style is not None:
                         findings.append(f"a quoted key ({ev.value}) at {at(ev)}")
                     elif "?" in lines[row][: ev.start_mark.column]:
@@ -187,6 +204,7 @@ def plain_spellings(fm_text: str) -> list[str]:
             stack.append(
                 {
                     "kind": "map" if isinstance(ev, yaml.MappingStartEvent) else "seq",
+                    "keys": set(),
                     "expect_key": True,
                     "key": None,
                     "key_row": None,
@@ -344,6 +362,17 @@ def git(cwd: Path, *args: str) -> str | None:
     return done.stdout if done.returncode == 0 else None
 
 
+TOPS: dict[Path, Path | None] = {}
+
+
+def top_of(folder: Path) -> Path | None:
+    """The top of the work tree a folder sits in, asked of git once per folder, or None outside git."""
+    if folder not in TOPS:
+        top = git(folder, "rev-parse", "--show-toplevel")
+        TOPS[folder] = Path(top.strip()).resolve() if top else None
+    return TOPS[folder]
+
+
 def base_iri(text: str | None) -> str:
     """The `base_iri` in the frontmatter of a bundle's root index.md, or ''."""
     found = parsed(text) if text else None
@@ -358,13 +387,13 @@ def unstamped_edit(path: Path, frontmatter: dict, body: str, bundle: Path) -> st
     and claims() says what counts as an edit.
 
     The text the person confirmed is the concept at the newest commit that
-    recorded the time of that confirmation, so the rule can miss an edit but
-    never flags a concept the person saw. Parsed values are compared, since
-    knowledge-apply.sh writes the whole frontmatter back: a requoted value
-    is no change. A move of the bundle's `base_iri` is no edit: the ids and
-    relation targets it carries along are compared by their paths under the
-    base each commit held. Outside git, or before that commit exists,
-    nothing is said.
+    put that confirmation into its frontmatter, which recorded_in finds, so
+    the rule can miss an edit but never flags a concept the person saw.
+    Parsed values are compared, since knowledge-apply.sh writes the whole
+    frontmatter back: a requoted value is no change. A move of the bundle's
+    `base_iri` is no edit: the ids and relation targets it carries along are
+    compared by their paths under the base each commit held. Outside git, or
+    before that commit exists, nothing is said.
     """
     if frontmatter.get("status") == "deprecated":
         return None
@@ -383,25 +412,24 @@ def unstamped_edit(path: Path, frontmatter: dict, body: str, bundle: Path) -> st
     if stamp > confirmed_at:
         return None  # it already reads as edited since that confirmation
     real = path.resolve()
-    found = git(real.parent, "log", "--format=%H", "-S" + written, "--", real.name)
-    commit = found.split("\n", 1)[0].strip() if found else ""
-    if not commit:
-        return None
-    then = git(real.parent, "show", f"{commit}:./{real.name}")
-    split = split_frontmatter(then.lstrip("\ufeff").replace("\r\n", "\n").replace("\r", "\n")) if then else None
-    if split is None:
+    top_path = top_of(real.parent)
+    if top_path is None:
         return None
     try:
-        frontmatter_then = yaml.safe_load(split[0])
-    except yaml.YAMLError:
+        name = real.relative_to(top_path).as_posix()
+    except ValueError:
         return None
-    if not isinstance(frontmatter_then, dict) or claims(frontmatter_then, split[1]) == claims(frontmatter, body):
+    where = recorded_in(top_path, name, (by, str(written)))
+    if where is None:
+        return None
+    commit, (frontmatter_then, body_then) = where
+    if claims(frontmatter_then, body_then) == claims(frontmatter, body):
         return None
     index = bundle.resolve() / "index.md"
     base_now = base_iri(index.read_text(encoding="utf-8", errors="replace")) if index.is_file() else ""
     base_then = base_iri(git(index.parent, "show", f"{commit}:./index.md"))
     if base_now and base_then and base_now != base_then:
-        if claims(frontmatter_then, split[1], base_then) == claims(frontmatter, body, base_now):
+        if claims(frontmatter_then, body_then, base_then) == claims(frontmatter, body, base_now):
             return None
     return (
         f"{path}: changed since {by} confirmed it ({confirmed_at[:10]}, in {commit[:7]}), and `generated` was not "
@@ -435,20 +463,80 @@ def parsed(text: str | None) -> tuple[dict, str] | None:
     return (frontmatter, split[1]) if isinstance(frontmatter, dict) else None
 
 
-def verdict_edits(bundle: Path, since: str) -> list[str]:
+def before_in(top: Path, parent: str, commit: str, name: str, ident) -> tuple[str, tuple[dict, str] | None]:
+    """The concept as a parent of a commit holds it: its path there, and what it says, or None.
+
+    With no file at the same path, a file the commit deletes that has the
+    same id is the concept before a rename.
+    """
+    text = git(top, "show", f"{parent}:{name}")
+    if text is not None:
+        return name, parsed(text)
+    if not isinstance(ident, str) or not ident:
+        return name, None
+    gone = git(top, "diff-tree", "--no-commit-id", "--name-only", "-r", "--diff-filter=D", parent, commit) or ""
+    for old in gone.splitlines():
+        if not old.endswith(".md"):
+            continue
+        found = parsed(git(top, "show", f"{parent}:{old}"))
+        if found is not None and found[0].get("id") == ident:
+            return old, found
+    return name, None
+
+
+def recorded_in(top: Path, name: str, event: tuple[str, str]) -> tuple[str, tuple[dict, str]] | None:
+    """The newest commit that put a person's event into a concept's frontmatter, and the concept as that commit holds it.
+
+    `git log -S` also names a commit that repeats the event's time in the
+    body, so each candidate is parsed: the answer is the commit whose
+    frontmatter holds the event and whose parents' do not. The search
+    follows a rename to the concept's earlier path.
+    """
+    start = "HEAD"
+    for _ in range(64):  # one round per rename of the concept
+        moved = None
+        for line in (git(top, "log", "--format=%H %P", "-S" + event[1], start, "--", name) or "").splitlines():
+            commit, *parents = line.split()
+            now = parsed(git(top, "show", f"{commit}:{name}"))
+            if now is None or event not in human_events(now[0]):
+                continue
+            holders = []
+            for parent in parents:
+                old, earlier = before_in(top, parent, commit, name, now[0].get("id"))
+                if earlier is not None and event in human_events(earlier[0]):
+                    holders.append((parent, old))
+            if not holders:
+                return commit, now
+            renamed = [held for held in holders if held[1] != name]
+            if renamed:
+                moved = renamed[0]
+                break
+        if moved is None:
+            return None
+        start, name = moved
+    return None
+
+
+def verdict_edits(bundle: Path, since: str, head: str = "HEAD") -> list[str]:
     """Rule 14: a commit that records a person's confirmation changes the verdict, not what the concept says.
 
     Rule 13 compares with the commit that recorded the confirmation, so an
     edit made in that same commit would read as confirmed. Each commit after
-    `since` that touches the bundle is read against every parent, as the
-    provenance job reads one. One that adds a `human:` event no parent holds
+    `since`, up to `head`, that touches the bundle is read against every
+    parent, as the provenance job reads one. The gate names the pull
+    request's last commit as `head`: its checkout is a merge into the base,
+    and HEAD would add the commits the base gained since. One that adds a `human:` event no parent holds
     may change the concept's claims only when `generated.by` names that same
     person, which is how Correct now records an edit the person made. A
     merge that brings in a confirmation made elsewhere adds nothing new, so
-    it is never read as one. Outside git nothing is said.
+    it is never read as one. A renamed concept is read against the file it
+    was, which before_in finds by its id, so a rename alone claims nothing.
+    Outside git nothing is said.
     """
     if not COMMIT.fullmatch(since):
         return [f"rule 14: '{since}' is not a commit - pass the base the pull request was opened against"]
+    if not COMMIT.fullmatch(head):
+        return [f"rule 14: '{head}' is not a commit - pass the last commit of the pull request"]
     real = bundle.resolve()
     top = git(real, "rev-parse", "--show-toplevel")
     if top is None:
@@ -456,21 +544,23 @@ def verdict_edits(bundle: Path, since: str) -> list[str]:
     top_path = Path(top.strip())
     if git(top_path, "rev-parse", "--verify", "--quiet", since + "^{commit}") is None:
         return [f"rule 14: the base commit {since} is not in this clone's history - check out the full history"]
+    if git(top_path, "rev-parse", "--verify", "--quiet", head + "^{commit}") is None:
+        return [f"rule 14: the head commit {head} is not in this clone's history - check out the full history"]
     rel = real.relative_to(top_path.resolve()).as_posix()
     findings: list[str] = []
-    for commit in (git(top_path, "rev-list", "--reverse", f"{since}..HEAD", "--", rel) or "").split():
+    for commit in (git(top_path, "rev-list", "--reverse", f"{since}..{head}", "--", rel) or "").split():
         parents = (git(top_path, "rev-list", "--parents", "-n", "1", commit) or "").split()[1:]
         names: set[str] = set()
         for parent in parents or [""]:
             against = [parent, commit] if parent else ["--root", commit]
             out = git(top_path, "diff-tree", "--no-commit-id", "--name-only", "-r", "--diff-filter=AM", *against, "--", rel)
-            names.update(n for n in (out or "").splitlines() if n.endswith(".md") and Path(n).name not in RESERVED)
+            names.update(n for n in (out or "").splitlines() if n.endswith(".md") and not reserved(top_path / n, real))
         for name in sorted(names):
             now = parsed(git(top_path, "show", f"{commit}:{name}"))
             if now is None:
                 continue
             frontmatter, body = now
-            before = [parsed(git(top_path, "show", f"{parent}:{name}")) for parent in parents]
+            before = [before_in(top_path, parent, commit, name, frontmatter.get("id"))[1] for parent in parents]
             held: set[tuple[str, str]] = set()
             for earlier in before:
                 if earlier is not None:
@@ -488,7 +578,8 @@ def verdict_edits(bundle: Path, since: str) -> list[str]:
     return findings
 
 
-def footnotes(path: Path, frontmatter: dict, body: str, source_ids: dict[str, dict[str, list[Path]]]) -> list[str]:
+def footnotes(path: Path, frontmatter: dict, body: str, source_ids: dict[str, dict[str, list[Path]]],
+              source_quotes: dict[str, dict[str, list[Path]]]) -> list[str]:
     """Rule 16: each footnote in the body joins a claim to one of the concept's `sources` entries, by that entry's `id`.
 
     A reference `[^label]` and a definition line `[^label]: text` each use
@@ -498,8 +589,9 @@ def footnotes(path: Path, frontmatter: dict, body: str, source_ids: dict[str, di
     the footnote cannot drift from its entry. A footnote mark in a code
     fence or a code span is an example, not a reference. OKF v0.2 section
     5.1 says a footnote whose label equals `id` attributes the claim to that
-    entry. Each id is recorded in `source_ids` with its resource, for the
-    check across the bundle in main: one id names one resource.
+    entry. Each id is recorded in `source_ids` with its resource, and in
+    `source_quotes` with its excerpt, for the checks across the bundle in
+    main: one id names one resource and one excerpt.
     """
     findings: list[str] = []
     sources = frontmatter.get("sources")
@@ -520,6 +612,9 @@ def footnotes(path: Path, frontmatter: dict, body: str, source_ids: dict[str, di
         # One material however it is written: `./docs/a.md` and `docs/a.md`
         # are one resource, as rule 18 reads them.
         source_ids.setdefault(label, {}).setdefault(same_material(resource) or resource, []).append(path)
+        # Compared as lokf compares them: the exact text, and only where given.
+        if isinstance(entry.get("excerpt"), str):
+            source_quotes.setdefault(label, {}).setdefault(entry["excerpt"], []).append(path)
     referenced: set[str] = set()
     defined: dict[str, str] = {}
     fenced = False
@@ -674,6 +769,7 @@ def check_file(
     entries: dict[Path, tuple[str, str]],
     titles: set[str],
     source_ids: dict[str, dict[str, list[Path]]],
+    source_quotes: dict[str, dict[str, list[Path]]],
 ) -> list[str]:
     findings: list[str] = []
     raw = path.read_bytes()
@@ -688,6 +784,17 @@ def check_file(
     if len(block) == 3 and "\r" in block[1].replace("\r\n", ""):
         findings.append(f"{path}: frontmatter uses a bare carriage return - write it plainly, so a line reader reads what a parser reads")
 
+    # LOKF section 5 also reads a block after blank lines, and ends it at
+    # `---` with spaces or tabs after it. The line readers here read neither.
+    lines = text.split("\n")
+    lead = next((i for i, line in enumerate(lines) if line.strip()), 0)
+    if LOKF_DELIMITER.fullmatch(lines[lead]):
+        if lead:
+            findings.append(f"{path}: blank lines stand before the frontmatter block - LOKF reads past them and the line readers here do not; delete them")
+            return findings
+        if any(lines[i] != "---" for i in [i for i, line in enumerate(lines) if LOKF_DELIMITER.fullmatch(line)][:2]):
+            findings.append(f"{path}: a frontmatter delimiter has spaces or tabs after '---' - LOKF ends the block there and the line readers here do not; delete them")
+            return findings
     split = split_frontmatter(text)
     if split is None:
         findings.append(
@@ -695,10 +802,10 @@ def check_file(
         )
         return findings
     fm_text, body = split
-    # The toolkit ends the block at the first `---` it meets, in a line or not,
-    # so it would read less of this block than every script here reads.
+    # lokf before 0.10.0 ends the block at the first `---`, in a line or not,
+    # and a host keeps its own floor.
     if "---" in fm_text:
-        findings.append(f"{path}: frontmatter holds '---', where the toolkit ends the block - write the value another way")
+        findings.append(f"{path}: frontmatter holds '---', where lokf before 0.10.0 ends the block - write the value another way")
 
     try:
         frontmatter = yaml.safe_load(fm_text)
@@ -805,17 +912,19 @@ def check_file(
         )
 
     # 16. each footnote joins a claim to a `sources` entry by its id.
-    findings.extend(footnotes(path, frontmatter, body, source_ids))
+    findings.extend(footnotes(path, frontmatter, body, source_ids, source_quotes))
 
     return findings
 
 
 def main(argv: list[str]) -> int:
-    args, since = argv[1:], ""
-    if len(args) == 3 and args[1] == "--since":
+    args, since, head = argv[1:], "", "HEAD"
+    if len(args) == 5 and args[1] == "--since" and args[3] == "--head":
+        args, since, head = args[:1], args[2], args[4]
+    elif len(args) == 3 and args[1] == "--since":
         args, since = args[:1], args[2]
     if len(args) != 1:
-        print("usage: knowledge-conventions.py <bundle-dir> [--since <commit>]", file=sys.stderr)
+        print("usage: knowledge-conventions.py <bundle-dir> [--since <commit> [--head <commit>]]", file=sys.stderr)
         return 2
     bundle = Path(args[0])
     if not bundle.is_dir():
@@ -827,6 +936,7 @@ def main(argv: list[str]) -> int:
     entries: dict[Path, tuple[str, str]] = {}
     titles: set[str] = set()
     source_ids: dict[str, dict[str, list[Path]]] = {}
+    source_quotes: dict[str, dict[str, list[Path]]] = {}
     # 9. the toolkit reads a link as the file it points at, and the gates read
     #    it as the path it names, so its events would go unseen.
     for path in sorted(bundle.rglob("*")):
@@ -836,9 +946,9 @@ def main(argv: list[str]) -> int:
     for path in sorted(bundle.rglob("*.md")):
         if path.is_symlink() or not path.is_file():
             continue
-        if ".obsidian" in path.parts or path.name in RESERVED:
+        if ".obsidian" in path.parts or reserved(path, bundle):
             continue
-        findings.extend(check_file(path, bundle, ids, entries, titles, source_ids))
+        findings.extend(check_file(path, bundle, ids, entries, titles, source_ids, source_quotes))
 
     # 12. an index bullet that names a concept says what the concept says.
     #     ktl-docent chooses what to open from the bullets alone, so a bullet
@@ -874,12 +984,21 @@ def main(argv: list[str]) -> int:
                 f"id {label} names more than one resource: {where} - "
                 "one id names one resource across the bundle, since the id mints one source node under the bundle base"
             )
+    # ... and one excerpt: the node holds every excerpt given under its id,
+    #     and LOKF's SHACL shapes allow it one (LOKF 0.10.0, section 9).
+    for label, by_quote in sorted(source_quotes.items()):
+        if len(by_quote) > 1:
+            where = "; ".join(f"{json.dumps(quote[:40] + ('...' if len(quote) > 40 else ''))} in {' '.join(str(p) for p in paths)}" for quote, paths in by_quote.items())
+            findings.append(
+                f"id {label} carries more than one excerpt: {where} - "
+                "one id is one source node across the bundle, which holds one excerpt; give each other passage an id of its own"
+            )
 
     # 14. only with a base, which the registrar's gate sets to the pull
     #     request's: on a branch's whole history a squash merge folds an edit
     #     and a later confirmation into one commit.
     if since:
-        findings.extend(verdict_edits(bundle, since))
+        findings.extend(verdict_edits(bundle, since, head))
 
     # 17. logged writes, read since the base when one is given.
     findings.extend(logged_writes(bundle, titles, since))

@@ -38,9 +38,9 @@
 # Exit:
 #   0  recorded;
 #   2  the call was wrong, and nothing was written;
-#   1  the file could not be written (a read-only .lokf/, most often, or
-#      another run holding it), and the caller should tell the reader the gap
-#      out loud instead.
+#   1  the file could not be written (a read-only .lokf/, most often, another
+#      run holding it, or a symbolic link where the script writes), and the
+#      caller should tell the reader the gap out loud instead.
 [ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [--root <dir>] [--for <login>] <kind> <text>" >&2; exit 2; }
 set -u
 # A-Z, a-z and 0-9 in a case glob mean the ASCII letters and digits, not
@@ -95,7 +95,8 @@ if [ -n "$concept" ]; then
       echo "--concept takes a concept's path in the bundle, in lowercase with no '..' or '.' segment, such as services/orders-api.md, not '$concept'" >&2; exit 2 ;;
   esac
   case "$concept" in *.md) ;; *) echo "--concept takes the concept's file, ending in .md, not '$concept'" >&2; exit 2 ;; esac
-  case "${concept##*/}" in index.md|log.md|diataxis.md) echo "--concept takes a concept, not the bundle's $concept" >&2; exit 2 ;; esac
+  [ "$concept" != diataxis.md ] || { echo "--concept takes a concept, not the bundle's $concept" >&2; exit 2; }
+  case "${concept##*/}" in index.md|log.md) echo "--concept takes a concept, not the bundle's $concept" >&2; exit 2 ;; esac
 fi
 
 # One entry is one line. Collapse every whitespace run, drop control
@@ -126,8 +127,9 @@ if [ -n "$concept" ] && [ ! -f "$root/.lokf/knowledge/$concept" ]; then
   echo "--concept names no concept in this bundle: $concept - record the Disagreement without it" >&2; exit 2
 fi
 
-file="$root/.lokf/feedback.md"
-tmp="$file.$$"
+dir="$root/.lokf"
+file="$dir/feedback.md"
+tmp=""
 lock="$file.lock"
 today="$(date -u +%Y-%m-%d)"
 entry="- **$kind**${concept:+ (on \`$concept\`)} - $text - docent${asker:+, for human:$asker}"
@@ -137,9 +139,22 @@ readonly_bundle() {
   echo "cannot write $file - if .lokf/ is read-only, say the gap out loud to the reader instead" >&2
   exit 1
 }
+# Refuse a symbolic link at the folder, the file or the lock, which a
+# repository can commit: a write through one changes another file, and a
+# read copies it into feedback.md.
+for place in "$dir" "$file" "$lock"; do
+  if [ -L "$place" ]; then
+    echo "$place is a symbolic link, which this script neither reads nor writes through - say the gap out loud to the reader instead" >&2
+    exit 1
+  fi
+done
+if [ -e "$file" ] && [ ! -f "$file" ]; then
+  echo "$file is not a regular file - say the gap out loud to the reader instead" >&2
+  exit 1
+fi
 # The rewrite below writes a temporary file beside this one, so the directory
 # has to be writable even when the file itself already is.
-[ -w "$root/.lokf" ] || readonly_bundle
+[ -w "$dir" ] || readonly_bundle
 
 # Two runs at once would each read the file, and the second mv would drop the
 # first entry. A directory is the one lock that every platform here creates
@@ -156,9 +171,14 @@ until mkdir "$lock" 2>/dev/null; do
   fi
   sleep 1
 done
-trap 'rmdir "$lock" 2>/dev/null; rm -f "$tmp"' EXIT
+trap 'rmdir "$lock" 2>/dev/null; [ -z "$tmp" ] || rm -f "$tmp"' EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
+
+# mktemp picks a name a committed link cannot already hold, unlike $$.
+# Its file is owner-only, so chmod gives it the mode a new file takes here.
+tmp="$(mktemp "$dir/feedback.md.XXXXXX" 2>/dev/null)" || { tmp=""; readonly_bundle; }
+chmod "$(printf '%o' $((0666 & ~$(umask))))" "$tmp" 2>/dev/null || :
 
 # feedback.md is not knowledge and has no frontmatter; it appears the first
 # time a reader's agent records a gap, which may be this call.

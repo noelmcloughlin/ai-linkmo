@@ -77,7 +77,7 @@ esac
 # it is handed bare: it would count zero concepts and say nothing.
 bundle="$root/.lokf/knowledge"
 if [ -d "$bundle" ]; then
-  n="$(find "$bundle/" -name '*.md' -not -path '*/.obsidian/*' -not -name index.md -not -name log.md -not -name diataxis.md | wc -l | tr -d ' ')"
+  n="$(find "$bundle/" -name '*.md' -not -path '*/.obsidian/*' -not -name index.md -not -name log.md -not -path "$bundle/diataxis.md" | wc -l | tr -d ' ')"
   door="$root/knowledge_bundle"
   if [ -L "$door" ]; then doorway="knowledge_bundle -> $(readlink "$door")"
   elif [ -d "$door" ]; then doorway="knowledge_bundle is a folder or junction"
@@ -234,7 +234,7 @@ fi
 index="${index:-https://pypi.org/simple}"
 ihost="$(hostof "$index")"
 if have uv; then
-  floor="$(sed -n 's/.*"lokf\[build\]>=\([0-9.]*\)".*/\1/p' "$root/.lokf/pyproject.toml" 2>/dev/null | head -n 1)"
+  floor="$(sed -n 's/.*"lokf\[[a-z, ]*\]>=\([0-9.]*\)".*/\1/p' "$root/.lokf/pyproject.toml" 2>/dev/null | head -n 1)"
   if [ -d "$root/.lokf/.venv" ]; then
     installed="$(cd "$root/.lokf" && uv run --no-sync lokf --version 2>/dev/null | sed -n 's/^lokf //p')"
     ok toolkit "uv $(uv --version 2>/dev/null | sed 's/^uv //'); lokf ${installed:-unknown} installed (floor >=${floor:-?})"
@@ -246,8 +246,13 @@ if have uv; then
   # The recipes pass --check-excerpts, and --schema to convert and serve,
   # which lokf 0.8.0 does not take.
   case "${floor:-}" in
-    0.[0-8]|0.[0-8].*) warn toolkit "the floor is >=$floor and the justfile's recipes need lokf 0.9.0 - raise it to \"lokf[build]>=0.9.0\" in .lokf/pyproject.toml and run uv lock there" ;;
+    0.[0-8]|0.[0-8].*) warn toolkit "the floor is >=$floor and the justfile's recipes need lokf 0.9.0 - raise it to \"lokf[build,shacl]>=0.10.0\" in .lokf/pyproject.toml and run uv lock there" ;;
   esac
+  # The gate's recipe checks LOKF's SHACL shapes only where uv.lock holds
+  # lokf's shacl extra.
+  if [ -f "$root/.lokf/uv.lock" ] && ! grep -qx 'name = "pyshacl"' "$root/.lokf/uv.lock"; then
+    warn toolkit "uv.lock holds no pyshacl, so just lokf-check-refs skips LOKF's SHACL shapes - write \"lokf[build,shacl]\" in .lokf/pyproject.toml and run uv lock there"
+  fi
   # A domain vocabulary imports the copy of LOKF core beside it, and the gate
   # runs the lokf that uv.lock pins. A copy from another release can reject a
   # concept that lokf reads. A copy sits in .lokf/schema/, or at the root of

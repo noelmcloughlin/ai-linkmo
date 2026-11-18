@@ -209,27 +209,56 @@ addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // A diagram takes the page's own paper, ink and lines, in the scheme the reader chose.
-  if (typeof window.mermaid?.initialize === "function") {
-    const css = getComputedStyle(document.body);
-    const probe = document.body.appendChild(document.createElement("span"));
-    const color = (name) => {
-      probe.style.color = `var(${name})`;
-      return getComputedStyle(probe).color;
+  // Mermaid keeps the colours it started with, so each diagram's source is kept, and every diagram is drawn
+  // again when the Display menu or the system changes the scheme.
+  if (typeof window.mermaid?.initialize === "function" && typeof window.mermaid.run === "function") {
+    const diagrams = [...document.querySelectorAll(".prose .mermaid")].map((pre) => ({ pre, source: pre.textContent }));
+    const colours = () => {
+      const probe = document.body.appendChild(document.createElement("span"));
+      const color = (name) => {
+        probe.style.color = `var(${name})`;
+        return getComputedStyle(probe).color;
+      };
+      const themeVariables = {
+        darkMode: matchMedia("(prefers-color-scheme: dark)").matches ? prefs.theme !== "light" : prefs.theme === "dark",
+        fontFamily: getComputedStyle(document.body).fontFamily,
+        background: color("--bg"),
+        primaryColor: color("--card"),
+        primaryTextColor: color("--fg"),
+        primaryBorderColor: color("--rule"),
+        secondaryColor: color("--panel"),
+        tertiaryColor: color("--panel"),
+        lineColor: color("--muted"),
+        textColor: color("--fg"),
+      };
+      probe.remove();
+      return themeVariables;
     };
-    const themeVariables = {
-      darkMode: matchMedia("(prefers-color-scheme: dark)").matches ? prefs.theme !== "light" : prefs.theme === "dark",
-      fontFamily: css.fontFamily,
-      background: color("--bg"),
-      primaryColor: color("--card"),
-      primaryTextColor: color("--fg"),
-      primaryBorderColor: color("--rule"),
-      secondaryColor: color("--panel"),
-      tertiaryColor: color("--panel"),
-      lineColor: color("--muted"),
-      textColor: color("--fg"),
+    let drawn = "";
+    const draw = async () => {
+      const themeVariables = colours();
+      // The Display menu's Text size changes no colour, so the diagrams stay as they are.
+      if (JSON.stringify(themeVariables) === drawn) return;
+      drawn = JSON.stringify(themeVariables);
+      // A diagram open at full size goes back to its place first, and is drawn again there.
+      if (zoom?.open && view) {
+        view.put();
+        view = null;
+        zoom.close();
+      }
+      mermaid.initialize({ startOnLoad: false, theme: "base", themeVariables });
+      for (const { pre, source } of diagrams) {
+        pre.removeAttribute("data-processed");
+        pre.textContent = source;
+      }
+      await mermaid.run({ nodes: diagrams.map(({ pre }) => pre), suppressErrors: true });
     };
-    probe.remove();
-    mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables });
+    // One drawing at a time, in the order asked for. The first waits for the page's fonts, which set each label's width.
+    let last = Promise.resolve();
+    const redraw = () => (last = last.then(draw, draw));
+    if (document.readyState === "complete") redraw();
+    else addEventListener("load", redraw);
+    document.addEventListener("displaychange", redraw);
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redraw);
   }
 });

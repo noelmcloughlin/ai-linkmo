@@ -10,14 +10,16 @@ name: Knowledge Registrar
 # and runs no LLM or agent. An auditor can follow a run top to bottom:
 #
 #   validate      every run       `lokf validate --check-refs`, which checks
-#                                 the schema and every relation target; then
+#                                 the schema, every relation target and,
+#                                 with lokf's shacl extra, LOKF's shapes; then
 #                                 the conventions script, which checks dates,
 #                                 event shape and open questions.
 #
-#   provenance    pull requests   for each new `human:<id>` event in the diff:
-#                                   approved this pull request    -> ok
-#                                   signed the commit, per GitHub -> ok
-#                                   neither                       -> unbacked
+#   provenance    pull requests   for each `human:<id>` event the diff adds,
+#                                 changes or removes, that person:
+#                                   approved the concept as it stands -> ok
+#                                   signed the commit, per GitHub     -> ok
+#                                   neither                           -> unbacked
 #                                 With keys in .lokf/curators/, a second check
 #                                 verifies the same signatures with plain git.
 #
@@ -75,7 +77,12 @@ jobs:
 
       # No uv cache, as in the release's `pack` job, so this gate runs the
       # files .lokf/uv.lock names and not what another job left in a cache.
+      # A runner that holds uv keeps its own; setup-uv fetches one from github.com.
+      - name: Find uv on the runner
+        id: uv
+        run: if command -v uv >/dev/null 2>&1; then echo "found=true" >> "$GITHUB_OUTPUT"; fi
       - name: Set up uv
+        if: steps.uv.outputs.found != 'true'
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: "3.12"
@@ -93,7 +100,8 @@ jobs:
       # A typed relation whose target is no concept in the bundle is still a
       # well-formed IRI, so schema validation alone passes it. --check-refs
       # resolves every target in the bundle's own namespace, taking the
-      # relation slots from the schema. It is part of `lokf validate`, so it
+      # relation slots from the schema, and the recipe adds --shacl where
+      # uv.lock holds lokf's shacl extra. It is part of `lokf validate`, so it
       # rides on this step rather than validating the same bundle twice. A
       # host with a domain vocabulary names it as `schema :=` in the justfile, and
       # the recipe passes it; the workflow runs the recipe so no host edits this line.
@@ -113,11 +121,14 @@ jobs:
       # questions in the shape the curator reads. Each of them has been broken
       # by an agent that had the rule in prose. On a pull request, rule 14
       # reads each of its commits too: one that records a person's
-      # confirmation changes only the verdict. The base is the merge-base of
-      # the pull request, as the provenance job uses, so a commit the base
-      # branch gained after the pull request opened is not read as the pull
-      # request's. The SHAs enter through env:, never interpolated, and a
-      # scheduled run has none, so it skips rule 14.
+      # confirmation changes only the verdict. Rule 6 reads them as well: a
+      # `revision` that names one would name nothing after a squash merge.
+      # The base is the merge-base of the pull request and the head its last
+      # commit, as the provenance job uses. This checkout is a merge of the
+      # pull request into its base, so without the head a commit the base
+      # branch gained after the pull request opened would be read as the
+      # pull request's. The SHAs enter through env:, never interpolated, and
+      # a scheduled run has none, so it skips rule 14.
       - name: Check the conventions lokf validate cannot see
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -125,7 +136,7 @@ jobs:
         run: |
           since=""
           if [ -n "$BASE_SHA" ]; then since="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"; fi
-          bash scripts/knowledge-conventions.sh knowledge --strict ${since:+--since "$since"}
+          bash scripts/knowledge-conventions.sh knowledge --strict ${since:+--since "$since" --head "$HEAD_SHA"}
         working-directory: .lokf
 
   provenance:
@@ -222,11 +233,11 @@ jobs:
           # entry, or the `generated` record the curator's Correct writes as
           # `human:<id>`. It is read whole as
           # `<id>\t<by>\t<at>\t<revision>\t<kind>`, whatever its YAML layout,
-          # and keyed by the concept's id so a rename keeps its events and a
-          # copy does not. An added line would not do: a re-dated `at`, a moved
-          # `revision` or a flow-style event adds no `by:` line, and a
-          # `by: human:` in a body code fence or a send-back note is not an
-          # event.
+          # and keyed by the concept's id and its place, so a rename keeps its
+          # events, and a copy or a move into another concept does not. An
+          # added line would not do: a re-dated `at`, a moved `revision` or a
+          # flow-style event adds no `by:` line, and a `by: human:` in a body
+          # code fence or a send-back note is not an event.
           #
           # Any event present at head and absent at base names an actor who
           # must stand behind it. So does a `verified` event present at base
@@ -237,15 +248,23 @@ jobs:
           # below, never skipped.
           human_events() {
             awk -v path="$1" '
-            function val(s) { sub(/^[^:]*:[[:space:]]*/, "", s); gsub(/["'"'"']/, "", s); sub(/[[:space:]]+$/, "", s); return s }
+            # Returns the value after the key, less one pair of enclosing quotes, and sets
+            # `strange` on an unclosed or inner quote, a `\` escape, a trailing comment or
+            # a leading indicator, which a parser reads another way.
+            function val(s,  q, n) { sub(/^[^:]*:[[:space:]]*/, "", s); sub(/[[:space:]]+$/, "", s); q = substr(s, 1, 1); n = length(s)
+              if (q == "\"" || q == "'"'"'") { if (n < 2 || substr(s, n) != q) { strange = 1; return s }
+                s = substr(s, 2, n - 2); if (index(s, q) || (q == "\"" && index(s, "\\"))) strange = 1; return s }
+              if (s ~ /[[:space:]]#/ || s ~ /^[!&*|>@`%#]/) strange = 1
+              return s }
             # Nothing this reader cannot follow is taken for no event. The schema gives
             # an event `by`, `at` and `revision` and no other key, so any other key is a
             # spelling it cannot follow: a quoted `by`, a merge, an alias. Such an event,
             # and one whose actor is outside the shape the schema allows, comes out as the actor
             # (unreadable), which is no login, so each gate refuses it as it refuses any
             # id it cannot check.
-            function kv(l,  k) { k = l; sub(/:.*/, "", k); sub(/^[[:space:]]+/, "", k)
-              if (k == "by") by = val(l); else if (k == "at") at = val(l); else if (k == "revision") rev = val(l); else odd = 1 }
+            function kv(l,  k) { k = l; sub(/:.*/, "", k); sub(/^[[:space:]]+/, "", k); strange = 0
+              if (k == "by") by = val(l); else if (k == "at") at = val(l); else if (k == "revision") rev = val(l); else odd = 1
+              if (strange) odd = 1 }
             function actor(a) { return a !~ /\\/ && (a ~ /^(human|process):[^[:space:]]+$/ || a ~ "^[^[:space:]/]+/[^[:space:]/]+$") }
             # Two revisions of a file must differ here whenever they differ in what a
             # parser could read, or an edit inside an unreadable block passes unseen.
@@ -296,7 +315,9 @@ jobs:
             # a quoted key, `? key`, `<<:` or a flow mapping, can each hold an event.
             !seen && /[^[:space:]]/ && !/^[[:space:]]*#/ { seen = 1; if (/^[[:space:]]/) unread() }
             /^["'"'"'?{[<!&*:|>]/ || /^(verified|generated)[[:space:]]+:/ { emit(); inv = 0; unread(); next }
-            /^id:/ { cid = val($0) }
+            # The id keys every event of the concept: a strange id, or a second `id`
+            # line, makes the file unreadable.
+            /^id:/ { strange = 0; cid = val($0); if (strange || ++ids > 1) unread() }
             /^(verified|generated):/ { emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated):[[:space:]]*/, "", rest); sub(/[[:space:]]+$/, "", rest)
               if (rest ~ /^\{/) { flowseq = 0; flowbuf = rest; inv = 0; if (index(rest, "}")) flushflow(); else inflow = 1 }
               else if (rest ~ /^\[/) { flowseq = 1; flowbuf = rest; inv = 0; if (index(rest, "]")) flushflow(); else inflow = 1 }
@@ -311,61 +332,85 @@ jobs:
             inv && /^[[:space:]]+[^[:space:]#]/ { inev = 1; odd = 1; next }
             END { if (plain && dashes >= 2 && path !~ /(^|\/)log\.md$/) unread(); emit(); printf "%s", out; if (bad) { printf "%s\t(unreadable)\t\t", cid ? cid : path; for (i = 1; i <= NR; i++) if (i in raw) printf "%s\001", raw[i]; printf "\tverified\n" } }'
           }
-          paths="$(mktemp)"
-          listed="$(mktemp)"  # every path git named under the bundle, quoted or not
-          now_events="$(mktemp)"
-          every_events="$(mktemp)"
-          events_in() {  # ref, paths on stdin -> the human events of those paths at that ref, sorted
-            { while IFS= read -r f; do git show "$1:$f" 2>/dev/null | human_events "$f" || true; done | sort; } || true
+          work="$(mktemp -d)"
+          paths="$work/paths"
+          listed="$work/listed"  # every path git named under the bundle, quoted or not
+          : > "$listed"
+          # Fail closed: an empty answer from a failed git, awk, sort or comm
+          # would read as no events, so each read below stops the job instead.
+          stop() { echo "unreadable: $1"; exit 1; }
+
+          # Each event is prefixed with its place: the concept's path, or `-`
+          # when the other ref has no file there. An event moved or copied
+          # between two concepts is one removal and one addition; a rename has
+          # `-` on both sides, so its events match by id. Duplicates are kept,
+          # so a second copy is an addition. Matches knowledge-provenance.sh.
+          placed() {  # place, events on stdin -> the events with that place before each
+            PLACE="$1" awk '{ print ENVIRON["PLACE"] "\t" $0 }'
+          }
+          events_in() {  # ref, the refs it is compared with..., paths on stdin -> the human events of those paths at that ref, sorted
+            local ref="$1" f place other
+            shift
+            while IFS= read -r f; do
+              git cat-file -e "$ref:$f" 2>/dev/null || continue
+              place="-"
+              for other in "$@"; do
+                if git cat-file -e "$other:$f" 2>/dev/null; then place="$f"; break; fi
+              done
+              git show "$ref:$f" | human_events "$f" | placed "$place" || exit 1
+            done | sort
           }
           # core.quotePath off: on, git C-quotes a name with a byte above
           # 0x7f, `.md$` missed it and its events went unread. Git still
           # quotes a name holding `"`, `\` or a control character, which no
           # line reader can hold; $listed keeps every name so a quoted one
           # is refused below rather than skipped.
-          changed_actors() {  # base head -> actors of events at head that base does not hold
-            { git -c core.quotePath=false diff --name-only "$1" "$2" -- .lokf/knowledge knowledge_bundle | tee -a "$listed" | grep '\.md$' | sort -u > "$paths"
-              events_in "$2" < "$paths" | comm -13 <(events_in "$1" < "$paths") - | cut -f2; } || true
-          }
-          # Against every parent: a merge that brings in another curator's
-          # confirmation claims nothing, and one that adds an event neither
-          # side held is read like any other commit. Without -m, git lists no
-          # paths for a merge.
-          new_in_commit() {  # sha -> actors of events at sha that none of its parents holds
-            { git -c core.quotePath=false diff-tree --no-commit-id --name-only -r -m "$1" -- .lokf/knowledge knowledge_bundle | tee -a "$listed" | grep '\.md$' | sort -u > "$paths"
-              events_in "$1" < "$paths" | comm -13 <(for p in $(git rev-parse "$1^@"); do events_in "$p" < "$paths"; done | sort -u) - | cut -f2; } || true
+          concepts_named() {  # names on stdin -> $listed gains each name, and $paths holds the concepts among them
+            tee -a "$listed" | { grep '\.md$' || [ "$?" -eq 1 ]; } | sort -u > "$paths"
           }
           # A removal is a claim too. Of the events that went, a `verified`
           # one always needs its person. A person's `generated` record may
           # be replaced by another person's, the curator's Correct, whose
-          # actor is already checked above as an addition. So it counts only
+          # actor is already checked as an addition. So it counts only
           # when no person's `generated` record stands in its place.
           needs_its_person() {  # removed events on stdin, the file of events that remain -> those whose actor must back the removal
             awk -F'\t' -v now="$1" '
-              BEGIN { while ((getline line < now) > 0) { split(line, f, "\t"); if (f[5] == "generated") kept[f[1]] = 1 } }
-              $5 == "verified" || !($1 in kept)'
+              BEGIN { while ((getline line < now) > 0) { split(line, f, "\t"); if (f[6] == "generated") kept[f[2]] = 1 } }
+              $6 == "verified" || !($2 in kept)'
           }
-          removed_actors() {  # base head -> actors of events base holds that head does not
-            { git -c core.quotePath=false diff --name-only "$1" "$2" -- .lokf/knowledge knowledge_bundle | tee -a "$listed" | grep '\.md$' | sort -u > "$paths"
-              events_in "$2" < "$paths" > "$now_events"
-              events_in "$1" < "$paths" | comm -23 - "$now_events" | needs_its_person "$now_events" | cut -f2; } || true
-          }
-          # Against every parent again: what a merge lacks because one side
-          # never held it is no removal, and a root commit removes nothing.
-          gone_in_commit() {  # sha -> actors of events every parent holds that sha does not
-            { git -c core.quotePath=false diff-tree --no-commit-id --name-only -r -m "$1" -- .lokf/knowledge knowledge_bundle | tee -a "$listed" | grep '\.md$' | sort -u > "$paths"
-              events_in "$1" < "$paths" > "$now_events"
-              first=1
-              for p in $(git rev-parse "$1^@"); do
-                if [ "$first" -eq 1 ]; then events_in "$p" < "$paths" > "$every_events"; first=0
-                else events_in "$p" < "$paths" | comm -12 "$every_events" - > "$every_events.next"; mv "$every_events.next" "$every_events"; fi
-              done
-              [ "$first" -eq 1 ] || comm -23 "$every_events" "$now_events" | needs_its_person "$now_events" | cut -f2; } || true
+          # An event the ref holds and no earlier ref holds is added; one every
+          # earlier ref holds and the ref lacks is removed. With a merge's
+          # parents as the earlier refs, an event from one side is neither, and
+          # a root commit adds all it holds.
+          delta() {  # name, ref, the refs before it... -> $work/<name>.added and $work/<name>.gone, from the concepts in $paths
+            local name="$1" ref="$2" p first=1
+            shift 2
+            : > "$work/any"; : > "$work/every"
+            events_in "$ref" "$@" < "$paths" > "$work/now" || return 1
+            for p in "$@"; do
+              events_in "$p" "$ref" < "$paths" > "$work/one" || return 1
+              if [ "$first" -eq 1 ]; then
+                cp "$work/one" "$work/any"; cp "$work/one" "$work/every"; first=0
+              else
+                comm -12 "$work/every" "$work/one" > "$work/next" || return 1
+                mv "$work/next" "$work/every"
+                { cat "$work/any"; comm -13 "$work/any" "$work/one"; } | sort > "$work/next" || return 1
+                mv "$work/next" "$work/any"
+              fi
+            done
+            comm -13 "$work/any" "$work/now" > "$work/$name.added" || return 1
+            comm -23 "$work/every" "$work/now" | needs_its_person "$work/now" > "$work/$name.gone" || return 1
           }
 
-          base="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"
-
-          mapfile -t actors < <({ changed_actors "$base" "$HEAD_SHA"; removed_actors "$base" "$HEAD_SHA"; } | sed '/^$/d' | sort -u)
+          base="$(git merge-base "$BASE_SHA" "$HEAD_SHA")" || stop "this checkout does not hold the base of the pull request."
+          # --no-renames: a renamed concept is listed under both of its paths,
+          # so the events it held and the events it holds are both read.
+          git -c core.quotePath=false diff --no-renames --name-only "$base" "$HEAD_SHA" -- .lokf/knowledge knowledge_bundle > "$work/names" \
+            || stop "git could not compare the pull request with its base."
+          concepts_named < "$work/names" || stop "the paths the pull request changes could not be listed."
+          cp "$paths" "$work/pr.paths"
+          delta pr "$HEAD_SHA" "$base" || stop "the events in the concepts this pull request changes could not be read."
+          mapfile -t actors < <(cut -f3 "$work/pr.added" "$work/pr.gone" | sed '/^$/d' | sort -u)
 
           if grep -q '^"' "$listed"; then
             echo "unreadable: git had to quote these bundle paths, so this gate cannot read them:"
@@ -406,10 +451,27 @@ jobs:
             echo "unreadable: gh is not installed on this runner, and a person's confirmation is checked against GitHub's reviews and signatures with it."
             exit 1
           fi
-          approvers="$(
-            gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" --paginate \
-              --jq '.[] | select(.state == "APPROVED") | .user.login'
-          )"
+          # Lists the reviews that approve, request changes or were dismissed,
+          # oldest first, with their commit. Only a person's last one counts.
+          gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" --paginate \
+            --jq '.[] | select(.state == "APPROVED" or .state == "CHANGES_REQUESTED" or .state == "DISMISSED") | [(.user.login // "-"), .state, (.commit_id // "-")] | @tsv' \
+            > "$work/reviews" || stop "GitHub did not list the reviews of this pull request."
+          approved_at() {  # login -> the commit their approval was given on, when the approval is their last word
+            awk -F'\t' -v who="$1" '$1 == who { state = $2; at = $3 } END { if (state == "APPROVED" && at ~ /^[0-9a-f]+$/) print at }' "$work/reviews"
+          }
+          # An approval backs a person only while each changed concept that
+          # carries their name is byte for byte as the approved commit held it.
+          concepts_of() {  # login -> the concepts this pull request changes that hold an event of theirs, before or after
+            local f ref
+            while IFS= read -r f; do
+              for ref in "$base" "$HEAD_SHA"; do
+                git cat-file -e "$ref:$f" 2>/dev/null || continue
+                if git show "$ref:$f" | human_events "$f" | awk -F'\t' -v who="$1" '$2 == who { found = 1 } END { exit !found }'; then
+                  printf '%s\n' "$f"; break
+                fi
+              done
+            done < "$work/pr.paths"
+          }
 
           # Signature status has to come from GitHub, not from `git log %G?`.
           # A runner has no GPG keyring and no `gpg.ssh.allowedSignersFile`,
@@ -417,14 +479,35 @@ jobs:
           # matter how good it is. GitHub checks each signature against the
           # keys registered to an account, which is also what ties the
           # signature to a person, rather than merely proving one exists.
-          commits="$(mktemp)"
+          #
+          # The signer is the committer, whose keys GitHub checks: the author is
+          # a name anyone may type. GitHub signs a web-editor commit as
+          # `web-flow`, and there the author is the signed-in person.
           gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/commits" --paginate \
-            --jq '.[] | [.sha, (.commit.verification.verified | tostring), (.author.login // "-")] | @tsv' \
-            > "$commits"
+            --jq '.[] | [.sha, (.commit.verification.verified | tostring), (.committer.login // "-"), (.author.login // "-")] | @tsv' \
+            > "$work/commits" || stop "GitHub did not list the commits of this pull request."
 
-          mapfile -t bundle_shas < <(
-            git log --format='%H' "${base}..${HEAD_SHA}" -- .lokf/knowledge knowledge_bundle
-          )
+          # Reads what each commit adds and removes against each parent. rev-list
+          # takes no path, since git would leave out a merge side whose paths
+          # end as the other side's. --root reads a parentless commit in full.
+          : > "$work/introduced"
+          git rev-list "$base..$HEAD_SHA" > "$work/shas" || stop "git could not list the commits of this pull request."
+          while IFS= read -r sha; do
+            git -c core.quotePath=false diff-tree --root --no-commit-id --name-only -r -m "$sha" -- .lokf/knowledge knowledge_bundle > "$work/names" \
+              || stop "git could not list what commit ${sha:0:8} changes."
+            concepts_named < "$work/names" || stop "the paths commit ${sha:0:8} changes could not be listed."
+            [ -s "$paths" ] || continue
+            mapfile -t parents < <(git rev-parse "$sha^@")
+            delta commit "$sha" ${parents[@]+"${parents[@]}"} || stop "the events in commit ${sha:0:8} could not be read."
+            for way in added gone; do
+              cut -f2- "$work/commit.$way" | SHA="$sha" WAY="$way" awk '{ print ENVIRON["SHA"] "\t" ENVIRON["WAY"] "\t" $0 }' >> "$work/introduced"
+            done
+          done < "$work/shas"
+          if grep -q '^"' "$listed"; then
+            echo "unreadable: a commit of this pull request touches bundle paths git had to quote, so this gate cannot read them:"
+            grep '^"' "$listed" | sort -u | sed 's/^/  /'
+            exit 1
+          fi
 
           unbacked=()
           for actor in "${actors[@]}"; do
@@ -441,22 +524,25 @@ jobs:
               unbacked+=("$actor")
               continue
             fi
-            if printf '%s\n' "$approvers" | grep -qxF -- "$actor"; then
-              echo "ok: human:${actor} approved this pull request."
-              continue
+            at="$(approved_at "$actor")"
+            if [ -n "$at" ]; then
+              mapfile -t theirs < <(concepts_of "$actor")
+              if ! git cat-file -e "${at}^{commit}" 2>/dev/null; then
+                echo "stale: human:${actor} approved commit ${at:0:8}, which this pull request no longer holds."
+              elif [ "${#theirs[@]}" -gt 0 ] && git diff --quiet "$at" "$HEAD_SHA" -- "${theirs[@]}"; then
+                echo "ok: human:${actor} approved this pull request, and each concept that carries their name is as they approved it."
+                continue
+              else
+                echo "stale: human:${actor} approved commit ${at:0:8}, and a concept that carries their name has changed since. Ask them to approve again."
+              fi
             fi
 
-            # No approval from them. The remaining evidence is their own
+            # No approval of theirs stands. The remaining evidence is their own
             # signature on each commit that introduced or removed the event.
             # It is the only route when they opened the pull request
             # themselves, since GitHub will not let anyone approve their own
             # pull request.
-            introducing=()
-            for sha in "${bundle_shas[@]}"; do
-              if new_in_commit "$sha" | grep -qxF -- "$actor" || gone_in_commit "$sha" | grep -qxF -- "$actor"; then
-                introducing+=("$sha")
-              fi
-            done
+            mapfile -t introducing < <(awk -F'\t' -v who="$actor" '$4 == who { print $1 }' "$work/introduced" | sort -u)
 
             if [ "${#introducing[@]}" -eq 0 ]; then
               echo "unbacked: a confirmation by human:${actor} is added, changed or removed here, but no commit in this pull request does it."
@@ -466,15 +552,27 @@ jobs:
 
             backed=yes
             for sha in "${introducing[@]}"; do
-              info="$(awk -v s="$sha" '$1 == s { print $2, $3 }' "$commits")"
-              verified="${info%% *}"
-              signer="${info##* }"
+              verified=""; committer=""; author=""
+              IFS="$(printf '\t')" read -r verified committer author < <(awk -F'\t' -v s="$sha" '$1 == s { print $2 "\t" $3 "\t" $4 }' "$work/commits") || true
+              signer="$committer"
+              if [ "$committer" = "web-flow" ]; then signer="$author"; fi
               if [ "$verified" = "true" ] && [ "$signer" = "$actor" ]; then
                 continue
               fi
               backed=no
               echo "unbacked: commit ${sha:0:8} adds, changes or removes a confirmation by human:${actor} but GitHub reports it" \
-                   "verified=${verified:-unknown}, attributed to ${signer:-unknown}."
+                   "verified=${verified:-unknown}, signed by ${signer:-unknown}."
+            done
+
+            # Each event of theirs the pull request adds or removes must come
+            # from one of those commits; any other is unbacked.
+            for way in added gone; do
+              awk -F'\t' -v who="$actor" '$3 == who' "$work/pr.$way" | cut -f2- | sort -u > "$work/asked"
+              awk -F'\t' -v who="$actor" -v way="$way" '$2 == way && $4 == who' "$work/introduced" | cut -f3- | sort -u > "$work/found"
+              if [ -n "$(comm -23 "$work/asked" "$work/found")" ]; then
+                backed=no
+                echo "unbacked: this pull request leaves a confirmation by human:${actor} ${way/gone/removed} that no commit in it accounts for."
+              fi
             done
 
             if [ "$backed" = yes ]; then

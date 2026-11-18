@@ -89,6 +89,8 @@ addEventListener("DOMContentLoaded", async () => {
   } catch (error) {
     return say(`The graph could not be loaded: ${error.message}`);
   }
+  // With no concept there are no rings to lay out, so the page says so and draws nothing.
+  if (!graph.nodes?.length) return say(workspace ? "The workspace holds no concept yet." : "The bundle holds no concept yet.");
 
   // A concept of this bundle has the trust label the report script printed.
   // A workspace's concept has only the tier `lokf export` gave it, shown in
