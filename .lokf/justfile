@@ -46,11 +46,15 @@ lokf-serve:
 # outside base_iri alone, since `source` and `definedBy` take an external
 # resource. --check-excerpts (lokf 0.9.0 or later) finds each
 # `sources[].excerpt` in its local file, and counts an excerpt on a URL
-# without fetching it.
+# without fetching it. --shacl checks the projected graph against LOKF's
+# SHACL shapes, such as a relation's target class and one excerpt per source
+# node. It runs where uv.lock holds pyshacl, so a broken install fails
+# rather than skipping the shapes; without it the recipe says so.
 #
-# Audit: every typed-relation target must resolve to a concept, and every local excerpt must match its file
+# Audit: every typed-relation target must resolve to a concept, every local excerpt must match its file, and the graph must keep LOKF's shapes
 lokf-check-refs:
-    uv run lokf validate {{ _schema }} --check-refs --check-excerpts {{ bundle }}
+    @grep -qx 'name = "pyshacl"' uv.lock 2>/dev/null || echo "SHACL shapes not checked: give lokf the shacl extra in pyproject.toml, then run uv lock"
+    uv run lokf validate {{ _schema }} --check-refs --check-excerpts $(grep -qx 'name = "pyshacl"' uv.lock 2>/dev/null && echo --shacl) {{ bundle }}
 
 # The knowledge_bundle doorway shows the bundle under a visible name at the
 # host root, for tools that hide dot-folders: folder pickers, file managers

@@ -1,6 +1,7 @@
 {{- /*
   The bundle log as an Atom feed: an entry for each of its newest thirty
-  days, a day being a `## YYYY-MM-DD` section, each as the log page shows it.
+  days, a day being a `## YYYY-MM-DD` section, each as the log page shows it,
+  without the attribute own.html writes for the cleaning of that page.
 */ -}}
 {{- printf `<?xml version="1.0" encoding="utf-8"?>` | safeHTML }}
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -10,7 +11,7 @@
   <link rel="self" href="{{ (.OutputFormats.Get "atom").Permalink }}"/>
   <author><name>{{ site.Title }}</name></author>
   {{- /* Each day's heading is preceded by a NUL, and its date by another, so the page splits into date and words by turns. */ -}}
-  {{- $parts := split (replaceRE `<h([23]) id="(\d{4}-\d{2}-\d{2})"` "\x00$2\x00<h$1 id=\"$2\"" (string .Content)) "\x00" }}
+  {{- $parts := split (replaceRE `<h([23]) id="(\d{4}-\d{2}-\d{2})"` "\x00$2\x00<h$1 id=\"$2\"" (replace (string .Content) (string (partial "own.html" .)) "")) "\x00" }}
   {{- $days := slice }}
   {{- range $i, $part := $parts }}{{ if and (gt $i 0) (not (modBool $i 2)) }}{{ $days = $days | append (dict "date" $part "html" (index $parts (add $i 1) | replaceRE `(?s)\A<h[23][^>]*>.*?</h[23]>` "")) }}{{ end }}{{ end }}
   {{- range $i, $day := first 30 $days }}

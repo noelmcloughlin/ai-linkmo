@@ -7,7 +7,9 @@
   script. The page passes its key from nav-key.html, and its part and its
   group are the ones drawn open. Called cached by that key, so the links are
   built once per group, not per page; site.js marks the current page's link.
-  The data, when the site serves it, and the changelog come last.
+  The guide lists the specification's page under Home when the repository
+  has a root SPEC.md. The data, when the site serves it, and the changelog
+  come last.
 */ -}}
 {{- $open := . -}}
 {{- $part := cond (hasPrefix $open "docs:") "guide" (cond (hasPrefix $open "/knowledge") "bundle" (index (split $open ":") 0)) -}}
@@ -15,6 +17,9 @@
   <summary>{{ partial "icon.html" "guide" }}Guide</summary>
   <ul>
     <li><a href="{{ "" | relURL }}">Home</a></li>
+    {{- with partialCached "spec.html" "spec" }}
+    <li><a href="{{ .RelPermalink }}">Specification</a></li>
+    {{- end }}
     {{- with site.GetPage "/docs" }}{{ if .Params.docName }}
     <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
     {{- end }}{{ end }}

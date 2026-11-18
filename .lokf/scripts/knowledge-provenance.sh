@@ -189,17 +189,24 @@ sig_format() {  # commit -> pgp | ssh | none
 # frontmatter only, so an example in a body code fence is no claim. It reads
 # a block list in any key order, a flow-style item, a flow sequence and a
 # bare mapping, and gives whatever else it meets the actor (unreadable). An
-# event is keyed by the `id` of its concept, so a renamed concept keeps its
-# events and a confirmation copied into another concept does not.
+# event is keyed by the `id` of its concept, and events_in adds its place.
 human_events() {  # path -> events, reading the concept on stdin
   awk -v path="$1" '
-  function val(s) { sub(/^[^:]*:[[:space:]]*/, "", s); gsub(/["'"'"']/, "", s); sub(/[[:space:]]+$/, "", s); return s }
+  # Returns the value after the key, less one pair of enclosing quotes, and sets
+  # `strange` on an unclosed or inner quote, a `\` escape, a trailing comment or
+  # a leading indicator, which a parser reads another way.
+  function val(s,  q, n) { sub(/^[^:]*:[[:space:]]*/, "", s); sub(/[[:space:]]+$/, "", s); q = substr(s, 1, 1); n = length(s)
+    if (q == "\"" || q == "'"'"'") { if (n < 2 || substr(s, n) != q) { strange = 1; return s }
+      s = substr(s, 2, n - 2); if (index(s, q) || (q == "\"" && index(s, "\\"))) strange = 1; return s }
+    if (s ~ /[[:space:]]#/ || s ~ /^[!&*|>@`%#]/) strange = 1
+    return s }
   # The schema gives an event only `by`, `at` and `revision`, so another key
   # (a quoted `by`, a merge, an alias) is a spelling this reader cannot
   # follow. Such an event, and one with an actor the schema does not allow,
   # gets the actor (unreadable), which is no login, so each gate refuses it.
-  function kv(l,  k) { k = l; sub(/:.*/, "", k); sub(/^[[:space:]]+/, "", k)
-    if (k == "by") by = val(l); else if (k == "at") at = val(l); else if (k == "revision") rev = val(l); else odd = 1 }
+  function kv(l,  k) { k = l; sub(/:.*/, "", k); sub(/^[[:space:]]+/, "", k); strange = 0
+    if (k == "by") by = val(l); else if (k == "at") at = val(l); else if (k == "revision") rev = val(l); else odd = 1
+    if (strange) odd = 1 }
   function actor(a) { return a !~ /\\/ && (a ~ /^(human|process):[^[:space:]]+$/ || a ~ "^[^[:space:]/]+/[^[:space:]/]+$") }
   # Any edit a parser could read must change the output, so an unreadable
   # file gives one line that holds everything up to the closing delimiter,
@@ -245,7 +252,9 @@ human_events() {  # path -> events, reading the concept on stdin
   # a quoted key, `? key`, `<<:` or a flow mapping, can each hold an event.
   !seen && /[^[:space:]]/ && !/^[[:space:]]*#/ { seen = 1; if (/^[[:space:]]/) unread() }
   /^["'"'"'?{[<!&*:|>]/ || /^(verified|generated)[[:space:]]+:/ { emit(); inv = 0; unread(); next }
-  /^id:/ { cid = val($0) }
+  # The id keys every event of the concept: a strange id, or a second `id`
+  # line, makes the file unreadable.
+  /^id:/ { strange = 0; cid = val($0); if (strange || ++ids > 1) unread() }
   /^(verified|generated):/ { emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated):[[:space:]]*/, "", rest); sub(/[[:space:]]+$/, "", rest)
     if (rest ~ /^\{/) { flowseq = 0; flowbuf = rest; inv = 0; if (index(rest, "}")) flushflow(); else inflow = 1 }
     else if (rest ~ /^\[/) { flowseq = 1; flowbuf = rest; inv = 0; if (index(rest, "]")) flushflow(); else inflow = 1 }
@@ -262,9 +271,23 @@ human_events() {  # path -> events, reading the concept on stdin
   inv && /^[[:space:]]+[^[:space:]#]/ { inev = 1; odd = 1; next }
   END { if (plain && dashes >= 2 && path !~ /(^|\/)log\.md$/) unread(); emit(); printf "%s", out; if (bad) { printf "%s\t(unreadable)\t\t", cid ? cid : path; for (i = 1; i <= NR; i++) if (i in raw) printf "%s\001", raw[i]; printf "\tverified\n" } }'
 }
-events_in() {  # ref, paths on stdin -> the human events of those paths at that ref, sorted
+# Each event is prefixed with its place: the concept's path, or `-` when the
+# other ref has no file there. An event moved or copied between two concepts
+# is one removal and one addition; a rename has `-` on both sides, so its
+# events match by id. Duplicates are kept, so a second copy is an addition.
+# Matches knowledge-registrar.yaml.
+placed() {  # place, events on stdin -> the events with that place before each
+  PLACE="$1" awk '{ print ENVIRON["PLACE"] "\t" $0 }'
+}
+events_in() {  # ref, the refs it is compared with..., paths on stdin -> the human events of those paths at that ref, sorted
+  ref="$1"; shift
   while IFS= read -r f; do
-    git show "$1:$f" 2>/dev/null | human_events "$f"
+    git cat-file -e "$ref:$f" 2>/dev/null || continue
+    place="-"
+    for other in "$@"; do
+      if git cat-file -e "$other:$f" 2>/dev/null; then place="$f"; break; fi
+    done
+    git show "$ref:$f" 2>/dev/null | human_events "$f" | placed "$place"
   done | sort
 }
 # The paths a commit changes against any of its parents, which git lists for
@@ -282,8 +305,8 @@ changed_paths() {  # commit, pathspecs... -> paths, one per line
 # concept no longer holds one by a person.
 removed_from() {  # events-before file, events-now file -> the removed events that need their person
   comm -23 "$1" "$2" | awk -F'\t' -v now="$2" '
-    BEGIN { while ((getline line < now) > 0) { split(line, f, "\t"); if (f[5] == "generated") kept[f[1]] = 1 } }
-    $5 == "verified" || !($1 in kept)'
+    BEGIN { while ((getline line < now) > 0) { split(line, f, "\t"); if (f[6] == "generated") kept[f[2]] = 1 } }
+    $6 == "verified" || !($2 in kept)'
 }
 
 # The toolkit follows a symbolic link and git does not, so a link onto a file
@@ -334,10 +357,11 @@ if [ "$unattended" -eq 1 ]; then
   : > "$home/was.events"; : > "$home/now.events"; : > "$home/was.notes"; : > "$home/now.notes"
   while IFS= read -r f; do
     case "$f" in *.md) ;; *) continue ;; esac
-    git show "HEAD:$f" > "$home/was.file" 2>/dev/null || : > "$home/was.file"
-    if [ -f "$f" ]; then cat "$f" > "$home/now.file"; else : > "$home/now.file"; fi
-    human_events "$f" < "$home/was.file" >> "$home/was.events"
-    human_events "$f" < "$home/now.file" >> "$home/now.events"
+    was_place="-"; now_place="-"
+    if git show "HEAD:$f" > "$home/was.file" 2>/dev/null; then now_place="$f"; else : > "$home/was.file"; fi
+    if [ -f "$f" ]; then cat "$f" > "$home/now.file"; was_place="$f"; else : > "$home/now.file"; fi
+    human_events "$f" < "$home/was.file" | placed "$was_place" >> "$home/was.events"
+    human_events "$f" < "$home/now.file" | placed "$now_place" >> "$home/now.events"
     notes_of "$f" < "$home/was.file" >> "$home/was.notes"
     notes_of "$f" < "$home/now.file" >> "$home/now.notes"
     if [ -f "$f" ] && human_events "$f" < "$home/was.file" | awk -F'\t' '$5 == "generated" { found = 1 } END { exit !found }' \
@@ -360,15 +384,16 @@ if [ "$unattended" -eq 1 ]; then
       say "$new: a person wrote this text, which an unattended change rewrites under a new name (was $old)"
     fi
   done < <(git -c core.quotePath=false diff --name-status -M HEAD -- "$bundle" "$doorway" 2>/dev/null | grep -E '^R' || true)
-  for kind in events notes; do sort -u "$home/was.$kind" -o "$home/was.$kind"; sort -u "$home/now.$kind" -o "$home/now.$kind"; done
-  while IFS="$(printf '\t')" read -r id by at _; do
+  # Each list keeps its repeats: a second copy of an event or of a note is an addition.
+  for kind in events notes; do sort "$home/was.$kind" -o "$home/was.$kind"; sort "$home/now.$kind" -o "$home/now.$kind"; done
+  while IFS="$(printf '\t')" read -r _ id by at _; do
     [ -n "$id" ] || continue
     case "$by" in
       "(unreadable)") say "$id: an unattended change writes frontmatter this gate cannot read - spell it as conventions rule 10 asks" ;;
       *) say "$id: an unattended change adds or changes a confirmation by human:$by ($at)" ;;
     esac
   done < <(comm -13 "$home/was.events" "$home/now.events")
-  while IFS="$(printf '\t')" read -r id by at _; do
+  while IFS="$(printf '\t')" read -r _ id by at _; do
     [ -n "$id" ] || continue
     case "$by" in
       "(unreadable)") say "$id: an unattended change removes frontmatter this gate could not read, which may have held a person's record" ;;
@@ -395,9 +420,10 @@ commits="$(git rev-list --reverse "$base..$head" 2>/dev/null)" || { echo "cannot
 # branch, which brings in a key added in a reviewed change of its own, adds
 # no key file that the base lacks.
 rekeyed=""
-for f in $(git -c core.quotePath=false diff --no-renames --name-only "$base" "$head" -- "$curators" 2>/dev/null); do
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
   f="${f##*/}"; rekeyed="$rekeyed ${f%.*}"
-done
+done < <(git -c core.quotePath=false diff --no-renames --name-only "$base" "$head" -- "$curators" 2>/dev/null)
 rekeyed_said=""
 
 checked=0
@@ -418,25 +444,29 @@ for sha in $commits; do
   fi
   files="$(printf '%s\n' "$listed" | grep '\.md$' || true)"
   [ -n "$files" ] || continue
-  # An event in this commit and in no parent is new or changed, and its actor
-  # must sign: a re-dated `at` or a moved `revision` counts too. So a merge
-  # that brings in a confirmation from one side claims nothing. every.events
-  # holds what every parent holds, so a merge that lacks what one side never
-  # had removes nothing, and a root commit removes nothing.
-  : > "$home/every.events"; first=1
-  for p in $(git rev-parse "$sha^@" 2>/dev/null); do
-    printf '%s\n' "$files" | events_in "$p" | sort -u > "$home/one.events"
-    if [ "$first" -eq 1 ]; then cp "$home/one.events" "$home/every.events"; first=0
-    else comm -12 "$home/every.events" "$home/one.events" > "$home/every.tmp"; mv "$home/every.tmp" "$home/every.events"; fi
-    cat "$home/one.events"
-  done | sort -u > "$home/parent.events"
-  printf '%s\n' "$files" | events_in "$sha" | sort -u > "$home/sha.events"
-  added="$(comm -13 "$home/parent.events" "$home/sha.events" | cut -f2 | sort -u)"
-  gone="$(removed_from "$home/every.events" "$home/sha.events" | cut -f2 | sort -u)"
+  # An event in this commit and in no parent is added, a re-dated `at` or a
+  # moved `revision` included, and its actor must sign. parent.events holds
+  # each event as often as the parent with most copies of it, and
+  # every.events what every parent holds. So a merge claims nothing it took
+  # from one side, and a root commit removes nothing.
+  parents=()
+  while IFS= read -r p; do [ -z "$p" ] || parents+=("$p"); done < <(git rev-parse "$sha^@" 2>/dev/null)
+  : > "$home/every.events"; : > "$home/parent.events"; first=1
+  for p in ${parents[@]+"${parents[@]}"}; do
+    printf '%s\n' "$files" | events_in "$p" "$sha" > "$home/one.events"
+    if [ "$first" -eq 1 ]; then cp "$home/one.events" "$home/every.events"; cp "$home/one.events" "$home/parent.events"; first=0
+    else
+      comm -12 "$home/every.events" "$home/one.events" > "$home/every.tmp"; mv "$home/every.tmp" "$home/every.events"
+      { cat "$home/parent.events"; comm -13 "$home/parent.events" "$home/one.events"; } | sort > "$home/parent.tmp"; mv "$home/parent.tmp" "$home/parent.events"
+    fi
+  done
+  printf '%s\n' "$files" | events_in "$sha" ${parents[@]+"${parents[@]}"} > "$home/sha.events"
+  added="$(comm -13 "$home/parent.events" "$home/sha.events" | cut -f3 | sort -u)"
+  gone="$(removed_from "$home/every.events" "$home/sha.events" | cut -f3 | sort -u)"
   ids="$(printf '%s\n%s\n' "$added" "$gone" | sed '/^$/d' | sort -u)"
   [ -n "$ids" ] || continue
   # One concept and one person count once, however many events of theirs it holds.
-  touched="$({ comm -13 "$home/parent.events" "$home/sha.events"; removed_from "$home/every.events" "$home/sha.events"; } | cut -f1,2 | sort -u | grep -c . || true)"
+  touched="$({ comm -13 "$home/parent.events" "$home/sha.events"; removed_from "$home/every.events" "$home/sha.events"; } | cut -f2,3 | sort -u | grep -c . || true)"
   checked=$((checked + touched))
   format="$(sig_format "$sha")"
   status=""; signer=""
@@ -444,7 +474,9 @@ for sha in $commits; do
     status="$(GNUPGHOME="$home" git verify-commit --raw "$sha" 2>&1 || true)"
     signer="$(printf '%s\n' "$status" | awk '/^\[GNUPG:\] VALIDSIG/ {print $3; exit}')"
   fi
-  for id in $ids; do
+  # Each id is read whole: one that holds `*` or `?` names no file here.
+  while IFS= read -r id; do
+    [ -n "$id" ] || continue
     # What this commit does with that person's record, for the finding's wording.
     does="adds or changes"
     printf '%s\n' "$added" | grep -qxF -- "$id" || does="removes"
@@ -509,7 +541,9 @@ for sha in $commits; do
           fi
         fi ;;
     esac
-  done
+  done <<IDS
+$ids
+IDS
 done
 
 if [ "$fail" -eq 0 ]; then

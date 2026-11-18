@@ -12,6 +12,10 @@
       <span><span class="chip chip--type">Trust ladder</span></span>
       <span class="card__call">{{ $total }} concepts</span>
     </header>
+    {{- /* A bar needs a total above nought, so a bundle with no concept says so in words. */}}
+    {{- if not $total }}
+    <p class="card__caption">The bundle holds no concept yet.</p>
+    {{- else }}
     <div class="bars">
       {{- range $tone := $tones.order }}
       {{- $n := len ($s.Get $tone | default slice) }}
@@ -22,6 +26,7 @@
       </div>
       {{- end }}
     </div>
+    {{- end }}
     <p class="card__caption">Also counted</p>
     {{ partial "health-tiles.html" (dict "states" false) }}
   </section>

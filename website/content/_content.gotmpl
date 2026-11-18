@@ -12,6 +12,20 @@
       "content" (dict "value" (partial "literal.html" $body))) -}}
 {{- end -}}
 {{- /*
+  A root SPEC.md becomes the specification's page, /spec/, as written. Its
+  title is the file's first `# ` heading, which stays the page's h1, and its
+  frontmatter is read as data, as the README's is. With no SPEC.md, no page
+  is added.
+*/ -}}
+{{- with resources.Get "spec/SPEC.md" -}}
+  {{- $body := .Content | replaceRE `(?s)\A---\r?\n.*?\r?\n---[ \t]*(?:\r?\n|\z)` "" -}}
+  {{- $title := "" -}}
+  {{- with findRESubmatch `(?m)^# +(.+?)\s*$` $body 1 }}{{ $title = index . 0 1 | replaceRE "[*`]" "" | replaceRE `\[([^\]]+)\]\([^)]*\)` "$1" }}{{ end -}}
+  {{- $.AddPage (dict "kind" "page" "path" "spec" "title" (or $title "Specification")
+      "params" (dict "repoPath" (path.Join (strings.Trim (site.Params.source | default "") "/") "SPEC.md"))
+      "content" (dict "value" (partial "literal.html" $body))) -}}
+{{- end -}}
+{{- /*
   A page at each old address `params.redirects` names, which sends the
   browser to the page built from the repository file named. An entry such as
   "elements/*" = "schema/*" stands for every page of the schema: the old

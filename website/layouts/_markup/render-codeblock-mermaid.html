@@ -1,2 +1,2 @@
-<pre class="mermaid" data-pagefind-ignore>{{ .Inner | htmlEscape | safeHTML }}</pre>
+<pre class="mermaid" data-pagefind-ignore{{ partial "own.html" . }}>{{ .Inner | htmlEscape | safeHTML }}</pre>
 {{- .Page.Store.Set "hasMermaid" true -}}

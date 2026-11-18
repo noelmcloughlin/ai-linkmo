@@ -4,12 +4,21 @@
   A concept's frontmatter goes under `params.concept` and never to Hugo's own
   keys, so a concept that sets `url`, `aliases`, `draft` or `layout` changes
   nothing here. A new group folder needs no line anywhere.
+
+  Three names are not concepts, by the rule knowledge-report.sh follows, so
+  it prints no label for them. index.md and log.md are not in any folder,
+  since the lokf toolkit reserves them. diataxis.md is not at the bundle's
+  root, where the KTL Registrar plugin writes its map. A diataxis.md in a
+  folder is a concept like any other. A folder's log.md and the root's
+  diataxis.md get no page. Each is still served as Markdown, and a link to
+  one goes to GitHub.
 */ -}}
 {{- $files := resources.Match "bundle/**.md" -}}
 {{- $ids := slice -}}
 {{- range $files }}{{ $ids = $ids | append (.Name | strings.TrimPrefix "/bundle/" | strings.TrimSuffix ".md") }}{{ end -}}
 {{- range $files -}}
   {{- $rel := strings.TrimPrefix "/bundle/" .Name -}}
+  {{- if or (eq $rel "diataxis.md") (and (eq (path.Base $rel) "log.md") (ne $rel "log.md")) }}{{ continue }}{{ end -}}
   {{- $fm := dict -}}
   {{- $body := .Content -}}
   {{- with findRESubmatch `(?s)\A---\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\z)(.*)\z` .Content 1 -}}

@@ -1,5 +1,5 @@
 {{- /* A link goes where route.html sends it. One that reaches a concept shows that concept's trust and definition on hover. */ -}}
 {{- $href := partial "route.html" (dict "from" (partial "repo-path.html" .Page) "url" .Destination) -}}
 {{- $concept := index (partialCached "concepts.html" "concepts").url (index (split $href "#") 0) -}}
-<a href="{{ $href }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ with $concept }} data-preview="{{ partial "preview.html" . }}"{{ end }}>{{ .Text }}</a>
+<a href="{{ $href }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ with $concept }} data-preview="{{ partial "preview.html" . }}"{{ partial "own.html" . }}{{ end }}>{{ .Text }}</a>
 {{- /**/ -}}

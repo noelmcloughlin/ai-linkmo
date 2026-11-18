@@ -232,8 +232,13 @@ jobs:
       # .lokf/uv.lock. A cache is shared by every job on the default branch,
       # the librarian's agent job among them, and uv trusts the wheels it
       # unpacked there without hashing them again.
-      - name: Set up uv
+      # A runner that holds uv keeps its own; setup-uv fetches one from github.com.
+      - name: Find uv on the runner
+        id: uv
         if: steps.compare.outputs.changed == 'true'
+        run: if command -v uv >/dev/null 2>&1; then echo "found=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Set up uv
+        if: steps.compare.outputs.changed == 'true' && steps.uv.outputs.found != 'true'
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           python-version: "3.12"

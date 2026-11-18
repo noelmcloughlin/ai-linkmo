@@ -7,6 +7,7 @@
 #   knowledge-report.sh                    the whole report: ktl-curator's Step 1 starts from it
 #   knowledge-report.sh health             the one health line
 #   knowledge-report.sh labels [<path>..]  one line per concept, in the shape of ktl-docent's footer
+#   knowledge-report.sh questions          every open question, with its day, who asked, and its text
 #   knowledge-report.sh worklist           where ktl-librarian starts: paths and dates only
 #   knowledge-report.sh quiet              exit 0 when nothing waits for the librarian, 1 when work does
 #   knowledge-report.sh changes            what the working tree does to the record, against HEAD
@@ -25,8 +26,9 @@
 #
 # The labels, in the words ktl-curator and ktl-docent use:
 #   confirmed by a person        a `verified` event whose actor starts human:
-#   edited since a person last   `generated.at` is later than the latest such
-#     confirmed it               event, the two times compared whole; such a
+#   edited since a person last   `generated.at`, or a later `revised.at`, is
+#     confirmed it               later than the latest such event, the two
+#                                times compared whole; such a
 #                                concept is counted here and not as confirmed,
 #                                since the person confirmed an earlier text
 #   checked by automation only   `verified` holds events, none a person's
@@ -42,8 +44,9 @@
 #                                concept waits in .lokf/feedback.md
 #   retired                      `status: deprecated`; no other label applies,
 #                                and it names the concept that replaced it
-#                                when the newest **Deprecation** line in
-#                                log.md links one
+#                                when its isReplacedBy names one, or else
+#                                the newest **Deprecation** line in log.md
+#                                links one
 #
 # The whole report also prints the queue of ktl-curator, Worth ten minutes
 # today, and what ranks it: review dates due within 30 days, confirmed
@@ -153,7 +156,7 @@
 # `quiet` exits 1 when work waits, and `coverage --strict` when a file is
 # named by nobody or the count could not be made. `sample` exits 2 on a host
 # with no tool to compute a digest.
-[ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [--root <dir>] [health|labels|worklist|quiet|changes|retrieval|coverage|sample|evidence] [...]" >&2; exit 2; }
+[ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [--root <dir>] [health|labels|questions|worklist|quiet|changes|retrieval|coverage|sample|evidence] [...]" >&2; exit 2; }
 set -u
 # Byte-oriented awk and sort, so that the BOM and CRLF strips and every
 # comparison read raw bytes in any awk and locale: under UTF-8, gawk reads
@@ -162,7 +165,7 @@ set -u
 export LC_ALL=C
 
 usage() {
-  echo "usage: ${0##*/} [--root <dir>] [health | labels [<path>...] | worklist | quiet | changes | retrieval --prompt | retrieval <reply-file> | isolated | coverage [--strict] [<dir>...] | coverage --why <path>... | sample [--seed <text>] [--independent <n>] [--automation <n>] | evidence]" >&2
+  echo "usage: ${0##*/} [--root <dir>] [health | labels [<path>...] | questions | worklist | quiet | changes | retrieval --prompt | retrieval <reply-file> | isolated | coverage [--strict] [<dir>...] | coverage --why <path>... | sample [--seed <text>] [--independent <n>] [--automation <n>] | evidence]" >&2
   exit 2
 }
 
@@ -207,7 +210,7 @@ trap 'rm -rf "$tmp"' EXIT
 #   C  path  title  status  stale_after  generated.by  generated.at
 #      latest human verified.at  human events  verified events  latest verified.at  open questions
 #      that human time as written  the later of generated.at and verified.at as written
-#      the revision that human event carries, a commit hash cut to seven characters
+#      the revision that human event carries, a commit hash cut to seven characters and a digest to seven after `sha256:`
 #      the revision of the event the work list compares with, and that of the human event, whole
 #   I  path  id  type  resource  one per concept: its `id`, its `type`, and its top `resource`, else its first source
 #   R  path  resource            one per `resource:` line, the concept's own and each source's
@@ -288,6 +291,7 @@ function emit(  n) {
   if (inev) {
     n = norm(at)
     if (kind == "generated") { gen_by = by; gen_at = n; gen_raw = at; gen_rev = rev; hasgen = 1 }
+    else if (kind == "revised") { if (n > rvd_at) { rvd_at = n; rvd_raw = at; rvd_rev = rev } }
     else { vn++; eby[vn] = by; eat[vn] = n; eraw[vn] = at; erev[vn] = rev
            if (n > check_at) { check_at = n; check_raw = at; check_rev = rev }
            if (by ~ /^human:/) { hn++; if (n > human_at) { human_at = n; human_raw = at; human_rev = rev } } }
@@ -343,7 +347,7 @@ function mention(f, l,  n, items, i, w) { sub(/^[ \t]*(-[ \t]+)*/, "", l)
 function reset() {
   title = ""; status = ""; stale = ""; tstamp = ""; cid = ""; ctype = ""; topres = ""; firstres = ""
   fm = 0; body = 0; started = 0; skip = 0; top = ""; inv = 0; inev = 0; kind = ""; by = ""; at = ""; rev = ""
-  gen_by = ""; gen_at = ""; gen_raw = ""; gen_rev = ""; hasgen = 0; vn = 0; hn = 0; hm = 0
+  gen_by = ""; gen_at = ""; gen_raw = ""; gen_rev = ""; hasgen = 0; vn = 0; hn = 0; hm = 0; rvd_at = ""; rvd_raw = ""; rvd_rev = ""
   check_at = ""; check_raw = ""; check_rev = ""; human_at = ""; human_raw = ""; human_rev = ""; human_full = ""
   inflow = 0; flowbuf = ""; flowseq = 0; sidx = -1; kcol = 0; sres = ""; shas = 0; sid = 0; skey = 0
   rel = ""; rp = ""; rt = ""; inrels = 0; fence = 0; inq = 0; qn = 0
@@ -386,8 +390,8 @@ fm {
     if (r != "" && top == "exclusions" && $0 !~ /^resource:/) print "X\t" path "\t" r
     else if (r != "") { print "R\t" path "\t" r; if ($0 ~ /^resource:/) topres = r; else if (firstres == "") firstres = r }
   }
-  if ($0 ~ /^(verified|generated):/) {
-    relend(); emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated):[ \t]*/, "", rest)
+  if ($0 ~ /^(verified|generated|revised):/) {
+    relend(); emit(); inv = 1; kind = $0; sub(/:.*/, "", kind); rest = $0; sub(/^(verified|generated|revised):[ \t]*/, "", rest)
     if (rest ~ /^\{/) { flowseq = 0; flowbuf = rest; inv = 0; if (index(rest, "}")) flushflow(); else inflow = 1 }
     else if (rest ~ /^\[/) { flowseq = 1; flowbuf = rest; inv = 0; if (index(rest, "]")) flushflow(); else inflow = 1 }
     next
@@ -449,6 +453,11 @@ function finish() {
   relend()
   emit()
   if (gen_at == "" && tstamp != "") { gen_at = norm(tstamp); gen_raw = tstamp }
+  # LOKF 0.9.0 lets a producer record a later edit as `revised` and leave
+  # `generated` alone. The last change is the later of the two times, and
+  # the evidence row keeps what `generated` itself says.
+  made_at = gen_at; made_raw = gen_raw; made_rev = gen_rev
+  if (rvd_at > gen_at) { gen_at = rvd_at; gen_raw = rvd_raw; gen_rev = rvd_rev }
   # A review date is read by its day: in UTC where the value carries an
   # offset, else as the day its first ten characters name, as the website
   # reads it. The specification makes a concept stale from that instant on,
@@ -456,6 +465,7 @@ function finish() {
   st = norm(stale); if (st != "") st = substr(st, 1, 10); else if (stale ~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/) st = substr(stale, 1, 10)
   human_full = human_rev
   if (human_rev ~ /^[0-9a-f]+$/ && length(human_rev) > 7) human_rev = substr(human_rev, 1, 7)
+  else if (human_rev ~ /^sha256:[0-9a-f]+$/ && length(human_rev) > 14) human_rev = substr(human_rev, 1, 14)
   printf "C\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s\n", path, (title == "" ? path : title), status, st, gen_by, gen_at, human_at, hn, vn, check_at, qn, human_raw, (gen_at > check_at ? gen_raw : check_raw), human_rev, (gen_at > check_at ? gen_rev : check_rev), human_full
   printf "I\t%s\t%s\t%s\t%s\n", path, cid, ctype, (topres != "" ? topres : firstres)
   for (i = 1; i <= vn; i++) if (eby[i] ~ /^human:/ && eraw[i] != "") print "H\t" path "\t" eraw[i]
@@ -470,11 +480,13 @@ function finish() {
   for (i = 1; i <= hm; i++) chk[hum[i]] = (i == 1 ? "first" : (eby[hum[i]] == eby[hum[1]] ? "same-person" : "second-person"))
   for (i = 2; i <= vn; i++) { k = ord[i]; j = i - 1; while (j > 0 && shown[ord[j]] > shown[k]) { ord[j + 1] = ord[j]; j-- } ord[j + 1] = k }
   head = "V\t" cell(path) "\t" cell(ctype) "\t" cell(status) "\t" cell(st != "" ? st : stale) "\t" cell(topres != "" ? topres : firstres) "\t"
-  if (hasgen) print head "generated\t" cell(gen_by) "\t" cell(gen_at != "" ? gen_at : gen_raw) "\t" cell(gen_rev) "\t"
+  if (hasgen) print head "generated\t" cell(gen_by) "\t" cell(made_at != "" ? made_at : made_raw) "\t" cell(made_rev) "\t"
   for (i = 1; i <= vn; i++) { k = ord[i]; print head "verified\t" cell(eby[k]) "\t" cell(shown[k]) "\t" cell(erev[k]) "\t" chk[k] }
   if (!hasgen && vn == 0) print head "\t\t\t\t"
 }'
 
+# An index and a log are no concept in any folder, and KTL Registrar's
+# diataxis.md is none at the bundle's root only.
 facts() {  # every concept in the bundle -> the lines in the table above, V only when `rows` is 1
   # One awk reads them all. A path from find is absolute, so awk never takes
   # it for an assignment. The shell leaves out a folder whose name ends in
@@ -482,7 +494,9 @@ facts() {  # every concept in the bundle -> the lines in the table above, V only
   # the exit status of awk, so a read that stopped early never passes for a
   # smaller bundle.
   find "$bundle/" -name '*.md' -not -path '*/.obsidian/*' | LC_ALL=C sort \
-    | awk '{ n = $0; sub(/.*\//, "", n) } n != "index.md" && n != "log.md" && n != "diataxis.md"' \
+    | KR_BUNDLE="$bundle" awk 'BEGIN { root = ENVIRON["KR_BUNDLE"]; sub(/\/+$/, "", root) }
+        { n = $0; sub(/.*\//, "", n); d = $0; sub(/\/+[^\/]*$/, "", d) }
+        n != "index.md" && n != "log.md" && !(n == "diataxis.md" && d == root)' \
     | while IFS= read -r p; do [ -d "$p" ] || printf '%s\n' "$p"; done > "$tmp/files"
   [ -s "$tmp/files" ] || return 0
   KR_LIST="$tmp/files" KR_BUNDLE="$bundle" awk -v SQ="'" -v rows="${rows:-0}" "$extract" < /dev/null
@@ -591,6 +605,10 @@ quotes_load() {
 # A change in that recording commit, as a squash merge makes, is no move. An
 # event not yet committed is newer than any commit, and one that git cannot
 # find is skipped, so a moved source may be missed but is never invented.
+# A `revision` on the event pins the resource of the concept alone. One that
+# names a commit in this history takes the place of the recording commit.
+# One that is a `sha256:` digest is compared with the file as HEAD holds it,
+# so a change in the recording commit is a move too.
 #
 # For the work list, a source that a question of the librarian covers is in
 # `M a path list`, one that a closed pull request had before it in a `D`
@@ -613,11 +631,12 @@ moved() {
   sources_load
   history_load
   revisions_load
+  digests_load
   round=0
   while :; do
     round=$((round + 1))
     : > "$tmp/need"; : > "$tmp/notes.next"
-    { printf '%s\n' "$all"; cat "$tmp/sources" "$tmp/hist" "$tmp/revs" "$tmp/anc" "$tmp/bodies"
+    { printf '%s\n' "$all"; cat "$tmp/sources" "$tmp/hist" "$tmp/revs" "$tmp/digs" "$tmp/anc" "$tmp/bodies"
       awk -F'\t' '{ print "ZT\t" $1 "\t" $2 " " $3 " " $4 }' "$tmp/touched" 2>/dev/null
       awk -F'\t' '{ print "ZQ\t" $1 "\t" $3 }' "$tmp/quoted"
       awk -F'\t' '{ print "ZG\t" $1 "\t" $2 }' "$tmp/quote_gone"
@@ -806,6 +825,34 @@ revisions_load() {
   fi
 }
 
+# The digest of each file that a compared event pins as `sha256:`, as `ZD
+# resource digest`. The bytes are those HEAD holds, so a checkout that
+# converts line endings gives the same digest. One git call writes each file
+# out, and one call of the digest tool reads them all. A folder gets no
+# line, and neither does any file on a host with no digest tool: the work
+# list then compares with the recording commit.
+digests_load() {
+  local res p i=0
+  : > "$tmp/digs"
+  can_digest || return 0
+  printf '%s\n' "$all" | awk -F'\t' '
+    $1 == "I" { main[$2] = $5; next }
+    $1 == "C" && ($16 ~ /^sha256:[0-9a-f]+$/ || $17 ~ /^sha256:[0-9a-f]+$/) { want[$2] = 1 }
+    END { for (p in want) if (main[p] != "") print main[p] }' | LC_ALL=C sort -u > "$tmp/digq"
+  [ -s "$tmp/digq" ] || return 0
+  awk -F'\t' -v want="$tmp/digq" 'BEGIN { while ((getline r < want) > 0) w[r] = 1 }
+    ($1 in w) && $2 == 1 && $3 == "P" { print $1 "\t" $4 }' "$tmp/res.top" > "$tmp/digp"
+  mkdir -p "$tmp/dig"; : > "$tmp/dign"
+  while IFS=$'\t' read -r res p; do
+    i=$((i + 1))
+    if git -C "$top" cat-file blob "HEAD:$p" > "$tmp/dig/$i" 2>/dev/null; then printf '%s\t%s\n' "$i" "$res" >> "$tmp/dign"; else rm -f "$tmp/dig/$i"; fi
+  done < "$tmp/digp"
+  [ -s "$tmp/dign" ] || return 0
+  (cd "$tmp/dig" && sha256 ./*) 2>/dev/null | awk -v names="$tmp/dign" '
+    BEGIN { while ((getline l < names) > 0) { split(l, a, "\t"); res[a[1]] = a[2] } }
+    { h = $1; sub(/^\\/, "", h); n = $NF; sub(/.*\//, "", n); if (n in res) print "ZD\t" res[n] "\t" h }' > "$tmp/digs"
+}
+
 # Whether one commit comes before another in history, for each pair moved_fn
 # asked about, as `ZA first second 1` or `... 0`. A commit with several pairs
 # asks git once for the commits after it up to HEAD, whose history holds the
@@ -871,6 +918,7 @@ bodies_run() {
 #   ZH  each concept: its last commit and day; ZF the commit that first wrote
 #       a text in it; ZY a concept not yet committed (history_load)
 #   ZV  a revision that names a commit (revisions_load)
+#   ZD  the digest of a file that a revision pins (digests_load)
 #   ZA  the order of two commits (ancestry_run); ZB whether a body changed
 #       (bodies_run)
 #   ZT  the closed pull request that touched a concept; ZQ a passage a
@@ -912,6 +960,9 @@ function names(t, p,  n, off, i, at, before, after, beyond) {
   }
   return 0
 }
+# A note counts as left by a person when its actor is human: or the
+# curator, which records the send-back of a person with no login.
+function person(a) { return a ~ /^human:/ || a == "process:ktl-curator" }
 # The commit that first held a question a process asked, or "new".
 function asked_at(p, i) { c = first(p, "- " qd[p, i] ", " qa[p, i] ": " qt[p, i]); return c == "" ? "new" : c }
 # A question a process asked, naming the source, with this state of it before
@@ -920,7 +971,7 @@ function asked_at(p, i) { c = first(p, "- " qd[p, i] ", " qa[p, i] ": " qt[p, i]
 # order, so any question on file that names it covers it.
 function asked_since(p, state, h, path,  i, c) {
   for (i = 1; i <= nq[p]; i++) {
-    if (qa[p, i] ~ /^human:/ || !names(qt[p, i], path)) continue
+    if (person(qa[p, i]) || !names(qt[p, i], path)) continue
     c = asked_at(p, i)
     if (c == "new") return 1
     if (h == "") { if (state == "gone") return 1 }
@@ -931,7 +982,7 @@ function asked_since(p, state, h, path,  i, c) {
 # A question a process asked at or after the commit that changed the body.
 function asked_after(p, h,  i, c) {
   for (i = 1; i <= nq[p]; i++) {
-    if (qa[p, i] ~ /^human:/) continue
+    if (person(qa[p, i])) continue
     c = asked_at(p, i)
     if (c == "new") return 1
     if (h != "" && anc(h, c)) return 1
@@ -947,6 +998,7 @@ $1 == "ZH" { LAST[$2] = $3; LDAY[$2] = $4; next }
 $1 == "ZF" { FIRST[$2, $4] = $3; next }
 $1 == "ZY" { DIRTY[$2] = 1; next }
 $1 == "ZV" { VALID[$2] = $3; next }
+$1 == "ZD" { DIG[$2] = $3; next }
 $1 == "ZA" { ANC[$2, $3] = $4; next }
 $1 == "ZB" { BODY[$2, $3] = $4; next }
 $1 == "ZT" { if (!($2 in DEC)) DEC[$2] = $3; next }
@@ -975,6 +1027,9 @@ END {
       # recording commit still does not count, and each other source is
       # compared with the commit that recorded the stamp.
       base = ""; if ((rv in VALID) && anc(VALID[rv], head)) base = VALID[rv]
+      # A digest that the `revision` gives, of the resource of the concept
+      # only: the file moved when HEAD holds other bytes.
+      dg = (rv ~ /^sha256:[0-9a-f]+$/) ? substr(rv, 8) : ""
       out = ""; asked = ""; aside = ""; nohist = ""
       for (i = 1; i <= m; i++) {
         r = srt[i]; if (!(r in STATE)) continue
@@ -983,6 +1038,7 @@ END {
         else if (st == "edited") { if (!dirty) out = add(out, r " (edited, not yet committed" quoted(p, r) ")") }
         else if (st == "clean") {
           if (base != "" && r == MAIN[p]) { if (h != rec && h != base && anc(base, h)) entry = r " (" DAY[r] quoted(p, r) ")" }
+          else if (dg != "" && r == MAIN[p] && (r in DIG)) { if (DIG[r] != dg) entry = r " (" DAY[r] quoted(p, r) ")" }
           else if (rec != "" && h != rec && anc(rec, h)) entry = r " (" DAY[r] quoted(p, r) ")"
         }
         else if (st == "nohist" && which == "w") nohist = add(nohist, r)
@@ -1023,7 +1079,7 @@ END {
     dec = (p in DEC) ? DEC[p] : ""; split(dec, dd, " ")
     rec = ($14 != "" ? first(p, $14) : "")
     for (i = 1; i <= nq[p]; i++) {
-      if (qa[p, i] !~ /^human:/) continue
+      if (!person(qa[p, i])) continue
       if ($4 != "draft" && $8 != "" && qd[p, i] <= substr($8, 1, 10)) continue
       note = first(p, "- " qd[p, i] ", " qa[p, i] ": " qt[p, i])
       if (note == "") print "new" > notefile
@@ -1084,11 +1140,61 @@ health() {  # [<the count of concepts not tied to a signed commit>]
   END { printf "Confirmed by a person: %d of %d · Checked by automation only: %d · Nobody has checked: %d · Drafts: %d · Reopened: %d · Past review date: %d · Edited since confirmed: %d · Retired: %d%s\n", confirmed, n, auto, none, drafts, reop, past, was, retired, (unsigned != "" ? " · Not tied to a signed commit: " unsigned : "") }'
 }
 
-# The concept that replaced a retired one, as S<TAB>retired<TAB>successor:
-# the link after "replaced by", in the `../` form that ktl-curator and the
-# KTL Curator plugin write, in the newest **Deprecation** line of log.md that
-# links the retired concept. A line with no such link names no successor.
+# The base_iri of the root index.md, or nothing.
+bundle_base() {
+  awk -v SQ="'" '{ sub(/\r$/, "") } NR == 1 { sub(/^\357\273\277/, "") } NR == 1 { if ($0 != "---") exit; next } $0 == "---" { exit }
+    /^base_iri:/ { v = $0; sub(/^base_iri:[ \t]*/, "", v); sub(/[ \t\r]+$/, "", v)
+      if (substr(v, 1, 1) == "\"" || substr(v, 1, 1) == SQ) v = substr(v, 2, length(v) - 2); print v; exit }' "$bundle/index.md" 2>/dev/null || true
+}
+
+# A relation target resolved to the path of a concept, as the KTL Curator
+# plugin resolves it:
+#   - an IRI under base_iri, by the path after it;
+#   - any other IRI, as written;
+#   - a relative path, from the root of the bundle and then from the folder
+#     of the citing concept.
+# A concept's id is its `id`, or base_iri and its path without `.md`. The
+# caller sets `base` and fills `order`, `nc` and `cid`, then calls ids().
+# shellcheck disable=SC2016 # awk's own fields, not the shell's
+resolve_fn='
+function ids(  i, p, id) { for (i = 1; i <= nc; i++) { p = order[i]; id = cid[p]; if (id == "") { id = p; sub(/\.md$/, "", id); id = base id }; byid[id] = p } }
+function cut(v,  i) { i = index(v, "#"); return i ? substr(v, 1, i - 1) : v }
+function find(id) { return (id in byid) ? byid[id] : "" }
+function resolve(v, from,  d, r) {
+  if (v in byid) return byid[v]
+  if (v ~ /^[A-Za-z][A-Za-z0-9+.-]*:/) {
+    if (base == "" || index(v, base) != 1) return ""
+    v = cut(substr(v, length(base) + 1)); sub(/\.md$/, "", v)
+    return find(base v)
+  }
+  if (base == "") return ""
+  v = cut(v); sub(/^\//, "", v); sub(/\.md$/, "", v)
+  r = find(base v); if (r != "") return r
+  d = from; if (sub(/\/[^\/]*$/, "", d)) return find(base d "/" v)
+  return ""
+}'
+
+# The concept that replaced a retired one, as S<TAB>retired<TAB>successor.
+# Its isReplacedBy decides: the first target, in the field or in `relations`,
+# that names a concept of the bundle. ktl-curator writes it on Retire. Where
+# it names none, the link after "replaced by" in the newest **Deprecation**
+# line of log.md that links the retired concept, in the `../` form that
+# ktl-curator and the KTL Curator plugin write; a retirement recorded before
+# the slot has only that line. A line with no such link names no successor.
+# The first S line for a concept is the one read.
 successors() {
+  printf '%s\n' "$all" | awk -F'\t' -v base="$(bundle_base)" "$resolve_fn"'
+  $1 == "C" { nc++; order[nc] = $2; st[$2] = $4 }
+  $1 == "I" { cid[$2] = $3 }
+  $1 == "L" && $3 == "isReplacedBy" { nl++; lp[nl] = $2; lt[nl] = $4 }
+  END {
+    ids()
+    for (i = 1; i <= nl; i++) {
+      p = lp[i]; if (st[p] != "deprecated" || (p in named)) continue
+      t = resolve(lt[i], p); if (t == "" || t == p) continue
+      named[p] = 1; print "S\t" p "\t" t
+    }
+  }'
   [ -f "$bundle/log.md" ] || return 0
   awk '
   function target(s,  a, b) {
@@ -1109,13 +1215,13 @@ successors() {
 # right after the kind, `- **Disagreement** (on `<path>`) -`, where no text
 # of a reader can stand, and `disputed` reads nothing else of the entry. A
 # path counts only in the path spelling of the bundle, only while it names a
-# concept, and never for an index, a log or diataxis.md.
+# concept, and never for an index, a log or the diataxis.md at the root.
 disputed() {
   [ -f "$root/.lokf/feedback.md" ] || return 0
   awk -v dir="$bundle" '
   function held(p,  line, there) {
     if (p !~ /^[a-z0-9][a-z0-9._\/-]*\.md$/ || p ~ /\.\./) return 0
-    if (p ~ /(^|\/)(index|log|diataxis)\.md$/) return 0
+    if (p ~ /(^|\/)(index|log)\.md$/ || p == "diataxis.md") return 0
     there = (getline line < (dir "/" p)); close(dir "/" p); return there >= 0
   }
   /^## [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/ { day = substr($0, 4, 10); next }
@@ -1191,7 +1297,7 @@ lists() {  # mode
   END {
     if (mode == "questions" || mode == "worklist") {
       for (i = 1; i <= nq; i++) {
-        split(q[i], f, "\t"); p = f[2]; who = (f[4] ~ /^human:/ ? "person" : "process")
+        split(q[i], f, "\t"); p = f[2]; who = ((f[4] ~ /^human:/ || f[4] == "process:ktl-curator") ? "person" : "process")
         if (answered(p, f[3])) { na++; a = a "- " p " (" f[3] ", " f[4] "; a person confirmed the concept " day(human[p]) ")" (mode == "questions" ? ": " f[5] : "") "\n" }
         else if (who == "person") { nw++; w = w "- " p " (" f[3] ", " f[4] ")" (mode == "questions" ? ": " f[5] : "") "\n" }
         else { no++; o = o "- " p " (" f[3] ", " f[4] ")" (mode == "questions" ? ": " f[5] : "") "\n" }
@@ -1252,13 +1358,7 @@ repeats() {  # concepts the ledger names more than once: readers keep asking abo
 
 # ---- the curator's queue -----------------------------------------------------
 # A relation is one of the fourteen fields, `relations`, or a whole IRI in a
-# slot of a domain vocabulary. Its target is resolved as the KTL Curator
-# plugin resolves it:
-#   - an IRI under base_iri, by the path after it;
-#   - any other IRI, as written;
-#   - a relative path, from the root of the bundle and then from the folder
-#     of the citing concept.
-# A concept's id is its `id`, or base_iri and its path without `.md`.
+# slot of a domain vocabulary, and resolve_fn resolves its target.
 # Each concept that names another counts once for it, never for itself, and
 # every list here leaves retired concepts out. `queue` prints Worth ten
 # minutes today, in the order that ktl-curator/references/trust-fields.md
@@ -1270,27 +1370,10 @@ repeats() {  # concepts the ledger names more than once: readers keep asking abo
 # work list, moving on by ten each month, or the counts for the report.
 ranked() {  # queue | lists | isolated | isolated-worklist | isolated-count
   local base
-  base="$(awk -v SQ="'" '{ sub(/\r$/, "") } NR == 1 { sub(/^\357\273\277/, "") } NR == 1 { if ($0 != "---") exit; next } $0 == "---" { exit }
-    /^base_iri:/ { v = $0; sub(/^base_iri:[ \t]*/, "", v); sub(/[ \t\r]+$/, "", v)
-      if (substr(v, 1, 1) == "\"" || substr(v, 1, 1) == SQ) v = substr(v, 2, length(v) - 2); print v; exit }' "$bundle/index.md" 2>/dev/null || true)"
-  { printf '%s\n' "$all"; printf '%s\n' "$times"; } | awk -F'\t' -v mode="$1" -v today="$today" -v base="$base" "$label_fn"'
+  base="$(bundle_base)"
+  { printf '%s\n' "$all"; printf '%s\n' "$times"; } | awk -F'\t' -v mode="$1" -v today="$today" -v base="$base" "$label_fn$resolve_fn"'
   function jdn(d,  y, m, a) { y = substr(d, 1, 4) + 0; m = substr(d, 6, 2) + 0; a = int((14 - m) / 12); y += 4800 - a; m += 12 * a - 3
     return substr(d, 9, 2) + int((153 * m + 2) / 5) + 365 * y + int(y / 4) - int(y / 100) + int(y / 400) - 32045 }
-  function cut(v,  i) { i = index(v, "#"); return i ? substr(v, 1, i - 1) : v }
-  function find(id) { return (id in byid) ? byid[id] : "" }
-  function resolve(v, from,  d, r) {
-    if (v in byid) return byid[v]
-    if (v ~ /^[A-Za-z][A-Za-z0-9+.-]*:/) {
-      if (base == "" || index(v, base) != 1) return ""
-      v = cut(substr(v, length(base) + 1)); sub(/\.md$/, "", v)
-      return find(base v)
-    }
-    if (base == "") return ""
-    v = cut(v); sub(/^\//, "", v); sub(/\.md$/, "", v)
-    r = find(base v); if (r != "") return r
-    d = from; if (sub(/\/[^\/]*$/, "", d)) return find(base d "/" v)
-    return ""
-  }
   function also(s, t) { return s == "" ? t : s "; " t }
   function group(x) { while (up[x] != x) { up[x] = up[up[x]]; x = up[x] } return x }
   function relies(n) { return n == 1 ? "1 other concept relies on this" : n " other concepts rely on this" }
@@ -1307,7 +1390,7 @@ ranked() {  # queue | lists | isolated | isolated-worklist | isolated-count
   $1 == "M" && $2 == "c" { cmoved[$3] = 1 }
   $1 == "K" { held_back[$2] = 1 }
   END {
-    for (i = 1; i <= nc; i++) { p = order[i]; id = cid[p]; if (id == "") { id = p; sub(/\.md$/, "", id); id = base id }; byid[id] = p }
+    ids()
     for (i = 1; i <= nc; i++) {
       p = order[i]; $0 = row[p]
       if ($4 == "deprecated") continue
@@ -1360,7 +1443,7 @@ ranked() {  # queue | lists | isolated | isolated-worklist | isolated-count
       section("Due soon, a review date within 30 days", ns, soon)
       for (k = 1; k <= nd; k++) {
         a = dfrom[k]; b = dto[k]
-        if (conf[a] && gat[b] != "" && gat[b] > hat[a]) { nx++; drv = drv "- " a ": " b " (edited " day(gat[b]) ", confirmed " day(hat[a]) ")\n" }
+        if (conf[a] && hat[a] != "" && gat[b] != "" && gat[b] > hat[a]) { nx++; drv = drv "- " a ": " b " (edited " day(gat[b]) ", confirmed " day(hat[a]) ")\n" }
       }
       section("Confirmed by a person, and derived from a concept edited after that confirmation", nx, drv)
       m = 0
@@ -1493,7 +1576,8 @@ changes() {
     st="${line%%$'\t'*}"; path="${line#*$'\t'}"
     case "$path" in *.md) ;; *) continue ;; esac
     rel="${path#"$pfx"}"; rel="${rel#.lokf/knowledge/}"; rel="${rel#knowledge_bundle/}"
-    case "${rel##*/}" in index.md|log.md|diataxis.md) continue ;; esac
+    case "${rel##*/}" in index.md|log.md) continue ;; esac
+    [ "$rel" != diataxis.md ] || continue
     case "$st" in A*) added=$((added + 1)); continue ;; D*) removed=$((removed + 1)) ;; *) changed=$((changed + 1)) ;; esac
     was="$(git -C "$root" show "HEAD:$path" 2>/dev/null | awk -v path="$rel" -v SQ="'" "$extract" | awk -F'\t' "$label_fn$standing_fn")"
     case "$was" in ""|none) continue ;; esac
@@ -1798,8 +1882,8 @@ as_number() {  # <digits> -> the number without its leading zeros, which bash an
 }
 can_digest() { command -v sha256sum >/dev/null 2>&1 || command -v shasum >/dev/null 2>&1; }
 no_digest="Sample: not drawn here, since the pick needs sha256sum or shasum and this host has neither"
-sha256() {  # standard input -> its SHA-256 as hex, then what the tool prints after it
-  if command -v sha256sum >/dev/null 2>&1; then sha256sum; else shasum -a 256; fi
+sha256() {  # standard input, or each file named -> its SHA-256 as hex, then what the tool prints after it
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum "$@"; else shasum -a 256 "$@"; fi
 }
 # The seed reaches printf and the digest as it was given, and never awk,
 # which would read a backslash in it as an escape. A list whose size is 0 is
@@ -1994,6 +2078,7 @@ times=""
 case "$cmd" in
   health)   [ $# -eq 0 ] || usage; health ;;
   labels)   labels "$@" ;;
+  questions) [ $# -eq 0 ] || usage; lists questions ;;
   coverage) coverage "$@"; exit $? ;;
   isolated) [ $# -eq 0 ] || usage; ranked isolated ;;
   worklist)
@@ -2046,7 +2131,7 @@ case "$cmd" in
     unconfirmed_successors
     echo ""
     echo "Reader feedback waiting: $(waiting_feedback)"
-    disputed | awk -F'\t' '{ n++; body = body "- " $2 " (" $3 ")\n" } END { print "Disputed by a reader, waiting for the librarian: " (n ? n : "none"); if (n) printf "%s", body }'
+    { printf '%s\n' "$all"; disputed; } | awk -F'\t' '$1 == "C" { st[$2] = $4; next } $1 == "G" && st[$2] != "deprecated" { n++; body = body "- " $2 " (" $3 ")\n" } END { print "Disputed by a reader, waiting for the librarian: " (n ? n : "none"); if (n) printf "%s", body }'
     repeats
     # The sample, only when the curation policy asks for one.
     ni="$(policy_size "independent re-check")"; na="$(policy_size "automation re-check")"

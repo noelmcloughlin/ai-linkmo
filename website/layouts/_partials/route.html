@@ -1,7 +1,8 @@
 {{- /*
   Where a link written in a repository file goes: the page built from the
-  file it names, the figure under /assets/ or /docs/, or the file on GitHub:
-  its page there for a link, and the file itself for an image. A path that
+  file it names, the figure or PDF file under /assets/ or /docs/, or the file
+  on GitHub: its page there for a link, and the file itself for an image. A
+  file of a kind the site does not serve goes to GitHub too. A path that
   starts with / is read from the repository's root, as GitHub reads it. A
   link to a release's heading in the changelog goes to that release's page.
   Takes (dict "from" <repo path of the file holding the link> "url" <the
@@ -18,6 +19,8 @@
     {{- $fragment := $u.Fragment -}}
     {{- $rel := partial "site-path.html" $target -}}
     {{- $page := or (index $routes $target) (index $routes (printf "%s/index.md" $target)) (index $routes (printf "%s/README.md" $target)) -}}
+    {{- /* Only the kinds hugo.toml's `served` lists are served; a link to any other goes to GitHub. */ -}}
+    {{- $served := in site.Params.served (path.Ext $rel | strings.TrimPrefix "." | lower) -}}
     {{- if $page -}}
       {{- $out = $page -}}
       {{- if and (eq $rel "CHANGELOG.md") $fragment -}}
@@ -25,10 +28,9 @@
       {{- end -}}
     {{- else if eq $target "." -}}
       {{- $out = "" | relURL -}}
-    {{- else if hasPrefix $rel ".assets/" -}}
+    {{- else if and (hasPrefix $rel ".assets/") $served -}}
       {{- $out = strings.TrimPrefix "." $rel | relURL -}}
-    {{- else if and (hasPrefix $rel "docs/") (not (hasSuffix $rel ".md")) (resources.Get $rel) -}}
-      {{- /* A file of the docs folder that is not a page, such as a figure, is served beside the pages. */ -}}
+    {{- else if and (hasPrefix $rel "docs/") $served (resources.Get $rel) -}}
       {{- $out = $rel | relURL -}}
     {{- else -}}
       {{- $kind := cond (eq .image true) "raw" (cond (eq (path.Ext $target) "") "tree" "blob") -}}

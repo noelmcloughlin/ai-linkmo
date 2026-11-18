@@ -1,16 +1,23 @@
 {{- /*
-  A library from `params.vendor`, fetched once at build time, checked against
-  its SHA-256 and published under /js/vendor/. A file that does not match
-  stops the build.
+  A library from `params.vendor`, from the site's assets/vendor/<name>.js
+  where it holds one, else fetched once at build time, checked against its
+  SHA-256 and published under /js/vendor/. A mismatch stops the build.
 */ -}}
 {{- $v := index site.Params.vendor . -}}
 {{- $out := false -}}
-{{- with try (resources.GetRemote $v.url) -}}
-  {{- with .Err }}{{ errorf "vendor %s: cannot fetch %s: %s" $ $v.url . }}{{ end -}}
-  {{- with .Value -}}
-    {{- $got := crypto.SHA256 .Content -}}
-    {{- if ne $got $v.sha256 }}{{ errorf "vendor %s: %s has SHA-256 %s, not the %s that hugo.toml names" $ $v.url $got $v.sha256 }}{{ end -}}
-    {{- $out = . | resources.Copy (printf "js/vendor/%s.js" $) -}}
-  {{- else }}{{ errorf "vendor %s: nothing at %s" $ $v.url }}{{ end -}}
+{{- $from := printf "assets/vendor/%s.js" . -}}
+{{- $file := resources.Get (printf "vendor/%s.js" .) -}}
+{{- if not $file -}}
+  {{- $from = $v.url -}}
+  {{- with try (resources.GetRemote $v.url) -}}
+    {{- with .Err }}{{ errorf "vendor %s: cannot fetch %s: %s. Where the network blocks that address, keep a copy of the file in the site's folder as assets/vendor/%s.js" $ $v.url . $ }}
+    {{- else with .Value }}{{ $file = . }}
+    {{- else }}{{ errorf "vendor %s: nothing at %s" $ $v.url }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- with $file -}}
+  {{- $got := crypto.SHA256 .Content -}}
+  {{- if ne $got $v.sha256 }}{{ errorf "vendor %s: %s has SHA-256 %s, not the %s that hugo.toml names for %s" $ $from $got $v.sha256 $v.url }}{{ end -}}
+  {{- $out = . | resources.Copy (printf "js/vendor/%s.js" $) -}}
 {{- end -}}
 {{- return $out -}}

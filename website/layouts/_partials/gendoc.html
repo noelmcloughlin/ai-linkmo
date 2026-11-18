@@ -2,9 +2,10 @@
   One page gen-doc wrote, tidied for this site. gen-doc writes for mkdocs, so
   the mkdocs frontmatter and its search wrapper go. The title's line and the
   description under it are taken out and returned beside the body. A heading
-  over a table with no rows goes. Each <details> gets a summary, and the
-  blank lines that make the YAML inside it a code block. Takes the file as a
-  resource, and returns (dict "heading" "description" "body").
+  over a table with no rows goes. Each <details> gets a summary, the blank
+  lines that make the YAML inside it a code block, and own.html's attribute,
+  so search still leaves it out once the page is cleaned. Takes the file as
+  a resource, and returns (dict "heading" "description" "body").
 */ -}}
 {{- $body := .Content | replaceRE `(?s)\A---\n.*?\n---` "" | strings.TrimLeft " \t\r\n" -}}
 {{- $heading := "" -}}
@@ -25,6 +26,6 @@
     | replaceRE `<div data-search-exclude markdown="1">` ""
     | replaceRE `</div>\s*\z` ""
     | replaceRE `(?m)^#{2,3} [^\n]+\n+\|[^\n]*\|\n\|[ :|-]+\|\n(?:[ \t]*\n|\z)` ""
-    | replaceRE `(?m)^<details>[ \t]*$` "<details data-pagefind-ignore>\n<summary>YAML</summary>\n"
+    | replaceRE `(?m)^<details>[ \t]*$` (printf "<details data-pagefind-ignore%s>\n<summary>YAML</summary>\n" (partial "own.html" .))
     | replaceRE `(?m)^</details>` "\n</details>" -}}
 {{- return (dict "heading" $heading "description" $description "body" $body) -}}

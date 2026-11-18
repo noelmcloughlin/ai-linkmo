@@ -2,12 +2,15 @@
   What a page offers above its words. Its reading levels, when it has a
   retelling or is one: the full page, then each retelling by who it is for.
   And its sections, as a list that stays closed until the reader asks for
-  it. A page with neither shows nothing here.
+  it. A page with neither shows nothing here. Hugo writes a heading's own
+  HTML into the list, so the list goes through raw.html and is cleaned as
+  the page's body is.
 */ -}}
 {{- $levels := index (partialCached "levels.html" "levels") .RelPermalink -}}
 {{- $toc := "" -}}
 {{- if not .IsHome }}{{ $toc = cond (.Params.shift | default false) (.Fragments.ToHTML 1 2 false) (.Fragments.ToHTML 2 3 false) }}{{ end -}}
 {{- if not (strings.Contains $toc "<li>") }}{{ $toc = "" }}{{ end -}}
+{{- $toc = $toc | replaceRE `\A\s*<nav[^>]*>|</nav>\s*\z` "" -}}
 {{- if or $levels $toc }}
 <div class="tools" data-pagefind-ignore>
   {{- with $levels }}
@@ -20,7 +23,7 @@
   {{- with $toc }}
   <details class="toc">
     <summary>On this page</summary>
-    {{ . }}
+    <nav aria-label="On this page">{{ partial "raw.html" (dict "html" . "from" (partial "repo-path.html" $)) }}</nav>
   </details>
   {{- end }}
 </div>
