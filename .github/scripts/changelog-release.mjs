@@ -16,6 +16,10 @@
 //       also appends `next_version=<version>` to $GITHUB_OUTPUT if that
 //       env var is set (a side channel a caller can read even from a
 //       --dry-run invocation, where nothing else is written anywhere).
+//       When Unreleased is empty and "## [<version>]" exists, it prints
+//       that section's body instead. semantic-release runs this command a
+//       second time after @semantic-release/git commits the promoted
+//       changelog, and the second output becomes the GitHub release body.
 //
 //   node changelog-release.mjs promote <version> <date>
 //       Retitles "## [Unreleased]" to "## [<version>] - <date>" and
@@ -35,10 +39,23 @@ function readUnreleased() {
   if (start === -1) {
     throw new Error(`${FILE} has no "${HEADING}" heading - this pipeline expects one.`);
   }
-  const bodyStart = start + HEADING.length;
+  return { text, body: sectionBody(text, start + HEADING.length) };
+}
+
+// The text from bodyStart to the next "## [" heading, trimmed.
+function sectionBody(text, bodyStart) {
   const next = text.indexOf("\n## [", bodyStart);
   const bodyEnd = next === -1 ? text.length : next;
-  return { text, body: text.slice(bodyStart, bodyEnd).trim() };
+  return text.slice(bodyStart, bodyEnd).trim();
+}
+
+// The body of the "## [<version>] - <date>" section, or "" when there is none.
+function versionBody(text, version) {
+  if (!version) return "";
+  const start = text.indexOf(`\n## [${version}]`);
+  if (start === -1) return "";
+  const lineEnd = text.indexOf("\n", start + 1);
+  return lineEnd === -1 ? "" : sectionBody(text, lineEnd);
 }
 
 function writeOutput(line) {
@@ -63,9 +80,9 @@ switch (cmd) {
 
   case "notes": {
     const [version] = args;
-    const { body } = readUnreleased();
+    const { text, body } = readUnreleased();
     if (version) writeOutput(`next_version=${version}\n`);
-    process.stdout.write(body + "\n");
+    process.stdout.write((body || versionBody(text, version)) + "\n");
     break;
   }
 
