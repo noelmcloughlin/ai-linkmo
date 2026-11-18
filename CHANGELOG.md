@@ -6,6 +6,10 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 ## [Unreleased]
 
+### Security
+
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.69.2](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.69.0...v0.69.2).** The release changed `.github/workflows/knowledge-sync.yaml`, `.lokf/scripts/knowledge-apply.py` and `.lokf/scripts/knowledge-sync.sh` here.
+
 ## [0.7.3] - 2026-11-18
 
 ### Fixed

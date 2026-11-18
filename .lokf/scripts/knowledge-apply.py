@@ -374,7 +374,9 @@ class Dumper(yaml.SafeDumper):
 
     def choose_scalar_style(self):
         style = super().choose_scalar_style()
-        return '"' if style == "'" else style
+        # A value holding a double quote, such as an ETag, keeps single quotes:
+        # double quotes would need a backslash escape, which the gate reads as unreadable.
+        return '"' if style == "'" and '"' not in self.event.value else style
 
     def increase_indent(self, flow=False, indentless=False):
         # PyYAML writes a list under a key with its dashes at the key's
@@ -385,11 +387,11 @@ class Dumper(yaml.SafeDumper):
 
 
 class Quoted(str):
-    """A commit hash, written in double quotes whatever it holds. Unquoted, a short hash such as 1234e56 reads as a number to a YAML 1.2 reader, and the bundle quotes every `revision` so that none does."""
+    """A revision, always quoted: a short hash such as 1234e56 reads as a number to a YAML 1.2 reader unquoted. Double quotes, or single quotes round an ETag's own double quotes."""
 
 
 Dumper.add_representer(Plain, lambda dumper, text: dumper.represent_scalar(text.tag, str(text)))
-Dumper.add_representer(Quoted, lambda dumper, text: dumper.represent_scalar("tag:yaml.org,2002:str", str(text), style='"'))
+Dumper.add_representer(Quoted, lambda dumper, text: dumper.represent_scalar("tag:yaml.org,2002:str", str(text), style="'" if '"' in text else '"'))
 
 
 def quote_revisions(value):
