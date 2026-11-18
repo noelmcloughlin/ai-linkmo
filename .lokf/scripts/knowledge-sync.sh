@@ -550,6 +550,7 @@ main() {
       if [[ ! -f "$host/$dst" ]]; then
         mkdir -p "$(dirname "$host/$dst")"
         cat "$new_w/website/$rel" > "$host/$dst"
+        [[ ! -x "$new_w/website/$rel" ]] || chmod +x "$host/$dst"
         added+=("$dst (the site cannot build without it)")
       elif cmp -s "$new_w/website/$rel" "$host/$dst"; then
         same+=("$dst")
@@ -560,6 +561,7 @@ main() {
           copied+=("$dst")
         fi
         cat "$new_w/website/$rel" > "$host/$dst"
+        [[ ! -x "$new_w/website/$rel" ]] || chmod +x "$host/$dst"
       fi
     done < <(cd "$new_w/website" && find . -type f ! -path '*/__pycache__/*' | sed 's#^\./##' | LC_ALL=C sort)
     local wsrc="github/knowledge-website.yaml" wdst=".github/workflows/knowledge-website.yaml"
