@@ -13,49 +13,56 @@ set -euo pipefail
 here=$(cd "$(dirname "$0")/.." && pwd)
 root=$(cd "$here/.." && pwd)
 out="$here/generated"
-repo_url=$(sed -n 's/^repo = "\(.*\)"$/\1/p' "$here/site.toml")
-[ -n "$repo_url" ] || { echo "prepare.sh: site.toml has no repo = \"...\" line" >&2; exit 1; }
+# The site's own tools, as build.sh runs them, for the two checks below.
+# uv-env.sh installs them, from a package mirror where uv reads one.
+mode=$("$here/scripts/uv-env.sh" "$here")
+tool=(uv run --project "$here" "$mode" --quiet)
+# site.toml's values, read by a TOML parser as Hugo reads them, one
+# `name=value` line each. A file the parser refuses stops the build here.
+site=$("${tool[@]}" python -I "$here/scripts/site-values.py" "$here/site.toml")
+value() { sed -n "s/^$1=//p" <<<"$site"; }
+repo_url=$(value repo)
+[ -n "$repo_url" ] || { echo "prepare.sh: site.toml has no repo = \"...\" line under [params]" >&2; exit 1; }
 [ -f "$root/.lokf/knowledge/index.md" ] || { echo "prepare.sh: no .lokf/knowledge/index.md under $root; the ktl-sidecar skill installs the bundle" >&2; exit 1; }
 # The commit of the build, or the branch where the folder is not under git.
-branch=$(sed -n 's/^branch = "\(.*\)"$/\1/p' "$here/site.toml")
+branch=$(value branch)
 ref=$(git -C "$root" rev-parse HEAD 2>/dev/null || echo "${branch:-main}")
-# site.toml's source: the folder the README, docs/, the changelog and
-# .assets/ come from, by the mounts in generated/source.toml. Its linkml: the
-# folder whose src/<name>/schema/ holds the schema.
-source=$(sed -n 's/^source = "\(.*\)"$/\1/p' "$here/site.toml"); source=${source%/}
-linkml=$(sed -n 's/^linkml = "\(.*\)"$/\1/p' "$here/site.toml"); linkml=${linkml%/}
+# site.toml's source: the folder the README, SPEC.md, docs/, the changelog
+# and .assets/ come from, by the mounts in generated/source.toml. Its linkml:
+# the folder whose src/<name>/schema/ holds the schema.
+source=$(value source); source=${source%/}
+linkml=$(value linkml); linkml=${linkml%/}
 src_root="$root${source:+/$source}"
 
-# An SVG is served as a page of its own, so one that holds a script, an event
-# handler or a javascript: address would run on the site's address.
-if active=$(grep -rlEi --include='*.svg' '<script|<foreignObject|[[:space:]]on[a-z]+[[:space:]]*=|javascript:' "$src_root/.assets" "$src_root/docs" "$root/.lokf/knowledge" "$here/static" 2>/dev/null); then
-  echo "prepare.sh: these SVG files hold a script, an event handler or a javascript: address, and the site would serve them:" >&2
-  echo "$active" >&2
-  exit 1
-fi
+# Stop on an SVG that could run a script on the site's address.
+"${tool[@]}" python -I "$here/scripts/check-svg.py" "$src_root/.assets" "$src_root/docs" "$root/.lokf/knowledge" "$here/static"
 
 rm -rf "$out"
 mkdir -p "$out/knowledge"
 
-# hugo.toml's mounts with the README, docs/, the changelog and .assets/ read
-# from the source folder. build.sh reads this file last, and Hugo then takes
-# its mounts in place of hugo.toml's.
+# hugo.toml's mounts with the README, SPEC.md, docs/, the changelog and
+# .assets/ read from the source folder. build.sh reads this file last, and
+# Hugo then takes its mounts in place of hugo.toml's.
 if [ -n "$source" ]; then
   [ -d "$src_root" ] || { echo "prepare.sh: site.toml's source names $source, which is no folder" >&2; exit 1; }
   sed -n '/^\[\[module\.mounts\]\]/,$p' "$here/hugo.toml" | sed \
     -e "s#^source = \"\.\./README\.md\"#source = \"../$source/README.md\"#" \
+    -e "s#^source = \"\.\./SPEC\.md\"#source = \"../$source/SPEC.md\"#" \
     -e "s#^source = \"\.\./docs\"#source = \"../$source/docs\"#" \
     -e "s#^source = \"\.\./CHANGELOG\.md\"#source = \"../$source/CHANGELOG.md\"#" \
     -e "s#^source = \"\.\./\.assets\"#source = \"../$source/.assets\"#" >"$out/source.toml"
 fi
 
-# The bundle's own tools: lokf, and the LinkML it is built on.
-lokf=(uv run --project "$root/.lokf" --frozen --quiet)
+# The bundle's own tools: lokf, and the LinkML it is built on, installed as
+# the site's own are.
+mode=$("$here/scripts/uv-env.sh" "$root/.lokf")
+lokf=(uv run --project "$root/.lokf" "$mode" --quiet)
 
 # The domain vocabulary the sidecar's justfile names, so the export carries
-# its classes as `just lokf-convert` does.
+# its classes as `just lokf-convert` does. lokf-export.py runs `lokf export`
+# with the root's diataxis.md read as no concept.
 schema=$(sed -n 's/^schema := "\(.*\)"$/\1/p' "$root/.lokf/justfile" 2>/dev/null || true)
-"${lokf[@]}" lokf export ${schema:+--schema "$root/.lokf/$schema"} "$root/.lokf/knowledge" \
+"${lokf[@]}" python -I "$here/scripts/lokf-export.py" ${schema:+--schema "$root/.lokf/$schema"} "$root/.lokf/knowledge" \
   --out-dir "$out/knowledge" \
   --source-base "$repo_url/blob/$ref/.lokf/knowledge"
 
@@ -94,11 +101,11 @@ PY
 # site.toml's schema is a path from the root, or pkg:<package>/<path> for a
 # schema inside a package that the environment of the uv project
 # schemaProject names holds. The package is found, never imported.
-named=$(sed -n 's/^schema = "\(.*\)"$/\1/p' "$here/site.toml")
+named=$(value schema)
 if [ -n "$named" ]; then
   case "$named" in
     pkg:*)
-      project=$(sed -n 's/^schemaProject = "\(.*\)"$/\1/p' "$here/site.toml")
+      project=$(value schemaProject)
       model=$(uv run --project "$root/${project:-.}" --frozen --quiet python -I -c '
 import importlib.util, pathlib, sys
 package, _, inner = sys.argv[1][4:].partition("/")
@@ -149,9 +156,9 @@ fi
 # the plugins' settings, which Datasette Lite never runs and which can hold a
 # credential. site.toml's browseBuild command writes the data when the folder
 # holds no database. Nothing else in the folder is served.
-browse=$(sed -n 's/^browse = "\(.*\)"$/\1/p' "$here/site.toml")
+browse=$(value browse)
 if [ -n "$browse" ]; then
-  build=$(sed -n 's/^browseBuild = "\(.*\)"$/\1/p' "$here/site.toml")
+  build=$(value browseBuild)
   databases() { find "$root/$browse" -maxdepth 1 -type f \( -name '*.sqlite' -o -name '*.sqlite3' -o -name '*.db' \) 2>/dev/null; }
   if [ -z "$(databases)" ]; then
     [ -n "$build" ] || { echo "prepare.sh: site.toml's browse names $browse, which holds no database, and no browseBuild writes it" >&2; exit 1; }

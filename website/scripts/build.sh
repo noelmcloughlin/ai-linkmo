@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Builds the knowledge website. Hugo and Pagefind come from PyPI through uv,
 # at the versions and hashes uv.lock holds, so the build needs bash, git and
-# uv, and no Node.js.
+# uv, and no Node.js. Behind a package mirror, scripts/uv-env.sh installs the
+# same files from the index uv reads.
 #
 #   scripts/build.sh           dist/, with its raw HTML cleaned, the search
 #                              index, and every link between its pages checked
@@ -17,13 +18,14 @@
 set -euo pipefail
 here=$(cd "$(dirname "$0")/.." && pwd)
 cd "$here"
-tool=(uv run --project "$here" --frozen --quiet)
+mode=$(scripts/uv-env.sh "$here")
+tool=(uv run --project "$here" "$mode" --quiet)
 # hugo.toml is the same on every site, and site.toml holds this repository's
 # own values, read second so that they win.
 # shellcheck disable=SC2054 # one --config value: Hugo takes the files as a comma-separated list
 port=${PORT:-1313}
 
-if grep -qE '<(REPO|PROJ)_[A-Z]+>' site.toml; then
+if grep -qE '<(REPO|PROJ|SITE)_[A-Z]+>' site.toml; then
   echo "build.sh: site.toml still holds a <PLACEHOLDER>; give it this repository's values first" >&2
   exit 1
 fi

@@ -5,14 +5,20 @@
 Hugo writes the HTML each repository file renders to between two comments
 that carry the build's mark, which changes with every build, so no file can
 fake one. Within them, a tag GitHub allows in a README keeps the attributes
-it allows, with the class, id, data-* and aria-* attributes the site's
-Markdown rendering writes, and a style that only aligns a table's cell. An
-address that is not http, https, mailto, a path or a fragment is dropped.
-Any other markup is shown as text, so the reader sees it and nothing in it
-runs, and each is named on the log. Comments are dropped. Every element is
-closed, so nothing a file writes can reach the page around it. The page's
-Content-Security-Policy stays as a second guard, and the script needs only
-the Python standard library.
+it allows, each written once, with an id and a style that only aligns a
+table's cell. An address that is not http, https, mailto, a path or a
+fragment is dropped. Any other markup is shown as text, so the reader sees
+it and nothing in it runs, and each is named on the log. Comments are
+dropped. Every element is closed, so nothing a file writes can reach the
+page around it.
+
+A class or a data-* attribute stays only where the site's own rendering
+wrote it: on an element whose data-site names the mark (own.html), or as a
+footnote's or highlighted code's class. So a repository file cannot draw a
+trust label, name itself in a search filter or word a link's preview.
+
+The page's Content-Security-Policy stays as a second guard, and the script
+needs only the Python standard library.
 
 Exits 1 when a page holds a mark with no end, as it does when an unclosed
 comment or script swallowed the rest of the page, or when no page holds a
@@ -35,17 +41,19 @@ TAGS = set(
     "figcaption abbr bdo cite dfn mark small span time wbr picture source input".split()
 )
 VOID = {"br", "hr", "img", "wbr", "source", "input"}
-# The attributes GitHub keeps on any tag, less a form's, with those the
-# site's rendering writes.
+# The attributes GitHub keeps on any tag, less a form's, with id and loading.
+# `name` stays on a link alone: on an image it would shadow a document
+# property the site's script calls.
 ATTRIBUTES = set(
     "abbr align alt aria-describedby aria-hidden aria-label aria-labelledby axis border cellpadding cellspacing "
     "char charoff checked clear cols colspan color compact coords datetime dir disabled for frame headers height "
-    "hreflang hspace ismap label lang maxlength media multiple name nohref noshade nowrap open prompt readonly "
+    "hreflang hspace ismap label lang maxlength media multiple nohref noshade nowrap open prompt readonly "
     "rel rev role rows rowspan rules scope selected shape size span start summary tabindex target title type "
-    "usemap valign value vspace width itemprop class id loading".split()
+    "usemap valign value vspace width itemprop id loading".split()
 )
 PER_TAG = {
-    "a": {"href"},
+    "a": {"href", "name"},
+    "code": {"data-lang"},
     "img": {"src", "srcset", "longdesc"},
     "source": {"srcset"},
     "div": {"itemscope", "itemtype"},
@@ -55,6 +63,19 @@ PER_TAG = {
     "q": {"cite"},
 }
 ADDRESSES = {"href", "src", "srcset", "longdesc", "cite"}
+# The attribute own.html writes on an element of the site's own templates,
+# and the data-* attributes such an element keeps.
+OWN = "data-site"
+SITE_DATA = {"data-pagefind-ignore", "data-preview"}
+# The classes Goldmark writes for a footnote, and Chroma for highlighted
+# code: its wrappers, its lines and line numbers, and each kind of token.
+RENDERED = set(
+    "footnotes footnote-ref footnote-backref highlight chroma bg lntable lntd lnt ln lnlinks hl line cl "
+    "x err w k kc kd kn kp kr kt n na nb bp nc no nd ni ne nf fm py nl nn nx nt nv vc vg vi vm "  # codespell:ignore nd
+    "l ld s sa sb sc dl sd s2 se sh si sx sr s1 ss m mb mf mh mi il mo o ow or p "
+    "c ch cm cp cpf c1 cs g gd ge gr gh gi go gp gs gu gt gl".split()
+)
+LANGUAGE = re.compile(r"^language-[\w+#.-]+$")
 SAFE = re.compile(r"^(?:https?:|mailto:|#|/|\.|[^:/?#]*(?:[/?#]|$))", re.I)
 ALIGN = re.compile(r"^\s*text-align:\s*(?:left|right|center)\s*;?\s*$", re.I)
 
@@ -65,8 +86,9 @@ def safe_address(name: str, value: str) -> bool:
 
 
 class Cleaner(HTMLParser):
-    def __init__(self):
+    def __init__(self, mark: str):
         super().__init__(convert_charrefs=True)
+        self.mark = mark
         self.out, self.open, self.shown = [], [], []
 
     def show(self, text: str):
@@ -74,21 +96,31 @@ class Cleaner(HTMLParser):
         self.shown.append(" ".join(text.split())[:80])
 
     def handle_starttag(self, tag, attrs):
-        if tag not in TAGS or (tag == "input" and dict(attrs).get("type") != "checkbox"):
+        # A browser reads the first of an attribute written twice, so an input
+        # is a task list's checkbox only when every type it names is one.
+        types = [(value or "").strip().lower() for name, value in attrs if name == "type"]
+        if tag not in TAGS or (tag == "input" and (not types or any(kind != "checkbox" for kind in types))):
             self.show(self.get_starttag_text() or f"<{tag}>")
             return
-        kept = []
+        own = any(name == OWN and value == self.mark for name, value in attrs)
+        kept = {}
         for name, value in attrs:
             value = value or ""
+            allowed = name in ATTRIBUTES or name in PER_TAG.get(tag, ())
             if name == "style":
-                if not ALIGN.match(value):
-                    continue
-            elif not (name in ATTRIBUTES or name in PER_TAG.get(tag, ()) or name.startswith(("data-", "aria-"))):
-                continue
+                allowed = bool(ALIGN.match(value))
+            elif name == "class":
+                if not own:
+                    value = " ".join(word for word in value.split() if word in RENDERED or (tag == "code" and LANGUAGE.match(word)))
+                allowed = bool(value)
+            elif name in SITE_DATA:
+                allowed = own
             if name in ADDRESSES and not safe_address(name, value):
-                continue
-            kept.append(f' {name}="{escape(value)}"')
-        self.out.append(f"<{tag}{''.join(kept)}>")
+                allowed = False
+            # Only the first of a name written twice counts, kept or not.
+            if name not in kept:
+                kept[name] = f' {name}="{escape(value)}"' if allowed else ""
+        self.out.append(f"<{tag}{''.join(kept.values())}>")
         if tag not in VOID:
             self.open.append(tag)
 
@@ -133,20 +165,22 @@ class Cleaner(HTMLParser):
 
 
 def main(site: Path, mark: str) -> int:
-    region = re.compile(rf"<!--# raw {re.escape(mark)} -->(.*?)<!--# /raw {re.escape(mark)} -->", re.S)
+    start, end = f"<!--# raw {mark} -->", f"<!--# /raw {mark} -->"
+    region = re.compile(rf"{re.escape(start)}(.*?){re.escape(end)}", re.S)
     failed, regions = [], 0
     for path in sorted(site.rglob("*.html")):
         text = path.read_text(encoding="utf-8")
         if mark not in text:
             continue
         found = list(region.finditer(text))
-        if text.count(mark) != 2 * len(found):
+        # The site's own elements name the mark too, so each comment is counted whole.
+        if not text.count(start) == text.count(end) == len(found):
             failed.append(f"{path.relative_to(site)} holds a mark with no end: an unclosed comment, script or other element in its source swallowed the rest of the page")
             continue
         shown = []
 
         def cleaned(match):
-            cleaner = Cleaner()
+            cleaner = Cleaner(mark)
             html = cleaner.clean(match.group(1))
             shown.extend(cleaner.shown)
             return html

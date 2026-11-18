@@ -5,77 +5,91 @@
 # on these rules, and knowledge-conventions.py gives the detail of each rule
 # it checks:
 #
-#   1. log.md has one `## YYYY-MM-DD` heading per day: the bare ISO date,
-#      newest first, no duplicates. OKF §9 makes the date form a MUST, and the
-#      KTL Curator plugin finds today's section by that exact heading.
-#   2. Every `at:` is a quoted string, and a UTC time to the second, as
-#      `date -u +%Y-%m-%dT%H:%M:%SZ` writes it.
+#   1. The bundle's root log.md has one `## YYYY-MM-DD` heading per day: the
+#      bare ISO date, newest first, no duplicates. OKF §9 makes the date form a
+#      MUST, and the KTL Curator plugin finds today's section by that exact
+#      heading.
+#   2. Every `at:` is a quoted string, and a UTC time to the second, as `date
+#      -u +%Y-%m-%dT%H:%M:%SZ` writes it.
 #   3. `verified` is a list, never a bare `{ by, at }` mapping, and carries at
 #      most one `process:ktl-librarian` event: the librarian replaces its own.
-#   4. A bullet under `## Open questions` is `- YYYY-MM-DD, <actor>: ...`, the
-#      shape the curator and both plugins write and read. The curator quotes
-#      the first bullet, so a trailing signature would become the question.
-#   5. Every `resource:` that is not a URL names a file or directory that
-#      exists, relative to the repository root: the nearest directory holding
-#      `.lokf/`, or else the bundle's parent. URLs are never fetched.
-#   6. A commit-shaped `revision` (lokf 0.9.0 and later) on a `generated` or
-#      `verified` event names a commit in this repository that holds the
-#      concept's local `resource`. ETags, digests and version labels pin URLs
-#      and are not checked. The rule needs the full history: outside git it
-#      is skipped, and a shallow clone is reported.
+#   4. A bullet under `## Open questions` is `- YYYY-MM-DD, <actor>: ...`, with
+#      a `human:` or `process:` actor: the shape the curator and both plugins
+#      write and read. The curator quotes the first bullet, so a trailing
+#      signature would become the question.
+#   5. Every `resource:`, an exclusion's too, that names no URL and no other
+#      scheme, such as `urn:` or `doi:`, names a file or directory that exists,
+#      relative to the repository root: the nearest directory holding `.lokf/`,
+#      or else the bundle's parent. URLs are never fetched.
+#   6. A commit-shaped `revision` (lokf 0.9.0 and later), seven or more
+#      lower-case hex characters on any event, names a commit in the history of
+#      HEAD that holds the concept's local `resource`. With `--since <commit>`
+#      it names no commit made after that base: a squash merge or a rebase
+#      replaces such a commit, and a `sha256:` digest pins the file instead. A
+#      `revision` of any other shape, such as an ETag or a digest, is not
+#      checked. The rule needs the full history: outside git it is skipped, and
+#      a shallow clone is reported.
 #   7. One file per `id`. A sync client's conflict copy or a pasted duplicate
 #      passes `lokf validate` and silently merges into the original in the
 #      graph.
-#   8. Every path in the bundle is lowercase: a-z, 0-9, `.`, `_`, `-`. Two
-#      paths that differ only by case collide on Windows, macOS and
-#      SharePoint, and sync clients name a conflict copy with a space, a
-#      parenthesis or an upper-case host name.
+#   8. Every Markdown file's path in the bundle is lowercase: each segment
+#      starts with a letter or a digit and holds a-z, 0-9, `.`, `_`, `-`. Two
+#      paths that differ only by case collide on Windows, macOS and SharePoint,
+#      and sync clients name a conflict copy with a space, a parenthesis or an
+#      upper-case host name.
 #   9. Every concept is a file, not a symbolic link, and starts with a `---`
-#      frontmatter block that closes, with no byte order mark in front of it
-#      and no `---` inside it. A BOM or a file with no block would otherwise
-#      pass this script unread.
+#      frontmatter block that closes. No byte order mark or blank line stands
+#      in front of it, no space or tab follows a `---` delimiter, and no other
+#      `---` sits inside it. Otherwise LOKF, or lokf before 0.10.0, reads more
+#      or less of the file as frontmatter than this script does.
 #  10. The fields the provenance gates read line by line are spelt so that a
-#      line reader and a parser read the same thing, since both gates refuse
-#      an event they cannot read. They are `id`, `verified`, `generated`, and
-#      `by`, `at` and `revision` on an event. They carry no quoted or explicit
-#      key, space before the colon, escape or block scalar. No value spans
-#      lines or sits below its key, and no comment sits beside one or inside
-#      a flow form. `resource` keeps the same spellings, though a comment may
-#      stand beside it, and `sources` and `exclusions` hold no flow form.
-#      The whole block holds no tag, anchor, alias or merge key, on any field:
-#      a line reader resolves none of them, and an alias can stand in for an
-#      event or a source wherever it sits. The block is not indented whole or
-#      one flow mapping, and holds no line break but a line feed.
-#  11. No `at:` is later than the commit that first recorded it, or, before
-#      it is committed, than now. A time ahead of the clock, such as local
-#      time labelled `Z` or a round placeholder, sorts after the edits and
+#      line reader and a parser read the same thing. They are `id`, `verified`,
+#      `generated`, and `by`, `at` and `revision` at any depth. Each carries no
+#      quoted or explicit key, space before the colon, escape or block scalar,
+#      and none is given twice in one mapping. No value spans lines or sits
+#      below its key, and no comment sits beside one, inside a flow form or
+#      between the events of a list. `resource` keeps the same spellings,
+#      though a comment may stand beside it, and `sources` and `exclusions`
+#      hold no flow form. The whole block holds no tag, anchor, alias or merge
+#      key, on any field or collection. The block is not indented whole or one
+#      flow mapping, and holds no line break but a line feed.
+#  11. No `at:` is later than the commit that first recorded it, or, before it
+#      is committed, than now. A time ahead of the clock, such as local time
+#      labelled `Z` or a round placeholder, sorts after the edits and
 #      confirmations that followed it, so a concept reads as edited since it
-#      was confirmed when it was not. A rename or a shallow clone can only
-#      make that commit look later, so the rule can miss a bad time but never
-#      flags a good one. A time with an offset other than `Z` is not
-#      compared. Outside git the rule is skipped.
+#      was confirmed when it was not. A rename or a shallow clone can only make
+#      that commit look later, so the rule can miss a bad time but never flags
+#      a good one. A time with an offset other than `Z` is not compared.
+#      Outside git the rule is skipped.
 #  12. An index bullet that names a concept carries that concept's title and
 #      description, in the folder's index.md and in the root's. A concept no
 #      index lists is not a finding.
 #  13. A concept labelled confirmed by a person still says what that person
 #      confirmed: an edit to its claims after the commit that recorded the
-#      latest confirmation must move `generated.at` past that confirmation.
+#      latest confirmation must move `generated.at` past that confirmation. Its
+#      claims are its body and its frontmatter, less the open questions, KTL
+#      Registrar's `lokf:related` block, and `generated`, `verified`, `status`,
+#      `stale_after`, `timestamp` and `usage_window`. A retired concept is not
+#      read, and outside git the rule is skipped.
 #  14. A commit that records a person's confirmation changes the verdict, not
-#      what the concept says, unless `generated.by` names that same person.
-#      The rule reads the commits after `--since <commit>`, and is skipped
-#      without it.
+#      what the concept says, unless `generated.by` names that same person. The
+#      rule reads the commits after `--since <commit>`, up to `--head <commit>`
+#      or else HEAD, and is skipped without `--since`.
 #  15. Every concept names where it came from: a top-level `resource`, or a
 #      `sources` list with an entry.
-#  16. A footnote joins a claim to a source: each footnote in a body uses the
-#      `id` of one of the concept's `sources` entries, each id is cited and
-#      defined, and one id names one resource across the bundle.
+#  16. A footnote joins a claim to a source. Each footnote in a body uses the
+#      `id` of one of the concept's `sources` entries, and each id is cited
+#      and defined. Its definition line holds that entry's `resource`. Across
+#      the bundle one id is one source node: it names one resource and at most
+#      one excerpt. An id holds what rule 8 allows in a path segment.
 #  17. A logged write has a file behind it: each `**Added**` and
-#      `**Deprecation**` bullet in log.md names a concept the bundle holds.
-#      The rule reads the bullets added since `--since <commit>`, or without
-#      it those under the newest day heading.
+#      `**Deprecation**` bullet in log.md names a concept the bundle holds. The
+#      rule reads the bullets added since `--since <commit>`, or without it
+#      those under the newest day heading. A `**Removal**` bullet under the
+#      same or a newer day that names the same concept excuses one.
 #  18. Each `exclusions` entry (lokf 0.9.0 and later) gives a `reason` that is
-#      not blank, and no material is both a source and an exclusion of one
-#      concept.
+#      not blank, and no material is both a `sources` entry and an exclusion of
+#      one concept.
 #
 # Rules 2, 3, 8, 10 and 18 are house rules, stricter than the format: OKF
 # permits an unquoted datetime, a bare `verified` mapping, any file name and
@@ -102,26 +116,33 @@
 # sidecar's `.lokf/.gitattributes` keeps tracked files on LF; rule 9 still
 # reports a BOM, because other readers do not strip it.
 #
-# Usage: knowledge-conventions.sh [bundle-dir] [--since <commit>] [--strict]
+# Usage: knowledge-conventions.sh [bundle-dir] [--since <commit> [--head <commit>]] [--strict]
 # (default: knowledge, i.e. run from .lokf/). Exit 1 with one line per
 # finding; nothing else is written. Exit 2 when the Python half could not
 # run, or under --strict when it was skipped, with the reason on stderr.
-[ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [bundle-dir] [--since <commit>] [--strict]" >&2; exit 2; }
+#
+# `--since` names the base of a pull request, and rules 6, 14 and 17 read
+# what came after it. `--head` names the pull request's last commit where
+# HEAD is a merge of it into the base, as a gate checks out, so that rules 6
+# and 14 leave out the commits the base gained since.
+[ -n "${BASH_VERSION:-}" ] || { echo "run this with bash: bash ${0##*/} [bundle-dir] [--since <commit> [--head <commit>]] [--strict]" >&2; exit 2; }
 set -euo pipefail
 
-usage() { echo "usage: ${0##*/} [bundle-dir] [--since <commit>] [--strict]" >&2; exit 2; }
+usage() { echo "usage: ${0##*/} [bundle-dir] [--since <commit> [--head <commit>]] [--strict]" >&2; exit 2; }
 # The bundle directory may be a link, on a host that keeps the real folder as
 # a visible knowledge_bundle/. Handed a link bare, find never enters it, so
 # the trailing slash below is what makes it read the files.
-bundle=""; since=""; strict=0
+bundle=""; since=""; head=""; strict=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --since) { [ $# -ge 2 ] && [ -n "$2" ]; } || usage; since="$2"; shift 2 ;;
+    --head) { [ $# -ge 2 ] && [ -n "$2" ]; } || usage; head="$2"; shift 2 ;;
     --strict) strict=1; shift ;;
     -*) usage ;;
     *) [ -z "$bundle" ] || usage; bundle="$1"; shift ;;
   esac
 done
+{ [ -z "$head" ] || [ -n "$since" ]; } || usage
 bundle="${bundle:-knowledge}"; bundle="${bundle%/}"
 [ -d "$bundle" ] || { echo "no bundle directory at $bundle" >&2; exit 2; }
 fail=0
@@ -270,9 +291,9 @@ hold() {  # <file number> <rank> <finding>
 # For rule 5, a URL, an identifier with a scheme such as urn:ietf:rfc:9110
 # or doi:10.1000/182 (two characters at least, so a Windows drive letter is
 # still a path), a fragment and the quotes are cut from a value. For rule 6,
-# a revision with a character outside [0-9a-f] pins a URL and is skipped, as
-# is every revision on a concept whose top-level `resource` is a URL, an
-# absolute path or absent.
+# a revision with a character outside [0-9a-f] names no commit and is
+# skipped, as is every revision on a concept whose top-level `resource` is a
+# URL, an absolute path or absent.
 # shellcheck disable=SC2016 # awk's own $0, not the shell's
 fields='
 # The same flowvals as in the rule11 program above.
@@ -293,7 +314,7 @@ function scheme(v) { return v ~ /^[A-Za-z][A-Za-z0-9+.-]+:/ }
 function local(v) {
   if (v ~ /:\/\//) return ""
   sub(/^["'"'"']/, "", v); if (scheme(v)) return ""
-  sub(/#.*/, "", v); v = unquote(v); sub(/[ \t]+$/, "", v)
+  sub(/#.*/, "", v); sub(/[ \t]+$/, "", v); v = unquote(v); sub(/[ \t]+$/, "", v)
   return v
 }
 BEGIN {
@@ -306,7 +327,7 @@ BEGIN {
   sub(/^\//, "", rel)   # BSD find prints the start point slash, then its own
   if (rel !~ /^([a-z0-9][a-z0-9._-]*\/)*[a-z0-9][a-z0-9._-]*$/) print "P\t" k "\t" f
   base = f; sub(/.*\//, "", base)
-  if (base == "index.md" || base == "log.md" || base == "diataxis.md" || (f in link)) next
+  if (base == "index.md" || base == "log.md" || rel == "diataxis.md" || (f in link)) next
   n = 0; top = ""; nr = 0
   while ((getline l < f) > 0) {
     n++; gsub(/\r/, "", l)
@@ -369,12 +390,30 @@ if [ "$read_all" != 1 ]; then
   echo "the bundle could not be read to its end, so rules 5, 6, 8 and 11 were not checked - the error above names the file" >&2
   exit 2
 fi
-# Rule 6's answers, from one git call: a line for each question, in order,
-# that ends in "missing" when the commit or the path in it is not there.
+# Rule 6's answers, a line for each question, in order. One git call says
+# whether the commit holds the path: its line ends in "missing" when the
+# commit or the path in it is not there. A second gives each commit whole.
+# Two walks then list the pinned commits that the history of HEAD holds, and
+# those made after the base.
 if [ -n "$asks" ]; then
-  while IFS=$'\t' read -r n f rev res answer; do
-    case "$answer" in *" missing"|*" ambiguous"|"") hold "$n" 2 "$f: revision $rev does not hold $res - no such commit, or the path was absent in it" ;; esac
-  done < <(paste <(printf '%s' "$askers") <(printf '%s' "$asks" | git -C "$root" cat-file --batch-check 2>/dev/null || true))
+  printf '%s' "$asks" | git -C "$root" cat-file --batch-check > "$tmp/holds" 2>/dev/null || true
+  printf '%s' "$askers" | cut -f3 | sed 's/$/^{commit}/' | git -C "$root" cat-file --batch-check='%(objectname)' > "$tmp/whole" 2>/dev/null || true
+  grep -E '^[0-9a-f]+$' "$tmp/whole" | sort -u > "$tmp/pins" || true
+  : > "$tmp/inhead"; : > "$tmp/after"
+  if [ -s "$tmp/pins" ]; then
+    git -C "$root" rev-list HEAD 2>/dev/null | grep -Fxf "$tmp/pins" > "$tmp/inhead" || true
+    case "$since:${head:-HEAD}" in
+      :*|-*|*:-*) ;;
+      *) git -C "$root" rev-list "$since..${head:-HEAD}" 2>/dev/null | grep -Fxf "$tmp/pins" > "$tmp/after" || true ;;
+    esac
+  fi
+  while IFS=$'\t' read -r n finding; do
+    hold "$n" 2 "$finding"
+  done < <(paste <(printf '%s' "$askers") "$tmp/holds" "$tmp/whole" | awk -F'\t' -v inhead="$tmp/inhead" -v after="$tmp/after" '
+    BEGIN { while ((getline l < inhead) > 0) H[l] = 1; while ((getline l < after) > 0) A[l] = 1 }
+    $5 == "" || $5 ~ / (missing|ambiguous)$/ { print $1 "\t" $2 ": revision " $3 " does not hold " $4 " - no such commit, or the path was absent in it"; next }
+    !($6 in H) { print $1 "\t" $2 ": revision " $3 " is not in the history of HEAD - a squash merge or a rebase has replaced that commit, or another branch holds it"; next }
+    $6 in A { print $1 "\t" $2 ": revision " $3 " names a commit made after the base, which a squash merge or a rebase replaces - pin the content of " $4 " instead, as a sha256: digest" }')
 fi
 # 11. from one walk through the history of the bundle, oldest first.
 if [ -n "$gitroot" ] && [ -s "$tmp/ats" ]; then
@@ -437,9 +476,9 @@ fi
 if [ -n "$runner" ]; then
   rc=0
   if [ "$runner" = uv ]; then
-    out="$(uv run --quiet ${uvflags[@]+"${uvflags[@]}"} "$py" "$bundle" ${since:+--since "$since"} 2>&1)" || rc=$?
+    out="$(uv run --quiet ${uvflags[@]+"${uvflags[@]}"} "$py" "$bundle" ${since:+--since "$since"} ${head:+--head "$head"} 2>&1)" || rc=$?
   else
-    out="$("$runner" "$py" "$bundle" ${since:+--since "$since"} 2>&1)" || rc=$?
+    out="$("$runner" "$py" "$bundle" ${since:+--since "$since"} ${head:+--head "$head"} 2>&1)" || rc=$?
   fi
   # The Python half exits 1 for findings. Any other failure is the runner's,
   # or a usage error, and says nothing about the bundle.

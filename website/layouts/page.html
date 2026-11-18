@@ -3,7 +3,7 @@
   {{- if .Params.shift }}<h1>{{ .Title }}</h1>{{ end }}
   {{- if .Params.conceptId }}{{ partial "concept-card.html" . }}{{ end }}
   {{ partial "content.html" . }}
-  {{- with partial "repo-path.html" . }}{{ if hasPrefix (partial "site-path.html" .) "docs/" }}
+  {{- with partial "repo-path.html" . }}{{ $rel := partial "site-path.html" . }}{{ if or (hasPrefix $rel "docs/") (eq $rel "SPEC.md") }}
   <p class="edit" data-pagefind-ignore><a href="{{ printf "%s/edit/%s/%s" site.Params.repo site.Params.branch . }}">Edit this page</a></p>
   {{- end }}{{ end }}
 </article>

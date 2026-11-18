@@ -1,4 +1,4 @@
 {{- /* A file with a frontmatter title starts its sections at `#`; the title is the page's one h1, so each heading moves down a level. */ -}}
 {{- $level := cond (.Page.Params.shift | default false) (math.Min 6 (add .Level 1)) .Level -}}
-<h{{ $level }} id="{{ .Anchor }}">{{ .Text }}<a class="anchor" href="#{{ .Anchor }}" aria-label="Link to this section" data-pagefind-ignore>#</a></h{{ $level }}>
+<h{{ $level }} id="{{ .Anchor }}">{{ .Text }}<a class="anchor" href="#{{ .Anchor }}" aria-label="Link to this section" data-pagefind-ignore{{ partial "own.html" . }}>#</a></h{{ $level }}>
 {{- /**/ -}}

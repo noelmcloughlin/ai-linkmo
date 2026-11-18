@@ -1,8 +1,8 @@
 name: Knowledge website
 
 # Builds the site in website/ (or in ktl-website/, where website/ was another
-# site's) from the knowledge bundle, the README, docs/, the figures, the
-# changelog and a LinkML schema, each when the repository has it, and
+# site's) from the knowledge bundle, the README, SPEC.md, docs/, the figures,
+# the changelog and a LinkML schema, each when the repository has it, and
 # publishes the default branch's build to GitHub Pages. A pull request that
 # touches any of them gets the same build, link check included, and no
 # deployment. A weekly run rebuilds the site from the default branch. It
@@ -33,6 +33,7 @@ on:
       - ".lokf/**"
       - "knowledge_bundle/**"
       - "README.md"
+      - "SPEC.md"
       - "docs/**"
       - ".assets/**"
       - "CHANGELOG.md"
@@ -47,6 +48,7 @@ on:
       - ".lokf/**"
       - "knowledge_bundle/**"
       - "README.md"
+      - "SPEC.md"
       - "docs/**"
       - ".assets/**"
       - "CHANGELOG.md"
@@ -88,7 +90,12 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
+      # A runner that holds uv keeps its own; setup-uv fetches one from github.com.
+      - name: Find uv on the runner
+        id: uv
+        run: if command -v uv >/dev/null 2>&1; then echo "found=true" >> "$GITHUB_OUTPUT"; fi
       - name: Set up uv
+        if: steps.uv.outputs.found != 'true'
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: true
@@ -111,26 +118,32 @@ jobs:
       # runner the runner image lacks. Where .lokf/uv.lock pins rust-just,
       # the step links the copy uv checked by hash, alone, so the toolkit's
       # other commands stay off PATH; else it installs the same version by
-      # name.
+      # name. uv-env.sh installs what that lock pins, as the build does. The
+      # step reads site.toml through site-values.py, as prepare.sh does, so
+      # a file that is not TOML stops the run here.
       - name: Install just, when the site builds its data with it
         env:
           SITE_DIR: ${{ steps.site.outputs.dir }}
         run: |
-          if grep -q '^browseBuild = "just ' "$SITE_DIR/site.toml"; then
-            mkdir -p "$HOME/.local/bin"
-            if grep -qx 'name = "rust-just"' .lokf/uv.lock; then
-              uv sync --project .lokf --frozen --quiet
-              ln -sf "$PWD/.lokf/.venv/bin/just" "$HOME/.local/bin/just"
-            else
-              uv tool install rust-just==1.47.0
-            fi
-            echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          fi
+          build="$(python3 -I "$SITE_DIR/scripts/site-values.py" "$SITE_DIR/site.toml" | sed -n 's/^browseBuild=//p')"
+          case "$build" in
+            "just "*)
+              mkdir -p "$HOME/.local/bin"
+              if grep -qx 'name = "rust-just"' .lokf/uv.lock; then
+                bash "$SITE_DIR/scripts/uv-env.sh" .lokf > /dev/null
+                ln -sf "$PWD/.lokf/.venv/bin/just" "$HOME/.local/bin/just"
+              else
+                uv tool install rust-just==1.47.0
+              fi
+              echo "$HOME/.local/bin" >> "$GITHUB_PATH" ;;
+          esac
 
       # build.sh runs prepare.sh first, which runs `lokf export` and, for a
       # LinkML schema, gen-doc, both from the toolkit .lokf/uv.lock pins. Then
       # Hugo and Pagefind, from the site's own uv.lock, the cleaning of raw
-      # HTML, and the link check.
+      # HTML, and the link check. Behind a package mirror, scripts/uv-env.sh
+      # installs what each lock pins from it, checked against the lock's
+      # hashes. The site's README.md says what a blocked CDN needs.
       - name: Build the site and check its links
         env:
           SITE_DIR: ${{ steps.site.outputs.dir }}

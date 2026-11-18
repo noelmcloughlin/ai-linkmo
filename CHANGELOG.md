@@ -10,6 +10,14 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 - **Each GitHub release carries its changelog section as its body**: semantic-release asks for the notes again after the changelog commit, and `changelog-release.mjs notes` now answers with the promoted section instead of the empty Unreleased one.
 
+## [0.7.2] - 2026-11-18
+
+### Security
+
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.69.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.66.0...v0.69.0).** The release changed `.github/workflows/knowledge-registrar.yaml`, `.github/workflows/knowledge-librarian.yaml`, `.github/workflows/knowledge-release.yaml`, `.github/workflows/knowledge-sync.yaml`, `.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md`, `.lokf/scripts/knowledge-conventions.sh`, `.lokf/scripts/knowledge-conventions.py`, `.lokf/scripts/knowledge-preflight.sh`, `.lokf/scripts/knowledge-provenance.sh`, `.lokf/scripts/knowledge-feedback.sh`, `.lokf/scripts/knowledge-apply.py`, `.lokf/scripts/knowledge-report.sh`, `.lokf/m365/ktl-docent-m365.md`, `.lokf/justfile`, `website/assets/js/graph.js`, `website/content/_content.gotmpl`, `website/content/knowledge/_content.gotmpl`, `website/.gitignore`, `website/layouts/_markup/render-blockquote.html`, `website/layouts/_markup/render-codeblock-mermaid.html`, `website/layouts/_markup/render-heading.html`, `website/layouts/_markup/render-link.html`, `website/layouts/_partials/gendoc.html`, `website/layouts/_partials/heroes.html`, `website/layouts/_partials/markdown-file.html`, `website/layouts/_partials/nav-key.html`, `website/layouts/_partials/route.html`, `website/layouts/_partials/tools.html`, `website/layouts/_partials/vendor.html`, `website/layouts/baseof.html`, `website/layouts/health.html`, `website/layouts/home.badge.json`, `website/layouts/page.atom.xml`, `website/layouts/page.html`, `website/pyproject.toml`, `website/scripts/build.sh`, `website/scripts/clean-html.py`, `website/uv.lock`, `.github/workflows/knowledge-website.yaml`, `website/layouts/_partials/own.html`, `website/layouts/_partials/spec.html`, `website/scripts/check-svg.py`, `website/scripts/lokf-export.py`, `website/scripts/site-values.py`, `website/scripts/uv-env.sh` and `website/scripts/vendor.sh` here.
+- **`just lokf-check-refs` now checks LOKF's SHACL shapes: `.lokf/pyproject.toml` asks for `lokf[build,shacl]>=0.10.0`.**
+- **A `human:` event passes the gate on an approving review only while it stands, or on that person's verified signature as committer; SECURITY.md says so.**
+
 ## [0.7.1] - 2026-11-15
 
 ### Changed

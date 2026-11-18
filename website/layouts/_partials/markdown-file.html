@@ -1,8 +1,9 @@
 {{- /*
-  A docs page, or the home page, as Markdown beside it, for a reader or a
-  model that wants the words without the site: at the path the repository
-  holds it under, docs/<name>.md, or at index.md for the README. It is the
-  file from its # title down, with every address made full by markdown.html.
+  A docs page, the home page or the specification's page, as Markdown beside
+  it, for a reader or a model that wants the words without the site: at the
+  path the repository holds it under, docs/<name>.md, at index.md for the
+  README, or at spec.md for a root SPEC.md. It is the file from its # title
+  down, with every address made full by markdown.html.
   Returns the published file, or false for any other page. Called cached by
   the page's address.
 */ -}}
@@ -10,7 +11,7 @@
 {{- $from := partial "repo-path.html" . -}}
 {{- $at := "" -}}
 {{- $rel := partial "site-path.html" $from -}}
-{{- if and (hasPrefix $rel "docs/") (hasSuffix $rel ".md") }}{{ $at = $rel }}{{ else if and .IsHome (eq $rel "README.md") }}{{ $at = "index.md" }}{{ end -}}
+{{- if and (hasPrefix $rel "docs/") (hasSuffix $rel ".md") }}{{ $at = $rel }}{{ else if and .IsHome (eq $rel "README.md") }}{{ $at = "index.md" }}{{ else if and (eq .Path "/spec") (eq $rel "SPEC.md") }}{{ $at = "spec.md" }}{{ end -}}
 {{- with $at -}}
   {{- $text := $.RawContent -}}
   {{- if $.Params.shift -}}

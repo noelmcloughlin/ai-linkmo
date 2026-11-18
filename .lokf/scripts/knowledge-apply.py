@@ -23,7 +23,9 @@
 #     too, when the sidecar's .venv holds the toolkit, and says when it cannot
 #     check them; that check also refuses a `sources[].excerpt` its local file
 #     does not hold;
-#   - refuses an excerpt that is empty or longer than 500 characters.
+#   - refuses an excerpt that is empty or longer than 500 characters, and a
+#     sources id the patch gives another resource or excerpt than another
+#     concept gives it, since the id is one node in the graph.
 #
 # Every concept it writes keeps a person's record as it was: each `human:`
 # event and each note in a person's name, as knowledge-provenance.sh
@@ -73,6 +75,7 @@ import argparse
 import copy
 import datetime as dt
 import difflib
+import json
 import os
 import re
 import shutil
@@ -85,21 +88,28 @@ from pathlib import Path
 
 import yaml
 
-RESERVED = {"index.md", "log.md", "diataxis.md"}
+RESERVED = {"index.md", "log.md"}  # in every folder; a concept path names a folder, so never the root map
 PATH_RE = re.compile(r"[a-z0-9][a-z0-9-]*(/[a-z0-9][a-z0-9-]*)+\.md")  # matched whole, so no line break can follow it
 EVENT_RE = re.compile(r"^\s*-?\s*by:\s*human:")  # a line the provenance gates read as a person's event
 NOTE_RE = re.compile(r"^\s*-\s*\d{4}-\d{2}-\d{2},\s*human:")  # a line the curator reads as a person's note
 KEPT_NOTE_RE = re.compile(r"^- \d{4}-\d{2}-\d{2}, *human:")  # a person's note as knowledge-provenance.sh --unattended reads one
 CURATOR_NOTE_RE = re.compile(r"^- \d{4}-\d{2}-\d{2}, *process:ktl-curator:")  # a curator's send-back recorded with no authenticated login (review-session.md)
-# A person's note in any spelling a Markdown reader shows as one: another
-# bullet mark, an indent, a tab or two spaces after the comma. The gates read
-# the strict shape above, so no program counts these, and a person does.
-LOOSE_NOTE_RE = re.compile(r"^\s*[-*+]\s+\d{4}-\d{2}-\d{2}\s*,\s*human:")
+# A person's note in the spellings a Markdown reader shows as one: another
+# bullet mark or a numbered item, an indent, a quote mark or a task box in
+# front, a tab or two spaces after the comma, an escaped colon. The gates
+# read the strict shape above, so no program counts these, and a person does.
+LOOSE_NOTE_RE = re.compile(r"^[\s>]*(?:[-*+]|\d+[.)])\s+(?:\[[ xX]\]\s+)?\d{4}-\d{2}-\d{2}\s*,\s*human\\?:")
+# The labels of the two log lines ktl-curator writes for a person. The report
+# reads a retired concept's successor from the second.
+CURATOR_LABELS = {"curation", "deprecation"}
 # A person's note as knowledge-report.sh lists one, under an open-questions heading outside a code fence.
 SEEN_NOTE_RE = re.compile(r"^- \d{4}-\d{2}-\d{2}, human:[^ ]*: ")
-ACTOR_RE = re.compile(r"process:\S+")
+# A patch's actor is `process:` and a login's characters, so no Markdown or
+# colon reaches the stamps and bullets the patch writes.
+ACTOR_RE = re.compile(r"process:[A-Za-z0-9][A-Za-z0-9._-]*")
 # The curator's actor, which stands for a person who could not sign in. A
-# patch under it would write that person's send-back and events.
+# patch under it, or under an actor that starts with it, would write notes
+# that read as that person's.
 CURATOR_ACTOR = "process:ktl-curator"
 # Matched case-insensitively, and including the event-internal keys, so a
 # patch cannot write a top-level `by: human:...` or a `Verified:` that a line
@@ -108,6 +118,8 @@ CURATOR_ACTOR = "process:ktl-curator"
 # so they belong to the script and the curator like the rest.
 DENIED_SET = {"id", "type", "generated", "verified", "revised", "refuted", "status", "stale_after", "timestamp", "by", "at", "revision"}
 DENIED_CREATE = {"generated", "verified", "revised", "refuted", "status", "stale_after", "timestamp", "by", "at", "revision"}
+# Where knowledge-report.sh reads a retired concept's successor, which ktl-curator writes on a person's word.
+SUCCESSOR_KEYS = {"isreplacedby", "relations"}
 RELATED_START, RELATED_END = "<!-- lokf:related -->", "<!-- /lokf:related -->"
 OPEN_Q = "## Open questions"
 # The longest `sources[].excerpt` the pen writes, counted with each run of
@@ -250,9 +262,22 @@ NOT_LINKS = {
     "endpoint", "documentation", "license", "author", "publisher", "generated", "verified", "status",
     "base_iri", "context", "stale_after", "timestamp", "genre", "definition", "version",
 }
-NOT_CONCEPTS = {"index.md", "log.md", "diataxis.md"}
+# An index and a log are no concept in any folder, and KTL Registrar's map is
+# none at the bundle's root. The pen writes none of the three.
+NOT_CONCEPTS = {"index.md", "log.md"}
+ROOT_MAP = "diataxis.md"
 SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:")
 WHOLE_IRI = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:\S+")
+
+
+def material(value):
+    """A resource as rule 16 compares it, as `lokf validate` does: `./docs/a.md`, `docs/a.md` and `docs/a.md/` name one material."""
+    if not isinstance(value, str) or not value.strip():
+        return None
+    key = value.strip()
+    while key.startswith("./"):
+        key = key[2:]
+    return key.rstrip("/") or key
 
 
 def relation_targets(fm: dict) -> set:
@@ -404,10 +429,11 @@ def shown(text: str) -> str:
 
 
 def human_events(value, slot: str):
-    """Each mapping under one frontmatter key whose `by` names a person, at any depth, as (slot, by, at, revision)."""
+    """Each mapping under one frontmatter key whose `by` names a person, at any depth, as (slot, by, at, revision, the other keys). The other keys are an exclusion's `resource` and `reason`, so neither changes under a person's name."""
     if isinstance(value, dict):
         if str(value.get("by", "")).startswith("human:"):
-            yield (slot, str(value.get("by")), str(value.get("at", "")), str(value.get("revision", "")))
+            rest = {str(k): v for k, v in value.items() if k not in ("by", "at", "revision")}
+            yield (slot, str(value.get("by")), str(value.get("at", "")), str(value.get("revision", "")), json.dumps(rest, sort_keys=True, default=str))
         for inner in value.values():
             yield from human_events(inner, slot)
     elif isinstance(value, list):
@@ -445,9 +471,22 @@ def person_record(text: str | None) -> Counter:
         for key, value in fm.items():
             for event in human_events(value, str(key)):
                 record[event] += 1
-    for line in text.split("\n"):
-        if KEPT_NOTE_RE.match(line) or LOOSE_NOTE_RE.match(line):
+    lines = text.split("\n")
+    kept = []
+    for i, line in enumerate(lines):
+        if KEPT_NOTE_RE.match(line) or LOOSE_NOTE_RE.match(line) or CURATOR_NOTE_RE.match(line):
             record[("note", line.rstrip())] += 1
+            kept.append(line.rstrip())
+            # The indented lines under a note are part of it to a reader.
+            under = []
+            for more in lines[i + 1:]:
+                if not more.strip() or not more[0] in " \t":
+                    break
+                under.append(more.rstrip())
+            if under:
+                record[("under", line.rstrip(), "\n".join(under))] += 1
+    if kept:
+        record[("order", "\n".join(kept))] += 1
     for line in seen_notes(split[1] if split else text):
         record[("seen", line)] += 1
     return record
@@ -457,8 +496,18 @@ def record_findings(path: str, was: Counter, now: Counter) -> list:
     """One line for each way a patch would change a person's record in one concept, naming the actor and the day and never the words."""
     findings = []
     gone = {e[1] for e in was - now if e[0] == "note"}
+    came = {e[1] for e in now - was if e[0] == "note"}
     for what, entry in [("remove", e) for e in sorted(was - now)] + [("add", e) for e in sorted(now - was)]:
-        if entry[0] == "seen":
+        if entry[0] == "order":
+            # The same notes in another order: the curator quotes the first.
+            if what == "add" and not gone and not came and any(e[0] == "order" for e in was):
+                findings.append(f"{path}: this patch would put the notes people left in another order; leave the {OPEN_Q} section as it stands")
+        elif entry[0] == "under":
+            if entry[1] not in gone and entry[1] not in came:
+                who = re.match(r"^[\s>]*\S+\s+(?:\[[ xX]\]\s+)?(\d{4}-\d{2}-\d{2})\s*,\s*(human\\?:[^ :]*|process:ktl-curator)", entry[1])
+                name = f"{who.group(2)}, {who.group(1)}" if who else "a person"
+                findings.append(f"{path}: this patch would {'take lines from' if what == 'remove' else 'add lines to'} a note a person left ({name}); only ktl-curator changes one, on that person's word")
+        elif entry[0] == "seen":
             # A note that left the file is reported as removed. One still in
             # the file that the report no longer lists was hidden: a second
             # heading above it, or a fence opened and never closed.
@@ -469,7 +518,7 @@ def record_findings(path: str, was: Counter, now: Counter) -> list:
                     f"add no second {OPEN_Q} heading, and close every code fence the new text opens"
                 )
         elif entry[0] == "note":
-            who = re.match(r"^- (\d{4}-\d{2}-\d{2}), *(human:[^ :]*)", entry[1])
+            who = re.match(r"^- (\d{4}-\d{2}-\d{2}), *(human:[^ :]*|process:ktl-curator)", entry[1])
             name = f"{who.group(2)}, {who.group(1)}" if who else "a person"
             if what == "remove":
                 findings.append(f"{path}: this patch would remove a note a person left ({name}); only ktl-curator clears one, on that person's word, and a rewrite carries the {OPEN_Q} section over only when its own body has none")
@@ -607,6 +656,10 @@ class Concept:
 
     def confirmed_by_person(self) -> bool:
         return any(str(e.get("by", "")).startswith("human:") for e in self.events())
+
+    def retired(self) -> bool:
+        """`status: deprecated`, which only the curator writes, on a person's word."""
+        return str(self.fm.get("status", "")).strip().lower() == "deprecated"
 
     def noted_by_person(self) -> bool:
         q = questions_span(self.body)
@@ -765,6 +818,9 @@ class Bundle:
         denied = sorted(k for k in sets if k.lower() in DENIED_SET)
         if denied:
             raise Refused(f"{c.path}: set may not touch {', '.join(denied)}; those belong to the script, the curator or the schema")
+        successor = sorted(k for k in sets if k.lower() in SUCCESSOR_KEYS)
+        if successor and c.retired():
+            raise Refused(f"{c.path}: a person retired this concept, so set may not touch {', '.join(successor)}: its successor is that person's word; name it in the hand-off instead")
         for k, v in sets.items():
             if k in ("title", "description"):
                 v = one_line(v, f"{c.path}: {k}")
@@ -860,6 +916,8 @@ class Bundle:
     def question(self, op: dict) -> None:
         path = op["path"]
         c = self.concept(path, must_exist=True)
+        if c.retired():
+            raise Refused(f"{path}: a person retired this concept, so question is refused: it would set the status back to draft; name the concept in the hand-off instead")
         text = autolinked(shown(one_line(op.get("text"), f"{path}: question text")))
         if not text:
             raise Refused(f"{path}: question text has no visible characters")
@@ -935,6 +993,8 @@ class Bundle:
             raise Refused(f"{path}: a person left a note on this concept, so delete is refused; add a question saying the source is gone, and the curator retires it")
         if c.noted_by_curator():
             raise Refused(f"{path}: the curator left a send-back on this concept, so delete is refused; re-derive it and leave the note for the curator")
+        if c.retired():
+            raise Refused(f"{path}: a person retired this concept, so delete is refused; a retired concept stays for links and history")
         self.guard_writable(c, "delete")
         if not isinstance(op.get("log"), str) or not op["log"].strip():
             raise Refused(f"{path}: delete needs a log line saying why")
@@ -976,7 +1036,7 @@ class Bundle:
         before, after, standing = {}, {}, {}
         for file in sorted(self.knowledge.rglob("*.md")):
             path = file.relative_to(self.knowledge).as_posix()
-            if file.name in NOT_CONCEPTS or ".obsidian" in path.split("/"):
+            if file.name in NOT_CONCEPTS or path == ROOT_MAP or ".obsidian" in path.split("/"):
                 continue
             try:
                 split = split_frontmatter(file.read_text(encoding="utf-8"))
@@ -1005,6 +1065,59 @@ class Bundle:
                 if named in gone and not self.resolves(target, path, after):
                     findings.append(f"{path}: {field} still names {named}, which this patch deletes; drop or repoint the relation in this patch, or add a question to the concept if a person wrote it")
         return findings
+
+    def source_findings(self) -> list:
+        """Rule 16 across the bundle, for the `sources` entries this patch adds or changes: one id names one resource and one excerpt.
+
+        A clash the patch did not make is left to the gate.
+        """
+        def entries(fm) -> set:
+            found = fm.get("sources") if isinstance(fm, dict) else None
+            found = [found] if isinstance(found, dict) else found if isinstance(found, list) else []
+            return {(str(e["id"]), material(e.get("resource")), e.get("excerpt") if isinstance(e.get("excerpt"), str) else None)
+                    for e in found if isinstance(e, dict) and e.get("id") is not None}
+
+        added = {path: entries(c.fm) - entries(getattr(c, "fm_read", {})) for path, c in self.concepts.items() if c.touched and not c.deleted}
+        added = {path: found for path, found in added.items() if found}
+        if not added:
+            return []
+        uses: dict = {}
+        for path, fm in self.standing().items():
+            for label, resource, excerpt in entries(fm):
+                uses.setdefault(label, []).append((path, resource, excerpt))
+        findings = []
+        for path, found in sorted(added.items()):
+            for label, resource, excerpt in sorted(found, key=str):
+                for other, theirs, quoted in sorted(uses.get(label, []), key=str):
+                    if other == path:
+                        continue
+                    if theirs != resource:
+                        findings.append(f"{path}: sources id {label} names {resource} here and {theirs} in {other}; one id names one resource across the bundle, so give this entry an id of its own and use it in the footnote")
+                    elif excerpt is not None and quoted is not None and quoted != excerpt:
+                        findings.append(f"{path}: sources id {label} quotes another passage in {other}; one id is one source node across the bundle, which holds one excerpt, so give this entry an id named after its passage and use it in the footnote")
+                    else:
+                        continue
+                    break
+        return findings
+
+    def standing(self) -> dict:
+        """Each concept's frontmatter as the bundle would hold it after this patch, by path."""
+        standing = {}
+        for file in sorted(self.knowledge.rglob("*.md")):
+            path = file.relative_to(self.knowledge).as_posix()
+            if path in self.concepts or file.name in NOT_CONCEPTS or path == ROOT_MAP or ".obsidian" in path.split("/"):
+                continue
+            try:
+                split = split_frontmatter(file.read_text(encoding="utf-8"))
+                fm = read_yaml(split[0]) if split else None
+            except (OSError, UnicodeDecodeError, yaml.YAMLError):
+                continue  # a concept this script cannot read is refused when an operation names it
+            if isinstance(fm, dict):
+                standing[path] = fm
+        for path, c in self.concepts.items():
+            if not c.deleted:
+                standing[path] = c.fm
+        return standing
 
     # ---- index, log, feedback -------------------------------------------
     def index_text(self, file: Path, default: str) -> str:
@@ -1052,7 +1165,10 @@ class Bundle:
                 del lines[k]
                 if 0 < k < len(lines) and lines[k - 1] == "" and lines[k] == "":
                     del lines[k]  # the blank line on either side of it, now two in a row
-            return Bundle.joined([Bundle.unlink(line, link, path, where) if ref.search(line) else line for line in lines])
+            lines = [Bundle.unlink(line, link, path, where) if ref.search(line) else line for line in lines]
+            if section is not None:
+                lines = Bundle.drop_empty_section(lines, section[0])
+            return Bundle.joined(lines)
         if mine:
             for k in mine:
                 lines[k] = bullet
@@ -1077,6 +1193,53 @@ class Bundle:
             if last + 3 < len(lines) and lines[last + 3] != "":
                 lines.insert(last + 3, "")
         return Bundle.joined(lines)
+
+    @staticmethod
+    def drop_empty_section(lines: list, name: str) -> list:
+        """The lines without the heading named after a folder when nothing but blank lines is left under it."""
+        heads = Bundle.headings(lines)
+        for i, (k, level, text) in enumerate(heads):
+            if i == 0 or text.lower() != name.lower():
+                continue
+            end = next((k2 for k2, level2, _ in heads[i + 1 :] if level2 <= level), len(lines))
+            if any(line.strip() for line in lines[k + 1 : end]):
+                continue
+            while k > 0 and lines[k - 1] == "":
+                k -= 1
+            lines = lines[:k] + ([""] if end < len(lines) and k > 0 else []) + lines[end:]
+            break
+        return lines
+
+    def index_writes(self) -> list:
+        """Each index.md this patch changed, with None for a folder's index left holding only its heading, no concept beside it and no link to it."""
+        out = []
+        for file, text in self.indexes.items():
+            if file != self.knowledge / "index.md" and len([line for line in text.split("\n") if line.strip()]) == 1 and HEADING_RE.match(text.strip()):
+                folder = file.parent.relative_to(self.knowledge).as_posix()
+                left = {f.relative_to(self.knowledge).as_posix() for f in file.parent.rglob("*.md") if f != file}
+                left -= {p for p, c in self.concepts.items() if c.deleted}
+                left |= {p for p, c in self.concepts.items() if not c.deleted and p.startswith(folder + "/")}
+                if not left and not self.linked_from_an_index(file):
+                    text = None
+            out.append((file, text))
+        return out
+
+    def linked_from_an_index(self, folder_index: Path) -> bool:
+        """Whether another index.md, as this patch leaves it, links to the folder or its index.md."""
+        others = set(self.knowledge.rglob("index.md")) | set(self.indexes)
+        for other in sorted(others):
+            if other == folder_index or ".obsidian" in other.relative_to(self.knowledge).parts:
+                continue
+            text = self.indexes.get(other)
+            if text is None:
+                try:
+                    text = other.read_text(encoding="utf-8")
+                except (OSError, UnicodeDecodeError):
+                    continue
+            rel = Path(os.path.relpath(folder_index.parent, other.parent)).as_posix()
+            if re.search(r"\]\((?:\./)?" + re.escape(rel) + r"(?:/(?:index\.md)?)?(?:#[^)]*)?\)", text):
+                return True
+        return False
 
     @staticmethod
     def joined(lines: list) -> str:
@@ -1253,7 +1416,7 @@ class Bundle:
 
 def check_path(path) -> str:
     if not isinstance(path, str) or not PATH_RE.fullmatch(path) or ".." in path or path.rsplit("/", 1)[-1] in RESERVED:
-        raise Refused(f"path {path!r} is not a concept path: lowercase a-z, 0-9 and hyphens, at least one folder, .md, and not a reserved name")
+        raise Refused(f"path {path!r} is not a concept path: lowercase a-z, 0-9 and hyphens, at least one folder, .md, and not index.md or log.md")
     if path.startswith("knowledge/"):
         raise Refused(f"path {path!r} starts with knowledge/; paths are relative to .lokf/knowledge/")
     return path
@@ -1264,6 +1427,9 @@ def log_line(text, what: str, label: str = "Changed") -> str:
     text = shown(one_line(text, what))
     if not text:
         raise Refused(f"{what} line has no visible characters")
+    own = re.match(r"[*_]{2}\s*([^*_]*?)\s*[*_]{2}", text)
+    if own and own.group(1).strip(" :").lower() in CURATOR_LABELS:
+        raise Refused(f"{what} line starts with **{own.group(1)}**, a line only ktl-curator writes, for a person")
     return text if text.startswith("**") else f"**{label}**: {text}"
 
 
@@ -1434,7 +1600,7 @@ def main(argv: list[str]) -> int:
     findings: list[str] = []
     if not isinstance(by, str) or not ACTOR_RE.fullmatch(by):
         findings.append(f"by must be a process:<id> actor, not {by!r}")
-    elif by == CURATOR_ACTOR:
+    elif by.startswith(CURATOR_ACTOR):
         findings.append(f"by may not be {CURATOR_ACTOR}: that actor stands for a person in a curator's session, and only ktl-curator writes under it")
     handoff: list = []
     try:
@@ -1474,6 +1640,7 @@ def main(argv: list[str]) -> int:
                 if c.touched:
                     findings.extend(record_findings(path, c.record, Counter() if c.deleted else person_record(c.text())))
             findings.extend(bundle.relation_findings())
+            findings.extend(bundle.source_findings())
     for line in findings:
         print(line)
     if findings:
@@ -1484,8 +1651,7 @@ def main(argv: list[str]) -> int:
         if not c.touched:
             continue
         writes.append((bundle.knowledge / path, None if c.deleted else c.text()))
-    for file, text in bundle.indexes.items():
-        writes.append((file, text))
+    writes.extend(bundle.index_writes())
     try:
         log_text = bundle.log_text()
     except (OSError, UnicodeDecodeError) as exc:
