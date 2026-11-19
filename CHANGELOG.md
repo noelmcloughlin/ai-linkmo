@@ -6,6 +6,10 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 ## [Unreleased]
 
+### Security
+
+- **The skills pin is at Knowledge Trust Ladder [v0.69.2](https://github.com/noelmcloughlin/knowledge-trust-ladder/blob/v0.69.2/CHANGELOG.md).** The sync also wrote the template over a local edit of `.github/workflows/knowledge-sync.yaml`.
+
 ## [0.7.4] - 2026-11-18
 
 ### Security
