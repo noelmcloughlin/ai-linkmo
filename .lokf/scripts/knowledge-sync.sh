@@ -22,7 +22,8 @@
 #
 # The host's own copy runs, from a person or knowledge-sync.yaml. A manifest
 # rule it does not know is reported for the run after the newer copy is
-# merged.
+# merged. The workflow's steps are here too (--workflow), so a fix to a step
+# reaches a host in its next sync pull request.
 #
 # Usage: knowledge-sync.sh [options] <tag>
 #   --host <dir>      the host; by default the nearest parent holding .lokf/
@@ -42,11 +43,14 @@
 #                     lock the pin again from the index and compare, and move
 #                     every workflow change into --held for a person to apply
 #   --held <file>     where --apply writes the held workflow changes
+#   --workflow <step> run one step of knowledge-sync.yaml (read, sync, apply
+#                     or publish), with its inputs in the job's environment;
+#                     only read may leave out the tag
 #
 # KNOWLEDGE_SYNC_INDEX_WAIT, a number of seconds, keeps asking the index for
 # a release it does not show yet, for a sync asked right after the release:
 # a mirror trails PyPI by a minute or so. Unset or 0, a missing release is
-# final.
+# final. In a workflow step it defaults to 600.
 #
 # Exit 0 when the host is synced or already was. Exit 1 when the host was
 # skipped (no .lokf/, no git, no ktl pin, uncommitted changes, the branch
@@ -66,6 +70,9 @@ website_in="ktl/skills/ktl-website/templates"
 librarian_in="ktl/skills/ktl-librarian/SKILL.md"
 # The pin, as the template writes it: one dependency line naming one release.
 pin_re='^[[:space:]]*"ktl==([0-9]+\.[0-9]+\.[0-9]+)"[[:space:]]*,?[[:space:]]*(#.*)?$'
+# The workflow's own branch, and the name its commits carry.
+sync_branch="knowledge-sync"
+bot="knowledge-sync[bot]"
 
 # The manifest's header says what each rule means. The rules this copy of
 # the script knows:
@@ -123,8 +130,9 @@ cleanup() {
   [[ -z "$work" ]] || rm -rf "$work"
 }
 
-# The version a host's pyproject.toml pins ktl to, or nothing: <file>.
-pinned() { sed -nE "s/$pin_re/\\1/p" "$1" | head -n 1; }
+# The version a host's pyproject.toml pins ktl to, or nothing: <file>, or
+# the file's text on stdin.
+pinned() { sed -nE "s/$pin_re/\\1/p" "$@" | head -n 1; }
 
 # The ktl entry of a project's lock, with its hashes, as a requirements file
 # uv reads: <project folder>. Nothing when the lock does not name ktl.
@@ -261,9 +269,322 @@ apply_patch() {
   for f in $(git -c core.quotePath=false diff --name-only "$lane" "$full"); do echo "   held     $f (a workflow change, for a person to apply)"; done
 }
 
+# The steps of knowledge-sync.yaml. Each runs from the host's root, reads its
+# inputs from the job's environment and writes its outputs to $GITHUB_OUTPUT.
+# references/automation.md describes the jobs.
+
+# One output of the step: <name> <value>.
+output() { printf '%s=%s\n' "$1" "$2" >> "$GITHUB_OUTPUT"; }
+
+# Print the newest pull request from <branch> of this repository as number,
+# state, merged and head commit. A fork's branch of that name is ignored.
+last_pull_request() {
+  gh api "repos/${GITHUB_REPOSITORY}/pulls?head=${GITHUB_REPOSITORY%%/*}:$1&state=all&sort=created&direction=desc&per_page=5" \
+    --jq '.[] | [.number, .state, (.merged_at != null), .head.sha, (.head.repo.full_name // "-")] | @tsv' \
+    | awk -F'\t' -v repo="$GITHUB_REPOSITORY" '!done && $1 ~ /^[0-9]+$/ && $4 ~ /^[0-9a-f]{40}$/ && $5 == repo { print; done = 1 }'
+}
+
+# Print the ktl pin pyproject.toml holds at <commit>, as vX.Y.Z, or nothing.
+pin_at() {
+  local version
+  version="$(gh api "repos/${GITHUB_REPOSITORY}/contents/$pyproject?ref=$1" --jq .content 2>/dev/null | tr -d '\n' | base64 -d 2>/dev/null | pinned || true)"
+  [[ -z "$version" ]] || echo "v$version"
+}
+
+# The `earlier` job: pick the release to sync to, or none: [<tag>]. It reads
+# the pin, the newest release on the host's index, and the state of this
+# workflow's branch and last pull request, never a title, body or comment.
+workflow_read() {
+  local wanted="$1" pin tag found
+  pin="$(pinned "$pyproject" 2>/dev/null || true)"
+  if [[ -z "$pin" ]]; then
+    echo "::error::$pyproject pins no ktl. Pin it once, at the release this host's copies came from, with uv add --project .lokf \"ktl==X.Y.Z\", and merge pyproject.toml and uv.lock. This workflow moves the pin from then on."
+    return 1
+  fi
+  pin="v$pin"
+  if [[ -n "$wanted" ]]; then
+    tag="$wanted"
+  else
+    if ! found="$(cd .lokf && echo ktl | uv pip compile --quiet --no-deps --no-header --no-annotate - 2>"$RUNNER_TEMP/newest.err")"; then
+      echo "::error::The newest ktl could not be read from this host's index ($(tr '\n' ' ' < "$RUNNER_TEMP/newest.err" | cut -c1-200)). A private index needs its credential in UV_INDEX_KNOWLEDGE_USERNAME and UV_INDEX_KNOWLEDGE_PASSWORD."
+      return 1
+    fi
+    tag="v$(printf '%s\n' "$found" | sed -n 's/^ktl==//p' | head -n 1)"
+    if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      echo "::error::The newest ktl on this host's index is '$found', which is not a release this workflow can sync to."
+      return 1
+    fi
+    if [[ "$(printf '%s\n%s\n' "$pin" "$tag" | sort -V | tail -n 1)" == "$pin" ]]; then
+      echo "::notice::The pin is at $pin and the newest release is $tag, so there is nothing to sync."
+      tag=""
+    fi
+  fi
+  local open="" open_tag="" declined="" branch="" mine hand n state merged sha proposed others tip base
+  if [[ -n "$tag" ]]; then
+    mine="$(last_pull_request "$sync_branch")"
+    hand="$(last_pull_request "sync-$tag")"
+    if [[ -n "$mine" ]]; then
+      IFS=$'\t' read -r n state merged sha _ <<< "$mine"
+      proposed="$(pin_at "$sha")"
+      if [[ "$state" == open && "$proposed" == "$tag" ]]; then
+        echo "::notice::Pull request #$n from this workflow already proposes $tag and is still open, so this run stops here."
+        tag=""
+      elif [[ "$state" == open ]]; then
+        # Only this workflow's own commits are replaced.
+        others="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/$n/commits?per_page=100" --jq "[.[] | select(.commit.committer.name != \"$bot\")] | length")"
+        if [[ "$others" == 0 ]]; then
+          open="$n"; open_tag="$proposed"; branch="$sha"
+          echo "Pull request #$n from this workflow proposes ${proposed:-an unknown release} and is still open, so this run refreshes it to $tag."
+        else
+          echo "::notice::Pull request #$n from this workflow is still open and carries a commit a person added, so this run leaves it alone and stops here. Merge or close it first."
+          tag=""
+        fi
+      elif [[ "$merged" == false && "$proposed" == "$tag" ]]; then
+        declined="$n"
+      fi
+    fi
+    if [[ -n "$tag" && -n "$hand" ]]; then
+      IFS=$'\t' read -r n state merged _ <<< "$hand"
+      if [[ "$state" == open ]]; then
+        echo "::notice::Pull request #$n, opened by hand from sync-$tag, already proposes $tag and is still open, so this run stops here."
+        tag=""
+      elif [[ "$merged" == false ]]; then
+        declined="$n"
+      fi
+    fi
+    # With no open pull request, overwrite the branch only when every commit
+    # on it is this workflow's own, and lease the push to the tip read here.
+    if [[ -n "$tag" && -z "$open" ]]; then
+      tip="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/$sync_branch" --jq .object.sha 2>/dev/null || true)"
+      if [[ "$tip" =~ ^[0-9a-f]{40}$ ]]; then
+        base="$(gh api "repos/${GITHUB_REPOSITORY}" --jq .default_branch)"
+        others="$(gh api "repos/${GITHUB_REPOSITORY}/compare/$base...$tip" --jq "[.commits[] | select(.commit.committer.name != \"$bot\")] | length")"
+        if [[ "$others" != 0 ]]; then
+          echo "::notice::The $sync_branch branch holds a commit this workflow did not make and has no open pull request, so this run leaves it alone and stops here. Merge it or delete the branch first."
+          tag=""
+        else
+          branch="$tip"
+        fi
+      fi
+    fi
+    if [[ -n "$tag" && -n "$declined" && "${GITHUB_EVENT_NAME:-}" == schedule ]]; then
+      echo "::notice::A person closed pull request #$declined, which proposed $tag, without merging. A scheduled run proposes it no more. A run a person starts takes it up again."
+      tag=""
+    fi
+  fi
+  output tag "$tag"
+  output from "$pin"
+  output open "$open"
+  output open_tag "$open_tag"
+  output declined "$declined"
+  output branch "$branch"
+  [[ -z "$tag" ]] || echo "Syncing to $tag, from $pin."
+}
+
+# The `sync` job: run the sync and write the changed files as a patch:
+# <tag>. It skips the checks, which the pull request runs.
+workflow_sync() {
+  local tag="$1" changed="$RUNNER_TEMP/changed.txt" report="$RUNNER_TEMP/report.md" path
+  ( main --host "$PWD" --no-checks --changed "$changed" --report "$report" "$tag" )
+  if [[ ! -s "$changed" ]]; then
+    output changed false
+    echo "::notice::The copies and the pin match $tag already, so there is nothing to sync."
+    return 0
+  fi
+  output changed true
+  { echo "## Knowledge sync to $tag"; echo; cat "$report"; } >> "$GITHUB_STEP_SUMMARY"
+  # Stop git from running any command a config file names.
+  g() { git -c core.fsmonitor=false -c core.hooksPath=/dev/null -c diff.external= "$@"; }
+  while IFS= read -r path; do
+    [[ -z "$path" ]] || g add -- "$path"
+  done < "$changed"
+  g diff --cached --binary --no-ext-diff --no-textconv > "$RUNNER_TEMP/sync.patch"
+}
+
+# The `publish` job, without the token: check and apply the patch, and hold
+# the workflow changes: <tag>.
+workflow_apply() {
+  local held="$RUNNER_TEMP/workflows.patch"
+  apply_patch "$RUNNER_TEMP/sync.patch" "$held" "$1"
+  if [[ -s "$held" ]]; then output held true; else output held false; fi
+}
+
+# Write the held workflow changes as Markdown for the summary and the pull
+# request: <patch> <tag> <1 if the sync has a branch, else 0>.
+held_section() {
+  local held="$1" tag="$2" on_branch="$3" bt='`' fence='````'
+  echo "### Workflow changes held for a person"
+  echo
+  if [[ "$on_branch" -eq 1 ]]; then
+    echo "This release also changes these workflows. They are not on the branch: a workflow pushed with a token runs on that push, with this repository's secrets, before anyone has read it."
+  else
+    echo "This release changes these workflows and nothing else here, so no pull request was opened. A workflow pushed with a token runs on that push, with this repository's secrets, before anyone has read it."
+  fi
+  echo
+  git -c core.quotePath=false apply --numstat "$held" | cut -f3- | sed "s/.*/- ${bt}&${bt}/"
+  echo
+  if [[ "$(wc -c < "$held")" -le 50000 ]]; then
+    # Use a fence longer than any run of backticks in the diff, so the diff
+    # cannot close it.
+    while grep -qF "$fence" "$held"; do fence="$fence$bt"; done
+    echo "<details><summary>The held diff</summary>"
+    echo
+    echo "${fence}diff"
+    cat "$held"
+    echo "$fence"
+    echo
+    echo "</details>"
+  else
+    echo "The diff is too long to show here. It is the run's ${bt}knowledge-sync-workflows${bt} artifact."
+  fi
+  echo
+  if [[ "$on_branch" -eq 1 ]]; then
+    echo "Once you have read them, apply them on this branch. If you merge without them, the workflows stay as they are until the next sync offers them again."
+  else
+    echo "Once you have read them, apply them on a branch from the default branch, and open its pull request:"
+  fi
+  echo
+  echo '```sh'
+  echo "gh run download ${GITHUB_RUN_ID:-<run id>} --repo ${GITHUB_REPOSITORY} --name knowledge-sync-workflows"
+  if [[ "$on_branch" -eq 1 ]]; then
+    echo "git switch $sync_branch && git pull"
+  else
+    echo "git switch -c sync-workflows-$tag"
+  fi
+  echo "git apply workflows.patch && git add .github/workflows"
+  if [[ "$on_branch" -eq 1 ]]; then
+    echo "git commit -m \"security(sidecar): sync workflows from $tag\" && git push"
+  else
+    echo "git commit -m \"security(sidecar): sync workflows from $tag\" && git push -u origin HEAD"
+  fi
+  echo '```'
+  echo
+  echo "Without gh, the artifact is on the run's page: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID:-}."
+}
+
+# The `publish` job, with the token: commit the staged change, push the
+# branch, and open or refresh the pull request: <tag>. The body comes from
+# the staged change and the default branch's checklist, never from the
+# `sync` job. Without the token the run succeeds with the patches attached.
+workflow_publish() {
+  local tag="$1" token="${SYNC_TOKEN:-}" from="${SYNC_FROM:-}" open="${SYNC_OPEN_PR:-}" open_tag="${SYNC_OPEN_TAG:-}"
+  local declined="${SYNC_DECLINED_PR:-}" lease="${SYNC_LEASE:-}"
+  local held="$RUNNER_TEMP/workflows.patch" heldmd="$RUNNER_TEMP/held.md" body="$RUNNER_TEMP/body.md"
+  local subject="security(sidecar): sync copies and skills pin from $tag"
+  local bt='`' staged=1 link copies added url base
+  ! git diff --cached --quiet || staged=0
+  : > "$heldmd"
+  if [[ -s "$held" ]]; then
+    held_section "$held" "$tag" "$staged" > "$heldmd"
+    cat "$heldmd" >> "$GITHUB_STEP_SUMMARY"
+  fi
+  if [[ "$staged" -eq 0 ]]; then
+    echo "::notice::$tag changes nothing here but workflows, which are held for a person, so no pull request was opened."
+    return 0
+  fi
+  if [[ -z "$token" ]]; then
+    {
+      echo "## No pull request opened"
+      echo
+      echo "This workflow opens the pull request with the secret ${bt}KNOWLEDGE_SYNC_TOKEN${bt}, which is not set in the ${bt}knowledge-sync${bt} Environment or the repository. The change is attached to this run as ${bt}sync.patch${bt}. To open it by hand, run ${bt}.lokf/scripts/knowledge-sync.sh --pr $tag${bt} in a clone; to let the workflow open it, set the secret as the sidecar's references/automation.md says."
+    } >> "$GITHUB_STEP_SUMMARY"
+    echo "::warning::KNOWLEDGE_SYNC_TOKEN is not set, so no pull request was opened; the patch is attached to this run."
+    return 0
+  fi
+  link="$repo_url/blob/$tag/CHANGELOG.md"
+  [[ -z "$from" || "$from" == "$tag" ]] || link="$repo_url/compare/$from...$tag"
+  # The copies are the staged files other than the changelog and the pin's.
+  copies="$(git -c core.quotePath=false diff --cached --name-status | awk -F'\t' -v p="$pyproject" -v l="$lock" '$1 == "M" && $2 != "CHANGELOG.md" && $2 != p && $2 != l { print $2 }')"
+  added="$(git -c core.quotePath=false diff --cached --name-status | awk -F'\t' '$1 == "A" { print $2 }')"
+  {
+    if [[ -n "$from" && "$from" != "$tag" ]]; then
+      echo "Brings the sidecar copies and the skills pin of this repository to Knowledge Trust Ladder [$tag]($link), from $from."
+    else
+      echo "Brings the sidecar copies and the skills pin of this repository to Knowledge Trust Ladder [$tag]($link)."
+    fi
+    if [[ -n "$open" ]]; then
+      echo
+      echo "**Refreshed on $(date -u +%Y-%m-%d).** This pull request proposed ${open_tag:-an earlier release} before. This run replaced its commits with a sync to $tag, so read the diff again."
+    fi
+    if [[ -n "$copies" ]]; then
+      echo; echo "The sync writes the release's copy over these files. The sync job's summary on the run's page names any that held a local edit:"; echo
+      printf '%s\n' "$copies" | sed "s/.*/- ${bt}&${bt}/"
+    fi
+    if [[ -n "$added" ]]; then
+      echo; echo "Added, because a file here needs it:"; echo
+      printf '%s\n' "$added" | sed "s/.*/- ${bt}&${bt}/"
+    fi
+    echo
+    if [[ -n "$from" && "$from" != "$tag" ]]; then
+      echo "The skills pin, ${bt}ktl${bt} in ${bt}$pyproject${bt}, moves from $from to $tag, and ${bt}$lock${bt} holds the hashes uv resolved for it in this run."
+    else
+      echo "The skills pin, ${bt}ktl${bt} in ${bt}$pyproject${bt}, is at $tag already."
+    fi
+    if [[ -s "$heldmd" ]]; then
+      echo
+      cat "$heldmd"
+    fi
+    echo
+    echo "This repository's own checks run on this pull request, on the synced copies, with a read-only token. A failure there is a bundle to fix in this pull request, or the gate fails on it after the merge."
+    echo
+    if git diff --cached --quiet -- CHANGELOG.md; then
+      echo "CHANGELOG.md is unchanged: it has the entry already, or it has no Unreleased heading, in which case add the entry by hand."
+    else
+      echo "CHANGELOG.md has the entry under its Unreleased heading and Security."
+    fi
+    echo
+    if [[ -n "$declined" ]]; then
+      echo "Pull request #$declined proposed this release and was closed without merging. A person started this run, so it proposes the release again."
+      echo
+    fi
+    git show HEAD:.github/PULL_REQUEST_TEMPLATE/knowledge-sync.md 2>/dev/null || true
+  } > "$body"
+  # Commit as the bot, as the AI covenant asks of a repository's automation,
+  # with no trailer. The read step finds its own commits by this name, so it
+  # overrides any identity the runner sets.
+  git checkout --quiet -b "$sync_branch"
+  GIT_AUTHOR_NAME="$bot" GIT_AUTHOR_EMAIL="$bot@users.noreply.github.com" \
+    GIT_COMMITTER_NAME="$bot" GIT_COMMITTER_EMAIL="$bot@users.noreply.github.com" \
+    git commit --quiet -m "$subject"
+  # A refresh writes over the last run's commits. An empty lease means the
+  # branch must not exist yet. GitHub masks the token in the push address.
+  if ! git push --quiet --force-with-lease="refs/heads/$sync_branch:$lease" "https://x-access-token:${token}@${GITHUB_SERVER_URL#https://}/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/$sync_branch"; then
+    echo "::error::The push was refused. Either the branch moved since this run read it, or KNOWLEDGE_SYNC_TOKEN lacks Contents set to read and write on this repository."
+    return 1
+  fi
+  if [[ -n "$open" ]]; then
+    GH_TOKEN="$token" gh pr edit "$open" --title "$subject" --body-file "$body" >/dev/null
+    url="$(GH_TOKEN="$token" gh pr view "$open" --json url --jq .url)"
+    echo "Refreshed $url"
+  else
+    base="$(GH_TOKEN="$token" gh api "repos/${GITHUB_REPOSITORY}" --jq .default_branch)"
+    url="$(GH_TOKEN="$token" gh pr create --title "$subject" --body-file "$body" --head "$sync_branch" --base "$base")"
+    echo "Opened $url"
+  fi
+  { echo; echo "Pull request: $url"; } >> "$GITHUB_STEP_SUMMARY"
+}
+
+# One step of knowledge-sync.yaml: <step> [<tag>].
+workflow_step() {
+  local step="$1" tag="$2" name
+  for name in GITHUB_OUTPUT GITHUB_STEP_SUMMARY GITHUB_REPOSITORY GITHUB_SERVER_URL RUNNER_TEMP; do
+    [[ -n "${!name:-}" ]] || die "--workflow runs as a step of knowledge-sync.yaml, and $name is not set"
+  done
+  [[ -n "$tag" || "$step" == read ]] || die "--workflow $step needs the tag the run syncs to"
+  # A new release may not be in every cache of the index yet.
+  export KNOWLEDGE_SYNC_INDEX_WAIT="${KNOWLEDGE_SYNC_INDEX_WAIT:-600}"
+  case "$step" in
+    read) workflow_read "$tag" ;;
+    sync) workflow_sync "$tag" ;;
+    apply) workflow_apply "$tag" ;;
+    publish) workflow_publish "$tag" ;;
+    *) die "--workflow takes read, sync, apply or publish, not '$step'" ;;
+  esac
+}
+
 main() {
   local host="" source="" tag="" changed_out="" report_out="" out
-  local apply="" held=""
+  local apply="" held="" step=""
   local branch_mode=0 commit=0 push=0 pr=0 checks=1
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -278,13 +599,16 @@ main() {
       --no-checks) checks=0; shift ;;
       --apply) [[ $# -ge 2 ]] || usage; apply="$2"; shift 2 ;;
       --held) [[ $# -ge 2 ]] || usage; held="$2"; shift 2 ;;
+      --workflow) [[ $# -ge 2 ]] || usage; step="$2"; shift 2 ;;
       -h|--help) usage ;;
       -*) echo "knowledge-sync: unknown option $1" >&2; usage ;;
       *) [[ -z "$tag" ]] || usage; tag="$1"; shift ;;
     esac
   done
-  [[ -n "$tag" ]] || usage
-  if [[ ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  # Only the workflow's read step may come with no tag: it finds the newest.
+  [[ -n "$tag" || "$step" == read ]] || usage
+  if [[ -n "$tag" && ! "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    [[ -z "$step" ]] || echo "::error::'$tag' is not a release tag (vMAJOR.MINOR.PATCH)."
     die "'$tag' is not a release tag (vMAJOR.MINOR.PATCH); a branch or a commit would let unreleased instructions into this host"
   fi
   local version="${tag#v}"
@@ -305,6 +629,11 @@ main() {
   if ! git -C "$host" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "   $host is not a git work tree: the sync leaves a diff for review, and there is no diff to leave here; skipped" >&2
     return 1
+  fi
+  if [[ -n "$step" ]]; then
+    cd "$host"
+    workflow_step "$step" "$tag"
+    return
   fi
   if [[ -n "$apply" ]]; then
     [[ -n "$held" ]] || die "--apply needs --held <file>"

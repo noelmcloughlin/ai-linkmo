@@ -86,6 +86,14 @@ jobs:
         with:
           egress-policy: audit
 
+      # The input is held to the shape of a tag before anything names a ref by it.
+      - name: Check the tag is a release tag
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$TAG' is not vMAJOR.MINOR.PATCH."
+            exit 1
+          fi
+
       # The bundle as it stood at the tag, not at the branch head.
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -643,5 +651,11 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           shopt -s nullglob
-          gh release upload "$TAG" ./*.zip ./*.yaml ./*.tsv ./*.sha256 ./*.intoto.jsonl --clobber
+          # gh retries a slow upload itself, and a retry of one that reached
+          # GitHub fails with "already exists"; --clobber makes a new attempt safe.
+          for attempt in 1 2 3; do
+            gh release upload "$TAG" ./*.zip ./*.yaml ./*.tsv ./*.sha256 ./*.intoto.jsonl --clobber && exit 0
+            [ "$attempt" = 3 ] || { echo "::warning::The upload to $TAG failed (attempt $attempt); trying again."; sleep 15; }
+          done
+          exit 1
         working-directory: ${{ runner.temp }}/release
