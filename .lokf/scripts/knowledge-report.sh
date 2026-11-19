@@ -44,9 +44,7 @@
 #                                concept waits in .lokf/feedback.md
 #   retired                      `status: deprecated`; no other label applies,
 #                                and it names the concept that replaced it
-#                                when its isReplacedBy names one, or else
-#                                the newest **Deprecation** line in log.md
-#                                links one
+#                                when its isReplacedBy names one
 #
 # The whole report also prints the queue of ktl-curator, Worth ten minutes
 # today, and what ranks it: review dates due within 30 days, confirmed
@@ -1176,12 +1174,8 @@ function resolve(v, from,  d, r) {
 
 # The concept that replaced a retired one, as S<TAB>retired<TAB>successor.
 # Its isReplacedBy decides: the first target, in the field or in `relations`,
-# that names a concept of the bundle. ktl-curator writes it on Retire. Where
-# it names none, the link after "replaced by" in the newest **Deprecation**
-# line of log.md that links the retired concept, in the `../` form that
-# ktl-curator and the KTL Curator plugin write; a retirement recorded before
-# the slot has only that line. A line with no such link names no successor.
-# The first S line for a concept is the one read.
+# that names a concept of the bundle. ktl-curator writes it on Retire. A
+# **Deprecation** line in log.md is history and names no successor.
 successors() {
   printf '%s\n' "$all" | awk -F'\t' -v base="$(bundle_base)" "$resolve_fn"'
   $1 == "C" { nc++; order[nc] = $2; st[$2] = $4 }
@@ -1195,19 +1189,6 @@ successors() {
       named[p] = 1; print "S\t" p "\t" t
     }
   }'
-  [ -f "$bundle/log.md" ] || return 0
-  awk '
-  function target(s,  a, b) {
-    a = index(s, "]("); if (!a) return ""; s = substr(s, a + 2); b = index(s, ")"); if (!b) return ""
-    rest = substr(s, b + 1); s = substr(s, 1, b - 1); sub(/^\.\.\//, "", s); sub(/^\.\//, "", s); return s
-  }
-  /^[*-] \*\*Deprecation\*\*: \[/ {
-    old = target($0); if (old == "" || (old in seen)) next
-    seen[old] = 1   # the newest line for this concept decides, whether or not it names a successor
-    c = index(rest, "replaced by ["); if (!c) next
-    new = target(substr(rest, c)); if (new == "") next
-    print "S\t" old "\t" new
-  }' "$bundle/log.md"
 }
 
 # Each Disagreement of a reader that names a concept and still waits, as

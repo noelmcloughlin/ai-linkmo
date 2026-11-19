@@ -43,6 +43,11 @@
 #                     every workflow change into --held for a person to apply
 #   --held <file>     where --apply writes the held workflow changes
 #
+# KNOWLEDGE_SYNC_INDEX_WAIT, a number of seconds, keeps asking the index for
+# a release it does not show yet, for a sync asked right after the release:
+# a mirror trails PyPI by a minute or so. Unset or 0, a missing release is
+# final.
+#
 # Exit 0 when the host is synced or already was. Exit 1 when the host was
 # skipped (no .lokf/, no git, no ktl pin, uncommitted changes, the branch
 # exists) or a check failed. Exit 2 when the arguments or the release are
@@ -76,6 +81,28 @@ usage() {
   exit 2
 }
 die() { echo "knowledge-sync: $*" >&2; exit 2; }
+# The sync writes plain files alone, never through a link: <path>.
+plain_file() { [[ ! -L "$1" ]] || die "$1 is a link, and the sync writes plain files alone"; }
+
+# Lock the pin from the index: <project folder> [uv args...]. uv's words are
+# the output when it fails. For KNOWLEDGE_SYNC_INDEX_WAIT seconds, a release
+# the index does not show yet is asked for again, as the header says.
+lock_pin() {
+  local dir="$1" waited=0 wait="${KNOWLEDGE_SYNC_INDEX_WAIT:-0}" said step
+  shift
+  [[ "$wait" =~ ^[0-9]+$ ]] || { echo "KNOWLEDGE_SYNC_INDEX_WAIT is '$wait', not a number of seconds"; return 2; }
+  while :; do
+    if said="$(cd "$dir" && uv lock --quiet --refresh-package ktl "$@" 2>&1)"; then return 0; fi
+    if (( waited < wait )) && printf '%s' "$said" | grep -qF "no version of ktl=="; then
+      step=$(( wait - waited < 30 ? wait - waited : 30 ))
+      echo "   waiting  the index does not show the release yet; asking again in $step s" >&2
+      sleep "$step"; waited=$(( waited + step ))
+      continue
+    fi
+    printf '%s\n' "$said"
+    return 1
+  done
+}
 
 # The run's temporary folder, and the undo for a stop between moving the
 # pin and reading the release: the pin's two files, and in branch mode the
@@ -203,13 +230,11 @@ apply_patch() {
       git reset --quiet --hard
       die "uv is not installed, and the lock the patch brings is checked with it"
     fi
-    err="$(mktemp)"
     if git cat-file -e "HEAD:$lock" 2>/dev/null; then git show "HEAD:$lock" > "$lock"; else rm -f "$lock"; fi
-    if ! (cd .lokf && uv lock --quiet --refresh-package ktl) 2>"$err"; then
+    if ! err="$(lock_pin .lokf)"; then
       git reset --quiet --hard
-      die "uv could not lock the patch's pin ($(tr '\n' ' ' < "$err" | cut -c1-300))"
+      die "uv could not lock the patch's pin ($(printf '%s' "$err" | tr '\n' ' ' | cut -c1-300))"
     fi
-    rm -f "$err"
     if ! git diff --quiet -- "$lock"; then
       git reset --quiet --hard
       die "the patch's $lock differs from the one uv resolves from the index for its pin, so it was not taken"
@@ -332,8 +357,8 @@ main() {
       echo "   no default branch to start from (origin/HEAD, main or master); skipped" >&2
       return 1
     fi
-    if git -C "$host" rev-parse -q --verify "refs/heads/$branch" >/dev/null; then
-      echo "   $branch already exists in $host: finish it, or delete it, first; skipped" >&2
+    if git -C "$host" rev-parse -q --verify "refs/heads/$branch" >/dev/null || git -C "$host" rev-parse -q --verify "refs/remotes/origin/$branch" >/dev/null; then
+      echo "   $branch already exists in $host, or on its origin: finish it, or delete it, first; skipped" >&2
       return 1
     fi
     previous="$(git -C "$host" symbolic-ref --quiet --short HEAD 2>/dev/null || git -C "$host" rev-parse HEAD)"
@@ -390,7 +415,7 @@ main() {
     rm -f "$host/$pyproject.sync-bak"
   fi
   echo "   locking  ktl==$version"
-  if ! said="$(cd "$host/.lokf" && uv lock --quiet --refresh-package ktl ${from[@]+"${from[@]}"} 2>&1)"; then
+  if ! said="$(lock_pin "$host/.lokf" ${from[@]+"${from[@]}"})"; then
     if printf '%s' "$said" | grep -qF "no version of ktl=="; then
       die "no release $tag of ktl on the index: publish the release first, then sync (that order is the point)"
     elif printf '%s' "$said" | grep -qF "ktl was not found"; then
@@ -497,6 +522,7 @@ main() {
         continue
       fi
       mkdir -p "$(dirname "$host/$dst")"
+      plain_file "$host/$dst"
       tpl "$src" > "$host/$dst"
       [[ ! -x "$new_t/$src" ]] || chmod +x "$host/$dst"
       added+=("$dst ($why)")
@@ -525,6 +551,7 @@ main() {
       else
         copied+=("$dst")
       fi
+      plain_file "$host/$dst"
       cat "$want" > "$host/$dst"
       rm -f "$was"
     fi
@@ -549,6 +576,7 @@ main() {
       dst="$site/$rel"; [[ "$rel" == gitignore ]] && dst="$site/.gitignore"
       if [[ ! -f "$host/$dst" ]]; then
         mkdir -p "$(dirname "$host/$dst")"
+        plain_file "$host/$dst"
         cat "$new_w/website/$rel" > "$host/$dst"
         [[ ! -x "$new_w/website/$rel" ]] || chmod +x "$host/$dst"
         added+=("$dst (the site cannot build without it)")
@@ -560,6 +588,7 @@ main() {
         else
           copied+=("$dst")
         fi
+        plain_file "$host/$dst"
         cat "$new_w/website/$rel" > "$host/$dst"
         [[ ! -x "$new_w/website/$rel" ]] || chmod +x "$host/$dst"
       fi
@@ -696,7 +725,7 @@ main() {
     (
       rc=0
       cd "$host/.lokf"
-      if [[ -x scripts/knowledge-preflight.sh ]]; then
+      if [[ -f scripts/knowledge-preflight.sh ]]; then
         echo "preflight: $(bash scripts/knowledge-preflight.sh | tail -1)"
       fi
       if command -v uv >/dev/null 2>&1; then
