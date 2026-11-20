@@ -14,7 +14,7 @@
 #   - copies each template the host carries, adds one an `always` or `needs`
 #     line asks for, and lists the rest for ktl-sidecar's Step 5;
 #   - reports local edits it overwrote, and host files no manifest line names;
-#   - writes the changelog entry under "## [Unreleased]", "### Security";
+#   - writes the changelog entry under "## [Unreleased]", "### Changed";
 #   - runs the sidecar's checks on the result.
 # It starts from a clean tree, on the current branch or a new one from
 # origin's default branch. It edits the pin line and runs `uv lock` because
@@ -141,7 +141,7 @@ locked() {
     | awk '/^ktl==/ { p = 1 } p { print; if ($0 !~ /\\$/) exit }' || true
 }
 
-# Add the entry to the "### Security" section under "## [Unreleased]", and
+# Add the entry to the "### Changed" section under "## [Unreleased]", and
 # add that section at the end of Unreleased when it is missing. A file with
 # CRLF line endings keeps them, and the added lines get them too. Return 3
 # when the file has no "## [Unreleased]" heading.
@@ -156,7 +156,7 @@ add_entry() {
       if (u == 0) exit 3
       if (line[u] ~ /\r$/) nl = "\r"
       for (i = u + 1; i <= NR; i++) if (key[i] ~ /^## /) { e = i; break }
-      for (i = u + 1; i < e; i++) if (key[i] ~ /^### Security[ \t]*$/) { s = i; break }
+      for (i = u + 1; i < e; i++) if (key[i] ~ /^### Changed[ \t]*$/) { s = i; break }
       if (s) {
         t = e
         for (i = s + 1; i < e; i++) if (key[i] ~ /^### /) { t = i; break }
@@ -170,7 +170,7 @@ add_entry() {
         for (i = u + 1; i < e; i++) if (key[i] !~ /^[ \t]*$/) last = i
         for (i = 1; i <= last; i++) print line[i]
         print nl
-        print "### Security" nl
+        print "### Changed" nl
         print nl
         print entry nl
       }
@@ -453,9 +453,9 @@ held_section() {
   fi
   echo "git apply workflows.patch && git add .github/workflows"
   if [[ "$on_branch" -eq 1 ]]; then
-    echo "git commit -m \"security(sidecar): sync workflows from $tag\" && git push"
+    echo "git commit -m \"chore(sidecar): sync workflows from $tag\" && git push"
   else
-    echo "git commit -m \"security(sidecar): sync workflows from $tag\" && git push -u origin HEAD"
+    echo "git commit -m \"chore(sidecar): sync workflows from $tag\" && git push -u origin HEAD"
   fi
   echo '```'
   echo
@@ -470,7 +470,7 @@ workflow_publish() {
   local tag="$1" token="${SYNC_TOKEN:-}" from="${SYNC_FROM:-}" open="${SYNC_OPEN_PR:-}" open_tag="${SYNC_OPEN_TAG:-}"
   local declined="${SYNC_DECLINED_PR:-}" lease="${SYNC_LEASE:-}"
   local held="$RUNNER_TEMP/workflows.patch" heldmd="$RUNNER_TEMP/held.md" body="$RUNNER_TEMP/body.md"
-  local subject="security(sidecar): sync copies and skills pin from $tag"
+  local subject="chore(sidecar): sync copies and skills pin from $tag"
   local bt='`' staged=1 link copies added url base
   ! git diff --cached --quiet || staged=0
   : > "$heldmd"
@@ -530,7 +530,7 @@ workflow_publish() {
     if git diff --cached --quiet -- CHANGELOG.md; then
       echo "CHANGELOG.md is unchanged: it has the entry already, or it has no Unreleased heading, in which case add the entry by hand."
     else
-      echo "CHANGELOG.md has the entry under its Unreleased heading and Security."
+      echo "CHANGELOG.md has the entry under its Unreleased heading and Changed."
     fi
     echo
     if [[ -n "$declined" ]]; then
@@ -1039,7 +1039,7 @@ main() {
   elif grep -qF "[$tag]($link)" "$host/CHANGELOG.md"; then
     changelog_line="CHANGELOG.md already has the entry for $tag."
   elif add_entry "$host/CHANGELOG.md" "$entry"; then
-    changelog_line="CHANGELOG.md has the entry, under its Unreleased heading and Security."
+    changelog_line="CHANGELOG.md has the entry, under its Unreleased heading and Changed."
     changed+=("CHANGELOG.md")
   else
     changelog_line="CHANGELOG.md has no Unreleased heading, so add the entry by hand:"$'\n'"   $entry"
@@ -1147,7 +1147,7 @@ main() {
   } > "$body"
   if [[ -n "$report_out" ]]; then cat "$body" > "$report_out"; fi
 
-  local subject="security(sidecar): sync copies and skills pin from $tag"
+  local subject="chore(sidecar): sync copies and skills pin from $tag"
   if [[ "$commit" -eq 1 ]]; then
     git -C "$host" add -- "${changed[@]}"
     git -C "$host" commit --quiet -m "$subject"
