@@ -12,14 +12,17 @@ tags:
   - ci-cd
 generated:
   by: process:ktl-librarian
-  at: "2026-10-27T17:36:28Z"
+  at: "2026-11-23T15:55:02Z"
 dependsOn:
   - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
 references:
   - https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
 verified:
   - by: process:ktl-librarian
-    at: "2026-09-25T20:31:56Z"
+    at: "2026-11-23T15:55:02Z"
+sources:
+  - resource: ai
+  - resource: .github/workflows/cli-tests.yml
 ---
 
 # Overview

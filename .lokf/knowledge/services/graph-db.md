@@ -7,17 +7,19 @@ description: Graph-database access pattern - the exported knowledge graph is loa
 resource: graph
 documentation: https://github.com/noelmcloughlin/ai-linkmo/blob/main/docs/neo4j.md
 tags:
-- graph
-- neo4j
-- cypher
+  - graph
+  - neo4j
+  - cypher
 generated:
   by: process:ktl-librarian
-  at: "2026-10-17T00:24:57Z"
+  at: "2026-11-23T15:55:02Z"
 dependsOn:
-- https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/knowledge-graph-export
+  - https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/knowledge-graph-export
 verified:
-- by: process:ktl-librarian
-  at: "2026-10-16T23:49:47Z"
+  - by: process:ktl-librarian
+    at: "2026-11-23T15:55:02Z"
+sources:
+  - resource: scripts/fetch_cypher.py
 ---
 
 # Overview

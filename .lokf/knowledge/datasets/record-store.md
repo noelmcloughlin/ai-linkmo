@@ -14,13 +14,18 @@ derivedFrom:
 sources:
   - resource: docs/working-with-the-data.md
   - resource: lib/store
+  - resource: scripts/load_store.py
+  - resource: scripts/index_store.py
+  - resource: scripts/dump_store.py
+  - resource: scripts/validate_store.py
+  - resource: .github/workflows/cli-tests.yml
 generated:
   by: process:ktl-librarian
-  at: "2026-10-27T17:36:28Z"
+  at: "2026-11-23T15:55:02Z"
 status: draft
 verified:
   - by: process:ktl-librarian
-    at: "2026-10-16T23:49:47Z"
+    at: "2026-11-23T15:55:02Z"
 ---
 
 # Overview

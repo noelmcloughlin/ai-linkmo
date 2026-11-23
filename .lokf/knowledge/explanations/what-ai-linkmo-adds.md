@@ -10,7 +10,7 @@ tags:
   - provenance
 generated:
   by: process:ktl-librarian
-  at: "2026-10-17T00:24:57Z"
+  at: "2026-11-23T15:55:02Z"
 status: draft
 references:
   - https://noelmcloughlin.github.io/ai-linkmo/knowledge/references/ai-risk-ontology
@@ -19,7 +19,7 @@ relatedTo:
   - https://noelmcloughlin.github.io/ai-linkmo/knowledge/explanations/why-linked-ai-governance
 verified:
   - by: process:ktl-librarian
-    at: "2026-10-27T17:36:28Z"
+    at: "2026-11-23T15:55:02Z"
 sources:
   - resource: docs/for-the-curious.md
     title: For the curious, Where this sits and What it does not add yet
@@ -27,6 +27,8 @@ sources:
     title: Architecture, Where this sits
   - resource: docs/cli-examples.md
     title: CLI examples, which says most of its commands are test cases
+  - resource: byo/notes/EXAMPLES.md
+    title: The scripted walk through all four doors
 ---
 
 # What AI-LinkMO adds to AI Atlas Nexus
