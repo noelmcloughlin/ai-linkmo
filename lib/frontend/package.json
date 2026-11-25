@@ -25,7 +25,7 @@
     "svelte": "^5.57.3",
     "svelte-routing": "^2.13.0",
     "svelte-select": "^5.8.3",
-    "tailwind-merge": "^3.7.0",
+    "tailwind-merge": "^3.7.1",
     "tailwind-variants": "^4.0.2"
   },
   "devDependencies": {
