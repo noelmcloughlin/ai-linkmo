@@ -1185,7 +1185,7 @@ wheels = [
 
 [[package]]
 name = "datasette"
-version = "0.65.5"
+version = "0.65.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -1209,9 +1209,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "uvicorn" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/98/4a/75224122c9cc725b6dcc9466fff8a720c99a2d7b67ce866a82c52a5f2141/datasette-0.65.5.tar.gz", hash = "sha256:8d16ab1bf9a2753089cd3cb079045885d440f11267973e89e08e7fecf555264a", size = 416175, upload-time = "2026-09-17T00:00:08.656Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4f/8e/5f25ff516c606ee9dfa59c39bc1c1127ae503b557779ac7279cf1624c053/datasette-0.65.6.tar.gz", hash = "sha256:ec3f5407d1f18b6afa773a18ad4989b77b23497cc0e1036fb37636d562b7afbc", size = 416891, upload-time = "2026-11-15T23:21:14.666Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b0/11/c30114a7f78ed33a13d7e98421f2ca1e1ead61a7441b745663e20f31bc4c/datasette-0.65.5-py3-none-any.whl", hash = "sha256:ca5faf528d4c1acc22e78b0274257435683ae6c75cf275939f2b92a10e498dbb", size = 399477, upload-time = "2026-09-17T00:00:06.814Z" },
+    { url = "https://files.pythonhosted.org/packages/ad/ea/f9ebc64feefdd689872853a51f537a8f4a38158a8d41c3e8e14a0b67f3a2/datasette-0.65.6-py3-none-any.whl", hash = "sha256:08d1d1b424dbccfe62da81486cf3a63fa0317ce45c512aafb7bef29521dbdca5", size = 399636, upload-time = "2026-11-15T23:21:12.969Z" },
 ]
 
 [[package]]
