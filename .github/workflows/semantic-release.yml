@@ -61,7 +61,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24
+          node-version: 26
 
       # .release/package-lock.json pins the release tools and every
       # package they pull in, and Dependabot keeps it current. They are not a
@@ -155,7 +155,7 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 24
+          node-version: 26
 
       - name: Install semantic-release from its lockfile
         run: npm ci --prefix .release --no-audit --no-fund --ignore-scripts
