@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-11-23
+
+* **Changed**: AI-LinkMO CLI now lists `ai` and `.github/workflows/cli-tests.yml` under sources: the wrapper script is where the API-mode default is set, and the workflow is where the CI test command runs.
+* **Changed**: DuckDB record store now lists the four `scripts/*.py` recipes and `.github/workflows/cli-tests.yml` under sources: the just recipes run those scripts, and the workflow is where the 30-finding validation ceiling comes from.
+* **Changed**: Svelte Web UI now lists `.github/workflows/ui-tests.yml` under sources, since that workflow is where the quality gates the concept names actually run.
+* **Changed**: Neo4j Graph Database now lists `scripts/fetch_cypher.py` under sources, since `just fetch-cypher` runs that script.
+* **Changed**: What AI-LinkMO adds now lists `byo/notes/EXAMPLES.md` under sources, since the scripted walk through all four doors the concept names is that file.
+
 ## 2026-10-27
 
 * **Changed**: the source map's exclusions name `ai-risk-ontology-linkmo/docs/elements` and the project's `scripts/gen_examples.py`, where 0.5.0 moved them, and are split into shorter sentences and a list.

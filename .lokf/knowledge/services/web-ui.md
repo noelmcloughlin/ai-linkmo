@@ -16,10 +16,12 @@ dependsOn:
   - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/fastapi-backend
 verified:
   - by: process:ktl-librarian
-    at: "2026-10-27T01:10:23Z"
+    at: "2026-11-23T15:55:02Z"
 generated:
   by: process:ktl-librarian
-  at: "2026-10-27T17:36:28Z"
+  at: "2026-11-23T15:55:02Z"
+sources:
+  - resource: .github/workflows/ui-tests.yml
 ---
 
 # Overview

@@ -30,7 +30,7 @@ about:
   - https://noelmcloughlin.github.io/ai-linkmo/knowledge/services/graph-db
 verified:
   - by: process:ktl-librarian
-    at: "2026-10-27T17:36:28Z"
+    at: "2026-11-23T15:55:02Z"
 ---
 
 # Install and run

@@ -18,7 +18,7 @@ dependsOn:
   - https://noelmcloughlin.github.io/ai-linkmo/knowledge/datasets/finos-aigf
 verified:
   - by: process:ktl-librarian
-    at: "2026-09-25T20:33:34Z"
+    at: "2026-11-23T15:55:02Z"
 generated:
   by: process:ktl-librarian
   at: "2026-10-27T17:57:49Z"
