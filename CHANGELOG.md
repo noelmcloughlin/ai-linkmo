@@ -10,6 +10,10 @@ The `v0.1.0` tag is a baseline, not a release: it marks where versioning starts,
 
 - **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.70.4](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.70.3...v0.70.4).** The release changed `.lokf/scripts/knowledge-sync.sh` here.
 
+### Changed
+
+- **The sidecar copies and the skills pin are at Knowledge Trust Ladder [v0.71.0](https://github.com/noelmcloughlin/knowledge-trust-ladder/compare/v0.70.4...v0.71.0).** The release changed `.github/workflows/knowledge-registrar.yaml`, `.github/workflows/knowledge-librarian.yaml`, `.github/workflows/knowledge-release.yaml`, `.github/workflows/knowledge-sync.yaml` and `.lokf/scripts/knowledge-conventions.sh` here. The sync also wrote the template over a local edit of `.github/workflows/knowledge-website.yaml`.
+
 ## [0.7.7] - 2026-11-19
 
 ### Security
