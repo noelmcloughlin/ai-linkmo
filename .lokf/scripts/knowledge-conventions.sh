@@ -17,18 +17,18 @@
 #      a `human:` or `process:` actor: the shape the curator and both plugins
 #      write and read. The curator quotes the first bullet, so a trailing
 #      signature would become the question.
-#   5. Every `resource:`, an exclusion's too, that names no URL and no other
-#      scheme, such as `urn:` or `doi:`, names a file or directory that exists,
-#      relative to the repository root: the nearest directory holding `.lokf/`,
-#      or else the bundle's parent. URLs are never fetched.
+#   5. Every `resource:`, an exclusion's too, that names neither a URL nor
+#      another scheme, such as `urn:` or `doi:`, names a file or directory that
+#      exists, relative to the repository root: the nearest directory holding
+#      `.lokf/`, or else the bundle's parent. URLs are never fetched.
 #   6. A commit-shaped `revision` (lokf 0.9.0 and later), seven or more
 #      lower-case hex characters on any event, names a commit in the history of
 #      HEAD that holds the concept's local `resource`. With `--since <commit>`
-#      it names no commit made after that base: a squash merge or a rebase
-#      replaces such a commit, and a `sha256:` digest pins the file instead. A
-#      `revision` of any other shape, such as an ETag or a digest, is not
-#      checked. The rule needs the full history: outside git it is skipped, and
-#      a shallow clone is reported.
+#      it does not name a commit made after that base: a squash merge or a
+#      rebase replaces such a commit, and a `sha256:` digest pins the file
+#      instead. A `revision` of any other shape, such as an ETag or a digest, is
+#      not checked. The rule needs the full history: outside git it is skipped,
+#      and a shallow clone is reported.
 #   7. One file per `id`. A sync client's conflict copy or a pasted duplicate
 #      passes `lokf validate` and silently merges into the original in the
 #      graph.
@@ -38,21 +38,21 @@
 #      and sync clients name a conflict copy with a space, a parenthesis or an
 #      upper-case host name.
 #   9. Every concept is a file, not a symbolic link, and starts with a `---`
-#      frontmatter block that closes. No byte order mark or blank line stands
-#      in front of it, no space or tab follows a `---` delimiter, and no other
-#      `---` sits inside it. Otherwise LOKF, or lokf before 0.10.0, reads more
-#      or less of the file as frontmatter than this script does.
+#      frontmatter block that closes. It has no byte order mark or blank line in
+#      front of it, no space or tab after a `---` delimiter, and no other `---`
+#      inside it. Otherwise LOKF, or lokf before 0.10.0, reads more or less of
+#      the file as frontmatter than this script does.
 #  10. The fields the provenance gates read line by line are spelt so that a
 #      line reader and a parser read the same thing. They are `id`, `verified`,
-#      `generated`, and `by`, `at` and `revision` at any depth. Each carries no
+#      `generated`, and `by`, `at` and `revision` at any depth. Each has no
 #      quoted or explicit key, space before the colon, escape or block scalar,
-#      and none is given twice in one mapping. No value spans lines or sits
-#      below its key, and no comment sits beside one, inside a flow form or
-#      between the events of a list. `resource` keeps the same spellings,
-#      though a comment may stand beside it, and `sources` and `exclusions`
-#      hold no flow form. The whole block holds no tag, anchor, alias or merge
-#      key, on any field or collection. The block is not indented whole or one
-#      flow mapping, and holds no line break but a line feed.
+#      and none is given twice in one mapping. A value does not span lines or
+#      sit below its key, and a comment does not sit beside one, inside a flow
+#      form or between the events of a list. `resource` keeps the same
+#      spellings, though a comment may stand beside it, and `sources` and
+#      `exclusions` have no flow form. The whole block has no tag, anchor, alias
+#      or merge key, on any field or collection. The block is not indented whole
+#      or one flow mapping, and its only line break is the line feed.
 #  11. No `at:` is later than the commit that first recorded it, or, before it
 #      is committed, than now. A time ahead of the clock, such as local time
 #      labelled `Z` or a round placeholder, sorts after the edits and
@@ -62,8 +62,8 @@
 #      a good one. A time with an offset other than `Z` is not compared.
 #      Outside git the rule is skipped.
 #  12. An index bullet that names a concept carries that concept's title and
-#      description, in the folder's index.md and in the root's. A concept no
-#      index lists is not a finding.
+#      description, in the folder's index.md and in the root's. A concept that
+#      no index lists is not a finding.
 #  13. A concept labelled confirmed by a person still says what that person
 #      confirmed: an edit to its claims after the commit that recorded the
 #      latest confirmation must move `generated.at` past that confirmation. Its
@@ -88,8 +88,8 @@
 #      those under the newest day heading. A `**Removal**` bullet under the
 #      same or a newer day that names the same concept excuses one.
 #  18. Each `exclusions` entry (lokf 0.9.0 and later) gives a `reason` that is
-#      not blank, and no material is both a `sources` entry and an exclusion of
-#      one concept.
+#      not blank, and a material is not both a `sources` entry and an exclusion
+#      of one concept.
 #
 # Rules 2, 3, 8, 10 and 18 are house rules, stricter than the format: OKF
 # permits an unquoted datetime, a bare `verified` mapping, any file name and

@@ -20,7 +20,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ktl", specifier = "==0.70.4" },
+    { name = "ktl", specifier = "==0.71.0" },
     { name = "lokf", extras = ["build", "shacl"], specifier = ">=0.10.0" },
     { name = "rust-just", specifier = "==1.59.0" },
 ]
@@ -776,11 +776,11 @@ wheels = [
 
 [[package]]
 name = "ktl"
-version = "0.70.4"
+version = "0.71.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/23/89/5038f1c2215ce79016654e1344df35d54ebcc7b3b1a69afc7e4b692d7a64/ktl-0.70.4.tar.gz", hash = "sha256:21cd1e374e9ab9df8290eadb224daebb29ccc86dc252dd612594e122dfee7a0e", size = 863075, upload-time = "2026-11-19T22:08:17.289Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/08/ae/fd5b916f34cf3a0f00aca419fb10854ab25c93d430ca238354137d46c5d7/ktl-0.71.0.tar.gz", hash = "sha256:a707ed6d7e0acedf38a4bde8be8c910e3f2fa594376fbb9f3c575edd4b2664eb", size = 866277, upload-time = "2026-11-27T19:47:32.061Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0b/c8/9efe49379f9902d611f994a30a7a940e627be87fb9ac1db6055f268977da/ktl-0.70.4-py3-none-any.whl", hash = "sha256:b333329c414a2b39232ff750eaf0a45194c3eec21978a2468f07691beb639b26", size = 978592, upload-time = "2026-11-19T22:08:15.695Z" },
+    { url = "https://files.pythonhosted.org/packages/22/b1/af63bf6f2d087cae51076482c4ad80ced4a60eb47ff5460246ba7d5d2207/ktl-0.71.0-py3-none-any.whl", hash = "sha256:242e2c9b356114bb22de53a2efff55d84efd9338519a20937eb574b67171f47d", size = 981304, upload-time = "2026-11-27T19:47:30.474Z" },
 ]
 
 [[package]]
